@@ -2,7 +2,7 @@
  * MDHIM TNG
  * 
  * Data store abstraction
- * /
+ */
 
 #include "data_store.h"
 
@@ -15,7 +15,7 @@
  * 
  * @return mdhim_store_t      The mdhim storage abstraction struct
  */
-mdhim_store_t *mdhim_db_open(char *path, mdhim_store_opts_t *mstore_opts) {
+struct mdhim_store_t *mdhim_db_open(char *path, struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*
@@ -31,8 +31,8 @@ mdhim_store_t *mdhim_db_open(char *path, mdhim_store_opts_t *mstore_opts) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_db_put( mdhim_store_t *mstore, void *key, int key_len, void *data, int data_len, 
-		  mdhim_store_opts_t *mstore_opts) {
+int mdhim_db_put( struct mdhim_store_t *mstore, void *key, int key_len, void *data, int data_len, 
+		  struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*
@@ -49,8 +49,8 @@ int mdhim_db_put( mdhim_store_t *mstore, void *key, int key_len, void *data, int
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_db_bput( mdhim_store_t *mstore, void **keys, int *key_lens, void **data, int *data_lens, 
-		mdhim_store_opts_t *mstore_opts) {
+int mdhim_db_bput( struct mdhim_store_t *mstore, void **keys, int *key_lens, void **data, int *data_lens, 
+		struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*
@@ -66,8 +66,8 @@ int mdhim_db_bput( mdhim_store_t *mstore, void **keys, int *key_lens, void **dat
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_db_get( mdhim_store_t *mstore, void *key, int key_len, void *data, int data_len, 
-	       mdhim_store_opts_t *mstore_opts) {
+int mdhim_db_get(struct mdhim_store_t *mstore, void *key, int key_len, void *data, int data_len, 
+	       struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*
@@ -83,8 +83,8 @@ int mdhim_db_get( mdhim_store_t *mstore, void *key, int key_len, void *data, int
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_db_bget( mdhim_store_t *mstore, void **keys, int *key_lens, void **data, int *data_lens, 
-		mdhim_store_opts_t *mstore_opts) {
+int mdhim_db_bget( struct mdhim_store_t *mstore, void **keys, int *key_lens, void **data, int *data_lens, 
+		   struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*
@@ -99,8 +99,8 @@ int mdhim_db_bget( mdhim_store_t *mstore, void **keys, int *key_lens, void **dat
  * @param mstore_cur_opts in   additional cursor options for the data store layer 
  * 
  */
-int mdhim_db_get_next( mdhim_store_cur_t *mcur, void *key, int *key_len, void *data, int *data_len, 
-		    mdhim_store_cur_opts_t *mstore_cur_opts) {
+int mdhim_db_get_next( struct mdhim_store_cur_t *mcur, void *key, int *key_len, void *data, int *data_len, 
+		       struct mdhim_store_cur_opts_t *mstore_cur_opts) {
 }
 
 
@@ -117,8 +117,8 @@ int mdhim_db_get_next( mdhim_store_cur_t *mcur, void *key, int *key_len, void *d
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_db_get_prev( mdhim_store_cur_t *mcur, void *key, int *key_len, void *data, int *data_len, 
-		    mdhim_store_cur_opts_t *mstore_cur_opts) {
+int mdhim_db_get_prev( struct mdhim_store_cur_t *mcur, void *key, int *key_len, void *data, int *data_len, 
+		       struct mdhim_store_cur_opts_t *mstore_cur_opts) {
 }
 
 /*
@@ -130,5 +130,5 @@ int mdhim_db_get_prev( mdhim_store_cur_t *mcur, void *key, int *key_len, void *d
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_db_close( mdhim_store_t *mstore, mdhim_store_opts_t *mstore_opts) {
+int mdhim_db_close( struct mdhim_store_t *mstore, struct mdhim_store_opts_t *mstore_opts) {
 }

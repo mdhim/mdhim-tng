@@ -1,4 +1,5 @@
-#include messages.h
+#include "mdhim.h"
+#include "messages.h"
 
 /*
  * send_message
@@ -9,7 +10,7 @@
  * @param message pointer to message to send
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int send_message(mdhim_t *md, int dest, void *message) {
+int send_message(struct mdhim_t *md, int dest, void *message) {
 
 }
 
@@ -21,6 +22,6 @@ int send_message(mdhim_t *md, int dest, void *message) {
  * @param src     source to receive from 
  * @return        message pointer to message received
  */
-void *receive_message(mdhim_t *md, int src) {
+void *receive_message(struct mdhim_t *md, int src) {
 
 }

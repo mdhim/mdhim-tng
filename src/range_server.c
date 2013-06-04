@@ -38,7 +38,7 @@ work_item *get_work() {
  * @param md  Pointer to the main MDHIM structure
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_stop(mdhim_t *md) {
+int range_server_stop(struct mdhim_t *md) {
   //stop threads
   //free relevant pointers in md
 }
@@ -50,7 +50,7 @@ int range_server_stop(mdhim_t *md) {
  * @param im  pointer to the put message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_put(mdhim_putm_t *im) {
+int range_server_put(struct mdhim_putm_t *im) {
  
 }
 
@@ -61,7 +61,7 @@ int range_server_put(mdhim_putm_t *im) {
  * @param im  pointer to the put message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bput(mdhim_bputm_t *bim) {
+int range_server_bput(struct mdhim_bputm_t *bim) {
  
 }
 
@@ -72,7 +72,7 @@ int range_server_bput(mdhim_bputm_t *bim) {
  * @param im  pointer to the delete message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_delete(mdhim_deletem_t *dm) {
+int range_server_delete(struct mdhim_delm_t *dm) {
  
 }
 
@@ -83,7 +83,7 @@ int range_server_delete(mdhim_deletem_t *dm) {
  * @param im  pointer to the delete message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bdelete(mdhim_bdeletem_t *bdm) {
+int range_server_bdelete(struct mdhim_bdelm_t *bdm) {
  
 }
 
@@ -94,7 +94,7 @@ int range_server_bdelete(mdhim_bdeletem_t *bdm) {
  * @param im  pointer to the get message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_get(mdhim_getm_t *gm) {
+int range_server_get(struct mdhim_getm_t *gm) {
  
 }
 
@@ -105,7 +105,7 @@ int range_server_get(mdhim_getm_t *gm) {
  * @param im  pointer to the bulk get message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bget(mdhim_bgetm_t *bgm) {
+int range_server_bget(struct mdhim_bgetm_t *bgm) {
  
 }
 
@@ -113,7 +113,7 @@ int range_server_bget(mdhim_bgetm_t *bgm) {
  * listener_thread
  * Function for the thread that listens for new messages
  */
-void *listener_thread(void *) {
+void *listener_thread(void *data) {
   //Receive messages sent to this server and add messages to work queue
 }
 
@@ -121,7 +121,7 @@ void *listener_thread(void *) {
  * worker_thread
  * Function for the thread that processes work in work queue
  */
-void *worker_thread(void *) {
+void *worker_thread(void *data) {
   //Processes work queue - will use a condition variable to signal that more work is available
   //Calls getWork to retrieve the next item
 
@@ -134,7 +134,9 @@ void *worker_thread(void *) {
  * @param md  Pointer to the main MDHIM structure
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_init(mdhim_t *md) {
+int range_server_init(struct mdhim_t *md) {
   //Start worker queue thread
   //Start listener for messages sent to the MDHIM communicator
 }
+
+

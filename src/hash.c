@@ -1,5 +1,4 @@
-#include hash.h
-
+#include "hash.h"
 
 /*
  * is_range_server
@@ -19,7 +18,7 @@ int is_range_server(int rank) {
  * @param md      main MDHIM struct
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int populate_my_ranges(mdhim_t *md) {
+int populate_my_ranges(struct mdhim_t *md) {
 
 }
 
@@ -32,7 +31,7 @@ int populate_my_ranges(mdhim_t *md) {
  * @param key_len  length of the key
  * @return the rank of the range server or MDHIM_ERROR on error
  */
-int get_range_server((mdhim_t *md, void *key, int key_len) {
+int get_range_server(struct mdhim_t *md, void *key, int key_len) {
 
 }
 

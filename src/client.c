@@ -15,7 +15,7 @@
  * @param pm pointer to put message to be sent or inserted into the range server's work queue
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int client_put(mdhim_t *md, mdhim_putm_t *pm) {
+int client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
 }
 
 /*
@@ -25,7 +25,7 @@ int client_put(mdhim_t *md, mdhim_putm_t *pm) {
  * @param bpm pointer to bulk put message to be sent or inserted into the range server's work queue
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int client_bput(mdhim_t *md, mdhim_bputm_t *bpm) {
+int client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
 
 }
 
@@ -36,7 +36,7 @@ int client_bput(mdhim_t *md, mdhim_bputm_t *bpm) {
  * @param gm pointer to get message to be sent or inserted into the range server's work queue
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int client_get(mdhim_t *md, mdhim_getm_t *gm) {
+int client_get(struct mdhim_t *md, struct mdhim_getm_t *gm) {
 
 }
 
@@ -47,7 +47,7 @@ int client_get(mdhim_t *md, mdhim_getm_t *gm) {
  * @param bgm pointer to get message to be sent or inserted into the range server's work queue
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int client_bget(mdhim_t *md, mdhim_bgetm_t *bgm) {
+int client_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm) {
 }
 
 /*
@@ -55,7 +55,7 @@ int client_bget(mdhim_t *md, mdhim_bgetm_t *bgm) {
  *
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int client_delete(mdhim_t *md, mdhim_deletem_t *dm) {
+int client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
 
 }
 
@@ -66,7 +66,7 @@ int client_delete(mdhim_t *md, mdhim_deletem_t *dm) {
  * @param bgm pointer to get message to be sent or inserted into the range server's work queue
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int client_bdelete(mdhim_t *md, mdhim_deletem_t *dm) {
+int client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *dm) {
 
 }
 
@@ -76,7 +76,7 @@ int client_bdelete(mdhim_t *md, mdhim_deletem_t *dm) {
  * @param md main MDHIM struct
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int client_add_rangesrv(mdhim_t *md) {
+int client_add_rangesrv(struct mdhim_t *md) {
 
 }
 

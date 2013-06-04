@@ -1,23 +1,41 @@
-/* Message Types */
-#define MDHIM_PUT 1
-#define MDHIM_BULK_PUT 2
-#define MDHIM_GET 3
-#define MDHIM_BULK_GET 4
+#ifndef      __MESSAGES_H
+#define      __MESSAGES_H
 
-#define MDHIM_GET        0
+/* Message Types */
+
+//Put a single key in the data store
+#define MDHIM_PUT 1
+//Put multiple keys in the data store at one time
+#define MDHIM_BULK_PUT 2
+//Get a single key from the data store
+#define MDHIM_GET 3
+//Get multiple keys from the data store at one time
+#define MDHIM_BULK_GET 4
+//Delete a single key from the data store
+#define MDHIM_DEL 5
+//Delete multiple keys from the data store at once
+#define MDHIM_BULK_DEL 6
+
+/* Operations for getting a key/value */
+//Get the value for the specified key
+#define MDHIM_GET_VAL       0
+//Get the next key and value
 #define MDHIM_GET_NEXT   1
+//Get the previous key and value
 #define MDHIM_GET_PREV   2
+//Get the first key and value
 #define MDHIM_GET_FIRST  3
+//Get the last key and value
 #define MDHIM_GET_LAST   4
 
 /* Base message */
-typedef struct mdhim_basem_t {
+struct mdhim_basem_t {
   //Message type
   int mtype; 
-} mdhim_basem_t;
+};
 
 /* Put message */
-typedef struct mdhim_putm_t {
+struct mdhim_putm_t {
   int mtype;
   char *key;
   int key_len;
@@ -25,38 +43,45 @@ typedef struct mdhim_putm_t {
   char *data;
   int data_len;
   int data_type;
-} mdhim_putm_t;
+};
 
 /*Bulk put message */
-typedef struct mdhim_bputm_t {
+struct mdhim_bputm_t {
   int mtype;
   char **keys;
   int *key_lens;
-} mdhim_bputm_t;
+};
 
 /*Get record message */
-typedef struct mdhim_getm_t {
+struct mdhim_getm_t {
   int mtype;  
-  //Operation type i.e., MDHIM_GET, MDHIM_GET_NEXT, MDHIM_GET_PREV
+  //Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
   int op;  
-} mdhim_getm_t;
+};
 
 /*Bulk get record message */
-typedef struct mdhim_bgetm_t {
+struct mdhim_bgetm_t {
   int mtype;  
-  //Operation type i.e., MDHIM_GET, MDHIM_GET_NEXT, MDHIM_GET_PREV
+  //Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
   int op;
   //Number of records to retreive
   int num_records;
-} mdhim_bgetm_t;
+};
+
+/* delete message */
+struct mdhim_delm_t {
+  int mtype;
+  char *key;
+  int key_len; 
+};
 
 /*bulk delete record message */
-typedef struct mdhim_bdelm_t {
+struct mdhim_bdelm_t {
   int mtype;  
   char **keys;
   int *key_lens;
-} mdhim_bdelm_t;
+};
 
-
-int send_message(mdhim_t *md, int dest, void *message);
-void *receive_message(mdhim_t *md, int src);
+int send_message(struct mdhim_t *md, int dest, void *message);
+void *receive_message(struct mdhim_t *md, int src);
+#endif
