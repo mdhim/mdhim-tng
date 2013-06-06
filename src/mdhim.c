@@ -18,13 +18,35 @@
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
  */
 struct mdhim_t *mdhimInit(MPI_Comm appComm) {
-  struct mdhim_t *md = malloc(sizeof(struct mdhim_t));
-  
-  //Populate md
-  //Start range server if I'm a range server
-  //Scatter/Gather range server data (i.e., ranges, ranks)
+	int ret;
+	struct mdhim_t *md;
 
-  return md;
+	//Allocate memory for the main MDHIM structure
+	md = malloc(sizeof(struct mdhim_t));
+	if (!md) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM - Error while allocating memory while initializing");
+		return NULL;
+	}
+
+	//Dup the communicator passed in 
+	if ((ret = MPI_Comm_dup(appComm, &md->mdhim_comm)) != MPI_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error while initializing the MDHIM communicator", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+  
+	//Get our rank in the main MDHIM communicator
+	if ((ret = MPI_Comm_rank(md->mdhim_comm, &md->mdhim_rank)) != MPI_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error getting our rank while initializing MDHIM", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+  
+	//Populate md
+	//Start range server if I'm a range server
+	//Scatter/Gather range server data (i.e., ranges, ranks)
+
+	return md;
 }
 
 /*
@@ -33,7 +55,12 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int mdhimClose(struct mdhim_t *md) {
-  //Stop range server if I'm a range server
+	int ret;
+	//Stop range server if I'm a range server
+	
+	if ((ret = range_server_stop(md)) != MDHIM_SUCCESS) {
+		return MDHIM_ERROR;
+	}
 }
 
 /*
@@ -44,8 +71,8 @@ int mdhimClose(struct mdhim_t *md) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int mdhimPut(struct mdhim_t *md, struct mdhim_putm_t *pm) {
-  //If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
-  //Otherwise, call client_put
+	//If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
+	//Otherwise, call client_put
 }
 
 /*
@@ -56,8 +83,8 @@ int mdhimPut(struct mdhim_t *md, struct mdhim_putm_t *pm) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int mdhimBput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
-  //If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
-  //Otherwise, call client_bput
+	//If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
+	//Otherwise, call client_bput
 }
 
 /*
@@ -68,8 +95,8 @@ int mdhimBput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int mdhimGet(struct mdhim_t *md, struct mdhim_getm_t *gm) {
-  //If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
-  //Otherwise, call client_get
+	//If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
+	//Otherwise, call client_get
 }
 
 /*
@@ -80,8 +107,8 @@ int mdhimGet(struct mdhim_t *md, struct mdhim_getm_t *gm) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int mdhimBGet(struct mdhim_t *md, struct mdhim_bgetm_t *bgm) {
-  //If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
-  //Otherwise, call client_bget
+	//If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
+	//Otherwise, call client_bget
 }
 
 /*
@@ -90,8 +117,8 @@ int mdhimBGet(struct mdhim_t *md, struct mdhim_bgetm_t *bgm) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int mdhimDelete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
-  //If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
-  //Otherwise, call client_delete
+	//If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
+	//Otherwise, call client_delete
 }
 
 /*
@@ -102,7 +129,7 @@ int mdhimDelete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int mdhimBdelete(struct mdhim_t *md, struct mdhim_bdelm_t *dm) {
-  //If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
-  //Otherwise, call client_bdelete
+	//If I'm a range server this is to be sent to, create a message_item and call add_work to add this 
+	//Otherwise, call client_bdelete
 }
 

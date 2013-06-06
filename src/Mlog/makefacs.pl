@@ -33,9 +33,10 @@
 @facs = (
 # names:
 #  abbreviated     long
-     "MDHIM"     => "MDHIM",
-     "STORE"      => "storage",
-     "MPI"      => "MPI"
+     "MDHIM_CLIENT"     => "MDHIM client",
+     "MDHIM_SERVER"     => "MDHIM range server",
+     "STORE"            => "storage",
+     "MPI"              => "MPI"
 );
 
 @mloglvls = (

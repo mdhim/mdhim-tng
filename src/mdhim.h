@@ -28,13 +28,15 @@
  * Contains a pointer to mdhim_rs_t if rank is a range server
  */
 struct mdhim_t {
-  //This communicator will include every process in the application, but is separate from the app
-  MPI_Comm mdhim_comm;   
-  //The number of range servers in the rangesrvs list
-  uint32_t num_servers;
-  //A linked list of range servers
-  rangesrv_info *rangesrvs;
-  mdhim_rs_t *mdhim_rs; 
+	//This communicator will include every process in the application, but is separate from the app
+	MPI_Comm mdhim_comm;   
+	//The rank in the mdhim_comm
+	int mdhim_rank;
+	//The number of range servers in the rangesrvs list
+	uint32_t num_servers;
+	//A linked list of range servers
+	rangesrv_info *rangesrvs;
+	mdhim_rs_t *mdhim_rs; 
 };
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm);

@@ -28,58 +28,63 @@
 //Get the last key and value
 #define MDHIM_GET_LAST   4
 
+#define RANGESRV_WORK 1
+#define RANGESRV_INFO 2
+
+struct mdhim_t;
+
 /* Base message */
 struct mdhim_basem_t {
-  //Message type
-  int mtype; 
+	//Message type
+	int mtype; 
 };
 
 /* Put message */
 struct mdhim_putm_t {
-  int mtype;
-  char *key;
-  int key_len;
-  int key_type;
-  char *data;
-  int data_len;
-  int data_type;
+	int mtype;
+	char *key;
+	int key_len;
+	int key_type;
+	char *data;
+	int data_len;
+	int data_type;
 };
 
 /*Bulk put message */
 struct mdhim_bputm_t {
-  int mtype;
-  char **keys;
-  int *key_lens;
+	int mtype;
+	char **keys;
+	int *key_lens;
 };
 
 /*Get record message */
 struct mdhim_getm_t {
-  int mtype;  
-  //Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
-  int op;  
+	int mtype;  
+	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
+	int op;  
 };
 
 /*Bulk get record message */
 struct mdhim_bgetm_t {
-  int mtype;  
-  //Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
-  int op;
-  //Number of records to retreive
-  int num_records;
+	int mtype;  
+	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
+	int op;
+	//Number of records to retreive
+	int num_records;
 };
 
 /* delete message */
 struct mdhim_delm_t {
-  int mtype;
-  char *key;
-  int key_len; 
+	int mtype;
+	char *key;
+	int key_len; 
 };
 
 /*bulk delete record message */
 struct mdhim_bdelm_t {
-  int mtype;  
-  char **keys;
-  int *key_lens;
+	int mtype;  
+	char **keys;
+	int *key_lens;
 };
 
 int send_message(struct mdhim_t *md, int dest, void *message);

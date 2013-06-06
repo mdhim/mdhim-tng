@@ -11,11 +11,12 @@
  * Stores a single key in the data store
  *
  * @param path           in   path to the database file
+ * @param type           in   constant that determines the data store type
  * @param mstore_opts    in   additional options for the data store layer 
  * 
  * @return mdhim_store_t      The mdhim storage abstraction struct
  */
-struct mdhim_store_t *mdhim_db_open(char *path, struct mdhim_store_opts_t *mstore_opts) {
+struct mdhim_store_t *mdhim_db_open(char *path, int type, struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*
@@ -50,7 +51,7 @@ int mdhim_db_put( struct mdhim_store_t *mstore, void *key, int key_len, void *da
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 int mdhim_db_bput( struct mdhim_store_t *mstore, void **keys, int *key_lens, void **data, int *data_lens, 
-		struct mdhim_store_opts_t *mstore_opts) {
+		   struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*
@@ -67,7 +68,7 @@ int mdhim_db_bput( struct mdhim_store_t *mstore, void **keys, int *key_lens, voi
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 int mdhim_db_get(struct mdhim_store_t *mstore, void *key, int key_len, void *data, int data_len, 
-	       struct mdhim_store_opts_t *mstore_opts) {
+		 struct mdhim_store_opts_t *mstore_opts) {
 }
 
 /*

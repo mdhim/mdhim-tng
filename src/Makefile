@@ -1,6 +1,6 @@
 MPI_ROOT	= /usr/local
 
-CC	= mpicc -g -O0
+CC	= mpicc -g -O0 -Wall
 CLIBS	= -L${MPI_ROOT}/lib -lmpi
 CINC	= -I${MPI_ROOT}/include -IMlog/
 CFLAGS	= 
