@@ -15,6 +15,12 @@
 #define MDHIM_DEL 5
 //Delete multiple keys from the data store at once
 #define MDHIM_BULK_DEL 6
+//Generic receive message
+#define MDHIM_RECV 7
+//Receive message for a get request
+#define MDHIM_RECV_GET 8
+//Receive message for a bulk get request
+#define MDHIM_RECV_BULK_GET 9
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
@@ -87,6 +93,33 @@ struct mdhim_bdelm_t {
 	int *key_lens;
 };
 
+/*Get receive message */
+struct mdhim_rm_t {
+	int mtype;  
+	int error;
+};
+
+/*Get receive message */
+struct mdhim_getrm_t {
+	int mtype;
+	int error;
+	char *key;
+	int key_len;
+	char *value;
+	int value_len;
+};
+
+/*Bulk get receive message */
+struct mdhim_bgetrm_t {
+	int mtype;
+	int error;
+	char **keys;
+	int *key_lens;
+	char **values;
+	int *value_lens;
+	int nitems;
+};
+
 int send_message(struct mdhim_t *md, int dest, void *message);
-void *receive_message(struct mdhim_t *md, int src);
+int *receive_message(struct mdhim_t *md, int src, void *message);
 #endif

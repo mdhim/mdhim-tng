@@ -22,6 +22,6 @@ int send_message(struct mdhim_t *md, int dest, void *message) {
  * @param src     source to receive from 
  * @return        message pointer to message received
  */
-void *receive_message(struct mdhim_t *md, int src) {
+int *receive_message(struct mdhim_t *md, int src, void *message) {
 
 }

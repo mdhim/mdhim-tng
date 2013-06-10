@@ -8,7 +8,7 @@
 #include "mdhim.h"
 #include "range_server.h"
 #include "client.h"
-#include "hash.h"
+#include "partitioner.h"
 
 /*
  * mdhimInit
@@ -43,6 +43,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 	}
   
 	//Populate md
+	md->max_keys = MDHIM_MAX_KEYS;
 	//Start range server if I'm a range server
 	//Scatter/Gather range server data (i.e., ranges, ranks)
 

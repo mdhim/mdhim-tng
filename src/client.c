@@ -6,7 +6,7 @@
 
 #include "mdhim.h"
 #include "client.h"
-#include "hash.h"
+#include "partitioner.h"
 
 /*
  * Send put to range server

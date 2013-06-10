@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include "mdhim.h"
 #include "range_server.h"
-#include "hash.h"
+#include "partitioner.h"
 
 /*
  * add_work
