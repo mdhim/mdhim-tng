@@ -2,6 +2,8 @@
 #define      __HASH_H
 
 #include "mdhim.h"
+#include "uthash.h"
+
 /* Used to determine if a rank is a range server
    Works like this:
    if myrank % RANGE_SERVER_FACTOR == 0, then I'm a range server 
@@ -12,7 +14,8 @@
 */
 
 #define RANGE_SERVER_FACTOR 4
-#define MDHIM_MAX_KEYS 1000000000
+#define MDHIM_MAX_KEY 9223372036854775807LL
+#define MDHIM_MIN_KEY -9223372036854775808LL
 //32 bit signed integer
 #define MDHIM_INT_KEY 1
 //64 bit signed integer
@@ -22,8 +25,25 @@
 #define MDHIM_LONG_DOUBLE_KEY 5
 #define MDHIM_STRING_KEY 6
 
+/* The exponent used for the algorithm that determines the range server
+
+   This exponent, should cover the number of characters in our alphabet 
+   if 2 is raised to that power. If the exponent is 6, then, 64 characters are covered 
+*/
+#define MDHIM_ALPHABET_EXPONENT 6  
+
+//Used for hashing strings to the appropriate range server
+struct mdhim_char {
+    int id;            /* we'll use this field as the key */
+    int pos;             
+    UT_hash_handle hh; /* makes this structure hashable */
+};
+
+struct mdhim_char *mdhim_alphabet = NULL;
 int is_range_server(int rank);
 int populate_my_ranges(struct mdhim_t *md);
 int get_range_server(struct mdhim_t *md, void *key, int key_len, int key_type);
+void build_alphabet();
+int verify_key(void *key, int key_len, int key_type);
 
 #endif

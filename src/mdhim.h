@@ -37,7 +37,8 @@ struct mdhim_t {
 	//A linked list of range servers
 	rangesrv_info *rangesrvs;
 	mdhim_rs_t *mdhim_rs; 
-	uint64_t max_keys;
+	int64_t max_key;
+	int64_t min_key;
 };
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm);

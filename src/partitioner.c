@@ -3,6 +3,108 @@
 #include "partitioner.h"
 
 /*
+ * add_char
+ * Adds a character to our alphabet hash table
+ *
+ * @param id      The id of our entry (the ascii code of the character)
+ * @param pos     The value of our entry (the position of the character in our alphabet)
+ */
+void add_char(int id, int pos) {
+	struct mdhim_char *mc;
+
+	//Create a new mdhim_char to hold our entry
+	mc = malloc(sizeof(struct mdhim_char));
+
+	//Set the mdhim_char
+	mc->id = id;
+	mc->pos = pos;
+
+	//Add it to the hash table
+	HASH_ADD_INT(mdhim_alphabet, id, mc);    
+
+	return;
+}
+
+/*
+ * build_alphabet
+ * Creates our ascii based alphabet and inserts each character into a uthash table
+ */
+void build_alphabet() {
+	char c;
+	int i, indx;
+
+        /* Index of the character in the our alphabet
+	   This is to number each character we care about so we can map 
+	   a string to a range server 
+
+	   0 - 9 have indexes 0 - 9
+	   A - Z have indexes 10 - 35
+	   a - z have indexes 36 - 61
+	*/
+	indx = 0;
+
+	//Start with numbers 0 - 9
+	c = '0';	
+	for (i = (int) c; i <= (int) '9'; i++) {
+		add_char(i, indx);
+		indx++;
+	}
+
+	//Next deal with A-Z
+	c = 'A';	
+	for (i = (int) c; i <= (int) 'Z'; i++) {
+		add_char(i, indx);
+		indx++;
+	}
+
+        //Next deal with a-z
+	c = 'a';	
+	for (i = (int) c; i <= (int) 'z'; i++) {
+		add_char(i, indx);
+		indx++;
+	}
+
+	return;
+}
+
+/*
+ * verify_key
+ * Determines whether the given key is a valid key or not
+ *
+ * @param key      the key to check
+ * @param key_len  the length of the key
+ * @param key_type the type of the key
+ *
+ * @return        MDHIM_ERROR if the key is not valid, otherwise the MDHIM_SUCCESS
+ */
+int verify_key(void *key, int key_len, int key_type) {
+	int i;
+	int id;
+	struct mdhim_char *mc;
+
+	if (key_type != MDHIM_STRING_KEY) {
+		if (key_len > sizeof(int64_t)) {
+			return MDHIM_ERROR;
+		}
+	} else {
+		for (i = 0; i < key_len; i++) {
+			//Ignore null terminating char
+			if (i == key_len - 1 && ((char *)key)[i] == '\0') {
+				break;
+			}
+
+			id = (int) ((char *)key)[i];
+			HASH_FIND_INT(mdhim_alphabet, &id, mc);
+			if (!mc) {
+				return MDHIM_ERROR;
+			}
+		}
+	}
+
+	return MDHIM_SUCCESS;
+}
+
+/*
  * get_num_range_servers
  * Gets the number of range servers
  *
@@ -77,6 +179,11 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 		rangesrv_num = rank / RANGE_SERVER_FACTOR;
 	}
       	
+	//Limit the number of range servers to be less than 1/3 of the number of keys
+	if (rangesrv_num > (MDHIM_MAX_KEY + llabs(MDHIM_MIN_KEY))/3) {
+		rangesrv_num = 0;
+	}
+
 	return rangesrv_num;
 }
 
@@ -89,10 +196,10 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
  */
 int populate_my_ranges(struct mdhim_t *md) {
 	//The number of keys held per range server
-	uint32_t split;
-	uint32_t rangesrv_num;
-	uint32_t start_range;
-	uint32_t end_range;
+	uint64_t split;
+	uint64_t rangesrv_num;
+	uint64_t start_range;
+	uint64_t end_range;
 
 	//There was an error figuring out if I'm a range server
 	if ((rangesrv_num = is_range_server(md, md->rank)) == MDHIM_ERROR) {
@@ -106,7 +213,7 @@ int populate_my_ranges(struct mdhim_t *md) {
 
 	/* Find the number of keys per range server
 	   The last range server could have a little bit less than the others */
-	split = ceil((double) md->max_keys/md->num_rangesrvs);
+	split = (uint64_t) ceil((double) (md->max_key + llabs(md->min_key))/md->num_rangesrvs);
 
 	//Get my start range
 	start_range = split * (rangesrv_num - 1);
@@ -137,40 +244,128 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 	uint64_t key_num;
 	//The range server number that we return
 	uint32_t rangesrv_rank = MDHIM_ERROR;
-	int i;
 	rangesrv_info *rp;
-	
+	int32_t ikey;
+	int64_t likey;
+	float fkey;
+	double dkey;
+	long double lkey;
+	int ret, i;
+	int id;
+	struct mdhim_char *mc;
+	double str_sum;
+	uint64_t total_keys;
+
+	//The total number of keys we can hold in all range servers combined
+	total_keys = MDHIM_MAX_KEY + llabs(MDHIM_MIN_KEY);
+
+	//Make sure this key is valid
+	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given to get_range_server()", 
+		     md->rank);
+		return MDHIM_ERROR;
+	}
+
 	//Perform key dependent algorithm to get the key in terms of the ranges served
 	switch(key_type) {
 	case MDHIM_INT_KEY:
-		//Convert the key to a signed 32 bit integer and take the absolute value
-		key_num = (uint64_t) abs(*((int32_t *) key));
+		//Convert the key to a signed 32 bit integer
+		ikey = *((int32_t *) key);
+		if (ikey < 0) {
+			key_num = abs(ikey);
+		} else {
+			key_num = ikey * 2;
+		}
+
 		break;
 	case MDHIM_LONG_INT_KEY:
-		//Convert the key to a signed 64 bit integer and take the absolute value
-		key_num = (uint64_t) abs(*((int64_t *) key));
+		//Convert the key to a signed 64 bit integer
+		likey = *((int64_t *) key);
+		if (likey < 0) {
+			key_num = llabs(likey);
+		} else {
+			key_num = likey * 2;
+		}
+
 		break;
 	case MDHIM_FLOAT_KEY:
-		//Convert the key to a float and take the absolute value
-		key_num = (uint64_t) fabsf(ceil(*((float *) key)));
+		//Convert the key to a float
+		fkey = *((float *) key);
+		fkey = floor(fkey);
+		if (fkey < 0) {
+			key_num = fabsf(fkey);
+		} else {
+			key_num = fkey * 2;
+		}
+
 		break;
 	case MDHIM_DOUBLE_KEY:
-		key_num = (uint64_t) fabs(ceil(*((float *) key)));
+		//Convert the key to a double
+		dkey = *((double *) key);
+		dkey = floor(dkey);
+		if (dkey < 0) {
+			key_num = fabs(dkey);
+		} else {
+			key_num = dkey * 2;
+		}
+
 		break;
 	case MDHIM_LONG_DOUBLE_KEY:
-		key_num = (uint64_t) fabsl(*((uint32_t *) key));
+		//Convert the key to a long double
+		ldkey = *((float *) key);
+		ldkey = floor(ldkey);
+		if (ldkey < 0) {
+			key_num = fabsl(ldkey);
+		} else {
+			key_num = ldkey * 2;
+		}
+
 		break;
 	case MDHIM_STRING_KEY:
-		key_num = 0;
+		/* Algorithm used
+		   
+		   1. Iterate through each character
+		   2. Transform each character into a floating point number
+		   3. Add this floating point number to str_num
+		   4. Multiply this number times the total number of keys to get the number 
+		      that represents the position in a range
+
+		   For #2, the transformation is as follows:
+		   
+		   Take the position of the character in the mdhim alphabet 
+                   times 2 raised to the MDHIM_ALPHABET_EXPONENT * -(i + 1) 
+		   where i is the current iteration in the loop
+		*/		
+ 
+                //Used for calculating the range server to use for this string
+		str_sum = 0;
+
+		//Iterate through each character to perform the algorithm mentioned above
 		for (i = 0; i < key_len; i++) {
-			key_num += (int) ((char *)key)[i];
+			//Ignore null terminating char
+			if (i == key_len - 1 && ((char *)key)[i] == '\0') {
+				break;
+			}
+
+			id = (int) ((char *)key)[i];
+			HASH_FIND_INT(mdhim_alphabet, &id, mc);
+			str_num += mc->pos * pow(2, MDHIM_ALPHABET_EXPONENT * -(i + 1));			
 		}
+
+		key_num = floor(str_num * total_keys);
 		break;
 	default:
 		return MDHIM_ERROR;
 		break;
 	}
-	
+
+	if (key_num > total_keys) {
+		mlog(MPI_EMERG, "Rank: %d - Key is larger than any of the ranges served" 
+		     " in get_range_server", 
+		     md->rank);
+		return MDHIM_ERROR;
+	}
+
 	//Iterate through the range servers to find one, if any, that serves the key we have
 	rp = md->rangesrvs;
 	while (rp) {

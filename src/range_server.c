@@ -188,8 +188,7 @@ int range_server_bget(struct mdhim_bgetm_t *bgm) {
  * listener_thread
  * Function for the thread that listens for new messages
  */
-void *listener_thread(void *data) {
-	
+void *listener_thread(void *data) {	
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	char *buf, *message_buf;
 	int max_size = 1048576; //At most receive 1MB
@@ -297,8 +296,12 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
   
-	//Populate md->mdhim_rs->info
-  
+	//Populate md->mdhim_rs
+	if ((ret = populate_my_ranges(md)) == MDHIM_ERROR) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error populating my ranges", md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
 	//Initialize data store
 	//Filename is dependent on ranges
 	sprintf(filename, "%s", "test");

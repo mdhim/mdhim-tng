@@ -43,7 +43,8 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 	}
   
 	//Populate md
-	md->max_keys = MDHIM_MAX_KEYS;
+	md->max_key = MDHIM_MAX_KEY;
+	md->min_key = MDHIM_MIN_KEY;
 	//Start range server if I'm a range server
 	//Scatter/Gather range server data (i.e., ranges, ranks)
 
