@@ -12,13 +12,29 @@
 #include "partitioner.h"
 
 /*
- * add_work
+ * is_range_server
+ * checks if I'm a range server
+ *
+ * @param md  Pointer to the main MDHIM structure
+ * @return 0 if false, 1 if true
+ */
+
+int is_range_server(struct mdhim_t *md) {
+	if (md->mdhim_rs) {
+		return 1;
+	}
+	
+	return 0;
+}
+
+/*
+ * range_server_add_work
  * Adds work to the work queue and signals the condition variable for the worker thread
  *
+ * @param md  Pointer to the main MDHIM structure
  * @param work_item    pointer to new work item that contains a message to handle
  * @return MDHIM_SUCCESS
  */
-
 int range_server_add_work(struct mdhim_t *md, work_item *item) {
 	item->next = NULL;
 	item->prev = NULL;
