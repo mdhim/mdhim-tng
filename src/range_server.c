@@ -19,7 +19,7 @@
  * @return 0 if false, 1 if true
  */
 
-int is_range_server(struct mdhim_t *md) {
+int im_range_server(struct mdhim_t *md) {
 	if (md->mdhim_rs) {
 		return 1;
 	}

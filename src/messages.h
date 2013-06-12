@@ -54,6 +54,7 @@ struct mdhim_putm_t {
 	char *data;
 	int data_len;
 	int data_type;
+	int server_rank;
 };
 
 /*Bulk put message */
@@ -61,6 +62,7 @@ struct mdhim_bputm_t {
 	int mtype;
 	char **keys;
 	int *key_lens;
+	int server_rank;
 };
 
 /*Get record message */
@@ -68,6 +70,7 @@ struct mdhim_getm_t {
 	int mtype;  
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
+	int server_rank;
 };
 
 /*Bulk get record message */
@@ -77,6 +80,7 @@ struct mdhim_bgetm_t {
 	int op;
 	//Number of records to retreive
 	int num_records;
+	int server_rank;
 };
 
 /* delete message */
@@ -84,6 +88,7 @@ struct mdhim_delm_t {
 	int mtype;
 	char *key;
 	int key_len; 
+	int server_rank;
 };
 
 /*bulk delete record message */
@@ -91,6 +96,7 @@ struct mdhim_bdelm_t {
 	int mtype;  
 	char **keys;
 	int *key_lens;
+	int server_rank;
 };
 
 /*Get receive message */
@@ -121,5 +127,5 @@ struct mdhim_bgetrm_t {
 };
 
 int send_message(struct mdhim_t *md, int dest, void *message);
-int *receive_message(struct mdhim_t *md, int src, void *message);
+int receive_message(struct mdhim_t *md, int src, void *message);
 #endif

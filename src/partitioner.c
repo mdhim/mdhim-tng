@@ -3,6 +3,38 @@
 #include "partitioner.h"
 
 /*
+ * partitioner_init
+ * Initializes portions of the mdhim_t struct dealing with the partitioner
+ *
+ * @param md      main MDHIM struct
+ * @return        MDHIM_ERROR on error, otherwise the number of range servers
+ */
+
+void partitioner_init(struct mdhim_t *md) {
+	uint32_t num_rangesrvs;
+	float reasonable_servers;
+
+	/* Set the max and minimum keys
+	   Eventually this will be configurable */
+	md->max_key = MDHIM_MAX_KEY;
+	md->min_key = MDHIM_MIN_KEY;
+	
+	//Figure out how many range servers we could have based on the range server factor
+	num_rangesrvs = get_num_range_servers(md);
+
+	//Figure what makes sense as far as the number of servers
+	reasonable_servers = (md->max_key + llabs(md->min_key)) * .01f;
+
+	//If the reasonable number of servers is exceed by num_rangesrvs 
+	if (reasonable_servers > num_rangesrvs) {
+		num_rangesrvs = ceil(reasonable_servers);
+	}
+	
+	md->num_rangesrvs = num_rangesrvs;
+	return;
+}
+
+/*
  * add_char
  * Adds a character to our alphabet hash table
  *
@@ -115,10 +147,11 @@ uint32_t get_num_range_servers(struct mdhim_t *md) {
 	int size;
 	uint32_t num_servers = 0;
 	int i = 0;
+	int ret;
 
-	if ((ret = MPI_Comm_size(md->comm, &size)) != MPI_SUCCESS) {
+	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
 		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in get_num_range_servers", 
-		     md->rank);
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
@@ -149,11 +182,11 @@ uint32_t get_num_range_servers(struct mdhim_t *md) {
 uint32_t is_range_server(struct mdhim_t *md, int rank) {
 	int size;
 	int ret;
-	uint32_t rangesrv_num = 0;
+	uint64_t rangesrv_num = 0;
 
-	if ((ret = MPI_Comm_size(md->comm, &size)) != MPI_SUCCESS) {
+	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
 		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in is_range_server", 
-		     md->rank);
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
@@ -178,9 +211,8 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 		//This is a range server, get the range server's number
 		rangesrv_num = rank / RANGE_SERVER_FACTOR;
 	}
-      	
-	//Limit the number of range servers to be less than 1/3 of the number of keys
-	if (rangesrv_num > (MDHIM_MAX_KEY + llabs(MDHIM_MIN_KEY))/3) {
+      		
+	if (rangesrv_num > md->num_rangesrvs) {
 		rangesrv_num = 0;
 	}
 
@@ -202,7 +234,7 @@ int populate_my_ranges(struct mdhim_t *md) {
 	uint64_t end_range;
 
 	//There was an error figuring out if I'm a range server
-	if ((rangesrv_num = is_range_server(md, md->rank)) == MDHIM_ERROR) {
+	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {
 		return MDHIM_ERROR;		
 	}
 
@@ -220,7 +252,7 @@ int populate_my_ranges(struct mdhim_t *md) {
 	//Get my end range
 	end_range = (split * rangesrv_num) - 1;
 	//Populate the rangesrv_info structure
-	md->mdhim_rs->info.rank = md->rank;
+	md->mdhim_rs->info.rank = md->mdhim_rank;
 	md->mdhim_rs->info.start_range = start_range;
 	md->mdhim_rs->info.end_range = end_range;
 	md->mdhim_rs->info.next = NULL;
@@ -249,20 +281,20 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 	int64_t likey;
 	float fkey;
 	double dkey;
-	long double lkey;
+	long double ldkey;
 	int ret, i;
 	int id;
 	struct mdhim_char *mc;
-	double str_sum;
+	double str_num;
 	uint64_t total_keys;
-
+	
 	//The total number of keys we can hold in all range servers combined
-	total_keys = MDHIM_MAX_KEY + llabs(MDHIM_MIN_KEY);
+	total_keys = (uint64_t)MDHIM_MAX_KEY + (uint64_t)llabs(MDHIM_MIN_KEY);
 
 	//Make sure this key is valid
 	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given to get_range_server()", 
-		     md->rank);
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
@@ -338,7 +370,7 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 		*/		
  
                 //Used for calculating the range server to use for this string
-		str_sum = 0;
+		str_num = 0;
 
 		//Iterate through each character to perform the algorithm mentioned above
 		for (i = 0; i < key_len; i++) {
@@ -362,7 +394,7 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 	if (key_num > total_keys) {
 		mlog(MPI_EMERG, "Rank: %d - Key is larger than any of the ranges served" 
 		     " in get_range_server", 
-		     md->rank);
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 

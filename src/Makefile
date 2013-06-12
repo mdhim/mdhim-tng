@@ -2,7 +2,7 @@ MPI_ROOT	= /usr/local
 
 CC	= mpicc -g -O0 -Wall
 CLIBS	= -L${MPI_ROOT}/lib -lmpi
-CINC	= -I${MPI_ROOT}/include -IMlog/
+CINC	= -I${MPI_ROOT}/include -IMlog/ -Iuthash
 CFLAGS	= 
 
 OBJS    = mlog.o unqlite.o client.o data_store.o partitioner.o messages.o range_server.o

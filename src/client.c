@@ -4,9 +4,10 @@
  * Client specific implementation
  */
 
+#include <stdlib.h>
 #include "mdhim.h"
 #include "client.h"
-#include "hash.h"
+#include "partitioner.h"
 
 /*
  * Send put to range server
@@ -85,11 +86,12 @@ struct mdhim_rm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
  * @param gm pointer to get message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
 */
-struct mdhim_rm_t *client_get(struct mdhim_t *md, struct mdhim_getm_t *gm, void *buf) {
+struct mdhim_getrm_t *client_get(struct mdhim_t *md, struct mdhim_getm_t *gm) {
 
 	int return_code;
-	struct mdhim_rm_t *rm;
-	
+	struct mdhim_getrm_t *rm;
+	char *buf;
+
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	rm->error = MDHIM_SUCCESS ;
 
@@ -120,11 +122,12 @@ struct mdhim_rm_t *client_get(struct mdhim_t *md, struct mdhim_getm_t *gm, void 
  * @param bgm pointer to get message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_rm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void *buf) {
+struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm) {
 
 	int return_code;
-	struct mdhim_rm_t *rm;
-	
+	struct mdhim_bgetrm_t *rm;
+	char *buf;
+
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	rm->error = MDHIM_SUCCESS ;
 
@@ -225,6 +228,6 @@ struct mdhim_rm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm)
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int client_add_rangesrv(struct mdhim_t *md) {
-
+  return MDHIM_SUCCESS;
 }
 

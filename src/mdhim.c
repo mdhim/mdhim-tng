@@ -42,10 +42,16 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 		return NULL;
 	}
   
-	//Populate md
-	md->max_key = MDHIM_MAX_KEY;
-	md->min_key = MDHIM_MIN_KEY;
+	//Initialize the partitioner
+	partitioner_init(md);
+
 	//Start range server if I'm a range server
+	if ((ret = range_server_init(md)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error initializing MDHIM range server", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
 	//Scatter/Gather range server data (i.e., ranges, ranks)
 
 	return md;
