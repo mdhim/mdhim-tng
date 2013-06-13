@@ -62,6 +62,9 @@ struct mdhim_bputm_t {
 	int mtype;
 	char **keys;
 	int *key_lens;
+	char **data;
+	int *data_lens;
+	int num_keys;
 	int server_rank;
 };
 
@@ -96,6 +99,7 @@ struct mdhim_bdelm_t {
 	int mtype;  
 	char **keys;
 	int *key_lens;
+	int num_keys;
 	int server_rank;
 };
 

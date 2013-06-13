@@ -33,11 +33,10 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	case UNQLITE:
 		store->open = mdhim_unqlite_open;
 		store->put = mdhim_unqlite_put;
-		store->bput = mdhim_unqlite_bput;
 		store->get = mdhim_unqlite_get;
-		store->bget = mdhim_unqlite_bget;
 		store->get_next = mdhim_unqlite_get_next;
 		store->get_prev = mdhim_unqlite_get_prev;
+		store->del = mdhim_unqlite_del;
 		store->close = mdhim_unqlite_close;
 		break;
 	default:

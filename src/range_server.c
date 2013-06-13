@@ -123,7 +123,7 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 
 	//Close the database
-	if ((ret = mdhim_db_close( md->mdhim_rs->mdhim_store, NULL)) != MDHIM_SUCCESS) {
+	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, NULL)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
 	}
 
@@ -138,65 +138,120 @@ int range_server_stop(struct mdhim_t *md) {
  * range_server_put
  * Handles the put message and puts data in the database
  *
+ * @param md  Pointer to the main MDHIM structure
  * @param im  pointer to the put message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_put(struct mdhim_putm_t *im) {
- 
+int range_server_put(struct mdhim_rs_t *mdhim_rs, struct mdhim_putm_t *im) {
+	int ret;
+
+        //Put the record in the database
+	if ((ret = 
+	     mdhim_rs->mdhim_store->put(mdhim_rs->mdhim_store->db_handle, 
+					im->key, im->key_len, im->data, 
+					im->data_len, NULL)) != MDHIM_SUCCESS) {
+		return MDHIM_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
  * range_server_bput
  * Handles the bulk put message and puts data in the database
  *
+ * @param md  Pointer to the main MDHIM structure
  * @param im  pointer to the put message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bput(struct mdhim_bputm_t *bim) {
- 
+int range_server_bput(struct mdhim_rs_t *mdhim_rs, struct mdhim_bputm_t *bim) {
+	int i;
+	int ret;
+
+	//Iterate through the arrays and insert each record
+	for (i = 0; i < bim->num_keys; i++) {
+		//Put the record in the database
+		if ((ret = 
+		     mdhim_rs->mdhim_store->put(mdhim_rs->mdhim_store->db_handle, 
+						bim->keys[i], bim->key_lens[i], bim->data[i], 
+						bim->data_lens[i], NULL)) != MDHIM_SUCCESS) {
+			//There was an error inserting this record
+			return MDHIM_ERROR;
+		}
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
  * range_server_del
  * Handles the delete message and deletes the data from the database
  *
+ * @param md  Pointer to the main MDHIM structure
  * @param im  pointer to the delete message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_del(struct mdhim_delm_t *dm) {
- 
+int range_server_del(struct mdhim_rs_t *mdhim_rs, struct mdhim_delm_t *dm) {
+	int ret;
+
+	//Put the record in the database
+	if ((ret = 
+	     mdhim_rs->mdhim_store->del(mdhim_rs->mdhim_store->db_handle, 
+					dm->key, dm->key_len, NULL)) != MDHIM_SUCCESS) {
+		return MDHIM_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
  * range_server_bdel
  * Handles the bulk delete message and deletes the data from the database
  *
+ * @param md  Pointer to the main MDHIM structure
  * @param im  pointer to the delete message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bdel(struct mdhim_bdelm_t *bdm) {
- 
+int range_server_bdel(struct mdhim_rs_t *mdhim_rs, struct mdhim_bdelm_t *bdm) {
+ 	int i;
+	int ret;
+
+	//Iterate through the arrays and delete each record
+	for (i = 0; i < bdm->num_keys; i++) {
+		//Put the record in the database
+		if ((ret = 
+		     mdhim_rs->mdhim_store->del(mdhim_rs->mdhim_store->db_handle, 
+						bdm->keys[i], bdm->key_lens[i],
+						NULL)) != MDHIM_SUCCESS) {
+			//There was an error deleting this record
+			return MDHIM_ERROR;
+		}
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
  * range_server_get
  * Handles the get message, retrieves the data from the database, and sends the results back
  * 
+ * @param md  Pointer to the main MDHIM structure
  * @param im  pointer to the get message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_get(struct mdhim_getm_t *gm) {
- 
+int range_server_get(struct mdhim_rs_t *mdhim_rs, struct mdhim_getm_t *gm) {
+
 }
 
 /*
  * range_server_bget
  * Handles the bulk get message, retrieves the data from the database, and sends the results back
  * 
+ * @param md  Pointer to the main MDHIM structure
  * @param im  pointer to the bulk get message to handle
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bget(struct mdhim_bgetm_t *bgm) {
+int range_server_bget(struct mdhim_rs_t *mdhim_rs, struct mdhim_bgetm_t *bgm) {
  
 }
 
@@ -249,7 +304,8 @@ void *listener_thread(void *data) {
  * Function for the thread that processes work in work queue
  */
 void *worker_thread(void *data) {
-	struct mdhim_rs_t *mdhim_rs = (struct mdhim_rs_t *) data;
+	struct mdhim_t *md = (struct mdhim_t *) data;
+	struct mdhim_rs_t *mdhim_rs = md->mdhim_rs;
 	work_item *item;
 	int mtype;
 
@@ -266,22 +322,22 @@ void *worker_thread(void *data) {
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
 			switch(mtype) {
 			case MDHIM_PUT:
-				range_server_put((struct mdhim_putm_t *) item->message);
+				range_server_put(mdhim_rs, (struct mdhim_putm_t *) item->message);
 				break;
 			case MDHIM_BULK_PUT:
-				range_server_bput((struct mdhim_bputm_t *) item->message);
+				range_server_bput(mdhim_rs, (struct mdhim_bputm_t *) item->message);
 				break;
 			case MDHIM_GET:
-				range_server_get((struct mdhim_getm_t *) item->message);
+				range_server_get(mdhim_rs, (struct mdhim_getm_t *) item->message);
 				break;
 			case MDHIM_BULK_GET:
-				range_server_bget((struct mdhim_bgetm_t *) item->message);
+				range_server_bget(mdhim_rs, (struct mdhim_bgetm_t *) item->message);
 				break;
 			case MDHIM_DEL:
-				range_server_del((struct mdhim_delm_t *) item->message);
+				range_server_del(mdhim_rs, (struct mdhim_delm_t *) item->message);
 				break;
 			case MDHIM_BULK_DEL:
-				range_server_bdel((struct mdhim_bdelm_t *) item->message);
+				range_server_bdel(mdhim_rs, (struct mdhim_bdelm_t *) item->message);
 				break;
 			default:
 				break;
@@ -318,15 +374,24 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 
+	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
+	sprintf(filename, "%s%lld", "/scratch/mdhim/range", md->mdhim_rs->info.start_range);
 	//Initialize data store
-	//Filename is dependent on ranges
-	sprintf(filename, "%s", "test");
-	//md->mdhim_rs->mdhim_store = mdhim_db_open(filename, UNQLITE, NULL);
+	md->mdhim_rs->mdhim_store = mdhim_db_init(UNQLITE);
 	if (!md->mdhim_rs->mdhim_store) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while allocating memory for range server", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while initializing data store with file: %s",
+		     md->mdhim_rank,
+		     filename);
 		return MDHIM_ERROR;
 	}
 
+	//Open the database
+	if ((ret = md->mdhim_rs->mdhim_store->open(md->mdhim_rs->mdhim_store->db_handle, 
+						   filename, MDHIM_CREATE, NULL)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while opening database", md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+	
 	//Initialize work queue to null
 	md->mdhim_rs->work_queue = NULL;
 	//Initialize work queue mutex
@@ -352,7 +417,7 @@ int range_server_init(struct mdhim_t *md) {
 	}
 
 	//Initialize worker thread
-	if ((ret = pthread_create(&md->mdhim_rs->worker, NULL, worker_thread, (void *) md->mdhim_rs)) != 0) {    
+	if ((ret = pthread_create(&md->mdhim_rs->worker, NULL, worker_thread, (void *) md)) != 0) {    
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while initializing worker thread", md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
