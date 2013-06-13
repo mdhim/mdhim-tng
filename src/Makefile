@@ -1,11 +1,11 @@
 MPI_ROOT	= /usr/local
 
 CC	= mpicc -g -O0 -Wall
-CLIBS	= -L${MPI_ROOT}/lib -lmpi
+CLIBS	= -L${MPI_ROOT}/lib
 CINC	= -I${MPI_ROOT}/include -IMlog/ -Iuthash
 CFLAGS	= 
 
-OBJS    = mlog.o unqlite.o client.o data_store.o partitioner.o messages.o range_server.o
+OBJS    = mlog.o unqlite.o client.o data_store.o ds_unqlite.o partitioner.o messages.o range_server.o
 all:	mdhim.o lib
 
 mdhim.o: mdhim.c $(OBJS)
@@ -27,6 +27,9 @@ partitioner.o: partitioner.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 data_store.o: data_store.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+ds_unqlite.o: ds_unqlite.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 range_server.o: range_server.c

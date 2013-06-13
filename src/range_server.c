@@ -321,11 +321,12 @@ int range_server_init(struct mdhim_t *md) {
 	//Initialize data store
 	//Filename is dependent on ranges
 	sprintf(filename, "%s", "test");
-	md->mdhim_rs->mdhim_store = mdhim_db_open(filename, UNQLITE, NULL);
+	//md->mdhim_rs->mdhim_store = mdhim_db_open(filename, UNQLITE, NULL);
 	if (!md->mdhim_rs->mdhim_store) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while allocating memory for range server", md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
+
 	//Initialize work queue to null
 	md->mdhim_rs->work_queue = NULL;
 	//Initialize work queue mutex

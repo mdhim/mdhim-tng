@@ -14,7 +14,7 @@
  * mdhimInit
  * Initializes MDHIM
  *
- * @param appComm   the communicator that was passed in from the application (e.g., MPI_COMM_WORLD)
+ * @param appComm  the communicator that was passed in from the application (e.g., MPI_COMM_WORLD)
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
  */
 struct mdhim_t *mdhimInit(MPI_Comm appComm) {
