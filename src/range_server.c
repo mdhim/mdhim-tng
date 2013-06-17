@@ -364,13 +364,16 @@ int range_server_init(struct mdhim_t *md) {
 	//Allocate memory for the mdhim_rs_t struct
 	md->mdhim_rs = malloc(sizeof(struct mdhim_rs_t));
 	if (!md->mdhim_rs) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while allocating memory for range server", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while allocating memory for range server", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
   
 	//Populate md->mdhim_rs
 	if ((ret = populate_my_ranges(md)) == MDHIM_ERROR) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error populating my ranges", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error populating my ranges",
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
@@ -379,16 +382,19 @@ int range_server_init(struct mdhim_t *md) {
 	//Initialize data store
 	md->mdhim_rs->mdhim_store = mdhim_db_init(UNQLITE);
 	if (!md->mdhim_rs->mdhim_store) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while initializing data store with file: %s",
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing data store with file: %s",
 		     md->mdhim_rank,
 		     filename);
 		return MDHIM_ERROR;
 	}
 
 	//Open the database
-	if ((ret = md->mdhim_rs->mdhim_store->open(md->mdhim_rs->mdhim_store->db_handle, 
-						   filename, MDHIM_CREATE, NULL)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while opening database", md->mdhim_rank);
+	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle, 
+						   filename, MDHIM_CREATE, NULL)) != MDHIM_SUCCESS){
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while opening database", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 	
@@ -397,33 +403,44 @@ int range_server_init(struct mdhim_t *md) {
 	//Initialize work queue mutex
 	md->mdhim_rs->work_queue_mutex = malloc(sizeof(pthread_mutex_t));
 	if (!md->mdhim_rs->work_queue_mutex) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while allocating memory for range server", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while allocating memory for range server", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 	if ((ret = pthread_mutex_init(md->mdhim_rs->work_queue_mutex, NULL)) != 0) {    
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while initializing work queue mutex", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing work queue mutex", md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
 	//Initialize the condition variable
 	md->mdhim_rs->work_ready_cv = malloc(sizeof(pthread_cond_t));
 	if (!md->mdhim_rs->work_ready_cv) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while allocating memory for range server", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while allocating memory for range server", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 	if ((ret = pthread_cond_init(md->mdhim_rs->work_ready_cv, NULL)) != 0) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while initializing condition variable", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing condition variable", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
 	//Initialize worker thread
 	if ((ret = pthread_create(&md->mdhim_rs->worker, NULL, worker_thread, (void *) md)) != 0) {    
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while initializing worker thread", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing worker thread", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 	//Initialize listener thread
 	if ((ret = pthread_create(&md->mdhim_rs->listener, NULL, listener_thread, (void *) md)) != 0) {    
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error while initializing listener thread", md->mdhim_rank);
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing listener thread", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 

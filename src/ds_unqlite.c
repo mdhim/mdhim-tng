@@ -1,22 +1,60 @@
+#include <stdlib.h>
 #include "ds_unqlite.h"
 
+/*
+ * get_unqlite_err_msg
+ *
+ * Gets the error message from unqlite
+ * @param dh  in   pointer to the unqlite db handle
+ * @return the error message string
+ */
+static char *get_unqlite_err_msg(unqlite *dh) {
+	char *zBuf;
+	int iLen;
+	/* Something goes wrong, extract database error log */
+	unqlite_config(dh, UNQLITE_CONFIG_ERR_LOG,  &zBuf,
+		       &iLen);
+	if( iLen > 0 ){
+		return zBuf;
+	}  
+
+	return NULL;
+}
+
+/*
+ * print_unqlite_err_msg
+ *
+ * prints the error message from unqlite using mlog
+ * @param dh  in   pointer to the unqlite db handle
+ */
+static void print_unqlite_err_msg(unqlite *dh) {
+	char *msg;
+	
+	msg = get_unqlite_err_msg(dh);
+	if (!msg) {
+		return;
+	}
+	
+	mlog(MDHIM_SERVER_CRIT, "Unqlite error: %s", msg);
+	free(msg);
+}
 
 /*
  * mdhim_unqlite_open
  * Stores a single key in the data store
  *
- * @param dbh            in   pointer to the unqlite db handle
+ * @param dbh            in   ** to the unqlite db handle
  * @param path           in   path to the database file
  * @param flags          in   flags for opening the data store
  * @param mstore_opts    in   additional options for the data store layer 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_open(void *dbh, char *path, int flags, 
+int mdhim_unqlite_open(void **dbh, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 	int imode;
-	unqlite *hd = (unqlite *) dbh;
+	unqlite **dh = (unqlite **) dbh;
 
 	//Convert the MDHIM flags to unqlite ones
 	switch(flags) {
@@ -34,7 +72,8 @@ int mdhim_unqlite_open(void *dbh, char *path, int flags,
 	}
 	
 	//Open the database
-	if ((ret = unqlite_open(&hd, path, imode)) != UNQLITE_OK) {
+	if ((ret = unqlite_open(dh, path, imode)) != UNQLITE_OK) {
+		print_unqlite_err_msg(*dh);
 		return MDHIM_DB_ERROR;
 	}
 
@@ -54,8 +93,17 @@ int mdhim_unqlite_open(void *dbh, char *path, int flags,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int data_len, 
+int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int64_t data_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
+	unqlite *dh = (unqlite *) dbh;
+	int ret = 0;
+
+	if ((ret = unqlite_kv_append(dh, key, key_len, data, data_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
@@ -69,8 +117,17 @@ int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int data_le
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_del(void *dbh, void *keys, int key_lens, 
+int mdhim_unqlite_del(void *dbh, void *key, int key_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
+	unqlite *dh = (unqlite *) dbh;
+	int ret = 0;
+
+	if ((ret = unqlite_kv_delete(dbh, key, key_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
@@ -78,46 +135,213 @@ int mdhim_unqlite_del(void *dbh, void *keys, int key_lens,
  * Gets a value, given a key, from the data store
  *
  * @param dbh          in   pointer to the unqlite db handle
- * @param keys         in   void * to the key to retrieve the value of
- * @param key_lens     in   length of the key
+ * @param key          in   void * to the key to retrieve the value of
+ * @param key_len      in   length of the key
  * @param data         out  void * to the value of the key
- * @param data_lens    out  length of the value data 
+ * @param data_len     out  pointer to length of the value data 
  * @param mstore_opts  in   additional options for the data store layer 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_get(void *dbh, void *key, int key_len, void *data, int data_len, 
+int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *data_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
+	unqlite *dh = (unqlite *) dbh;
+	int ret = 0;
+	int64_t nbytes;
+	char *buf;
+
+	*data = NULL;
+	*data_len = 0;
+
+	//Extract data size first
+	if ((ret = unqlite_kv_fetch(dh, key, key_len, NULL, &nbytes)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+	
+        //Allocate the buffer to the value's size
+	buf = (char *) malloc(nbytes);
+	if (buf == NULL) { 
+		mlog(MDHIM_SERVER_CRIT, "Error allocating memory while getting value for key");
+		return MDHIM_DB_ERROR;
+	}
+
+        //Copy record content in our buffer
+	if ((ret = unqlite_kv_fetch(dh, key, key_len, buf, &nbytes)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+
+	//Set the output arguments
+	*data = (void *) buf;
+	*data_len = nbytes;
+
+	return MDHIM_SUCCESS;
 }
 
 /*
  * mdhim_unqlite_get_next
  * Gets the next key/value from the data store
  *
+ * @param dbh             in   pointer to the unqlite db handle
  * @param mcur            in   pointer to the db cursor
- * @param data            out  void * to the value of the key
+ * @param key             out  void ** to the key that we get
+ * @param key_len         out  int * to the length of the key 
+ * @param data            out  void ** to the value belonging to the key
  * @param data_len        out  int * to the length of the value data 
  * @param mstore_cur_opts in   additional cursor options for the data store layer 
  * 
  */
-int mdhim_unqlite_get_next(struct mdhim_store_cur_t *mcur, void *data, int *data_len, 
+int mdhim_unqlite_get_next(void *dbh, void **curh, void **key, int *key_len, 
+			   void **data, int64_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
+	unqlite *dh = (unqlite *) dbh;
+	int ret = 0;
+	unqlite_kv_cursor **cur = (unqlite_kv_cursor **) curh;	
+	char *data_buf;
+	char *key_buf;
+
+	*key = NULL;
+	*key_len = 0;
+	*data = NULL;
+	data_len = 0;
+
+	//Initialize the cursor if it hasn't been 
+	if (!*cur) {
+		if ((ret = unqlite_kv_cursor_init(dh, cur)) != UNQLITE_OK) {
+			print_unqlite_err_msg(dh);
+			return MDHIM_DB_ERROR;
+		}
+		if ((ret = unqlite_kv_cursor_first_entry(*cur)) 
+		    != UNQLITE_OK) {
+			print_unqlite_err_msg(dh);
+			return MDHIM_DB_ERROR;
+		}		
+	}
+
+	//Check if this a valid entry
+	if ((ret = unqlite_kv_cursor_valid_entry(*cur)) != UNQLITE_OK) {
+		mlog(MDHIM_SERVER_INFO, "Next entry not found");
+		return MDHIM_DB_ERROR;
+	}
+
+	//Change to seek later
+	if ((ret = unqlite_kv_cursor_next_entry(*cur)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+	//Find the size of the key
+	if ((ret = unqlite_kv_cursor_key(*cur, NULL, key_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+	
+	//Get the key
+	key_buf = malloc(*key_len);
+	if ((ret = unqlite_kv_cursor_key(*cur, key_buf, key_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}      
+	*key = key_buf;
+
+	//Find the size of the data
+	if ((ret = unqlite_kv_cursor_data(*cur, NULL, data_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+	
+	//Get the data
+	data_buf = malloc(*data_len);
+	if ((ret = unqlite_kv_cursor_data(*cur, data_buf, data_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}      
+	*data = data_buf;
+
+	return MDHIM_SUCCESS;
 }
 
 
 /*
  * mdhim_unqlite_get_prev
- * Gets the previous key/value from the data store
+ * Gets the next key/value from the data store
  *
+ * @param dbh             in   pointer to the unqlite db handle
  * @param mcur            in   pointer to the db cursor
- * @param data            out  void * to the value of the key
+ * @param key             out  void ** to the key that we get
+ * @param key_len         out  int * to the length of the key 
+ * @param data            out  void ** to the value belonging to the key
  * @param data_len        out  int * to the length of the value data 
  * @param mstore_cur_opts in   additional cursor options for the data store layer 
  * 
- * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_get_prev(struct mdhim_store_cur_t *mcur, void *data, int *data_len, 
+int mdhim_unqlite_get_prev(void *dbh, void **curh, void **key, int *key_len, 
+			   void **data, int64_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
+	unqlite *dh = (unqlite *) dbh;
+	int ret = 0;
+	unqlite_kv_cursor **cur = (unqlite_kv_cursor **) curh;	
+	char *data_buf;
+	char *key_buf;
+
+	*key = NULL;
+	*key_len = 0;
+	*data = NULL;
+	data_len = 0;
+
+	//Initialize the cursor if it hasn't been 
+	if (!*cur) {
+		if ((ret = unqlite_kv_cursor_init(dh, cur)) != UNQLITE_OK) {
+			print_unqlite_err_msg(dh);
+			return MDHIM_DB_ERROR;
+		}
+		if ((ret = unqlite_kv_cursor_first_entry(*cur)) 
+		    != UNQLITE_OK) {
+			print_unqlite_err_msg(dh);
+			return MDHIM_DB_ERROR;
+		}		
+	}
+
+	//Check if this a valid entry
+	if ((ret = unqlite_kv_cursor_valid_entry(*cur)) != UNQLITE_OK) {
+		mlog(MDHIM_SERVER_INFO, "Next entry not found");
+		return MDHIM_DB_ERROR;
+	}
+
+	//Change to seek later
+	if ((ret = unqlite_kv_cursor_prev_entry(*cur)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+	//Find the size of the key
+	if ((ret = unqlite_kv_cursor_key(*cur, NULL, key_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+	
+	//Get the key
+	key_buf = malloc(*key_len);
+	if ((ret = unqlite_kv_cursor_key(*cur, key_buf, key_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}      
+	*key = key_buf;
+
+	//Find the size of the data
+	if ((ret = unqlite_kv_cursor_data(*cur, NULL, data_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}
+	
+	//Get the data
+	data_buf = malloc(*data_len);
+	if ((ret = unqlite_kv_cursor_data(*cur, data_buf, data_len)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dh);
+		return MDHIM_DB_ERROR;
+	}      
+	*data = data_buf;
+
+	return MDHIM_SUCCESS;
 }
 
 /*
@@ -130,4 +354,12 @@ int mdhim_unqlite_get_prev(struct mdhim_store_cur_t *mcur, void *data, int *data
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 int mdhim_unqlite_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
+	int ret = 0;
+
+	if ((ret = unqlite_close(dbh)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dbh);
+		return MDHIM_DB_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
 }
