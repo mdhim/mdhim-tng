@@ -27,6 +27,34 @@ int im_range_server(struct mdhim_t *md) {
 	return 0;
 }
 
+void *get_cursor(struct mdhim_t *md, int source) {
+	struct mdhim_cursor *mc;
+	void *cursor;
+
+	HASH_FIND_INT(mdhim_cursors, &source, mc);
+	if (mc) {
+		return mc->cursor;
+	}
+
+	cursor = md->mdhim_rs->mdhim_store->cursor_init(md->mdhim_rs->mdhim_store->db_handle);
+	if (!cursor) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error initializing cursor", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	//Create a new mdhim_char to hold our entry
+	mc = malloc(sizeof(struct mdhim_cursor));
+
+	//Set the mdhim_char
+	mc->id = source;
+	mc->cursor = cursor;
+
+	//Add it to the hash table
+	HASH_ADD_INT(mdhim_cursors, id, mc);    
+	return cursor;
+}
+
 /*
  * range_server_add_work
  * Adds work to the work queue and signals the condition variable for the worker thread
@@ -138,18 +166,21 @@ int range_server_stop(struct mdhim_t *md) {
  * range_server_put
  * Handles the put message and puts data in the database
  *
- * @param md  Pointer to the main MDHIM structure
- * @param im  pointer to the put message to handle
- * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
+ * @param md        pointer to the main MDHIM struct
+ * @param im        pointer to the put message to handle
+ * @param source    source of the message
+ * @return          MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_put(struct mdhim_rs_t *mdhim_rs, struct mdhim_putm_t *im) {
+int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	int ret;
 
         //Put the record in the database
 	if ((ret = 
-	     mdhim_rs->mdhim_store->put(mdhim_rs->mdhim_store->db_handle, 
+	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
 					im->key, im->key_len, im->data, 
 					im->data_len, NULL)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
@@ -160,22 +191,24 @@ int range_server_put(struct mdhim_rs_t *mdhim_rs, struct mdhim_putm_t *im) {
  * range_server_bput
  * Handles the bulk put message and puts data in the database
  *
- * @param md  Pointer to the main MDHIM structure
- * @param im  pointer to the put message to handle
+ * @param md        Pointer to the main MDHIM struct
+ * @param im        pointer to the put message to handle
+ * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bput(struct mdhim_rs_t *mdhim_rs, struct mdhim_bputm_t *bim) {
+int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source) {
 	int i;
 	int ret;
 
 	//Iterate through the arrays and insert each record
-	for (i = 0; i < bim->num_keys; i++) {
+	for (i = 0; i < bim->num_keys && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
-		     mdhim_rs->mdhim_store->put(mdhim_rs->mdhim_store->db_handle, 
+		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
 						bim->keys[i], bim->key_lens[i], bim->data[i], 
 						bim->data_lens[i], NULL)) != MDHIM_SUCCESS) {
-			//There was an error inserting this record
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
+			     md->mdhim_rank);
 			return MDHIM_ERROR;
 		}
 	}
@@ -187,17 +220,20 @@ int range_server_bput(struct mdhim_rs_t *mdhim_rs, struct mdhim_bputm_t *bim) {
  * range_server_del
  * Handles the delete message and deletes the data from the database
  *
- * @param md  Pointer to the main MDHIM structure
- * @param im  pointer to the delete message to handle
+ * @param md       Pointer to the main MDHIM struct
+ * @param im       pointer to the delete message to handle
+ * @param source   source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_del(struct mdhim_rs_t *mdhim_rs, struct mdhim_delm_t *dm) {
+int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	int ret;
 
 	//Put the record in the database
 	if ((ret = 
-	     mdhim_rs->mdhim_store->del(mdhim_rs->mdhim_store->db_handle, 
+	     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
 					dm->key, dm->key_len, NULL)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
+		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
@@ -208,22 +244,24 @@ int range_server_del(struct mdhim_rs_t *mdhim_rs, struct mdhim_delm_t *dm) {
  * range_server_bdel
  * Handles the bulk delete message and deletes the data from the database
  *
- * @param md  Pointer to the main MDHIM structure
- * @param im  pointer to the delete message to handle
+ * @param md        Pointer to the main MDHIM struct
+ * @param im        pointer to the delete message to handle
+ * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bdel(struct mdhim_rs_t *mdhim_rs, struct mdhim_bdelm_t *bdm) {
+int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source) {
  	int i;
 	int ret;
 
 	//Iterate through the arrays and delete each record
-	for (i = 0; i < bdm->num_keys; i++) {
+	for (i = 0; i < bdm->num_keys && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
-		     mdhim_rs->mdhim_store->del(mdhim_rs->mdhim_store->db_handle, 
+		     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
 						bdm->keys[i], bdm->key_lens[i],
 						NULL)) != MDHIM_SUCCESS) {
-			//There was an error deleting this record
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
+			     md->mdhim_rank);
 			return MDHIM_ERROR;
 		}
 	}
@@ -235,24 +273,134 @@ int range_server_bdel(struct mdhim_rs_t *mdhim_rs, struct mdhim_bdelm_t *bdm) {
  * range_server_get
  * Handles the get message, retrieves the data from the database, and sends the results back
  * 
- * @param md  Pointer to the main MDHIM structure
- * @param im  pointer to the get message to handle
+ * @param md        Pointer to the main MDHIM struct
+ * @param im        pointer to the get message to handle
+ * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_get(struct mdhim_rs_t *mdhim_rs, struct mdhim_getm_t *gm) {
+int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
+	int ret;
+	char *data[MAX_BULK_OPS];
+	int64_t len;
 
+	//Get a record from the database
+	if ((ret = 
+	     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+					    gm->key, gm->key_len, (void **) &data, 
+					    &len, NULL)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
+}
+
+/*
+ * range_server_get_next
+ * Handles the get next message, retrieves the data from the database, and sends the results back
+ * 
+ * @param md        Pointer to the main MDHIM struct
+ * @param im        pointer to the get message to handle
+ * @param source    source of the message
+ * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+
+int range_server_get_next(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
+	int ret;
+	void *key;
+	int key_len;
+	void *data;
+	int64_t data_len;
+	void *cursor;
+
+	cursor = get_cursor(md, source);
+	if (!cursor) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting cursor for: %d", 
+		     md->mdhim_rank, source);
+		return MDHIM_ERROR;
+	}
+
+	//Get a record from the database
+	if ((ret = 
+	     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, cursor,
+						 &key, &key_len, &data, 
+						 &data_len, NULL)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting next record", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
+}
+
+/*
+ * range_server_get_prev
+ * Handles the get previous message, retrieves the data from the database, and sends the results back
+ * 
+ * @param md        Pointer to the main MDHIM struct
+ * @param im        pointer to the get message to handle
+ * @param source    source of the message
+ * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+
+int range_server_get_prev(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
+	int ret;
+	void *key;
+	int key_len;
+	void *data;
+	int64_t data_len;
+	void *cursor;
+
+	cursor = get_cursor(md, source);
+	if (!cursor) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting cursor for: %d", 
+		     md->mdhim_rank, source);
+		return MDHIM_ERROR;
+	}
+
+	//Get a record from the database
+	if ((ret = 
+	     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, cursor,
+						 &key, &key_len, &data, 
+						 &data_len, NULL)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting previous record", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
  * range_server_bget
  * Handles the bulk get message, retrieves the data from the database, and sends the results back
  * 
- * @param md  Pointer to the main MDHIM structure
- * @param im  pointer to the bulk get message to handle
+ * @param md        Pointer to the main MDHIM struct
+ * @param im        pointer to the bulk get message to handle
+ * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_bget(struct mdhim_rs_t *mdhim_rs, struct mdhim_bgetm_t *bgm) {
- 
+int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source) {
+	int ret;
+	char *data[MAX_BULK_OPS];
+	int64_t len;
+	int i;
+
+	//Iterate through the arrays and delete each record
+	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
+		//Get records from the database
+		if ((ret = 
+		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+						    bgm->keys[i], bgm->key_lens[i], (void **) &data[i], 
+						    &len, NULL)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record", 
+			     md->mdhim_rank);
+			return MDHIM_ERROR;
+		}
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /*
@@ -268,7 +416,7 @@ void *listener_thread(void *data) {
 	int mtype; //The message type
 	work_item *item;
 
-	buf = malloc(sizeof(max_size));
+	buf = malloc(max_size);
 	while (1) {
 		memset(buf, 0, max_size);
 		
@@ -294,6 +442,8 @@ void *listener_thread(void *data) {
 		
 		//Set the new buffer to the new item's message
 		item->message = message_buf;
+		//Set the source in the work item
+		item->source = source;
 		//Add the new item to the work queue
 		range_server_add_work(md, item);
 	}
@@ -308,6 +458,7 @@ void *worker_thread(void *data) {
 	struct mdhim_rs_t *mdhim_rs = md->mdhim_rs;
 	work_item *item;
 	int mtype;
+	int op;
 
 	while (1) {
 		//Lock the work queue mutex
@@ -322,22 +473,45 @@ void *worker_thread(void *data) {
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
 			switch(mtype) {
 			case MDHIM_PUT:
-				range_server_put(mdhim_rs, (struct mdhim_putm_t *) item->message);
+				//Pack the put message and pass to range_server_put
+				range_server_put(md, 
+						 pack_put_msg(item->message), 
+						 item->source);
 				break;
 			case MDHIM_BULK_PUT:
-				range_server_bput(mdhim_rs, (struct mdhim_bputm_t *) item->message);
+				//Pack the bulk put message and pass to range_server_put
+				range_server_bput(md, 
+						  pack_bput_msg(item->message), 
+						  item->source);
 				break;
 			case MDHIM_GET:
-				range_server_get(mdhim_rs, (struct mdhim_getm_t *) item->message);
+				//Determine the operation passed and call the appropriate function
+				op = ((struct mdhim_bgetm_t *) item->message)->op;
+				if (op == MDHIM_GET_VAL) {
+					range_server_get(md, 
+							 pack_get_msg(item->message), 
+							 item->source);
+				} else if (op == MDHIM_GET_NEXT) {
+					range_server_get_next(md, 
+							      pack_get_msg(item->message), 
+							      item->source);
+				} else if (op == MDHIM_GET_PREV) {
+					range_server_get_prev(md, 
+							      pack_get_msg(item->message), 
+							      item->source);
+				}
 				break;
 			case MDHIM_BULK_GET:
-				range_server_bget(mdhim_rs, (struct mdhim_bgetm_t *) item->message);
+				//Determine the operation passed and call the appropriate function
+				range_server_bget(md, 
+						  pack_bget_msg(item->message), 
+						  item->source);
 				break;
 			case MDHIM_DEL:
-				range_server_del(mdhim_rs, (struct mdhim_delm_t *) item->message);
+				range_server_del(md, pack_del_msg(item->message), item->source);
 				break;
 			case MDHIM_BULK_DEL:
-				range_server_bdel(mdhim_rs, (struct mdhim_bdelm_t *) item->message);
+				range_server_bdel(md, pack_bdel_msg(item->message), item->source);
 				break;
 			default:
 				break;

@@ -16,6 +16,7 @@
  * @return mdhim_store_t      The mdhim storage abstraction struct
  */
 
+
 struct mdhim_store_t *mdhim_db_init(int type) {
 	struct mdhim_store_t *store;
 	
@@ -37,6 +38,7 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->get_next = mdhim_unqlite_get_next;
 		store->get_prev = mdhim_unqlite_get_prev;
 		store->del = mdhim_unqlite_del;
+		store->cursor_init = mdhim_unqlite_cursor_init;
 		store->close = mdhim_unqlite_close;
 		break;
 	default:

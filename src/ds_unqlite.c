@@ -40,8 +40,28 @@ static void print_unqlite_err_msg(unqlite *dh) {
 }
 
 /*
+ * mdhim_cursor_init
+ * Initializes a cursor
+ *
+ * @param dbh   in   ** to the unqlite db handle
+ * @return void * to cursor or NULL on failure
+ */
+void *mdhim_unqlite_cursor_init(void *dbh) {
+	unqlite_kv_cursor *cursor;
+	int ret = 0;
+	
+	if ((ret = unqlite_kv_cursor_init(dbh, &cursor)) 
+	    != UNQLITE_OK) {
+		print_unqlite_err_msg(dbh);
+		return NULL;
+	}
+
+	return (void *)cursor;
+}
+
+/*
  * mdhim_unqlite_open
- * Stores a single key in the data store
+ * Opens the database
  *
  * @param dbh            in   ** to the unqlite db handle
  * @param path           in   path to the database file
@@ -192,12 +212,12 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *d
  * @param mstore_cur_opts in   additional cursor options for the data store layer 
  * 
  */
-int mdhim_unqlite_get_next(void *dbh, void **curh, void **key, int *key_len, 
+int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len, 
 			   void **data, int64_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
-	unqlite_kv_cursor **cur = (unqlite_kv_cursor **) curh;	
+	unqlite_kv_cursor *cur = (unqlite_kv_cursor *) curh;	
 	char *data_buf;
 	char *key_buf;
 
@@ -206,53 +226,47 @@ int mdhim_unqlite_get_next(void *dbh, void **curh, void **key, int *key_len,
 	*data = NULL;
 	data_len = 0;
 
-	//Initialize the cursor if it hasn't been 
-	if (!*cur) {
-		if ((ret = unqlite_kv_cursor_init(dh, cur)) != UNQLITE_OK) {
-			print_unqlite_err_msg(dh);
-			return MDHIM_DB_ERROR;
-		}
-		if ((ret = unqlite_kv_cursor_first_entry(*cur)) 
-		    != UNQLITE_OK) {
-			print_unqlite_err_msg(dh);
-			return MDHIM_DB_ERROR;
-		}		
+
+        //Make sure the cursor isn't empty
+	if (!cur) {
+		mlog(MDHIM_SERVER_INFO, "Cursor empty");
+		return MDHIM_DB_ERROR;
 	}
 
 	//Check if this a valid entry
-	if ((ret = unqlite_kv_cursor_valid_entry(*cur)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_valid_entry(cur)) != UNQLITE_OK) {
 		mlog(MDHIM_SERVER_INFO, "Next entry not found");
 		return MDHIM_DB_ERROR;
 	}
 
 	//Change to seek later
-	if ((ret = unqlite_kv_cursor_next_entry(*cur)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_next_entry(cur)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	//Find the size of the key
-	if ((ret = unqlite_kv_cursor_key(*cur, NULL, key_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_key(cur, NULL, key_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
 	//Get the key
 	key_buf = malloc(*key_len);
-	if ((ret = unqlite_kv_cursor_key(*cur, key_buf, key_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_key(cur, key_buf, key_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}      
 	*key = key_buf;
 
 	//Find the size of the data
-	if ((ret = unqlite_kv_cursor_data(*cur, NULL, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, NULL, data_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
 	//Get the data
 	data_buf = malloc(*data_len);
-	if ((ret = unqlite_kv_cursor_data(*cur, data_buf, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, data_buf, data_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}      
@@ -275,12 +289,12 @@ int mdhim_unqlite_get_next(void *dbh, void **curh, void **key, int *key_len,
  * @param mstore_cur_opts in   additional cursor options for the data store layer 
  * 
  */
-int mdhim_unqlite_get_prev(void *dbh, void **curh, void **key, int *key_len, 
+int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len, 
 			   void **data, int64_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
-	unqlite_kv_cursor **cur = (unqlite_kv_cursor **) curh;	
+	unqlite_kv_cursor *cur = (unqlite_kv_cursor *) curh;	
 	char *data_buf;
 	char *key_buf;
 
@@ -289,53 +303,46 @@ int mdhim_unqlite_get_prev(void *dbh, void **curh, void **key, int *key_len,
 	*data = NULL;
 	data_len = 0;
 
-	//Initialize the cursor if it hasn't been 
-	if (!*cur) {
-		if ((ret = unqlite_kv_cursor_init(dh, cur)) != UNQLITE_OK) {
-			print_unqlite_err_msg(dh);
-			return MDHIM_DB_ERROR;
-		}
-		if ((ret = unqlite_kv_cursor_first_entry(*cur)) 
-		    != UNQLITE_OK) {
-			print_unqlite_err_msg(dh);
-			return MDHIM_DB_ERROR;
-		}		
+	//Make sure the cursor isn't empty
+	if (!cur) {
+		mlog(MDHIM_SERVER_INFO, "Cursor empty");
+		return MDHIM_DB_ERROR;
 	}
 
 	//Check if this a valid entry
-	if ((ret = unqlite_kv_cursor_valid_entry(*cur)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_valid_entry(cur)) != UNQLITE_OK) {
 		mlog(MDHIM_SERVER_INFO, "Next entry not found");
 		return MDHIM_DB_ERROR;
 	}
 
 	//Change to seek later
-	if ((ret = unqlite_kv_cursor_prev_entry(*cur)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_prev_entry(cur)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	//Find the size of the key
-	if ((ret = unqlite_kv_cursor_key(*cur, NULL, key_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_key(cur, NULL, key_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
 	//Get the key
 	key_buf = malloc(*key_len);
-	if ((ret = unqlite_kv_cursor_key(*cur, key_buf, key_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_key(cur, key_buf, key_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}      
 	*key = key_buf;
 
 	//Find the size of the data
-	if ((ret = unqlite_kv_cursor_data(*cur, NULL, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, NULL, data_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
 	//Get the data
 	data_buf = malloc(*data_len);
-	if ((ret = unqlite_kv_cursor_data(*cur, data_buf, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, data_buf, data_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}      

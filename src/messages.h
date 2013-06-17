@@ -37,6 +37,9 @@
 #define RANGESRV_WORK 1
 #define RANGESRV_INFO 2
 
+//The maximum bulk operations we will allow at one time
+#define MAX_BULK_OPS 100
+
 struct mdhim_t;
 
 /* Base message */
@@ -50,7 +53,6 @@ struct mdhim_putm_t {
 	int mtype;
 	char *key;
 	int key_len;
-	int key_type;
 	char *data;
 	int data_len;
 	int data_type;
@@ -73,6 +75,8 @@ struct mdhim_getm_t {
 	int mtype;  
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
+	char *key;
+	int key_len;
 	int server_rank;
 };
 
@@ -84,6 +88,8 @@ struct mdhim_bgetm_t {
 	//Number of records to retreive
 	int num_records;
 	int server_rank;
+	char **keys;
+	int *key_lens;
 };
 
 /* delete message */

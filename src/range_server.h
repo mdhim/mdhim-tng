@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include "data_store.h"
 #include "messages.h"
+#include "uthash.h"
 
 struct mdhim_t;
 
@@ -12,6 +13,7 @@ struct work_item {
 	work_item *next;
 	work_item *prev;
 	void *message;
+	int source;
 };
 
 typedef struct work_queue {
@@ -51,6 +53,14 @@ typedef struct mdhim_rs_t {
 	rangesrv_info info;
 } mdhim_rs_t;
 
+//Used for storing cursors for each rank
+struct mdhim_cursor {
+	int id;            /* we'll use this field as the key */
+	void *cursor;
+	UT_hash_handle hh; /* makes this structure hashable */
+};
+
+struct mdhim_cursor *mdhim_cursors = NULL;
 int range_server_add_work(struct mdhim_t *md, work_item *item);
 int range_server_init(struct mdhim_t *md);
 int range_server_stop(struct mdhim_t *md);
