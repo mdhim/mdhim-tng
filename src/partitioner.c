@@ -35,6 +35,27 @@ void partitioner_init(struct mdhim_t *md) {
 }
 
 /*
+ * delete_alphabet
+ * Deletes the alphabet hash table
+ */
+void delete_alphabet() {
+	struct mdhim_char *cur_char, *tmp;
+	HASH_ITER(hh, mdhim_alphabet, cur_char, tmp) {
+		HASH_DEL(mdhim_alphabet, cur_char);  /*delete it (mdhim_alphabet advances to next)*/
+		free(cur_char);            /* free it */
+	}
+}
+
+/*
+ * partitioner_release
+ * Releases memory in use by the partitioner
+ *
+ */
+void partitioner_release() {
+	delete_alphabet();
+}
+
+/*
  * add_char
  * Adds a character to our alphabet hash table
  *

@@ -1,6 +1,8 @@
 #ifndef      __MESSAGES_H
 #define      __MESSAGES_H
 
+#include "range_server.h"
+
 /* Message Types */
 
 //Put a single key in the data store
@@ -110,6 +112,14 @@ struct mdhim_bdelm_t {
 	int server_rank;
 };
 
+/*Range server info message*/
+struct mdhim_rsi_t {
+	//The start range (inclusive)
+	uint64_t start_range;
+	//The end range (inclusive)
+	uint64_t end_range;
+};
+
 /*Get receive message */
 struct mdhim_rm_t {
 	int mtype;  
@@ -139,4 +149,5 @@ struct mdhim_bgetrm_t {
 
 int send_message(struct mdhim_t *md, int dest, void *message);
 int receive_message(struct mdhim_t *md, int src, void *message);
+struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
 #endif

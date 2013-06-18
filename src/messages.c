@@ -36,7 +36,7 @@ int send_message(struct mdhim_t *md, int dest, void *message) {
  */
 int receive_message(struct mdhim_t *md, int src, void *message) {
 
-	int max_size = 1048576; //At most receive 1MB
+	int max_size = 2147483647; //At most receive 2GB
 	MPI_Status status;
 	int return_code;
 
@@ -49,4 +49,35 @@ int receive_message(struct mdhim_t *md, int src, void *message) {
 		return MDHIM_ERROR;
 
 	return MDHIM_SUCCESS;
+}
+
+/*
+ * get_rangesrvs
+ * Receives range server info from every process and constructs a rangesrv_info list
+ *
+ * @param md      in   main MDHIM struct
+ * @return a list of range servers
+ */
+struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
+	int rank;
+	struct mdhim_rsi_t rsi;
+	char *sendbuf;
+	int sendsize;
+	int sendidx = 0;
+	char *recvbuf;
+
+	send_size = sizeof(struct mdhim_rsi_t);
+	sendbuf = malloc(send_size);
+	recvbuf = malloc(send_size) * comm_size;
+	if (md->mdhim_rs) {
+		rsi.start_range = md->mdhim_rs.info.start_range;
+		rsi.end_range = md->mdhim_rs.info.end_range;
+	} else {
+		rsi.start_range = -1;
+		rsi.end_range = -1;
+	}
+	
+	MPI_Pack(&rsi, sizeof(struct mdhim_rsi_t), MPI_CHAR, sendbuf, sendsize, &sendidx, 
+		 md->mdhim_comm);
+
 }

@@ -20,6 +20,7 @@
 struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 	int ret;
 	struct mdhim_t *md;
+	struct rangesrv_info *rangesrvs;
 
 	//Allocate memory for the main MDHIM structure
 	md = malloc(sizeof(struct mdhim_t));
@@ -52,8 +53,13 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 		return NULL;
 	}
 
-	//Scatter/Gather range server data (i.e., ranges, ranks)
+	if (!(rangesrvs = get_rangesrvs(md))) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Did not receive any range servers", 
+		     md->mdhim_rank);
+		return NULL;
+	}
 
+	md->rangesrvs = rangesrvs;
 	return md;
 }
 
@@ -69,6 +75,8 @@ int mdhimClose(struct mdhim_t *md) {
 	if ((ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
 	}
+
+	partitioner_release();
 }
 
 /*

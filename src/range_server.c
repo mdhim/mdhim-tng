@@ -124,7 +124,8 @@ work_item *get_work(struct mdhim_rs_t *mdhim_rs) {
  */
 int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
-	int ret;
+	int ret;	
+	struct mdhim_char *cur_cursor, *tmp;
 
 	//Cancel the threads
 	if ((ret = pthread_cancel(md->mdhim_rs->listener)) != 0) {
@@ -150,8 +151,22 @@ int range_server_stop(struct mdhim_t *md) {
 		head = temp_item;
 	}
 
+	//Close all the open cursors and free the hash table
+	HASH_ITER(hh, mdhim_cursors, cur_cursor, tmp) {
+		if ((ret = md->mdhim_rs->mdhim_store->cursor_release(
+			     md->mdhim_rs->mdhim_store->db_handle, cur_cursor->cursor)) 
+		    != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error releasing cursor", 
+			     md->mdhim_rank);
+			return MDHIM_ERROR;
+		}
+		HASH_DEL(mdhim_cursors, cur_cursor);  /*delete it (mdhim_cursors advances to next)*/
+		free(cur_cursor);            /* free it */
+	}
+
 	//Close the database
-	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, NULL)) != MDHIM_SUCCESS) {
+	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, NULL)) 
+	    != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
 	}
 
@@ -475,13 +490,13 @@ void *worker_thread(void *data) {
 			case MDHIM_PUT:
 				//Pack the put message and pass to range_server_put
 				range_server_put(md, 
-						 pack_put_msg(item->message), 
+						 unpack_put_msg(item->message), 
 						 item->source);
 				break;
 			case MDHIM_BULK_PUT:
 				//Pack the bulk put message and pass to range_server_put
 				range_server_bput(md, 
-						  pack_bput_msg(item->message), 
+						  unpack_bput_msg(item->message), 
 						  item->source);
 				break;
 			case MDHIM_GET:
@@ -489,29 +504,29 @@ void *worker_thread(void *data) {
 				op = ((struct mdhim_bgetm_t *) item->message)->op;
 				if (op == MDHIM_GET_VAL) {
 					range_server_get(md, 
-							 pack_get_msg(item->message), 
+							 unpack_get_msg(item->message), 
 							 item->source);
 				} else if (op == MDHIM_GET_NEXT) {
 					range_server_get_next(md, 
-							      pack_get_msg(item->message), 
+							      unpack_get_msg(item->message), 
 							      item->source);
 				} else if (op == MDHIM_GET_PREV) {
 					range_server_get_prev(md, 
-							      pack_get_msg(item->message), 
+							      unpack_get_msg(item->message), 
 							      item->source);
 				}
 				break;
 			case MDHIM_BULK_GET:
 				//Determine the operation passed and call the appropriate function
 				range_server_bget(md, 
-						  pack_bget_msg(item->message), 
+						  unpack_bget_msg(item->message), 
 						  item->source);
 				break;
 			case MDHIM_DEL:
-				range_server_del(md, pack_del_msg(item->message), item->source);
+				range_server_del(md, unpack_del_msg(item->message), item->source);
 				break;
 			case MDHIM_BULK_DEL:
-				range_server_bdel(md, pack_bdel_msg(item->message), item->source);
+				range_server_bdel(md, unpack_bdel_msg(item->message), item->source);
 				break;
 			default:
 				break;

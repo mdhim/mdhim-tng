@@ -36,6 +36,7 @@ typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void *curh, void **key
 					 void **data, int64_t *data_len, 
 					 struct mdhim_store_cur_opts_t *mstore_cur_opts);
 typedef void *(*mdhim_store_cursor_init_fn_t)(void *db_handle);
+typedef void *(*mdhim_store_cursor_release_fn_t)(void *db_handle, void *cursor);
 typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_close_fn_t)(void *db_handle, struct mdhim_store_opts_t *mstore_opts);
@@ -51,6 +52,7 @@ struct mdhim_store_t {
 	mdhim_store_get_next_fn_t get_next;
 	mdhim_store_get_prev_fn_t get_prev;
 	mdhim_store_cursor_init_fn_t cursor_init;
+	mdhim_store_cursor_release_fn_t cursor_release;
 	mdhim_store_del_fn_t del;
 	mdhim_store_close_fn_t close;
 };

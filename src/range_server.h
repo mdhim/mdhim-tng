@@ -55,7 +55,7 @@ typedef struct mdhim_rs_t {
 
 //Used for storing cursors for each rank
 struct mdhim_cursor {
-	int id;            /* we'll use this field as the key */
+	int id;            /* key */
 	void *cursor;
 	UT_hash_handle hh; /* makes this structure hashable */
 };
