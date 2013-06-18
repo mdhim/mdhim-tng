@@ -37,8 +37,8 @@
 #define RANGESRV_WORK 1
 #define RANGESRV_INFO 2
 
-//The maximum bulk operations we will allow at one time
-#define MAX_BULK_OPS 100
+//The maximum bulk operations we will allowed at one time
+#define MAX_BULK_OPS 5
 
 struct mdhim_t;
 
@@ -51,23 +51,38 @@ struct mdhim_basem_t {
 /* Put message */
 struct mdhim_putm_t {
 	int mtype;
-	char *key;
 	int key_len;
-	char *data;
-	int data_len;
-	int data_type;
+	int64_t data_len;
 	int server_rank;
+	void *key;
+	void *data;
 };
 
 /*Bulk put message */
 struct mdhim_bputm_t {
 	int mtype;
-	char **keys;
-	int *key_lens;
-	char **data;
-	int *data_lens;
-	int num_keys;
+	int num_records;
 	int server_rank;
+	int key1_len;
+	int64_t data1_len;
+	int key2_len;
+	int64_t data2_len;
+	int key3_len;
+	int64_t data3_len;
+	int key4_len;
+	int64_t data4_len;
+	int key5_len;
+	int64_t data5_len;
+	void *key1;
+	void *data1;
+	void *key2;
+	void *data2;
+	void *key3;
+	void *data3;
+	void *key4;
+	void *data4;
+	void *key5;
+	void *data5;
 };
 
 /*Get record message */
@@ -75,9 +90,9 @@ struct mdhim_getm_t {
 	int mtype;  
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
-	char *key;
 	int key_len;
 	int server_rank;
+	void *key;
 };
 
 /*Bulk get record message */
@@ -86,27 +101,43 @@ struct mdhim_bgetm_t {
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;
 	//Number of records to retreive
-	int num_records;
+	int num_keys;
 	int server_rank;
-	char **keys;
-	int *key_lens;
+	int key1_len;
+	int key2_len;
+	int key3_len;
+	int key4_len;
+	int key5_len;
+	void *key1;
+	void *key2;
+	void *key3;
+	void *key4;
+	void *key5;
 };
 
 /* delete message */
 struct mdhim_delm_t {
 	int mtype;
-	char *key;
 	int key_len; 
 	int server_rank;
+	void *key;
 };
 
 /*bulk delete record message */
 struct mdhim_bdelm_t {
 	int mtype;  
-	char **keys;
-	int *key_lens;
 	int num_keys;
 	int server_rank;
+	int key1_len;
+	int key2_len;
+	int key3_len;
+	int key4_len;
+	int key5_len;
+	void *key1;
+	void *key2;
+	void *key3;
+	void *key4;
+	void *key5;
 };
 
 /*Get receive message */
@@ -119,21 +150,38 @@ struct mdhim_rm_t {
 struct mdhim_getrm_t {
 	int mtype;
 	int error;
-	char *key;
 	int key_len;
-	char *value;
 	int value_len;
+	void *key;
+	void *value;
 };
 
 /*Bulk get receive message */
 struct mdhim_bgetrm_t {
 	int mtype;
 	int error;
-	char **keys;
-	int *key_lens;
-	char **values;
-	int *value_lens;
-	int nitems;
+	int num_records;
+	int server_rank;
+	int key1_len;
+	int64_t data1_len;
+	int key2_len;
+	int64_t data2_len;
+	int key3_len;
+	int64_t data3_len;
+	int key4_len;
+	int64_t data4_len;
+	int key5_len;
+	int64_t data5_len;
+	void *key1;
+	void *data1;
+	void *key2;
+	void *data2;
+	void *key3;
+	void *data3;
+	void *key4;
+	void *data4;
+	void *key5;
+	void *data5;
 };
 
 int send_message(struct mdhim_t *md, int dest, void *message);
