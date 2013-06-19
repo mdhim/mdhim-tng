@@ -20,24 +20,47 @@ struct mdhim_rm_t *client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
 
 	int return_code;
 	struct mdhim_rm_t *rm;
+        void *message;
 	
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	rm->error = MDHIM_SUCCESS ;
 
-	return_code = send_message(md, pm->server_rank, pm);
+        // Pack pm ==> message and then send message
+        return_code = pack_put_message(md, pm, message);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while packing "
+	       "put message",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+        
+	return_code = send_message(md, pm->server_rank, message);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
-	       "put record request",  md->mdhim_rank, return_code);
+	       "put message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
+          return rm;
 	}
 
-	return_code = receive_message(md, pm->server_rank, (void *) rm);
+	return_code = receive_message(md, pm->server_rank, message);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
-	       "put record request",  md->mdhim_rank, return_code);
+	       "put message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+        
+        // Unpack rm from the received message
+        return_code = unpack_return_message(md, message, rm);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while unpacking "
+	       "return message",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
 	}
 
 	// Return any error code if an error is encountered
@@ -55,30 +78,55 @@ struct mdhim_rm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
 
 	int return_code;
 	struct mdhim_rm_t *rm;
+        void *message;
 	
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	rm->error = MDHIM_SUCCESS ;
-
-	return_code = send_message(md, bpm->server_rank, bpm);
+        
+        // Pack bpm ==> message and then send message
+        return_code = pack_bput_message(md, bpm, message);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while packing "
+	       "bput message",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+        
+	return_code = send_message(md, bpm->server_rank, message);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
-	       "bput record request",  md->mdhim_rank, return_code);
+	       "bput message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
+          return rm;
 	}
 
-	return_code = receive_message(md, bpm->server_rank, (void *) rm);
+	return_code = receive_message(md, bpm->server_rank, message);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
-	       "bput record request",  md->mdhim_rank, return_code);
+	       "bput message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+        
+        // Unpack rm from the received message
+        return_code = unpack_return_message(md, message, rm);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while unpacking "
+	       "return message",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
 	}
 
 	// Return any error code if an error is encountered
 	return rm;
 }
 
+
+//TODO//
 /*
  * Send get to range server
  *
@@ -90,30 +138,50 @@ struct mdhim_getrm_t *client_get(struct mdhim_t *md, struct mdhim_getm_t *gm) {
 
 	int return_code;
 	struct mdhim_getrm_t *rm;
-	char *buf;
+	char *message;
 
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	rm->error = MDHIM_SUCCESS ;
-
-	return_code = send_message(md, gm->server_rank, gm);
-	// If the send did not succeed then log the error code and return MDHIM_ERROR
+        
+        // Pack gm ==> message and then send message
+        return_code = pack_get_message(md, gm, message);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
-	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
-	       "get record request",  md->mdhim_rank, return_code);
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while packing "
+	       "get message",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
 	}
 
-	return_code = receive_message(md, gm->server_rank, buf);
+	return_code = send_message(md, gm->server_rank, message);
+	// If the send did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
+	       "get message request",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+	}
+
+	return_code = receive_message(md, gm->server_rank, message);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
-	       "get record request",  md->mdhim_rank, return_code);
+	       "get message request",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+	}
+        
+        // Unpack getrm ==> message
+        return_code = unpack_getrm_message(md, message, MDHIM_MAX_MSG_SIZE, gm);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while unpacking "
+	       "get message",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
 	}
 
 	// Return any error code if an error is encountered
 	return rm;
 }
+
+//TODO//
 
 /*
  * Send bulk get to range server
@@ -135,7 +203,7 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
-	       "bget record request",  md->mdhim_rank, return_code);
+	       "bget message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
 	}
 
@@ -143,7 +211,7 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
-	       "bget record request",  md->mdhim_rank, return_code);
+	       "bget message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
 	}
 
@@ -155,31 +223,53 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm
  * Send delete to range server
  *
  * @param md main MDHIM struct
- * @param bgm pointer to get message to be sent or inserted into the range server's work queue
+ * @param dm pointer to del message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
 struct mdhim_rm_t *client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
 
 	int return_code;
 	struct mdhim_rm_t *rm;
+        void *message;
 	
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	rm->error = MDHIM_SUCCESS ;
-
-	return_code = send_message(md, dm->server_rank, dm);
-	// If the send did not succeed then log the error code and return MDHIM_ERROR
+        
+        // Pack dm ==> message and then send message
+        return_code = pack_del_message(md, dm, message);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
-	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
-	       "delete record request",  md->mdhim_rank, return_code);
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while packing "
+	       "del message",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
 	}
 
-	return_code = receive_message(md, dm->server_rank, (void *) rm);
+	return_code = send_message(md, dm->server_rank, message);
+	// If the send did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
+	       "del message request",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+
+	return_code = receive_message(md, dm->server_rank, message);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
-	       "delete record request",  md->mdhim_rank, return_code);
+	       "del message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+        
+        // Unpack rm from the received message
+        return_code = unpack_return_message(md, message, rm);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while unpacking "
+	       "return message",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
 	}
 
 	// Return any error code if an error is encountered
@@ -190,31 +280,53 @@ struct mdhim_rm_t *client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
  * Send bulk delete to MDHIM
  *
  * @param md main MDHIM struct
- * @param bgm pointer to get message to be sent or inserted into the range server's work queue
+ * @param bdm pointer to bulk del message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
 struct mdhim_rm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {
 
 	int return_code;
 	struct mdhim_rm_t *rm;
+        void *message;
 	
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	rm->error = MDHIM_SUCCESS ;
-
-	return_code = send_message(md, bdm->server_rank, bdm);
-	// If the send did not succeed then log the error code and return MDHIM_ERROR
+        
+        // Pack bdm ==> message and then send message
+        return_code = pack_bdel_message(md, bdm, message);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
-	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
-	       "bdelete record request",  md->mdhim_rank, return_code);
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while packing "
+	       "bdel message",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
 	}
 
-	return_code = receive_message(md, bdm->server_rank, (void *) rm);
+	return_code = send_message(md, bdm->server_rank, message);
+	// If the send did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
+	       "bdel message request",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+
+	return_code = receive_message(md, bdm->server_rank, message);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
-	       "bdelete record request",  md->mdhim_rank, return_code);
+	       "bdel message request",  md->mdhim_rank, return_code);
 	  rm->error = MDHIM_ERROR;
+          return rm;
+	}
+        
+        // Unpack rm from the received message
+        return_code = unpack_return_message(md, message, rm);
+        // If the pack did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+	  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d while unpacking "
+	       "return message",  md->mdhim_rank, return_code);
+	  rm->error = MDHIM_ERROR;
+          return rm;
 	}
 
 	// Return any error code if an error is encountered

@@ -38,6 +38,9 @@
 #define RANGESRV_INFO 2
 
 #define MAX_BULK_OPS 100
+
+//Maximum size of messages allowed
+#define MDHIM_MAX_MSG_SIZE 1048576 //At most send/receive 1MB
 struct mdhim_t;
 
 /* Base message */
@@ -51,25 +54,23 @@ struct mdhim_putm_t {
 	int mtype;
 	void *key;
 	int key_len;
-	int key_type;
 	void *data;
-	int64_t data_len;
-	int data_type;
+	int data_len;
 	int server_rank;
 };
 
-/*Bulk put message */
+/* Bulk put message */
 struct mdhim_bputm_t {
 	int mtype;
 	void **keys;
 	int *key_lens;
 	void **data;
-	int64_t *data_lens;
+	int *data_lens;
 	int num_keys;
 	int server_rank;
 };
 
-/*Get record message */
+/* Get record message */
 struct mdhim_getm_t {
 	int mtype;  
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
@@ -79,21 +80,19 @@ struct mdhim_getm_t {
 	int server_rank;
 };
 
-/*Bulk get record message */
+/* Bulk get record message */
 struct mdhim_bgetm_t {
 	int mtype;  
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;
-	//Number of records to retreive
 	void **keys;
 	int *key_lens;
-	void **values;
-	int64_t *value_lens;
+        //Number of records to retrieve
 	int num_records;
 	int server_rank;
 };
 
-/* delete message */
+/* Delete message */
 struct mdhim_delm_t {
 	int mtype;
 	void *key;
@@ -101,7 +100,7 @@ struct mdhim_delm_t {
 	int server_rank;
 };
 
-/*bulk delete record message */
+/* Bulk delete record message */
 struct mdhim_bdelm_t {
 	int mtype;  
 	void **keys;
@@ -110,30 +109,30 @@ struct mdhim_bdelm_t {
 	int server_rank;
 };
 
-/*Get receive message */
+/* Get receive message */
 struct mdhim_rm_t {
 	int mtype;  
 	int error;
 };
 
-/*Get receive message */
+/* Get receive message */
 struct mdhim_getrm_t {
 	int mtype;
 	int error;
 	void *key;
 	int key_len;
 	void *value;
-	int64_t value_len;
+	int value_len;
 };
 
-/*Bulk get receive message */
+/* Bulk get receive message */
 struct mdhim_bgetrm_t {
 	int mtype;
 	int error;
 	void **keys;
 	int *key_lens;
 	void **values;
-	int64_t *value_lens;
+	int *value_lens;
 	int num_records;
 };
 
