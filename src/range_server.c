@@ -125,7 +125,7 @@ work_item *get_work(struct mdhim_rs_t *mdhim_rs) {
 int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
 	int ret;	
-	struct mdhim_char *cur_cursor, *tmp;
+	struct mdhim_cursor *cur_cursor, *tmp;
 
 	//Cancel the threads
 	if ((ret = pthread_cancel(md->mdhim_rs->listener)) != 0) {
@@ -138,10 +138,13 @@ int range_server_stop(struct mdhim_t *md) {
 	if ((ret = pthread_mutex_destroy(md->mdhim_rs->work_queue_mutex)) != 0) {
 		return MDHIM_ERROR;
 	}
+	free(md->mdhim_rs->work_queue_mutex);
+
 	//Destroy the condition variable
 	if ((ret = pthread_cond_destroy(md->mdhim_rs->work_ready_cv)) != 0) {
 		return MDHIM_ERROR;
 	}
+	free(md->mdhim_rs->work_ready_cv);
 
 	//Free the work queue
 	head = md->mdhim_rs->work_queue->head;

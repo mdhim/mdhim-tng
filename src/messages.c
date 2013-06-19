@@ -64,20 +64,79 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 	char *sendbuf;
 	int sendsize;
 	int sendidx = 0;
+	int recvidx = 0;
 	char *recvbuf;
+	int recvsize;
+	int ret = 0;
+	int i = 0;
+	rangesrv_info *rs_info, *rs_head, *rs_tail;
 
-	send_size = sizeof(struct mdhim_rsi_t);
-	sendbuf = malloc(send_size);
-	recvbuf = malloc(send_size) * comm_size;
+	//The range server info list head and tail that we are populating
+	rs_head = rs_tail = NULL;
+	//Allocate buffers
+	sendsize = sizeof(struct mdhim_rsi_t);
+	sendbuf = malloc(sendsize);
+	recvsize = sendsize * md->mdhim_comm_size;
+	recvbuf = malloc(recvsize);
+	//Populate range server info to send
 	if (md->mdhim_rs) {
-		rsi.start_range = md->mdhim_rs.info.start_range;
-		rsi.end_range = md->mdhim_rs.info.end_range;
+		rsi.start_range = md->mdhim_rs->info.start_range;
+		rsi.end_range = md->mdhim_rs->info.end_range;
 	} else {
+		//I'm not a range server
 		rsi.start_range = -1;
 		rsi.end_range = -1;
 	}
 	
-	MPI_Pack(&rsi, sizeof(struct mdhim_rsi_t), MPI_CHAR, sendbuf, sendsize, &sendidx, 
-		 md->mdhim_comm);
+	//Pack the range server info
+	if ((ret = MPI_Pack(&rsi, sizeof(struct mdhim_rsi_t), MPI_CHAR, sendbuf, sendsize, &sendidx, 
+			    md->mdhim_comm)) != MPI_SUCCESS) {
+		mlog(MPI_CRIT, "Rank: %d - " 
+		     "Error packing buffer when sending range server info", 
+		     md->mdhim_rank);
+		return NULL;
+	}
 
+	//Receive the range server info from each rank
+	if ((ret = MPI_Allgather(sendbuf, sendsize, MPI_PACKED, recvbuf, recvsize,
+				 MPI_PACKED, md->mdhim_comm)) != MPI_SUCCESS) {
+		mlog(MPI_CRIT, "Rank: %d - " 
+		     "Error while receiving range server info", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	//Unpack the receive buffer and construct a linked list of range servers
+	for (i = 0; i < md->mdhim_comm_size; i++) {
+		if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, &rsi, sizeof(struct mdhim_rsi_t), 
+				      MPI_CHAR, md->mdhim_comm)) != MPI_SUCCESS) {
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Error while unpacking range server info", 
+			     md->mdhim_rank);
+			return NULL;
+		}
+
+		if (rsi.start_range == -1 || rsi.end_range == -1) {
+			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
+			     "Rank: %d is not a range server", 
+			     md->mdhim_rank, i);
+			continue;
+		}
+
+		rs_info = malloc(sizeof(struct rangesrv_info));
+		rs_info->rank = i;
+		rs_info->start_range = rsi.start_range;
+		rs_info->end_range = rsi.end_range;
+		rs_info->next = NULL;
+		if (!rs_head) {
+			rs_head = rs_info;
+			rs_tail = rs_info;
+		} else {
+			rs_tail->next = rs_info;
+			rs_info->prev = rs_tail;
+			rs_tail = rs_info;
+		}
+	}
+
+	return rs_head;
 }

@@ -67,7 +67,7 @@ void *mdhim_unqlite_cursor_init(void *dbh) {
  * @param dbh   in   * to the unqlite db handle
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-void *mdhim_unqlite_cursor_release(void *dbh, void *curh) {
+int mdhim_unqlite_cursor_release(void *dbh, void *curh) {
 	unqlite *dh = (unqlite *) dbh;
 	unqlite_kv_cursor *cursor = (unqlite_kv_cursor *) curh;
 	int ret = 0;
@@ -75,10 +75,10 @@ void *mdhim_unqlite_cursor_release(void *dbh, void *curh) {
 	if ((ret = unqlite_kv_cursor_release(dh, cursor)) 
 	    != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
-		return NULL;
+		return MDHIM_DB_ERROR;
 	}
 
-	return (void *)cursor;
+	return MDHIM_SUCCESS;
 }
 
 /*

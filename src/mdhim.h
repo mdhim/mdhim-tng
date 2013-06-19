@@ -32,6 +32,8 @@ struct mdhim_t {
 	MPI_Comm mdhim_comm;   
 	//The rank in the mdhim_comm
 	int mdhim_rank;
+	//The size of mdhim_comm
+	int mdhim_comm_size;
 	//The number of range servers in the rangesrvs list
 	uint32_t num_rangesrvs;
 	//A linked list of range servers
@@ -46,6 +48,9 @@ struct mdhim_t {
 	pthread_mutex_t *receive_msg_mutex;
 	//The condition variable used if receiving from ourselves
 	pthread_cond_t *receive_msg_ready_cv;
+	/* The receive msg, which is sent to the client by the 
+	   range server running in the same process */
+	void *receive_msg;
 };
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm);

@@ -1,7 +1,7 @@
 /*
  * MDHIM TNG
  * 
- * Client specific implementation
+ * Client specific implementation for sending to range server that is not yourself
  */
 
 #include <stdlib.h>
@@ -220,14 +220,3 @@ struct mdhim_rm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm)
 	// Return any error code if an error is encountered
 	return rm;
 }
-
-/*
- * add range server
- * Adds a range server to the md->rangesrvs list 
- * @param md main MDHIM struct
- * @return MDHIM_SUCCESS or MDHIM_ERROR on error
- */
-int client_add_rangesrv(struct mdhim_t *md) {
-  return MDHIM_SUCCESS;
-}
-
