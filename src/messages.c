@@ -193,7 +193,7 @@ int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void *messa
 
 /*
  * unpack_put_message
- * Packs a put message structure into contiguous memory for message passing
+ * Unpacks a put message structure into contiguous memory for message passing
  *
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message
@@ -440,7 +440,7 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void *messa
         }
         
         // pack the message first with the structure and then followed by key and data values (plus lengths).
-	return_code = MPI_Pack(bpm, sizeof(struct mdhim_bgetm_t), MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
+	return_code = MPI_Pack(bgm, sizeof(struct mdhim_bgetm_t), MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
          
         // For the each of the keys and data pack the chars plus one int for key_len.
         for (i=0; i < bgm->num_records; i++) {
@@ -511,7 +511,7 @@ int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, struct 
 
 /*
  * unpack_bget_message
- * Packs a bulk get message structure into contiguous memory for message passing
+ * Unpacks a bulk get message structure into contiguous memory for message passing
  *
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message
@@ -579,7 +579,7 @@ int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, struct
 
 /*
  * pack_getrm_message
- * Packs a get message structure into contiguous memory for message passing
+ * Packs a get return message structure into contiguous memory for message passing
  *
  * @param md      in   main MDHIM struct
  * @param grm     in   structure get_return_message which will be packed into the message 
@@ -606,7 +606,7 @@ int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void *mess
         m_size += grm->key_len + grm->value_len;
         
         if (m_size > MDHIM_MAX_MSG_SIZE) {
-             mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: get message too large. Get return "
+             mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: getrm message too large. Get return "
                      "message is over Maximum size allowed of %d.", md->mdhim_rank, MDHIM_MAX_MSG_SIZE);
              return MDHIM_ERROR; 
         }
@@ -615,12 +615,12 @@ int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void *mess
         // Is the computed message size of a safe value? (less than a max message size?)
         if ((message = malloc(mesg_size * sizeof(char))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
-                     "memory to pack get message.", md->mdhim_rank);
+                     "memory to pack get return message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
         
         // pack the message first with the structure and then followed by key and data values.
-	return_code = MPI_Pack(grm, sizeof(struct mdhim_getm_t), MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
+	return_code = MPI_Pack(grm, sizeof(struct mdhim_getrm_t), MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
         return_code += MPI_Pack(grm->key, grm->key_len, MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
         return_code += MPI_Pack(grm->value, grm->value_len, MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
 
@@ -633,7 +633,6 @@ int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void *mess
 
 	return MDHIM_SUCCESS;
 }
-
 
 /*
  * pack_bgetrm_message
@@ -800,7 +799,7 @@ int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, stru
         return_code = MPI_Unpack(message, mesg_size, &mesg_idx, bgrm, sizeof(struct mdhim_bgetrm_t), MPI_CHAR, md->mdhim_comm);
         
         // Allocate memory for key_lens first, to be populated later.
-        if ((bgrm->key_lens = (int *)malloc(bpm->num_records * sizeof(int))) == NULL) {
+        if ((bgrm->key_lens = (int *)malloc(bgrm->num_records * sizeof(int))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bget return message.", md->mdhim_rank);
              return MDHIM_ERROR; 
@@ -1089,7 +1088,7 @@ int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, struct
 
 /*
  * pack_return_message
- * Packs a put message structure into contiguous memory for message passing
+ * Packs a return message structure into contiguous memory for message passing
  *
  * @param md      in   main MDHIM struct
  * @param pm      in   structure return_message which will be packed into the message 
@@ -1127,8 +1126,8 @@ int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void *message
 }
 
 /*
- * pack_return_message
- * Packs a put message structure into contiguous memory for message passing
+ * unpack_return_message
+ * unpacks a return message structure into contiguous memory for message passing
  *
  * @param md      in   main MDHIM struct
  * @param pm      in   structure return_message which will be packed into the message 

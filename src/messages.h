@@ -138,4 +138,27 @@ struct mdhim_bgetrm_t {
 
 int send_message(struct mdhim_t *md, int dest, void *message);
 int receive_message(struct mdhim_t *md, int src, void *message);
+
+int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void *message);
+int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void *message);
+int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_putm_t *pm);
+int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bputm_t *bpm);
+
+int pack_get_message(struct mdhim_t *md, struct mdhim_getm_t *gm, void *message);
+int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void *message);
+int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getm_t *gm);
+int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetm_t *bgm);
+
+int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void *message);
+int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void *message);
+int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getrm_t *grm);
+int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetrm_t *bgrm);
+
+int pack_del_message(struct mdhim_t *md, struct mdhim_delm_t *dm, void *message);
+int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void *message);
+int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_delm_t *dm);
+int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bdelm_t *bdm);
+
+int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void *message);
+int unpack_return_message(struct mdhim_t *md, void *message, struct mdhim_rm_t *rm);
 #endif
