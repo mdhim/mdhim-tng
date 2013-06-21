@@ -11,7 +11,7 @@
 #include "range_server.h"
 #include "partitioner.h"
 
-/*
+/**
  * is_range_server
  * checks if I'm a range server
  *
@@ -55,7 +55,7 @@ void *get_cursor(struct mdhim_t *md, int source) {
 	return cursor;
 }
 
-/*
+/**
  * range_server_add_work
  * Adds work to the work queue and signals the condition variable for the worker thread
  *
@@ -86,10 +86,11 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * get_work
  * Returns the next work item from the work queue
  *
+ * @param mdhim_rs  Pointer to the range server info
  * @return  the next work_item to process
  */
 
@@ -115,7 +116,7 @@ work_item *get_work(struct mdhim_rs_t *mdhim_rs) {
 	return item;
 }
 
-/*
+/**
  * range_server_stop
  * Stop the range server (i.e., stops the threads and frees the relevant data in md)
  *
@@ -180,7 +181,7 @@ int range_server_stop(struct mdhim_t *md) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_put
  * Handles the put message and puts data in the database
  *
@@ -205,7 +206,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_bput
  * Handles the bulk put message and puts data in the database
  *
@@ -219,7 +220,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	int ret;
 
 	//Iterate through the arrays and insert each record
-	for (i = 0; i < bim->num_keys && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
@@ -234,7 +235,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_del
  * Handles the delete message and deletes the data from the database
  *
@@ -258,7 +259,7 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_bdel
  * Handles the bulk delete message and deletes the data from the database
  *
@@ -287,7 +288,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_get
  * Handles the get message, retrieves the data from the database, and sends the results back
  * 
@@ -314,7 +315,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_get_next
  * Handles the get next message, retrieves the data from the database, and sends the results back
  * 
@@ -352,7 +353,7 @@ int range_server_get_next(struct mdhim_t *md, struct mdhim_getm_t *gm, int sourc
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_get_prev
  * Handles the get previous message, retrieves the data from the database, and sends the results back
  * 
@@ -390,7 +391,7 @@ int range_server_get_prev(struct mdhim_t *md, struct mdhim_getm_t *gm, int sourc
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * range_server_bget
  * Handles the bulk get message, retrieves the data from the database, and sends the results back
  * 
@@ -406,7 +407,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	int i;
 
 	//Iterate through the arrays and delete each record
-	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bgm->num_keys && i < MAX_BULK_OPS; i++) {
 		//Get records from the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
@@ -542,7 +543,7 @@ void *worker_thread(void *data) {
 	}
 }
 
-/*
+/**
  * range_server_init
  * Initializes the range server (i.e., starts the threads and populates the relevant data in md)
  *

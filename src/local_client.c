@@ -8,7 +8,7 @@
 #include "mdhim.h"
 #include "local_client.h"
 
-/*
+/**
  * get_msg_self
  * Gets a message from the range server if we are waiting to hear back from ourselves 
  * This means that the range server is running in the same process as the caller, 
@@ -34,7 +34,7 @@ static void *get_msg_self(struct mdhim_t *md) {
 	return msg;
 }
 
-/*
+/**
  * Send put to range server
  *
  * @param md main MDHIM struct
@@ -64,16 +64,16 @@ struct mdhim_rm_t *local_client_put(struct mdhim_t *md, struct mdhim_putm_t *pm)
 	return rm;
 }
 
-/*
+/**
  * Send bulk put to range server
  * 
  * @param md main MDHIM struct
  * @param bpm pointer to bulk put message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
 */
-struct mdhim_rm_t *local_client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
+struct mdhim_brm_t *local_client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
 	int ret;
-	struct mdhim_rm_t *rm;
+	struct mdhim_brm_t *brm;
 	work_item *item;
 
 	if ((item = malloc(sizeof(work_item))) == NULL) {
@@ -88,13 +88,13 @@ struct mdhim_rm_t *local_client_bput(struct mdhim_t *md, struct mdhim_bputm_t *b
 		return NULL;
 	}
 	
-	rm = (struct mdhim_rm_t *) get_msg_self(md);
+	brm = (struct mdhim_brm_t *) get_msg_self(md);
 
 	// Return response
-	return rm;
+	return brm;
 }
 
-/*
+/**
  * Send get to range server
  *
  * @param md main MDHIM struct
@@ -124,7 +124,7 @@ struct mdhim_getrm_t *local_client_get(struct mdhim_t *md, struct mdhim_getm_t *
 	return rm;
 }
 
-/*
+/**
  * Send bulk get to range server
  *
  * @param md main MDHIM struct
@@ -154,7 +154,7 @@ struct mdhim_bgetrm_t *local_client_bget(struct mdhim_t *md, struct mdhim_bgetm_
 	return rm;
 }
 
-/*
+/**
  * Send delete to range server
  *
  * @param md main MDHIM struct
@@ -185,16 +185,16 @@ struct mdhim_rm_t *local_client_delete(struct mdhim_t *md, struct mdhim_delm_t *
 
 }
 
-/*
+/**
  * Send bulk delete to MDHIM
  *
  * @param md main MDHIM struct
  * @param bgm pointer to get message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_rm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {
+struct mdhim_brm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {
 	int ret;
-	struct mdhim_rm_t *rm;
+	struct mdhim_brm_t *brm;
 	work_item *item;
 
 	if ((item = malloc(sizeof(work_item))) == NULL) {
@@ -209,10 +209,10 @@ struct mdhim_rm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t
 		return NULL;
 	}
 	
-	rm = (struct mdhim_rm_t *) get_msg_self(md);
+	brm = (struct mdhim_brm_t *) get_msg_self(md);
 
 	// Return response
-	return rm;
+	return brm;
 }
 
 

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "ds_unqlite.h"
 
-/*
+/**
  * get_unqlite_err_msg
  *
  * Gets the error message from unqlite
@@ -21,7 +21,7 @@ static char *get_unqlite_err_msg(unqlite *dh) {
 	return NULL;
 }
 
-/*
+/**
  * print_unqlite_err_msg
  *
  * prints the error message from unqlite using mlog
@@ -39,7 +39,7 @@ static void print_unqlite_err_msg(unqlite *dh) {
 	free(msg);
 }
 
-/*
+/**
  * mdhim_unqlite_cursor_init
  * Initializes a cursor
  *
@@ -60,7 +60,7 @@ void *mdhim_unqlite_cursor_init(void *dbh) {
 	return (void *)cursor;
 }
 
-/*
+/**
  * mdhim_unqlite_cursor_release
  * Releases a cursor
  *
@@ -81,7 +81,7 @@ int mdhim_unqlite_cursor_release(void *dbh, void *curh) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * mdhim_unqlite_open
  * Opens the database
  *
@@ -122,7 +122,7 @@ int mdhim_unqlite_open(void **dbh, char *path, int flags,
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * mdhim_unqlite_put
  * Stores a single key in the data store
  *
@@ -148,7 +148,7 @@ int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int64_t dat
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * mdhim_unqlite_del
  * delete the given key
  *
@@ -172,7 +172,7 @@ int mdhim_unqlite_del(void *dbh, void *key, int key_len,
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * mdhim_unqlite_get
  * Gets a value, given a key, from the data store
  *
@@ -221,7 +221,7 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *d
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * mdhim_unqlite_get_next
  * Gets the next key/value from the data store
  *
@@ -298,7 +298,7 @@ int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len,
 }
 
 
-/*
+/**
  * mdhim_unqlite_get_prev
  * Gets the next key/value from the data store
  *
@@ -373,7 +373,7 @@ int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len,
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * mdhim_unqlite_close
  * Closes the data store
  *

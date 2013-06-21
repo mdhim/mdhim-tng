@@ -1,0 +1,74 @@
+\hypertarget{structunqlite__io__methods}{\section{unqlite\-\_\-io\-\_\-methods Struct Reference}
+\label{d6/d9e/structunqlite__io__methods}\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}}
+}
+
+
+{\ttfamily \#include $<$unqlite.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{structunqlite__io__methods_ac468d05f4326d59d672dc8a9b889b6dc}{i\-Version}
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_a2d7ee9eab774e16465184adcc9f860a2}{x\-Close} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_a591d297aaa1317f4d9af5b14d19c9fe3}{x\-Read} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, void $\ast$, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} i\-Amt, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} i\-Ofst)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_aa96c236a1c4722b48de0926763e89a4e}{x\-Write} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, const void $\ast$, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} i\-Amt, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} i\-Ofst)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_acbaf05b981262e90bf4bf0abb300bd01}{x\-Truncate} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} size)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_a8d76f86e674afc917e737a0fa8e4afb0}{x\-Sync} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, int flags)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_a6da907a6e006b7f4738eb870960efc8a}{x\-File\-Size} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} $\ast$p\-Size)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_a7a7becb00dc7817bf421b8623da5554e}{x\-Lock} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, int)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_addf61dee37aa5018d0f3bdc995dcf13e}{x\-Unlock} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, int)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_a1f51d4873b4990af2970b380df2b0f82}{x\-Check\-Reserved\-Lock} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, int $\ast$p\-Res\-Out)
+\item 
+int($\ast$ \hyperlink{structunqlite__io__methods_a2e2302c2aa9f8ad6e5e53538932eca73}{x\-Sector\-Size} )(\hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$)
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structunqlite__io__methods_ac468d05f4326d59d672dc8a9b889b6dc}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!i\-Version@{i\-Version}}
+\index{i\-Version@{i\-Version}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{i\-Version}]{\setlength{\rightskip}{0pt plus 5cm}int unqlite\-\_\-io\-\_\-methods\-::i\-Version}}\label{d6/d9e/structunqlite__io__methods_ac468d05f4326d59d672dc8a9b889b6dc}
+\hypertarget{structunqlite__io__methods_a1f51d4873b4990af2970b380df2b0f82}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Check\-Reserved\-Lock@{x\-Check\-Reserved\-Lock}}
+\index{x\-Check\-Reserved\-Lock@{x\-Check\-Reserved\-Lock}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Check\-Reserved\-Lock}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Check\-Reserved\-Lock)({\bf unqlite\-\_\-file} $\ast$, int $\ast$p\-Res\-Out)}}\label{d6/d9e/structunqlite__io__methods_a1f51d4873b4990af2970b380df2b0f82}
+\hypertarget{structunqlite__io__methods_a2d7ee9eab774e16465184adcc9f860a2}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Close@{x\-Close}}
+\index{x\-Close@{x\-Close}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Close}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Close)({\bf unqlite\-\_\-file} $\ast$)}}\label{d6/d9e/structunqlite__io__methods_a2d7ee9eab774e16465184adcc9f860a2}
+\hypertarget{structunqlite__io__methods_a6da907a6e006b7f4738eb870960efc8a}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-File\-Size@{x\-File\-Size}}
+\index{x\-File\-Size@{x\-File\-Size}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-File\-Size}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-File\-Size)({\bf unqlite\-\_\-file} $\ast$, {\bf unqlite\-\_\-int64} $\ast$p\-Size)}}\label{d6/d9e/structunqlite__io__methods_a6da907a6e006b7f4738eb870960efc8a}
+\hypertarget{structunqlite__io__methods_a7a7becb00dc7817bf421b8623da5554e}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Lock@{x\-Lock}}
+\index{x\-Lock@{x\-Lock}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Lock}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Lock)({\bf unqlite\-\_\-file} $\ast$, int)}}\label{d6/d9e/structunqlite__io__methods_a7a7becb00dc7817bf421b8623da5554e}
+\hypertarget{structunqlite__io__methods_a591d297aaa1317f4d9af5b14d19c9fe3}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Read@{x\-Read}}
+\index{x\-Read@{x\-Read}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Read}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Read)({\bf unqlite\-\_\-file} $\ast$, void $\ast$, {\bf unqlite\-\_\-int64} i\-Amt, {\bf unqlite\-\_\-int64} i\-Ofst)}}\label{d6/d9e/structunqlite__io__methods_a591d297aaa1317f4d9af5b14d19c9fe3}
+\hypertarget{structunqlite__io__methods_a2e2302c2aa9f8ad6e5e53538932eca73}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Sector\-Size@{x\-Sector\-Size}}
+\index{x\-Sector\-Size@{x\-Sector\-Size}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Sector\-Size}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Sector\-Size)({\bf unqlite\-\_\-file} $\ast$)}}\label{d6/d9e/structunqlite__io__methods_a2e2302c2aa9f8ad6e5e53538932eca73}
+\hypertarget{structunqlite__io__methods_a8d76f86e674afc917e737a0fa8e4afb0}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Sync@{x\-Sync}}
+\index{x\-Sync@{x\-Sync}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Sync}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Sync)({\bf unqlite\-\_\-file} $\ast$, int flags)}}\label{d6/d9e/structunqlite__io__methods_a8d76f86e674afc917e737a0fa8e4afb0}
+\hypertarget{structunqlite__io__methods_acbaf05b981262e90bf4bf0abb300bd01}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Truncate@{x\-Truncate}}
+\index{x\-Truncate@{x\-Truncate}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Truncate}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Truncate)({\bf unqlite\-\_\-file} $\ast$, {\bf unqlite\-\_\-int64} size)}}\label{d6/d9e/structunqlite__io__methods_acbaf05b981262e90bf4bf0abb300bd01}
+\hypertarget{structunqlite__io__methods_addf61dee37aa5018d0f3bdc995dcf13e}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Unlock@{x\-Unlock}}
+\index{x\-Unlock@{x\-Unlock}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Unlock}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Unlock)({\bf unqlite\-\_\-file} $\ast$, int)}}\label{d6/d9e/structunqlite__io__methods_addf61dee37aa5018d0f3bdc995dcf13e}
+\hypertarget{structunqlite__io__methods_aa96c236a1c4722b48de0926763e89a4e}{\index{unqlite\-\_\-io\-\_\-methods@{unqlite\-\_\-io\-\_\-methods}!x\-Write@{x\-Write}}
+\index{x\-Write@{x\-Write}!unqlite_io_methods@{unqlite\-\_\-io\-\_\-methods}}
+\subsubsection[{x\-Write}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-io\-\_\-methods\-::x\-Write)({\bf unqlite\-\_\-file} $\ast$, const void $\ast$, {\bf unqlite\-\_\-int64} i\-Amt, {\bf unqlite\-\_\-int64} i\-Ofst)}}\label{d6/d9e/structunqlite__io__methods_aa96c236a1c4722b48de0926763e89a4e}
+
+
+The documentation for this struct was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{unqlite_8c}{unqlite.\-c}\item 
+src/\hyperlink{unqlite_8h}{unqlite.\-h}\end{DoxyCompactItemize}

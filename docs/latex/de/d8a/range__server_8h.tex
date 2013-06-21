@@ -1,0 +1,142 @@
+\hypertarget{range__server_8h}{\section{src/range\-\_\-server.h File Reference}
+\label{de/d8a/range__server_8h}\index{src/range\-\_\-server.\-h@{src/range\-\_\-server.\-h}}
+}
+{\ttfamily \#include $<$pthread.\-h$>$}\\*
+{\ttfamily \#include \char`\"{}data\-\_\-store.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}messages.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}uthash.\-h\char`\"{}}\\*
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structwork__item}{work\-\_\-item}
+\item 
+struct \hyperlink{structwork__queue}{work\-\_\-queue}
+\item 
+struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info}
+\item 
+struct \hyperlink{structmdhim__rs__t}{mdhim\-\_\-rs\-\_\-t}
+\item 
+struct \hyperlink{structmdhim__cursor}{mdhim\-\_\-cursor}
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \hyperlink{structwork__item}{work\-\_\-item} \hyperlink{range__server_8h_a180c3631ccb1d86dcae2b39ba6d0445e}{work\-\_\-item}
+\item 
+typedef struct \hyperlink{structwork__queue}{work\-\_\-queue} \hyperlink{range__server_8h_a5ec302c0770e039a62f8559469279220}{work\-\_\-queue}
+\item 
+typedef struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} \hyperlink{range__server_8h_a763b1df443630246ee4f493e84eccd29}{rangesrv\-\_\-info}
+\item 
+typedef struct \hyperlink{structmdhim__rs__t}{mdhim\-\_\-rs\-\_\-t} \hyperlink{range__server_8h_a7a8d15b08f386c7da5a3bc452a2ae872}{mdhim\-\_\-rs\-\_\-t}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{range__server_8h_a67d81ae80b7799b6bf558b32b10f81f1}{range\-\_\-server\-\_\-add\-\_\-work} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, \hyperlink{structwork__item}{work\-\_\-item} $\ast$item)
+\item 
+int \hyperlink{range__server_8h_af34269b3d0d34cd441697cc0e7376d3f}{range\-\_\-server\-\_\-init} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+int \hyperlink{range__server_8h_abac967b940a3b5aa92cc5fd67491efbe}{range\-\_\-server\-\_\-stop} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+int \hyperlink{range__server_8h_a6b69ffdb719e4f7c525be5849b15135d}{im\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structmdhim__cursor}{mdhim\-\_\-cursor} $\ast$ \hyperlink{range__server_8h_ae440411dc8dbc9ef7e1298b583a61a8a}{mdhim\-\_\-cursors} = N\-U\-L\-L
+\end{DoxyCompactItemize}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{range__server_8h_a7a8d15b08f386c7da5a3bc452a2ae872}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!mdhim\-\_\-rs\-\_\-t@{mdhim\-\_\-rs\-\_\-t}}
+\index{mdhim\-\_\-rs\-\_\-t@{mdhim\-\_\-rs\-\_\-t}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{mdhim\-\_\-rs\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf mdhim\-\_\-rs\-\_\-t}  {\bf mdhim\-\_\-rs\-\_\-t}}}\label{de/d8a/range__server_8h_a7a8d15b08f386c7da5a3bc452a2ae872}
+\hypertarget{range__server_8h_a763b1df443630246ee4f493e84eccd29}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!rangesrv\-\_\-info@{rangesrv\-\_\-info}}
+\index{rangesrv\-\_\-info@{rangesrv\-\_\-info}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{rangesrv\-\_\-info}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf rangesrv\-\_\-info} {\bf rangesrv\-\_\-info}}}\label{de/d8a/range__server_8h_a763b1df443630246ee4f493e84eccd29}
+\hypertarget{range__server_8h_a180c3631ccb1d86dcae2b39ba6d0445e}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!work\-\_\-item@{work\-\_\-item}}
+\index{work\-\_\-item@{work\-\_\-item}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{work\-\_\-item}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf work\-\_\-item} {\bf work\-\_\-item}}}\label{de/d8a/range__server_8h_a180c3631ccb1d86dcae2b39ba6d0445e}
+\hypertarget{range__server_8h_a5ec302c0770e039a62f8559469279220}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!work\-\_\-queue@{work\-\_\-queue}}
+\index{work\-\_\-queue@{work\-\_\-queue}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{work\-\_\-queue}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf work\-\_\-queue}  {\bf work\-\_\-queue}}}\label{de/d8a/range__server_8h_a5ec302c0770e039a62f8559469279220}
+
+
+\subsection{Function Documentation}
+\hypertarget{range__server_8h_a6b69ffdb719e4f7c525be5849b15135d}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!im\-\_\-range\-\_\-server@{im\-\_\-range\-\_\-server}}
+\index{im\-\_\-range\-\_\-server@{im\-\_\-range\-\_\-server}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{im\-\_\-range\-\_\-server}]{\setlength{\rightskip}{0pt plus 5cm}int im\-\_\-range\-\_\-server (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{de/d8a/range__server_8h_a6b69ffdb719e4f7c525be5849b15135d}
+is\-\_\-range\-\_\-server checks if I'm a range server
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & Pointer to the main M\-D\-H\-I\-M structure \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 if false, 1 if true 
+\end{DoxyReturn}
+\hypertarget{range__server_8h_a67d81ae80b7799b6bf558b32b10f81f1}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!range\-\_\-server\-\_\-add\-\_\-work@{range\-\_\-server\-\_\-add\-\_\-work}}
+\index{range\-\_\-server\-\_\-add\-\_\-work@{range\-\_\-server\-\_\-add\-\_\-work}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{range\-\_\-server\-\_\-add\-\_\-work}]{\setlength{\rightskip}{0pt plus 5cm}int range\-\_\-server\-\_\-add\-\_\-work (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{{\bf work\-\_\-item} $\ast$}]{item}
+\end{DoxyParamCaption}
+)}}\label{de/d8a/range__server_8h_a67d81ae80b7799b6bf558b32b10f81f1}
+range\-\_\-server\-\_\-add\-\_\-work Adds work to the work queue and signals the condition variable for the worker thread
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & Pointer to the main M\-D\-H\-I\-M structure \\
+\hline
+{\em \hyperlink{structwork__item}{work\-\_\-item}} & pointer to new work item that contains a message to handle \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S 
+\end{DoxyReturn}
+\hypertarget{range__server_8h_af34269b3d0d34cd441697cc0e7376d3f}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!range\-\_\-server\-\_\-init@{range\-\_\-server\-\_\-init}}
+\index{range\-\_\-server\-\_\-init@{range\-\_\-server\-\_\-init}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{range\-\_\-server\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}int range\-\_\-server\-\_\-init (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{de/d8a/range__server_8h_af34269b3d0d34cd441697cc0e7376d3f}
+range\-\_\-server\-\_\-init Initializes the range server (i.\-e., starts the threads and populates the relevant data in md)
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & Pointer to the main M\-D\-H\-I\-M structure \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{range__server_8h_abac967b940a3b5aa92cc5fd67491efbe}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!range\-\_\-server\-\_\-stop@{range\-\_\-server\-\_\-stop}}
+\index{range\-\_\-server\-\_\-stop@{range\-\_\-server\-\_\-stop}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{range\-\_\-server\-\_\-stop}]{\setlength{\rightskip}{0pt plus 5cm}int range\-\_\-server\-\_\-stop (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{de/d8a/range__server_8h_abac967b940a3b5aa92cc5fd67491efbe}
+range\-\_\-server\-\_\-stop Stop the range server (i.\-e., stops the threads and frees the relevant data in md)
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & Pointer to the main M\-D\-H\-I\-M structure \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+
+
+\subsection{Variable Documentation}
+\hypertarget{range__server_8h_ae440411dc8dbc9ef7e1298b583a61a8a}{\index{range\-\_\-server.\-h@{range\-\_\-server.\-h}!mdhim\-\_\-cursors@{mdhim\-\_\-cursors}}
+\index{mdhim\-\_\-cursors@{mdhim\-\_\-cursors}!range_server.h@{range\-\_\-server.\-h}}
+\subsubsection[{mdhim\-\_\-cursors}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-cursor}$\ast$ mdhim\-\_\-cursors = N\-U\-L\-L}}\label{de/d8a/range__server_8h_ae440411dc8dbc9ef7e1298b583a61a8a}

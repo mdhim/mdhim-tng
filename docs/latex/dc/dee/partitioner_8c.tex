@@ -1,0 +1,190 @@
+\hypertarget{partitioner_8c}{\section{src/partitioner.c File Reference}
+\label{dc/dee/partitioner_8c}\index{src/partitioner.\-c@{src/partitioner.\-c}}
+}
+{\ttfamily \#include $<$math.\-h$>$}\\*
+{\ttfamily \#include $<$stdlib.\-h$>$}\\*
+{\ttfamily \#include \char`\"{}partitioner.\-h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{partitioner_8c_acfcc532292ddfadad75f3a8a80a24f05}{partitioner\-\_\-init} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+void \hyperlink{partitioner_8c_ad03667c7124dbb949bba1126d0332abf}{delete\-\_\-alphabet} ()
+\item 
+void \hyperlink{partitioner_8c_ae6dbb6c65178e0ca143fe8d10c55f98c}{partitioner\-\_\-release} ()
+\item 
+void \hyperlink{partitioner_8c_acd8dae558c8459c6e4a724d04c5928b4}{add\-\_\-char} (int id, int pos)
+\item 
+void \hyperlink{partitioner_8c_a0faa616c6ca379c72bba6468737b99c0}{build\-\_\-alphabet} ()
+\item 
+int \hyperlink{partitioner_8c_ae6bce3dfa508cb7b92b2d4e9d991480a}{verify\-\_\-key} (void $\ast$key, int key\-\_\-len, int key\-\_\-type)
+\item 
+uint32\-\_\-t \hyperlink{partitioner_8c_af78375fc65d2cfe6a01bf02bd8a17253}{get\-\_\-num\-\_\-range\-\_\-servers} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+uint32\-\_\-t \hyperlink{partitioner_8c_a7e8b2c01361a47a75957d29420d76a89}{is\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int rank)
+\item 
+int \hyperlink{partitioner_8c_a9e92c25cea839c60a6d9179405e3c417}{populate\-\_\-my\-\_\-ranges} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+uint32\-\_\-t \hyperlink{partitioner_8c_a9981a82d3463edad803b80bf002de0e7}{get\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int key\-\_\-type)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{partitioner_8c_acd8dae558c8459c6e4a724d04c5928b4}{\index{partitioner.\-c@{partitioner.\-c}!add\-\_\-char@{add\-\_\-char}}
+\index{add\-\_\-char@{add\-\_\-char}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{add\-\_\-char}]{\setlength{\rightskip}{0pt plus 5cm}void add\-\_\-char (
+\begin{DoxyParamCaption}
+\item[{int}]{id, }
+\item[{int}]{pos}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_acd8dae558c8459c6e4a724d04c5928b4}
+add\-\_\-char Adds a character to our alphabet hash table
+
+
+\begin{DoxyParams}{Parameters}
+{\em id} & The id of our entry (the ascii code of the character) \\
+\hline
+{\em pos} & The value of our entry (the position of the character in our alphabet) \\
+\hline
+\end{DoxyParams}
+\hypertarget{partitioner_8c_a0faa616c6ca379c72bba6468737b99c0}{\index{partitioner.\-c@{partitioner.\-c}!build\-\_\-alphabet@{build\-\_\-alphabet}}
+\index{build\-\_\-alphabet@{build\-\_\-alphabet}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{build\-\_\-alphabet}]{\setlength{\rightskip}{0pt plus 5cm}void build\-\_\-alphabet (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_a0faa616c6ca379c72bba6468737b99c0}
+build\-\_\-alphabet Creates our ascii based alphabet and inserts each character into a uthash table \hypertarget{partitioner_8c_ad03667c7124dbb949bba1126d0332abf}{\index{partitioner.\-c@{partitioner.\-c}!delete\-\_\-alphabet@{delete\-\_\-alphabet}}
+\index{delete\-\_\-alphabet@{delete\-\_\-alphabet}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{delete\-\_\-alphabet}]{\setlength{\rightskip}{0pt plus 5cm}void delete\-\_\-alphabet (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_ad03667c7124dbb949bba1126d0332abf}
+delete\-\_\-alphabet Deletes the alphabet hash table \hypertarget{partitioner_8c_af78375fc65d2cfe6a01bf02bd8a17253}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-num\-\_\-range\-\_\-servers@{get\-\_\-num\-\_\-range\-\_\-servers}}
+\index{get\-\_\-num\-\_\-range\-\_\-servers@{get\-\_\-num\-\_\-range\-\_\-servers}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-num\-\_\-range\-\_\-servers}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t get\-\_\-num\-\_\-range\-\_\-servers (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_af78375fc65d2cfe6a01bf02bd8a17253}
+get\-\_\-num\-\_\-range\-\_\-servers Gets the number of range servers
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error, otherwise the number of range servers 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_a9981a82d3463edad803b80bf002de0e7}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-range\-\_\-server@{get\-\_\-range\-\_\-server}}
+\index{get\-\_\-range\-\_\-server@{get\-\_\-range\-\_\-server}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-range\-\_\-server}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t get\-\_\-range\-\_\-server (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{key\-\_\-type}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_a9981a82d3463edad803b80bf002de0e7}
+get\-\_\-range\-\_\-server
+
+gets the range server that handles the key given 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to the key to find the range server of \\
+\hline
+{\em key\-\_\-len} & length of the key \\
+\hline
+{\em key\-\_\-type} & type of the key \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the rank of the range server or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_a7e8b2c01361a47a75957d29420d76a89}{\index{partitioner.\-c@{partitioner.\-c}!is\-\_\-range\-\_\-server@{is\-\_\-range\-\_\-server}}
+\index{is\-\_\-range\-\_\-server@{is\-\_\-range\-\_\-server}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{is\-\_\-range\-\_\-server}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t is\-\_\-range\-\_\-server (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{rank}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_a7e8b2c01361a47a75957d29420d76a89}
+is\-\_\-range\-\_\-server Tests to see if the given rank is a range server or not
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em rank} & rank to find out if it is a range server \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error, 0 on false, 1 or greater to represent the range server number otherwise 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_acfcc532292ddfadad75f3a8a80a24f05}{\index{partitioner.\-c@{partitioner.\-c}!partitioner\-\_\-init@{partitioner\-\_\-init}}
+\index{partitioner\-\_\-init@{partitioner\-\_\-init}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{partitioner\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void partitioner\-\_\-init (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_acfcc532292ddfadad75f3a8a80a24f05}
+partitioner\-\_\-init Initializes portions of the \hyperlink{structmdhim__t}{mdhim\-\_\-t} struct dealing with the partitioner
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error, otherwise the number of range servers 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_ae6dbb6c65178e0ca143fe8d10c55f98c}{\index{partitioner.\-c@{partitioner.\-c}!partitioner\-\_\-release@{partitioner\-\_\-release}}
+\index{partitioner\-\_\-release@{partitioner\-\_\-release}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{partitioner\-\_\-release}]{\setlength{\rightskip}{0pt plus 5cm}void partitioner\-\_\-release (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_ae6dbb6c65178e0ca143fe8d10c55f98c}
+\hypertarget{partitioner_8c_a9e92c25cea839c60a6d9179405e3c417}{\index{partitioner.\-c@{partitioner.\-c}!populate\-\_\-my\-\_\-ranges@{populate\-\_\-my\-\_\-ranges}}
+\index{populate\-\_\-my\-\_\-ranges@{populate\-\_\-my\-\_\-ranges}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{populate\-\_\-my\-\_\-ranges}]{\setlength{\rightskip}{0pt plus 5cm}int populate\-\_\-my\-\_\-ranges (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_a9e92c25cea839c60a6d9179405e3c417}
+populate\-\_\-my\-\_\-ranges
+
+sets the \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} struct in md-\/$>$mdhim\-\_\-rs 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_ae6bce3dfa508cb7b92b2d4e9d991480a}{\index{partitioner.\-c@{partitioner.\-c}!verify\-\_\-key@{verify\-\_\-key}}
+\index{verify\-\_\-key@{verify\-\_\-key}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{verify\-\_\-key}]{\setlength{\rightskip}{0pt plus 5cm}int verify\-\_\-key (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{key\-\_\-type}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_ae6bce3dfa508cb7b92b2d4e9d991480a}
+verify\-\_\-key Determines whether the given key is a valid key or not
+
+
+\begin{DoxyParams}{Parameters}
+{\em key} & the key to check \\
+\hline
+{\em key\-\_\-len} & the length of the key \\
+\hline
+{\em key\-\_\-type} & the type of the key\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R if the key is not valid, otherwise the M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S 
+\end{DoxyReturn}

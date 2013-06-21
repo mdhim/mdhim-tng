@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "partitioner.h"
 
-/*
+/**
  * partitioner_init
  * Initializes portions of the mdhim_t struct dealing with the partitioner
  *
@@ -34,7 +34,7 @@ void partitioner_init(struct mdhim_t *md) {
 	return;
 }
 
-/*
+/**
  * delete_alphabet
  * Deletes the alphabet hash table
  */
@@ -55,7 +55,7 @@ void partitioner_release() {
 	delete_alphabet();
 }
 
-/*
+/**
  * add_char
  * Adds a character to our alphabet hash table
  *
@@ -78,7 +78,7 @@ void add_char(int id, int pos) {
 	return;
 }
 
-/*
+/**
  * build_alphabet
  * Creates our ascii based alphabet and inserts each character into a uthash table
  */
@@ -120,7 +120,7 @@ void build_alphabet() {
 	return;
 }
 
-/*
+/**
  * verify_key
  * Determines whether the given key is a valid key or not
  *
@@ -157,7 +157,7 @@ int verify_key(void *key, int key_len, int key_type) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * get_num_range_servers
  * Gets the number of range servers
  *
@@ -192,7 +192,7 @@ uint32_t get_num_range_servers(struct mdhim_t *md) {
 	return num_servers;
 }
 
-/*
+/**
  * is_range_server
  * Tests to see if the given rank is a range server or not
  *
@@ -240,7 +240,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 	return rangesrv_num;
 }
 
-/*
+/**
  * populate_my_ranges
  *
  * sets the rangesrv_info struct in md->mdhim_rs
@@ -282,7 +282,7 @@ int populate_my_ranges(struct mdhim_t *md) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * get_range_server
  *
  * gets the range server that handles the key given

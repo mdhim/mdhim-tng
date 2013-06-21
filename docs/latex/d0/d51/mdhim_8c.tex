@@ -1,0 +1,242 @@
+\hypertarget{mdhim_8c}{\section{src/mdhim.c File Reference}
+\label{d0/d51/mdhim_8c}\index{src/mdhim.\-c@{src/mdhim.\-c}}
+}
+{\ttfamily \#include $<$stdlib.\-h$>$}\\*
+{\ttfamily \#include \char`\"{}mdhim.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}range\-\_\-server.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}client.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}local\-\_\-client.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}partitioner.\-h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$ \hyperlink{mdhim_8c_ac888aae2f17340b47f760750c4b79643}{mdhim\-Init} (M\-P\-I\-\_\-\-Comm app\-Comm)
+\item 
+int \hyperlink{mdhim_8c_a03a23e1aa36fdaa3c66db0ed9bd2da62}{mdhim\-Close} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ \hyperlink{mdhim_8c_aac6b4b5d1f51e73487bba86a44f950a6}{mdhim\-Put} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int key\-\_\-type, void $\ast$value, int value\-\_\-len)
+\item 
+struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t} $\ast$ \hyperlink{mdhim_8c_aedb2cd2b047e209bf8342a5cfdbe20e1}{mdhim\-Bput} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$$\ast$keys, int $\ast$key\-\_\-lens, int $\ast$key\-\_\-types, void $\ast$$\ast$values, int $\ast$value\-\_\-lens, int num\-\_\-records)
+\item 
+struct \hyperlink{structmdhim__getrm__t}{mdhim\-\_\-getrm\-\_\-t} $\ast$ \hyperlink{mdhim_8c_ad892892ab83baa4c7a9795735433eae7}{mdhim\-Get} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int key\-\_\-type)
+\item 
+struct \hyperlink{structmdhim__bgetrm__t}{mdhim\-\_\-bgetrm\-\_\-t} $\ast$ \hyperlink{mdhim_8c_a1fa87363c0b34fedad7012acfacf76e6}{mdhim\-B\-Get} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$$\ast$keys, int $\ast$key\-\_\-lens, int $\ast$key\-\_\-types, int num\-\_\-keys)
+\item 
+struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ \hyperlink{mdhim_8c_ad3ceb8c19250d1c76227d68619bc8ef8}{mdhim\-Delete} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int key\-\_\-type)
+\item 
+struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t} $\ast$ \hyperlink{mdhim_8c_a244fd1625c0fbf8d8c94b1beae7f7063}{mdhim\-Bdelete} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$$\ast$keys, int $\ast$key\-\_\-lens, int $\ast$key\-\_\-types, int num\-\_\-keys)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{mdhim_8c_a244fd1625c0fbf8d8c94b1beae7f7063}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Bdelete@{mdhim\-Bdelete}}
+\index{mdhim\-Bdelete@{mdhim\-Bdelete}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-Bdelete}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-brm\-\_\-t}$\ast$ mdhim\-Bdelete (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$$\ast$}]{keys, }
+\item[{int $\ast$}]{key\-\_\-lens, }
+\item[{int $\ast$}]{key\-\_\-types, }
+\item[{int}]{num\-\_\-keys}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_a244fd1625c0fbf8d8c94b1beae7f7063}
+Deletes multiple records from M\-D\-H\-I\-M
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em keys} & pointer to array of keys to delete \\
+\hline
+{\em key\-\_\-lens} & array with lengths of each key in keys \\
+\hline
+{\em key\-\_\-types} & array with the type of each key in keys \\
+\hline
+{\em num\-\_\-keys} & the number of keys to delete (i.\-e., the number of keys in keys array) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t} $\ast$ or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{mdhim_8c_a1fa87363c0b34fedad7012acfacf76e6}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-B\-Get@{mdhim\-B\-Get}}
+\index{mdhim\-B\-Get@{mdhim\-B\-Get}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-B\-Get}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-bgetrm\-\_\-t}$\ast$ mdhim\-B\-Get (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$$\ast$}]{keys, }
+\item[{int $\ast$}]{key\-\_\-lens, }
+\item[{int $\ast$}]{key\-\_\-types, }
+\item[{int}]{num\-\_\-keys}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_a1fa87363c0b34fedad7012acfacf76e6}
+Retrieves multiple records from M\-D\-H\-I\-M
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em keys} & pointer to array of keys to get values for \\
+\hline
+{\em key\-\_\-lens} & array with lengths of each key in keys \\
+\hline
+{\em key\-\_\-types} & array with the type of each key in keys \\
+\hline
+{\em num\-\_\-keys} & the number of keys to get (i.\-e., the number of keys in keys array) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{structmdhim__bgetrm__t}{mdhim\-\_\-bgetrm\-\_\-t} $\ast$ or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{mdhim_8c_aedb2cd2b047e209bf8342a5cfdbe20e1}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Bput@{mdhim\-Bput}}
+\index{mdhim\-Bput@{mdhim\-Bput}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-Bput}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-brm\-\_\-t}$\ast$ mdhim\-Bput (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$$\ast$}]{keys, }
+\item[{int $\ast$}]{key\-\_\-lens, }
+\item[{int $\ast$}]{key\-\_\-types, }
+\item[{void $\ast$$\ast$}]{values, }
+\item[{int $\ast$}]{value\-\_\-lens, }
+\item[{int}]{num\-\_\-records}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_aedb2cd2b047e209bf8342a5cfdbe20e1}
+Inserts multiple records into M\-D\-H\-I\-M
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em keys} & pointer to array of keys to store \\
+\hline
+{\em key\-\_\-lens} & array with lengths of each key in keys \\
+\hline
+{\em key\-\_\-types} & array with the type of each key in keys \\
+\hline
+{\em values} & pointer to array of values to store \\
+\hline
+{\em value\-\_\-lens} & array with lengths of each value \\
+\hline
+{\em num\-\_\-records} & the number of records to store (i.\-e., the number of keys in keys array) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t} $\ast$ or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{mdhim_8c_a03a23e1aa36fdaa3c66db0ed9bd2da62}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Close@{mdhim\-Close}}
+\index{mdhim\-Close@{mdhim\-Close}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-Close}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-Close (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{d0/d51/mdhim_8c_a03a23e1aa36fdaa3c66db0ed9bd2da62}
+Quits the M\-D\-H\-I\-M instance
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{mdhim_8c_ad3ceb8c19250d1c76227d68619bc8ef8}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Delete@{mdhim\-Delete}}
+\index{mdhim\-Delete@{mdhim\-Delete}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-Delete}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-rm\-\_\-t}$\ast$ mdhim\-Delete (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{key\-\_\-type}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_ad3ceb8c19250d1c76227d68619bc8ef8}
+Deletes a single record from M\-D\-H\-I\-M
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to key to delete \\
+\hline
+{\em key\-\_\-len} & the length of the key \\
+\hline
+{\em key\-\_\-type} & the type of the key \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{mdhim_8c_ad892892ab83baa4c7a9795735433eae7}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Get@{mdhim\-Get}}
+\index{mdhim\-Get@{mdhim\-Get}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-Get}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-getrm\-\_\-t}$\ast$ mdhim\-Get (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{key\-\_\-type}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_ad892892ab83baa4c7a9795735433eae7}
+Retrieves a single record from M\-D\-H\-I\-M
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to key to get value of \\
+\hline
+{\em key\-\_\-len} & the length of the key \\
+\hline
+{\em key\-\_\-type} & the type of the key \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{structmdhim__getrm__t}{mdhim\-\_\-getrm\-\_\-t} $\ast$ or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{mdhim_8c_ac888aae2f17340b47f760750c4b79643}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Init@{mdhim\-Init}}
+\index{mdhim\-Init@{mdhim\-Init}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-Init}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-t}$\ast$ mdhim\-Init (
+\begin{DoxyParamCaption}
+\item[{M\-P\-I\-\_\-\-Comm}]{app\-Comm}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_ac888aae2f17340b47f760750c4b79643}
+mdhim\-Init Initializes M\-D\-H\-I\-M
+
+
+\begin{DoxyParams}{Parameters}
+{\em app\-Comm} & the communicator that was passed in from the application (e.\-g., M\-P\-I\-\_\-\-C\-O\-M\-M\-\_\-\-W\-O\-R\-L\-D) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+mdhim\-\_\-t$\ast$ that contains info about this instance or N\-U\-L\-L if there was an error 
+\end{DoxyReturn}
+\hypertarget{mdhim_8c_aac6b4b5d1f51e73487bba86a44f950a6}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Put@{mdhim\-Put}}
+\index{mdhim\-Put@{mdhim\-Put}!mdhim.c@{mdhim.\-c}}
+\subsubsection[{mdhim\-Put}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-rm\-\_\-t}$\ast$ mdhim\-Put (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{key\-\_\-type, }
+\item[{void $\ast$}]{value, }
+\item[{int}]{value\-\_\-len}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_aac6b4b5d1f51e73487bba86a44f950a6}
+Inserts a single record into M\-D\-H\-I\-M
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to key to store \\
+\hline
+{\em key\-\_\-len} & the length of the key \\
+\hline
+{\em key\-\_\-type} & the type of the key \\
+\hline
+{\em value} & pointer to the value to store \\
+\hline
+{\em value\-\_\-len} & the length of the value \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ or N\-U\-L\-L on error 
+\end{DoxyReturn}

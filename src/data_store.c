@@ -8,7 +8,7 @@
 #include "data_store.h"
 #include "ds_unqlite.h"
 
-/*
+/**
  * mdhim_db_init
  * Initializes mdhim_store_t structure based on type
  *

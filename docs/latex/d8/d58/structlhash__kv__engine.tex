@@ -1,0 +1,99 @@
+\hypertarget{structlhash__kv__engine}{\section{lhash\-\_\-kv\-\_\-engine Struct Reference}
+\label{d8/d58/structlhash__kv__engine}\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}}
+}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const \hyperlink{structunqlite__kv__io}{unqlite\-\_\-kv\-\_\-io} $\ast$ \hyperlink{structlhash__kv__engine_a4eef3dbe886a6d708439ffbfb0a4b6bb}{p\-Io}
+\item 
+\hyperlink{struct_sy_mem_backend}{Sy\-Mem\-Backend} \hyperlink{structlhash__kv__engine_af7188c4630ad4d95100a3f828a0f7eef}{s\-Allocator}
+\item 
+\hyperlink{unqlite_8c_a38d523bbe0ae0e849597c37b22bfe806}{Proc\-Hash} \hyperlink{structlhash__kv__engine_a5df0b510750d1928071b1c42eaaed6ec}{x\-Hash}
+\item 
+\hyperlink{unqlite_8c_a60d84ee80a4995e96155889025d0603c}{Proc\-Cmp} \hyperlink{structlhash__kv__engine_af54b44cf922d2a7a0e533bb6280847df}{x\-Cmp}
+\item 
+\hyperlink{structunqlite__page}{unqlite\-\_\-page} $\ast$ \hyperlink{structlhash__kv__engine_a8f846e46d592c3a4d7a0a74f091a2511}{p\-Header}
+\item 
+\hyperlink{structlhash__bmap__rec}{lhash\-\_\-bmap\-\_\-rec} $\ast$$\ast$ \hyperlink{structlhash__kv__engine_a091846f42639ba4656ae50c370bdbd7b}{ap\-Map}
+\item 
+\hyperlink{unqlite_8c_abc5a8a3f345c200c98c485551f49666e}{sxu32} \hyperlink{structlhash__kv__engine_af0d5db15d4f6add429c3593c4fb86a56}{n\-Buck\-Rec}
+\item 
+\hyperlink{unqlite_8c_abc5a8a3f345c200c98c485551f49666e}{sxu32} \hyperlink{structlhash__kv__engine_a688262b94eb2cfa3f0e78cd9e265f79c}{n\-Buck\-Size}
+\item 
+\hyperlink{structlhash__bmap__rec}{lhash\-\_\-bmap\-\_\-rec} $\ast$ \hyperlink{structlhash__kv__engine_a7906cbfc276a35234d418e308ac6dd91}{p\-List}
+\item 
+\hyperlink{structlhash__bmap__rec}{lhash\-\_\-bmap\-\_\-rec} $\ast$ \hyperlink{structlhash__kv__engine_a9804f7b95b0796c48b28e8b1ecd19fe9}{p\-First}
+\item 
+\hyperlink{structlhash__bmap__page}{lhash\-\_\-bmap\-\_\-page} \hyperlink{structlhash__kv__engine_a0f67242ccdd41427f851daafc316418f}{s\-Page\-Map}
+\item 
+int \hyperlink{structlhash__kv__engine_a079a5fb810f2b49a3418f94eeb4e570e}{i\-Page\-Size}
+\item 
+\hyperlink{unqlite_8c_a90bf132c9229151f7c29e84e592907cd}{pgno} \hyperlink{structlhash__kv__engine_a992fe429328f8620dd2b2fa150350fb9}{n\-Free\-List}
+\item 
+\hyperlink{unqlite_8c_a90bf132c9229151f7c29e84e592907cd}{pgno} \hyperlink{structlhash__kv__engine_a778d6dc601441feb7c3837e315f70e0a}{split\-\_\-bucket}
+\item 
+\hyperlink{unqlite_8c_a90bf132c9229151f7c29e84e592907cd}{pgno} \hyperlink{structlhash__kv__engine_ae813b146512be4042b87c638e8aa7811}{max\-\_\-split\-\_\-bucket}
+\item 
+\hyperlink{unqlite_8c_a90bf132c9229151f7c29e84e592907cd}{pgno} \hyperlink{structlhash__kv__engine_ad598d31d4f22897ddb03ac5891ffbeba}{nmax\-\_\-split\-\_\-nucket}
+\item 
+\hyperlink{unqlite_8c_abc5a8a3f345c200c98c485551f49666e}{sxu32} \hyperlink{structlhash__kv__engine_a168d6021c8996e239fdfb36f8db87281}{n\-Magic}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structlhash__kv__engine_a091846f42639ba4656ae50c370bdbd7b}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!ap\-Map@{ap\-Map}}
+\index{ap\-Map@{ap\-Map}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{ap\-Map}]{\setlength{\rightskip}{0pt plus 5cm}{\bf lhash\-\_\-bmap\-\_\-rec}$\ast$$\ast$ lhash\-\_\-kv\-\_\-engine\-::ap\-Map}}\label{d8/d58/structlhash__kv__engine_a091846f42639ba4656ae50c370bdbd7b}
+\hypertarget{structlhash__kv__engine_a079a5fb810f2b49a3418f94eeb4e570e}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!i\-Page\-Size@{i\-Page\-Size}}
+\index{i\-Page\-Size@{i\-Page\-Size}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{i\-Page\-Size}]{\setlength{\rightskip}{0pt plus 5cm}int lhash\-\_\-kv\-\_\-engine\-::i\-Page\-Size}}\label{d8/d58/structlhash__kv__engine_a079a5fb810f2b49a3418f94eeb4e570e}
+\hypertarget{structlhash__kv__engine_ae813b146512be4042b87c638e8aa7811}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!max\-\_\-split\-\_\-bucket@{max\-\_\-split\-\_\-bucket}}
+\index{max\-\_\-split\-\_\-bucket@{max\-\_\-split\-\_\-bucket}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{max\-\_\-split\-\_\-bucket}]{\setlength{\rightskip}{0pt plus 5cm}{\bf pgno} lhash\-\_\-kv\-\_\-engine\-::max\-\_\-split\-\_\-bucket}}\label{d8/d58/structlhash__kv__engine_ae813b146512be4042b87c638e8aa7811}
+\hypertarget{structlhash__kv__engine_af0d5db15d4f6add429c3593c4fb86a56}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!n\-Buck\-Rec@{n\-Buck\-Rec}}
+\index{n\-Buck\-Rec@{n\-Buck\-Rec}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{n\-Buck\-Rec}]{\setlength{\rightskip}{0pt plus 5cm}{\bf sxu32} lhash\-\_\-kv\-\_\-engine\-::n\-Buck\-Rec}}\label{d8/d58/structlhash__kv__engine_af0d5db15d4f6add429c3593c4fb86a56}
+\hypertarget{structlhash__kv__engine_a688262b94eb2cfa3f0e78cd9e265f79c}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!n\-Buck\-Size@{n\-Buck\-Size}}
+\index{n\-Buck\-Size@{n\-Buck\-Size}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{n\-Buck\-Size}]{\setlength{\rightskip}{0pt plus 5cm}{\bf sxu32} lhash\-\_\-kv\-\_\-engine\-::n\-Buck\-Size}}\label{d8/d58/structlhash__kv__engine_a688262b94eb2cfa3f0e78cd9e265f79c}
+\hypertarget{structlhash__kv__engine_a992fe429328f8620dd2b2fa150350fb9}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!n\-Free\-List@{n\-Free\-List}}
+\index{n\-Free\-List@{n\-Free\-List}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{n\-Free\-List}]{\setlength{\rightskip}{0pt plus 5cm}{\bf pgno} lhash\-\_\-kv\-\_\-engine\-::n\-Free\-List}}\label{d8/d58/structlhash__kv__engine_a992fe429328f8620dd2b2fa150350fb9}
+\hypertarget{structlhash__kv__engine_a168d6021c8996e239fdfb36f8db87281}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!n\-Magic@{n\-Magic}}
+\index{n\-Magic@{n\-Magic}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{n\-Magic}]{\setlength{\rightskip}{0pt plus 5cm}{\bf sxu32} lhash\-\_\-kv\-\_\-engine\-::n\-Magic}}\label{d8/d58/structlhash__kv__engine_a168d6021c8996e239fdfb36f8db87281}
+\hypertarget{structlhash__kv__engine_ad598d31d4f22897ddb03ac5891ffbeba}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!nmax\-\_\-split\-\_\-nucket@{nmax\-\_\-split\-\_\-nucket}}
+\index{nmax\-\_\-split\-\_\-nucket@{nmax\-\_\-split\-\_\-nucket}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{nmax\-\_\-split\-\_\-nucket}]{\setlength{\rightskip}{0pt plus 5cm}{\bf pgno} lhash\-\_\-kv\-\_\-engine\-::nmax\-\_\-split\-\_\-nucket}}\label{d8/d58/structlhash__kv__engine_ad598d31d4f22897ddb03ac5891ffbeba}
+\hypertarget{structlhash__kv__engine_a9804f7b95b0796c48b28e8b1ecd19fe9}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!p\-First@{p\-First}}
+\index{p\-First@{p\-First}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{p\-First}]{\setlength{\rightskip}{0pt plus 5cm}{\bf lhash\-\_\-bmap\-\_\-rec}$\ast$ lhash\-\_\-kv\-\_\-engine\-::p\-First}}\label{d8/d58/structlhash__kv__engine_a9804f7b95b0796c48b28e8b1ecd19fe9}
+\hypertarget{structlhash__kv__engine_a8f846e46d592c3a4d7a0a74f091a2511}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!p\-Header@{p\-Header}}
+\index{p\-Header@{p\-Header}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{p\-Header}]{\setlength{\rightskip}{0pt plus 5cm}{\bf unqlite\-\_\-page}$\ast$ lhash\-\_\-kv\-\_\-engine\-::p\-Header}}\label{d8/d58/structlhash__kv__engine_a8f846e46d592c3a4d7a0a74f091a2511}
+\hypertarget{structlhash__kv__engine_a4eef3dbe886a6d708439ffbfb0a4b6bb}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!p\-Io@{p\-Io}}
+\index{p\-Io@{p\-Io}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{p\-Io}]{\setlength{\rightskip}{0pt plus 5cm}const {\bf unqlite\-\_\-kv\-\_\-io}$\ast$ lhash\-\_\-kv\-\_\-engine\-::p\-Io}}\label{d8/d58/structlhash__kv__engine_a4eef3dbe886a6d708439ffbfb0a4b6bb}
+\hypertarget{structlhash__kv__engine_a7906cbfc276a35234d418e308ac6dd91}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!p\-List@{p\-List}}
+\index{p\-List@{p\-List}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{p\-List}]{\setlength{\rightskip}{0pt plus 5cm}{\bf lhash\-\_\-bmap\-\_\-rec}$\ast$ lhash\-\_\-kv\-\_\-engine\-::p\-List}}\label{d8/d58/structlhash__kv__engine_a7906cbfc276a35234d418e308ac6dd91}
+\hypertarget{structlhash__kv__engine_af7188c4630ad4d95100a3f828a0f7eef}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!s\-Allocator@{s\-Allocator}}
+\index{s\-Allocator@{s\-Allocator}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{s\-Allocator}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sy\-Mem\-Backend} lhash\-\_\-kv\-\_\-engine\-::s\-Allocator}}\label{d8/d58/structlhash__kv__engine_af7188c4630ad4d95100a3f828a0f7eef}
+\hypertarget{structlhash__kv__engine_a0f67242ccdd41427f851daafc316418f}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!s\-Page\-Map@{s\-Page\-Map}}
+\index{s\-Page\-Map@{s\-Page\-Map}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{s\-Page\-Map}]{\setlength{\rightskip}{0pt plus 5cm}{\bf lhash\-\_\-bmap\-\_\-page} lhash\-\_\-kv\-\_\-engine\-::s\-Page\-Map}}\label{d8/d58/structlhash__kv__engine_a0f67242ccdd41427f851daafc316418f}
+\hypertarget{structlhash__kv__engine_a778d6dc601441feb7c3837e315f70e0a}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!split\-\_\-bucket@{split\-\_\-bucket}}
+\index{split\-\_\-bucket@{split\-\_\-bucket}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{split\-\_\-bucket}]{\setlength{\rightskip}{0pt plus 5cm}{\bf pgno} lhash\-\_\-kv\-\_\-engine\-::split\-\_\-bucket}}\label{d8/d58/structlhash__kv__engine_a778d6dc601441feb7c3837e315f70e0a}
+\hypertarget{structlhash__kv__engine_af54b44cf922d2a7a0e533bb6280847df}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!x\-Cmp@{x\-Cmp}}
+\index{x\-Cmp@{x\-Cmp}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{x\-Cmp}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Proc\-Cmp} lhash\-\_\-kv\-\_\-engine\-::x\-Cmp}}\label{d8/d58/structlhash__kv__engine_af54b44cf922d2a7a0e533bb6280847df}
+\hypertarget{structlhash__kv__engine_a5df0b510750d1928071b1c42eaaed6ec}{\index{lhash\-\_\-kv\-\_\-engine@{lhash\-\_\-kv\-\_\-engine}!x\-Hash@{x\-Hash}}
+\index{x\-Hash@{x\-Hash}!lhash_kv_engine@{lhash\-\_\-kv\-\_\-engine}}
+\subsubsection[{x\-Hash}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Proc\-Hash} lhash\-\_\-kv\-\_\-engine\-::x\-Hash}}\label{d8/d58/structlhash__kv__engine_a5df0b510750d1928071b1c42eaaed6ec}
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{unqlite_8c}{unqlite.\-c}\end{DoxyCompactItemize}

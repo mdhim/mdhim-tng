@@ -23,6 +23,8 @@
 #define MDHIM_RECV_GET 8
 //Receive message for a bulk get request
 #define MDHIM_RECV_BULK_GET 9
+//Generic bulk receive message
+#define MDHIM_RECV_BULK 10
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
@@ -53,10 +55,8 @@ struct mdhim_putm_t {
 	int mtype;
 	void *key;
 	int key_len;
-	int key_type;
 	void *data;
 	int64_t data_len;
-	int data_type;
 	int server_rank;
 };
 
@@ -67,7 +67,7 @@ struct mdhim_bputm_t {
 	int *key_lens;
 	void **data;
 	int64_t *data_lens;
-	int num_keys;
+	int num_records;
 	int server_rank;
 };
 
@@ -89,9 +89,7 @@ struct mdhim_bgetm_t {
 	//Number of records to retreive
 	void **keys;
 	int *key_lens;
-	void **values;
-	int64_t *value_lens;
-	int num_records;
+	int num_keys;
 	int server_rank;
 };
 
@@ -124,12 +122,14 @@ struct mdhim_rsi_t {
 struct mdhim_rm_t {
 	int mtype;  
 	int error;
+	int server_rank;
 };
 
 /*Get receive message */
 struct mdhim_getrm_t {
 	int mtype;
 	int error;
+	int server_rank;
 	void *key;
 	int key_len;
 	void *value;
@@ -137,15 +137,28 @@ struct mdhim_getrm_t {
 };
 
 /*Bulk get receive message */
+struct mdhim_bgetrm_t;
 struct mdhim_bgetrm_t {
 	int mtype;
 	int error;
+	int server_rank;
 	void **keys;
 	int *key_lens;
 	void **values;
 	int64_t *value_lens;
 	int num_records;
+	struct mdhim_bgetrm_t *next;
 };
+
+/*Bulk generic receive message */
+struct mdhim_brm_t;
+struct mdhim_brm_t {
+	int mtype;
+	int error;
+	int server_rank;
+	struct mdhim_brm_t *next;
+};
+
 
 int send_message(struct mdhim_t *md, int dest, void *message);
 int receive_message(struct mdhim_t *md, int src, void *message);

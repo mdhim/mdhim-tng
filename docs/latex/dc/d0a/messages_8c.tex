@@ -1,0 +1,78 @@
+\hypertarget{messages_8c}{\section{src/messages.c File Reference}
+\label{dc/d0a/messages_8c}\index{src/messages.\-c@{src/messages.\-c}}
+}
+{\ttfamily \#include \char`\"{}mdhim.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}messages.\-h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{messages_8c_a46b7a921fc0193f849546577fa0d8117}{send\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int dest, void $\ast$message)
+\item 
+int \hyperlink{messages_8c_a95d8ca71c4b6580550b938623ed9d437}{receive\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int src, void $\ast$message)
+\item 
+struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{messages_8c_ac147bc99967b9b2e8b7c28b9a05f1b27}{get\-\_\-rangesrvs} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{messages_8c_ac147bc99967b9b2e8b7c28b9a05f1b27}{\index{messages.\-c@{messages.\-c}!get\-\_\-rangesrvs@{get\-\_\-rangesrvs}}
+\index{get\-\_\-rangesrvs@{get\-\_\-rangesrvs}!messages.c@{messages.\-c}}
+\subsubsection[{get\-\_\-rangesrvs}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf rangesrv\-\_\-info}$\ast$ get\-\_\-rangesrvs (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{dc/d0a/messages_8c_ac147bc99967b9b2e8b7c28b9a05f1b27}
+get\-\_\-rangesrvs Receives range server info from every process and constructs a \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} list
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a list of range servers 
+\end{DoxyReturn}
+\hypertarget{messages_8c_a95d8ca71c4b6580550b938623ed9d437}{\index{messages.\-c@{messages.\-c}!receive\-\_\-message@{receive\-\_\-message}}
+\index{receive\-\_\-message@{receive\-\_\-message}!messages.c@{messages.\-c}}
+\subsubsection[{receive\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int receive\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{src, }
+\item[{void $\ast$}]{message}
+\end{DoxyParamCaption}
+)}}\label{dc/d0a/messages_8c_a95d8ca71c4b6580550b938623ed9d437}
+receive\-\_\-message Receives a message from the given source
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em src} & in source to receive from  out pointer for message received \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{messages_8c_a46b7a921fc0193f849546577fa0d8117}{\index{messages.\-c@{messages.\-c}!send\-\_\-message@{send\-\_\-message}}
+\index{send\-\_\-message@{send\-\_\-message}!messages.c@{messages.\-c}}
+\subsubsection[{send\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{dest, }
+\item[{void $\ast$}]{message}
+\end{DoxyParamCaption}
+)}}\label{dc/d0a/messages_8c_a46b7a921fc0193f849546577fa0d8117}
+send\-\_\-message Sends a message to the given destination
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em dest} & destination to send to \\
+\hline
+{\em message} & pointer to message to send \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}

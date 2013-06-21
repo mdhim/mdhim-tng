@@ -1,0 +1,264 @@
+\hypertarget{ds__unqlite_8h}{\section{src/ds\-\_\-unqlite.h File Reference}
+\label{d1/daa/ds__unqlite_8h}\index{src/ds\-\_\-unqlite.\-h@{src/ds\-\_\-unqlite.\-h}}
+}
+{\ttfamily \#include \char`\"{}mdhim.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}data\-\_\-store.\-h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{ds__unqlite_8h_ab2c207f883919005db810ebd6073bdfb}{mdhim\-\_\-unqlite\-\_\-open} (void $\ast$$\ast$dbh, char $\ast$path, int flags, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+\item 
+int \hyperlink{ds__unqlite_8h_a677b20e3b5d77eb3a08ed33c46f32280}{mdhim\-\_\-unqlite\-\_\-put} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, void $\ast$data, int64\-\_\-t data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+\item 
+int \hyperlink{ds__unqlite_8h_a86fd02be240921c1e49e3c1418419e65}{mdhim\-\_\-unqlite\-\_\-get} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+\item 
+int \hyperlink{ds__unqlite_8h_a6ca05d9f330d10e00a3776e3f8da7b09}{mdhim\-\_\-unqlite\-\_\-get\-\_\-next} (void $\ast$dbh, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+\item 
+int \hyperlink{ds__unqlite_8h_aca776f6fa6090c4d71a351a394af236d}{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev} (void $\ast$dbh, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+\item 
+void $\ast$ \hyperlink{ds__unqlite_8h_a1049dd1f46425870ab9ea529349ad65c}{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init} (void $\ast$dbh)
+\item 
+int \hyperlink{ds__unqlite_8h_a996dbc0a52808a3e8b4d162be703d742}{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release} (void $\ast$dbh, void $\ast$curh)
+\item 
+int \hyperlink{ds__unqlite_8h_a0cd701a2046ef4f401597846e547c948}{mdhim\-\_\-unqlite\-\_\-close} (void $\ast$dbh, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+\item 
+int \hyperlink{ds__unqlite_8h_a04a4d5a9499b550dc340fad5392ba0f0}{mdhim\-\_\-unqlite\-\_\-del} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{ds__unqlite_8h_a0cd701a2046ef4f401597846e547c948}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-close@{mdhim\-\_\-unqlite\-\_\-close}}
+\index{mdhim\-\_\-unqlite\-\_\-close@{mdhim\-\_\-unqlite\-\_\-close}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-close}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-close (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_a0cd701a2046ef4f401597846e547c948}
+mdhim\-\_\-unqlite\-\_\-close Closes the data store
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em mstore\-\_\-opts} & in additional options for the data store layer\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
+\end{DoxyReturn}
+\hypertarget{ds__unqlite_8h_a1049dd1f46425870ab9ea529349ad65c}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init}}
+\index{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_a1049dd1f46425870ab9ea529349ad65c}
+mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init Initializes a cursor
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in $\ast$ to the unqlite db handle \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+void $\ast$ to cursor or N\-U\-L\-L on failure 
+\end{DoxyReturn}
+\hypertarget{ds__unqlite_8h_a996dbc0a52808a3e8b4d162be703d742}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release}}
+\index{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{curh}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_a996dbc0a52808a3e8b4d162be703d742}
+mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release Releases a cursor
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in $\ast$ to the unqlite db handle \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
+\end{DoxyReturn}
+\hypertarget{ds__unqlite_8h_a04a4d5a9499b550dc340fad5392ba0f0}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-del@{mdhim\-\_\-unqlite\-\_\-del}}
+\index{mdhim\-\_\-unqlite\-\_\-del@{mdhim\-\_\-unqlite\-\_\-del}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-del}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-del (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_a04a4d5a9499b550dc340fad5392ba0f0}
+mdhim\-\_\-unqlite\-\_\-del delete the given key
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em key} & in void $\ast$ for the key to delete \\
+\hline
+{\em key\-\_\-len} & in int for the length of the key \\
+\hline
+{\em mstore\-\_\-opts} & in additional options for the data store layer\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
+\end{DoxyReturn}
+\hypertarget{ds__unqlite_8h_a86fd02be240921c1e49e3c1418419e65}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-get@{mdhim\-\_\-unqlite\-\_\-get}}
+\index{mdhim\-\_\-unqlite\-\_\-get@{mdhim\-\_\-unqlite\-\_\-get}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-get}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-get (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{void $\ast$$\ast$}]{data, }
+\item[{int64\-\_\-t $\ast$}]{data\-\_\-len, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_a86fd02be240921c1e49e3c1418419e65}
+mdhim\-\_\-unqlite\-\_\-get Gets a value, given a key, from the data store
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em key} & in void $\ast$ to the key to retrieve the value of \\
+\hline
+{\em key\-\_\-len} & in length of the key \\
+\hline
+{\em data} & out void $\ast$ to the value of the key \\
+\hline
+{\em data\-\_\-len} & out pointer to length of the value data \\
+\hline
+{\em mstore\-\_\-opts} & in additional options for the data store layer\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
+\end{DoxyReturn}
+\hypertarget{ds__unqlite_8h_a6ca05d9f330d10e00a3776e3f8da7b09}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-get\-\_\-next@{mdhim\-\_\-unqlite\-\_\-get\-\_\-next}}
+\index{mdhim\-\_\-unqlite\-\_\-get\-\_\-next@{mdhim\-\_\-unqlite\-\_\-get\-\_\-next}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-get\-\_\-next}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-get\-\_\-next (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{curh, }
+\item[{void $\ast$$\ast$}]{key, }
+\item[{int $\ast$}]{key\-\_\-len, }
+\item[{void $\ast$$\ast$}]{data, }
+\item[{int64\-\_\-t $\ast$}]{data\-\_\-len, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-cur\-\_\-opts}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_a6ca05d9f330d10e00a3776e3f8da7b09}
+mdhim\-\_\-unqlite\-\_\-get\-\_\-next Gets the next key/value from the data store
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em curh} & in pointer to the db cursor \\
+\hline
+{\em key} & out void $\ast$$\ast$ to the key that we get \\
+\hline
+{\em key\-\_\-len} & out int $\ast$ to the length of the key \\
+\hline
+{\em data} & out void $\ast$$\ast$ to the value belonging to the key \\
+\hline
+{\em data\-\_\-len} & out int $\ast$ to the length of the value data \\
+\hline
+{\em mstore\-\_\-cur\-\_\-opts} & in additional cursor options for the data store layer \\
+\hline
+\end{DoxyParams}
+\hypertarget{ds__unqlite_8h_aca776f6fa6090c4d71a351a394af236d}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-get\-\_\-prev@{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev}}
+\index{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev@{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-get\-\_\-prev (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{curh, }
+\item[{void $\ast$$\ast$}]{key, }
+\item[{int $\ast$}]{key\-\_\-len, }
+\item[{void $\ast$$\ast$}]{data, }
+\item[{int64\-\_\-t $\ast$}]{data\-\_\-len, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-cur\-\_\-opts}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_aca776f6fa6090c4d71a351a394af236d}
+mdhim\-\_\-unqlite\-\_\-get\-\_\-prev Gets the next key/value from the data store
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em mcur} & in pointer to the db cursor \\
+\hline
+{\em key} & out void $\ast$$\ast$ to the key that we get \\
+\hline
+{\em key\-\_\-len} & out int $\ast$ to the length of the key \\
+\hline
+{\em data} & out void $\ast$$\ast$ to the value belonging to the key \\
+\hline
+{\em data\-\_\-len} & out int $\ast$ to the length of the value data \\
+\hline
+{\em mstore\-\_\-cur\-\_\-opts} & in additional cursor options for the data store layer \\
+\hline
+\end{DoxyParams}
+\hypertarget{ds__unqlite_8h_ab2c207f883919005db810ebd6073bdfb}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-open@{mdhim\-\_\-unqlite\-\_\-open}}
+\index{mdhim\-\_\-unqlite\-\_\-open@{mdhim\-\_\-unqlite\-\_\-open}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-open}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-open (
+\begin{DoxyParamCaption}
+\item[{void $\ast$$\ast$}]{dbh, }
+\item[{char $\ast$}]{path, }
+\item[{int}]{flags, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_ab2c207f883919005db810ebd6073bdfb}
+mdhim\-\_\-unqlite\-\_\-open Opens the database
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in $\ast$$\ast$ to the unqlite db handle \\
+\hline
+{\em path} & in path to the database file \\
+\hline
+{\em flags} & in flags for opening the data store \\
+\hline
+{\em mstore\-\_\-opts} & in additional options for the data store layer\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
+\end{DoxyReturn}
+\hypertarget{ds__unqlite_8h_a677b20e3b5d77eb3a08ed33c46f32280}{\index{ds\-\_\-unqlite.\-h@{ds\-\_\-unqlite.\-h}!mdhim\-\_\-unqlite\-\_\-put@{mdhim\-\_\-unqlite\-\_\-put}}
+\index{mdhim\-\_\-unqlite\-\_\-put@{mdhim\-\_\-unqlite\-\_\-put}!ds_unqlite.h@{ds\-\_\-unqlite.\-h}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-put}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-put (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{void $\ast$}]{data, }
+\item[{int64\-\_\-t}]{data\-\_\-len, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
+\end{DoxyParamCaption}
+)}}\label{d1/daa/ds__unqlite_8h_a677b20e3b5d77eb3a08ed33c46f32280}
+mdhim\-\_\-unqlite\-\_\-put Stores a single key in the data store
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em key} & in void $\ast$ to the key to store \\
+\hline
+{\em key\-\_\-len} & in length of the key \\
+\hline
+{\em data} & in void $\ast$ to the value of the key \\
+\hline
+{\em data\-\_\-len} & in length of the value data \\
+\hline
+{\em mstore\-\_\-opts} & in additional options for the data store layer\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
+\end{DoxyReturn}

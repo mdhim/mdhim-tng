@@ -1,7 +1,7 @@
 #include "mdhim.h"
 #include "messages.h"
 
-/*
+/**
  * send_message
  * Sends a message to the given destination
  *
@@ -25,7 +25,7 @@ int send_message(struct mdhim_t *md, int dest, void *message) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * receive_message
  * Receives a message from the given source
  *
@@ -51,7 +51,7 @@ int receive_message(struct mdhim_t *md, int src, void *message) {
 	return MDHIM_SUCCESS;
 }
 
-/*
+/**
  * get_rangesrvs
  * Receives range server info from every process and constructs a rangesrv_info list
  *
