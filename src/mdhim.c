@@ -226,6 +226,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 	struct mdhim_bputm_t **bpm_list;
 	struct mdhim_bputm_t *bpm;
 	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
+	struct mdhim_rm_t *rm;
 	int i;
 	
 	//Create an array of bulk put messages that holds one bulk message per range server
@@ -282,10 +283,16 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 
 		//Send the message to the appropriate server
 		if ((ret = im_range_server(md)) == 1 && bpm->server_rank) {
-			brm = local_client_bput(md, bpm);
+			rm = local_client_bput(md, bpm);
 		} else {
-			brm = client_bput(md, bpm);
+			rm = client_bput(md, bpm);
 		}		
+
+		brm = malloc(sizeof(struct mdhim_brm_t));
+		brm->error = rm->error;
+		brm->mtype = rm->mtype;
+		brm->server_rank = rm->server_rank;
+		free(rm);
 
 		//Build the linked list to return
 		brm->next = NULL;
@@ -532,6 +539,7 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 	struct mdhim_bdelm_t *bdm;
 	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
 	int i;
+	struct mdhim_rm_t *rm;
 	
 	//Create an array of bulk del messages that holds one bulk message per range server
 	bdm_list = malloc(sizeof(struct mdhim_delm_t *) * md->num_rangesrvs);
@@ -583,10 +591,16 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 
 		//Send the messages to the appropriate servers
 		if ((ret = im_range_server(md)) == 1 && bdm->server_rank) {
-			brm = local_client_bdelete(md, bdm);
+			rm = local_client_bdelete(md, bdm);
 		} else {
-			brm = client_bdelete(md, bdm);
+			rm = client_bdelete(md, bdm);
 		}		
+
+		brm = malloc(sizeof(struct mdhim_brm_t));
+		brm->error = rm->error;
+		brm->mtype = rm->mtype;
+		brm->server_rank = rm->server_rank;  
+		free(rm);
 
 		//Build the linked list to return
 		brm->next = NULL;
@@ -665,9 +679,6 @@ void mdhim_release_recv_msg(void *msg) {
 		}
 
 		free((struct mdhim_bgetrm_t *) msg);
-		break;
-	case MDHIM_RECV_BULK:
-		free((struct mdhim_brm_t *) msg);
 		break;
 	default:
 		break;

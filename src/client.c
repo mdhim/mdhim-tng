@@ -48,10 +48,10 @@ struct mdhim_rm_t *client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
  * @param bpm pointer to bulk put message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
+struct mdhim_rm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
 
 	int return_code;
-	struct mdhim_brm_t *brm;
+	struct mdhim_rm_t *brm;
 	
 	return_code = send_rangesrv_work(md, bpm->server_rank, bpm);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
@@ -174,9 +174,9 @@ struct mdhim_rm_t *client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
  * @param bdm pointer to bulk del message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {
+struct mdhim_rm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {
 	int return_code;
-	struct mdhim_brm_t *brm;
+	struct mdhim_rm_t *brm;
 
 	return_code = send_rangesrv_work(md, bdm->server_rank, bdm);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR

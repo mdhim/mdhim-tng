@@ -119,12 +119,12 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	// If the receive did not succed then return the error code back
 	if ( return_code != MPI_SUCCESS ) {
              	mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d "
-                     "send message failed.", md->mdhim_rank, return_code);
+                     "receive message failed.", md->mdhim_rank, return_code);
 		return MDHIM_ERROR;
 	}
 
+	*message = NULL;
 	//Unpack buffer to produce a message struct and place result in message pointer
-	//Pack the work message in into sendbuf and set sendsize
 	mtype = ((struct mdhim_basem_t *) message)->mtype;
 	switch(mtype) {
 	case MDHIM_PUT:
@@ -149,9 +149,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 		break;
 	}
 
-	if (return_code != MPI_SUCCESS) {
+	if (return_code != MPI_SUCCESS || !*message) {
 		mlog(MPI_CRIT, "Rank: %d - " 
-		     "Error receiving work message in receive_rangesrv_work", 
+		     "Error unpacking message in receive_rangesrv_work", 
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
@@ -170,10 +170,34 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
  */
 int send_client_response(struct mdhim_t *md, int dest, void *message) {
 	int return_code;
-	char *sendbuf;
-	int sendsize;
+	void *sendbuf = NULL;
+	int sendsize = 0;
+	int mtype;
 
 	//Pack the client response in the message pointer into sendbuf and set sendsize
+	mtype = ((struct mdhim_basem_t *) message)->mtype;
+	switch(mtype) {
+	case MDHIM_RECV:
+		return_code = pack_return_message(md, (struct mdhim_rm_t *)message, &sendbuf, 
+					       &sendsize);
+		break;
+	case MDHIM_RECV_GET:
+		return_code = pack_getrm_message(md, (struct mdhim_getrm_t *)message, &sendbuf, 
+					       &sendsize);
+		break;
+	case MDHIM_RECV_BULK_GET:
+		return_code = pack_bgetrm_message(md, (struct mdhim_bgetrm_t *)message, &sendbuf, 
+					       &sendsize);
+		break;
+	default:
+		break;
+	}
+
+	if (return_code != MDHIM_SUCCESS || !sendbuf || !sendsize) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to pack "
+                     "the message while sending.", md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
 
 	//Send the size
 	return_code = MPI_Send(&sendsize, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE, md->mdhim_comm);
@@ -211,6 +235,8 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	int return_code;
 	int msg_size;
 	int msg_source;
+	int mtype;
+	void *recvbuf;
 
 	// Receive the message size from src
 	return_code = MPI_Recv(&msg_size, 1, MPI_INT, src, CLIENT_RESPONSE_SIZE, 
@@ -230,7 +256,8 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 
 	// Receive a message from the client that sent the previous message
 	msg_source = status.MPI_SOURCE;
-	return_code = MPI_Recv(message, msg_size, MPI_PACKED, msg_source, CLIENT_RESPONSE_MSG, 
+	recvbuf = malloc(msg_size);
+	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, msg_source, CLIENT_RESPONSE_MSG, 
 			       md->mdhim_comm, &status);
 
 	// If the receive did not succeed then return the error code back
@@ -242,7 +269,28 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	}
 
 	//Unpack buffer to produce a message struct and place result in message pointer
-	
+	*message = NULL;
+	mtype = ((struct mdhim_basem_t *) message)->mtype;
+	switch(mtype) {
+	case MDHIM_RECV:
+		return_code = unpack_return_message(md, recvbuf, message);
+		break;
+	case MDHIM_RECV_GET:
+		return_code = unpack_getrm_message(md, recvbuf, msg_size, message);
+		break;
+	case MDHIM_RECV_BULK_GET:
+		return_code = unpack_bgetrm_message(md, recvbuf, msg_size, message);
+		break;
+	default:
+		break;
+	}
+
+	if (return_code != MDHIM_SUCCESS || !*message) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to unpack "
+                     "the message while receiving from client.", md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
 	return MDHIM_SUCCESS;
 }
 

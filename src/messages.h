@@ -23,8 +23,6 @@
 #define MDHIM_RECV_GET 8
 //Receive message for a bulk get request
 #define MDHIM_RECV_BULK_GET 9
-//Generic bulk receive message
-#define MDHIM_RECV_BULK 10
 
 /* Operations for getting a key/value */
 //Get the value for the specified key

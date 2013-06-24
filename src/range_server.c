@@ -246,7 +246,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	int i;
 	int ret;
 	int error;
-	struct mdhim_brm_t *brm;
+	struct mdhim_rm_t *brm;
 
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {
@@ -264,7 +264,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	brm->mtype = MDHIM_RECV_BULK;
+	brm->mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	brm->error = error;
 	//Set the server's rank
@@ -331,7 +331,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
  	int i;
 	int ret;
 	int error;
-	struct mdhim_brm_t *brm;
+	struct mdhim_rm_t *brm;
 
 	//Iterate through the arrays and delete each record
 	for (i = 0; i < bdm->num_keys && i < MAX_BULK_OPS; i++) {
@@ -347,9 +347,9 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	}
 
 	//Create the response message
-	brm = malloc(sizeof(struct mdhim_brm_t));
+	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	brm->mtype = MDHIM_RECV_BULK;
+	brm->mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	brm->error = error;
 	//Set the server's rank

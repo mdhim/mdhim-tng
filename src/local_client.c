@@ -71,9 +71,9 @@ struct mdhim_rm_t *local_client_put(struct mdhim_t *md, struct mdhim_putm_t *pm)
  * @param bpm pointer to bulk put message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
 */
-struct mdhim_brm_t *local_client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
+struct mdhim_rm_t *local_client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
 	int ret;
-	struct mdhim_brm_t *brm;
+	struct mdhim_rm_t *brm;
 	work_item *item;
 
 	if ((item = malloc(sizeof(work_item))) == NULL) {
@@ -88,7 +88,7 @@ struct mdhim_brm_t *local_client_bput(struct mdhim_t *md, struct mdhim_bputm_t *
 		return NULL;
 	}
 	
-	brm = (struct mdhim_brm_t *) get_msg_self(md);
+	brm = (struct mdhim_rm_t *) get_msg_self(md);
 
 	// Return response
 	return brm;
@@ -192,9 +192,9 @@ struct mdhim_rm_t *local_client_delete(struct mdhim_t *md, struct mdhim_delm_t *
  * @param bgm pointer to get message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_brm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {
+struct mdhim_rm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {
 	int ret;
-	struct mdhim_brm_t *brm;
+	struct mdhim_rm_t *brm;
 	work_item *item;
 
 	if ((item = malloc(sizeof(work_item))) == NULL) {
@@ -209,7 +209,7 @@ struct mdhim_brm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_
 		return NULL;
 	}
 	
-	brm = (struct mdhim_brm_t *) get_msg_self(md);
+	brm = (struct mdhim_rm_t *) get_msg_self(md);
 
 	// Return response
 	return brm;
