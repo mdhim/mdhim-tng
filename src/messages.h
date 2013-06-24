@@ -1,6 +1,8 @@
 #ifndef      __MESSAGES_H
 #define      __MESSAGES_H
 
+#include "range_server.h"
+
 /* Message Types */
 
 //Put a single key in the data store
@@ -21,6 +23,8 @@
 #define MDHIM_RECV_GET 8
 //Receive message for a bulk get request
 #define MDHIM_RECV_BULK_GET 9
+//Generic bulk receive message
+#define MDHIM_RECV_BULK 10
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
@@ -55,7 +59,11 @@ struct mdhim_putm_t {
 	void *key;
 	int key_len;
 	void *data;
+<<<<<<< HEAD
 	int data_len;
+=======
+	int64_t data_len;
+>>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
 	int server_rank;
 };
 
@@ -65,8 +73,13 @@ struct mdhim_bputm_t {
 	void **keys;
 	int *key_lens;
 	void **data;
+<<<<<<< HEAD
 	int *data_lens;
 	int num_keys;
+=======
+	int64_t *data_lens;
+	int num_records;
+>>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
 	int server_rank;
 };
 
@@ -87,8 +100,12 @@ struct mdhim_bgetm_t {
 	int op;
 	void **keys;
 	int *key_lens;
+<<<<<<< HEAD
         //Number of records to retrieve
 	int num_records;
+=======
+	int num_keys;
+>>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
 	int server_rank;
 };
 
@@ -109,35 +126,67 @@ struct mdhim_bdelm_t {
 	int server_rank;
 };
 
+<<<<<<< HEAD
 /* Get receive message */
+=======
+/*Range server info message*/
+struct mdhim_rsi_t {
+	//The start range (inclusive)
+	uint64_t start_range;
+	//The end range (inclusive)
+	uint64_t end_range;
+};
+
+/*Get receive message */
+>>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
 struct mdhim_rm_t {
 	int mtype;  
 	int error;
+	int server_rank;
 };
 
 /* Get receive message */
 struct mdhim_getrm_t {
 	int mtype;
 	int error;
+	int server_rank;
 	void *key;
 	int key_len;
 	void *value;
 	int value_len;
 };
 
+<<<<<<< HEAD
 /* Bulk get receive message */
+=======
+/*Bulk get receive message */
+struct mdhim_bgetrm_t;
+>>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
 struct mdhim_bgetrm_t {
 	int mtype;
 	int error;
+	int server_rank;
 	void **keys;
 	int *key_lens;
 	void **values;
 	int *value_lens;
 	int num_records;
+	struct mdhim_bgetrm_t *next;
 };
+
+/*Bulk generic receive message */
+struct mdhim_brm_t;
+struct mdhim_brm_t {
+	int mtype;
+	int error;
+	int server_rank;
+	struct mdhim_brm_t *next;
+};
+
 
 int send_message(struct mdhim_t *md, int dest, void *message);
 int receive_message(struct mdhim_t *md, int src, void *message);
+<<<<<<< HEAD
 
 int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void *message);
 int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void *message);
@@ -161,4 +210,7 @@ int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, struct
 
 int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void *message);
 int unpack_return_message(struct mdhim_t *md, void *message, struct mdhim_rm_t *rm);
+=======
+struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
+>>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
 #endif

@@ -5,7 +5,7 @@ CLIBS	= -L${MPI_ROOT}/lib
 CINC	= -I${MPI_ROOT}/include -IMlog/ -Iuthash
 CFLAGS	= 
 
-OBJS    = mlog.o unqlite.o client.o data_store.o ds_unqlite.o partitioner.o messages.o range_server.o
+OBJS    = mlog.o unqlite.o client.o local_client.o data_store.o ds_unqlite.o partitioner.o messages.o range_server.o
 all:	mdhim.o lib
 
 mdhim.o: mdhim.c $(OBJS)
@@ -18,6 +18,9 @@ unqlite.o: unqlite.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 client.o: client.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+local_client.o: local_client.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 messages.o: messages.c

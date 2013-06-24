@@ -1,0 +1,69 @@
+\hypertarget{structunix_file}{\section{unix\-File Struct Reference}
+\label{dd/d32/structunix_file}\index{unix\-File@{unix\-File}}
+}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const \hyperlink{structunqlite__io__methods}{unqlite\-\_\-io\-\_\-methods} $\ast$ \hyperlink{structunix_file_a322547d6028b2583ff0eb244717d970e}{p\-Method}
+\item 
+\hyperlink{structunix_inode_info}{unix\-Inode\-Info} $\ast$ \hyperlink{structunix_file_ac17292fe29bb6cc9eceed9db6d1209e8}{p\-Inode}
+\item 
+int \hyperlink{structunix_file_a1c58798d4ff3ac6232765c8b76bb7450}{h}
+\item 
+int \hyperlink{structunix_file_aa4d81dba57e69451d4bc2c4593faaef6}{dirfd}
+\item 
+unsigned char \hyperlink{structunix_file_a001e59bdb9d3f396952c2c8e3229f7fc}{e\-File\-Lock}
+\item 
+int \hyperlink{structunix_file_afde57c2e118fac8041918dac2ee6f7d1}{last\-Errno}
+\item 
+void $\ast$ \hyperlink{structunix_file_afaeb4425a6de3e913db4b03e8a0d098a}{locking\-Context}
+\item 
+\hyperlink{struct_unix_unused_fd}{Unix\-Unused\-Fd} $\ast$ \hyperlink{structunix_file_a3820ccead5805d2ea61ca1c752646852}{p\-Unused}
+\item 
+int \hyperlink{structunix_file_a43e6df5096c2a58cb009b7c407f7cfeb}{file\-Flags}
+\item 
+const char $\ast$ \hyperlink{structunix_file_afc5eff0948d553308cf90a79d4a06f17}{z\-Path}
+\item 
+unsigned \hyperlink{structunix_file_ab24cd99aef6872bdf36074ec00885993}{fs\-Flags}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structunix_file_aa4d81dba57e69451d4bc2c4593faaef6}{\index{unix\-File@{unix\-File}!dirfd@{dirfd}}
+\index{dirfd@{dirfd}!unixFile@{unix\-File}}
+\subsubsection[{dirfd}]{\setlength{\rightskip}{0pt plus 5cm}int unix\-File\-::dirfd}}\label{dd/d32/structunix_file_aa4d81dba57e69451d4bc2c4593faaef6}
+\hypertarget{structunix_file_a001e59bdb9d3f396952c2c8e3229f7fc}{\index{unix\-File@{unix\-File}!e\-File\-Lock@{e\-File\-Lock}}
+\index{e\-File\-Lock@{e\-File\-Lock}!unixFile@{unix\-File}}
+\subsubsection[{e\-File\-Lock}]{\setlength{\rightskip}{0pt plus 5cm}unsigned char unix\-File\-::e\-File\-Lock}}\label{dd/d32/structunix_file_a001e59bdb9d3f396952c2c8e3229f7fc}
+\hypertarget{structunix_file_a43e6df5096c2a58cb009b7c407f7cfeb}{\index{unix\-File@{unix\-File}!file\-Flags@{file\-Flags}}
+\index{file\-Flags@{file\-Flags}!unixFile@{unix\-File}}
+\subsubsection[{file\-Flags}]{\setlength{\rightskip}{0pt plus 5cm}int unix\-File\-::file\-Flags}}\label{dd/d32/structunix_file_a43e6df5096c2a58cb009b7c407f7cfeb}
+\hypertarget{structunix_file_ab24cd99aef6872bdf36074ec00885993}{\index{unix\-File@{unix\-File}!fs\-Flags@{fs\-Flags}}
+\index{fs\-Flags@{fs\-Flags}!unixFile@{unix\-File}}
+\subsubsection[{fs\-Flags}]{\setlength{\rightskip}{0pt plus 5cm}unsigned unix\-File\-::fs\-Flags}}\label{dd/d32/structunix_file_ab24cd99aef6872bdf36074ec00885993}
+\hypertarget{structunix_file_a1c58798d4ff3ac6232765c8b76bb7450}{\index{unix\-File@{unix\-File}!h@{h}}
+\index{h@{h}!unixFile@{unix\-File}}
+\subsubsection[{h}]{\setlength{\rightskip}{0pt plus 5cm}int unix\-File\-::h}}\label{dd/d32/structunix_file_a1c58798d4ff3ac6232765c8b76bb7450}
+\hypertarget{structunix_file_afde57c2e118fac8041918dac2ee6f7d1}{\index{unix\-File@{unix\-File}!last\-Errno@{last\-Errno}}
+\index{last\-Errno@{last\-Errno}!unixFile@{unix\-File}}
+\subsubsection[{last\-Errno}]{\setlength{\rightskip}{0pt plus 5cm}int unix\-File\-::last\-Errno}}\label{dd/d32/structunix_file_afde57c2e118fac8041918dac2ee6f7d1}
+\hypertarget{structunix_file_afaeb4425a6de3e913db4b03e8a0d098a}{\index{unix\-File@{unix\-File}!locking\-Context@{locking\-Context}}
+\index{locking\-Context@{locking\-Context}!unixFile@{unix\-File}}
+\subsubsection[{locking\-Context}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ unix\-File\-::locking\-Context}}\label{dd/d32/structunix_file_afaeb4425a6de3e913db4b03e8a0d098a}
+\hypertarget{structunix_file_ac17292fe29bb6cc9eceed9db6d1209e8}{\index{unix\-File@{unix\-File}!p\-Inode@{p\-Inode}}
+\index{p\-Inode@{p\-Inode}!unixFile@{unix\-File}}
+\subsubsection[{p\-Inode}]{\setlength{\rightskip}{0pt plus 5cm}{\bf unix\-Inode\-Info}$\ast$ unix\-File\-::p\-Inode}}\label{dd/d32/structunix_file_ac17292fe29bb6cc9eceed9db6d1209e8}
+\hypertarget{structunix_file_a322547d6028b2583ff0eb244717d970e}{\index{unix\-File@{unix\-File}!p\-Method@{p\-Method}}
+\index{p\-Method@{p\-Method}!unixFile@{unix\-File}}
+\subsubsection[{p\-Method}]{\setlength{\rightskip}{0pt plus 5cm}const {\bf unqlite\-\_\-io\-\_\-methods}$\ast$ unix\-File\-::p\-Method}}\label{dd/d32/structunix_file_a322547d6028b2583ff0eb244717d970e}
+\hypertarget{structunix_file_a3820ccead5805d2ea61ca1c752646852}{\index{unix\-File@{unix\-File}!p\-Unused@{p\-Unused}}
+\index{p\-Unused@{p\-Unused}!unixFile@{unix\-File}}
+\subsubsection[{p\-Unused}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Unix\-Unused\-Fd}$\ast$ unix\-File\-::p\-Unused}}\label{dd/d32/structunix_file_a3820ccead5805d2ea61ca1c752646852}
+\hypertarget{structunix_file_afc5eff0948d553308cf90a79d4a06f17}{\index{unix\-File@{unix\-File}!z\-Path@{z\-Path}}
+\index{z\-Path@{z\-Path}!unixFile@{unix\-File}}
+\subsubsection[{z\-Path}]{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ unix\-File\-::z\-Path}}\label{dd/d32/structunix_file_afc5eff0948d553308cf90a79d4a06f17}
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{unqlite_8c}{unqlite.\-c}\end{DoxyCompactItemize}

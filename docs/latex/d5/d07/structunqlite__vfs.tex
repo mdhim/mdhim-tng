@@ -1,0 +1,79 @@
+\hypertarget{structunqlite__vfs}{\section{unqlite\-\_\-vfs Struct Reference}
+\label{d5/d07/structunqlite__vfs}\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}}
+}
+
+
+{\ttfamily \#include $<$unqlite.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const char $\ast$ \hyperlink{structunqlite__vfs_a6408d31a9666612a52fd8248fcc09c15}{z\-Name}
+\item 
+int \hyperlink{structunqlite__vfs_afd249993dc763d713902629c67118a1a}{i\-Version}
+\item 
+int \hyperlink{structunqlite__vfs_a7a0d077540d8ea96372383b4b288dca2}{sz\-Os\-File}
+\item 
+int \hyperlink{structunqlite__vfs_a06f5a5213f2a885826351ba8a8e653b8}{mx\-Pathname}
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_a89535ece5182f32a6281d5895cce61a9}{x\-Open} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, const char $\ast$\hyperlink{structunqlite__vfs_a6408d31a9666612a52fd8248fcc09c15}{z\-Name}, \hyperlink{structunqlite__file}{unqlite\-\_\-file} $\ast$, unsigned int flags)
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_ad961a2b6210572b31877922d4b18eb99}{x\-Delete} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, const char $\ast$\hyperlink{structunqlite__vfs_a6408d31a9666612a52fd8248fcc09c15}{z\-Name}, int sync\-Dir)
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_a3d8d2a74a38438995cbf4591aa18cad7}{x\-Access} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, const char $\ast$\hyperlink{structunqlite__vfs_a6408d31a9666612a52fd8248fcc09c15}{z\-Name}, int flags, int $\ast$p\-Res\-Out)
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_ad18e48a2b14c153ff1e06a3194c963b7}{x\-Full\-Pathname} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, const char $\ast$\hyperlink{structunqlite__vfs_a6408d31a9666612a52fd8248fcc09c15}{z\-Name}, int buf\-\_\-len, char $\ast$z\-Buf)
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_ad525dc6f3ca0b990fbccabdc5588ebcf}{x\-Tmp\-Dir} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, char $\ast$z\-Buf, int buf\-\_\-len)
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_a3d7d751cb9284864ba562a4ef395510e}{x\-Sleep} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, int microseconds)
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_a2fd9fc0c455d92227d516f013bdd65a3}{x\-Current\-Time} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, \hyperlink{struct_sytm}{Sytm} $\ast$p\-Out)
+\item 
+int($\ast$ \hyperlink{structunqlite__vfs_a1a54114bc39a46dbbc91a55fb2e551f9}{x\-Get\-Last\-Error} )(\hyperlink{structunqlite__vfs}{unqlite\-\_\-vfs} $\ast$, int, char $\ast$)
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structunqlite__vfs_afd249993dc763d713902629c67118a1a}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!i\-Version@{i\-Version}}
+\index{i\-Version@{i\-Version}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{i\-Version}]{\setlength{\rightskip}{0pt plus 5cm}int unqlite\-\_\-vfs\-::i\-Version}}\label{d5/d07/structunqlite__vfs_afd249993dc763d713902629c67118a1a}
+\hypertarget{structunqlite__vfs_a06f5a5213f2a885826351ba8a8e653b8}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!mx\-Pathname@{mx\-Pathname}}
+\index{mx\-Pathname@{mx\-Pathname}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{mx\-Pathname}]{\setlength{\rightskip}{0pt plus 5cm}int unqlite\-\_\-vfs\-::mx\-Pathname}}\label{d5/d07/structunqlite__vfs_a06f5a5213f2a885826351ba8a8e653b8}
+\hypertarget{structunqlite__vfs_a7a0d077540d8ea96372383b4b288dca2}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!sz\-Os\-File@{sz\-Os\-File}}
+\index{sz\-Os\-File@{sz\-Os\-File}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{sz\-Os\-File}]{\setlength{\rightskip}{0pt plus 5cm}int unqlite\-\_\-vfs\-::sz\-Os\-File}}\label{d5/d07/structunqlite__vfs_a7a0d077540d8ea96372383b4b288dca2}
+\hypertarget{structunqlite__vfs_a3d8d2a74a38438995cbf4591aa18cad7}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Access@{x\-Access}}
+\index{x\-Access@{x\-Access}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Access}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Access)({\bf unqlite\-\_\-vfs} $\ast$, const char $\ast${\bf z\-Name}, int flags, int $\ast$p\-Res\-Out)}}\label{d5/d07/structunqlite__vfs_a3d8d2a74a38438995cbf4591aa18cad7}
+\hypertarget{structunqlite__vfs_a2fd9fc0c455d92227d516f013bdd65a3}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Current\-Time@{x\-Current\-Time}}
+\index{x\-Current\-Time@{x\-Current\-Time}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Current\-Time}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Current\-Time)({\bf unqlite\-\_\-vfs} $\ast$, {\bf Sytm} $\ast$p\-Out)}}\label{d5/d07/structunqlite__vfs_a2fd9fc0c455d92227d516f013bdd65a3}
+\hypertarget{structunqlite__vfs_ad961a2b6210572b31877922d4b18eb99}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Delete@{x\-Delete}}
+\index{x\-Delete@{x\-Delete}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Delete}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Delete)({\bf unqlite\-\_\-vfs} $\ast$, const char $\ast${\bf z\-Name}, int sync\-Dir)}}\label{d5/d07/structunqlite__vfs_ad961a2b6210572b31877922d4b18eb99}
+\hypertarget{structunqlite__vfs_ad18e48a2b14c153ff1e06a3194c963b7}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Full\-Pathname@{x\-Full\-Pathname}}
+\index{x\-Full\-Pathname@{x\-Full\-Pathname}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Full\-Pathname}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Full\-Pathname)({\bf unqlite\-\_\-vfs} $\ast$, const char $\ast${\bf z\-Name}, int buf\-\_\-len, char $\ast$z\-Buf)}}\label{d5/d07/structunqlite__vfs_ad18e48a2b14c153ff1e06a3194c963b7}
+\hypertarget{structunqlite__vfs_a1a54114bc39a46dbbc91a55fb2e551f9}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Get\-Last\-Error@{x\-Get\-Last\-Error}}
+\index{x\-Get\-Last\-Error@{x\-Get\-Last\-Error}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Get\-Last\-Error}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Get\-Last\-Error)({\bf unqlite\-\_\-vfs} $\ast$, int, char $\ast$)}}\label{d5/d07/structunqlite__vfs_a1a54114bc39a46dbbc91a55fb2e551f9}
+\hypertarget{structunqlite__vfs_a89535ece5182f32a6281d5895cce61a9}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Open@{x\-Open}}
+\index{x\-Open@{x\-Open}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Open}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Open)({\bf unqlite\-\_\-vfs} $\ast$, const char $\ast${\bf z\-Name}, {\bf unqlite\-\_\-file} $\ast$, unsigned int flags)}}\label{d5/d07/structunqlite__vfs_a89535ece5182f32a6281d5895cce61a9}
+\hypertarget{structunqlite__vfs_a3d7d751cb9284864ba562a4ef395510e}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Sleep@{x\-Sleep}}
+\index{x\-Sleep@{x\-Sleep}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Sleep}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Sleep)({\bf unqlite\-\_\-vfs} $\ast$, int microseconds)}}\label{d5/d07/structunqlite__vfs_a3d7d751cb9284864ba562a4ef395510e}
+\hypertarget{structunqlite__vfs_ad525dc6f3ca0b990fbccabdc5588ebcf}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!x\-Tmp\-Dir@{x\-Tmp\-Dir}}
+\index{x\-Tmp\-Dir@{x\-Tmp\-Dir}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{x\-Tmp\-Dir}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-vfs\-::x\-Tmp\-Dir)({\bf unqlite\-\_\-vfs} $\ast$, char $\ast$z\-Buf, int buf\-\_\-len)}}\label{d5/d07/structunqlite__vfs_ad525dc6f3ca0b990fbccabdc5588ebcf}
+\hypertarget{structunqlite__vfs_a6408d31a9666612a52fd8248fcc09c15}{\index{unqlite\-\_\-vfs@{unqlite\-\_\-vfs}!z\-Name@{z\-Name}}
+\index{z\-Name@{z\-Name}!unqlite_vfs@{unqlite\-\_\-vfs}}
+\subsubsection[{z\-Name}]{\setlength{\rightskip}{0pt plus 5cm}const char $\ast$ unqlite\-\_\-vfs\-::z\-Name}}\label{d5/d07/structunqlite__vfs_a6408d31a9666612a52fd8248fcc09c15}
+
+
+The documentation for this struct was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{unqlite_8c}{unqlite.\-c}\item 
+src/\hyperlink{unqlite_8h}{unqlite.\-h}\end{DoxyCompactItemize}

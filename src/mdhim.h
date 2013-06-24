@@ -32,23 +32,40 @@ struct mdhim_t {
 	MPI_Comm mdhim_comm;   
 	//The rank in the mdhim_comm
 	int mdhim_rank;
+	//The size of mdhim_comm
+	int mdhim_comm_size;
 	//The number of range servers in the rangesrvs list
 	uint32_t num_rangesrvs;
 	//A linked list of range servers
 	rangesrv_info *rangesrvs;
+	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 
+	//The max key served
 	int64_t max_key;
+	//The min key served
 	int64_t min_key;
+	//The mutex used if receiving from ourselves
+	pthread_mutex_t *receive_msg_mutex;
+	//The condition variable used if receiving from ourselves
+	pthread_cond_t *receive_msg_ready_cv;
+	/* The receive msg, which is sent to the client by the 
+	   range server running in the same process */
+	void *receive_msg;
 };
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm);
-int mdimClose(struct mdhim_t *md);
-int mdhimPut(struct mdhim_t *md, struct mdhim_putm_t *pm);
-int mdhimBput(struct mdhim_t *md, struct mdhim_bputm_t *bpm);
-int mdhimGet(struct mdhim_t *md, struct mdhim_getm_t *gm);
-int mdhimBGet(struct mdhim_t *md, struct mdhim_bgetm_t *bgm);
-int mdhimDelete(struct mdhim_t *md, struct mdhim_delm_t *dm);
-int mdhimBdelete(struct mdhim_t *md, struct mdhim_bdelm_t *dm);
+int mdhimClose(struct mdhim_t *md);
+struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_type, 
+			    void *value, int value_len);
+struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
+			      void **values, int *value_lens, int num_records);
+struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len, 
+			       int key_type);
+struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, int *key_types, 
+				 int num_keys);
+struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int key_type);
+struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
+				 int num_keys);
 
 #endif
 
