@@ -9,7 +9,6 @@ var searchData=
   ['range_5fserver_5finit',['range_server_init',['../d9/d67/range__server_8c.html#af34269b3d0d34cd441697cc0e7376d3f',1,'range_server_init(struct mdhim_t *md):&#160;range_server.c'],['../de/d8a/range__server_8h.html#af34269b3d0d34cd441697cc0e7376d3f',1,'range_server_init(struct mdhim_t *md):&#160;range_server.c']]],
   ['range_5fserver_5fput',['range_server_put',['../d9/d67/range__server_8c.html#a69effcf76f690e1324650ffa216cd3e0',1,'range_server.c']]],
   ['range_5fserver_5fstop',['range_server_stop',['../d9/d67/range__server_8c.html#abac967b940a3b5aa92cc5fd67491efbe',1,'range_server_stop(struct mdhim_t *md):&#160;range_server.c'],['../de/d8a/range__server_8h.html#abac967b940a3b5aa92cc5fd67491efbe',1,'range_server_stop(struct mdhim_t *md):&#160;range_server.c']]],
-  ['receive_5fclient_5fresponse',['receive_client_response',['../dc/d0a/messages_8c.html#ae0b4a90e1666c6748fc6d5837b5e1b42',1,'messages.c']]],
-  ['receive_5fmessage',['receive_message',['../d5/d48/messages_8h.html#a95d8ca71c4b6580550b938623ed9d437',1,'messages.h']]],
-  ['receive_5frangesrv_5fwork',['receive_rangesrv_work',['../dc/d0a/messages_8c.html#ac627aead6477a0efc38027329dc45be0',1,'messages.c']]]
+  ['receive_5fclient_5fresponse',['receive_client_response',['../dc/d0a/messages_8c.html#ae0b4a90e1666c6748fc6d5837b5e1b42',1,'receive_client_response(struct mdhim_t *md, int src, void **message):&#160;messages.c'],['../d5/d48/messages_8h.html#ae0b4a90e1666c6748fc6d5837b5e1b42',1,'receive_client_response(struct mdhim_t *md, int src, void **message):&#160;messages.c']]],
+  ['receive_5frangesrv_5fwork',['receive_rangesrv_work',['../dc/d0a/messages_8c.html#aa3fd52dd4aabd2a5da26a4b6ecbc2290',1,'receive_rangesrv_work(struct mdhim_t *md, int *src, void **message):&#160;messages.c'],['../d5/d48/messages_8h.html#aa3fd52dd4aabd2a5da26a4b6ecbc2290',1,'receive_rangesrv_work(struct mdhim_t *md, int *src, void **message):&#160;messages.c']]]
 ];

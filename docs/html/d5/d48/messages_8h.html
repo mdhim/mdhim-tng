@@ -120,7 +120,6 @@ Macros</h2></td></tr>
 <tr class="memitem:a3d3a1cd7597edbd83b5f45437bb8900e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a3d3a1cd7597edbd83b5f45437bb8900e">MDHIM_RECV</a>&#160;&#160;&#160;7</td></tr>
 <tr class="memitem:a586d34cf2e69c16d7a57ddb9c207a21e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a586d34cf2e69c16d7a57ddb9c207a21e">MDHIM_RECV_GET</a>&#160;&#160;&#160;8</td></tr>
 <tr class="memitem:aebe14949ac93aefb15394dbbf7d93d55"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#aebe14949ac93aefb15394dbbf7d93d55">MDHIM_RECV_BULK_GET</a>&#160;&#160;&#160;9</td></tr>
-<tr class="memitem:a27fe1497cf664884a21c489e5c05816c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a27fe1497cf664884a21c489e5c05816c">MDHIM_RECV_BULK</a>&#160;&#160;&#160;10</td></tr>
 <tr class="memitem:a6018ee1648e2c4ff727d92c889f1fcfe"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a6018ee1648e2c4ff727d92c889f1fcfe">MDHIM_GET_VAL</a>&#160;&#160;&#160;0</td></tr>
 <tr class="memitem:abccc97c7a5b416abe6891a99b931a846"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#abccc97c7a5b416abe6891a99b931a846">MDHIM_GET_NEXT</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memitem:ae310d4bdc8775196bf958de61dcb3b80"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#ae310d4bdc8775196bf958de61dcb3b80">MDHIM_GET_PREV</a>&#160;&#160;&#160;2</td></tr>
@@ -132,11 +131,37 @@ Macros</h2></td></tr>
 <tr class="memitem:a95873fdea4af850672cf0b8b18c9038a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a95873fdea4af850672cf0b8b18c9038a">CLIENT_RESPONSE_SIZE</a>&#160;&#160;&#160;4</td></tr>
 <tr class="memitem:a46d611fc0a3afaa0895d915f1ff1b5f7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a46d611fc0a3afaa0895d915f1ff1b5f7">CLIENT_RESPONSE_MSG</a>&#160;&#160;&#160;5</td></tr>
 <tr class="memitem:a221c897f1d7f44a45ef3e12d0c902057"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a221c897f1d7f44a45ef3e12d0c902057">MAX_BULK_OPS</a>&#160;&#160;&#160;100</td></tr>
+<tr class="memitem:ab763af650593db4d360d9638baa45b22"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#ab763af650593db4d360d9638baa45b22">MDHIM_MAX_MSG_SIZE</a>&#160;&#160;&#160;2147483647</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a46b7a921fc0193f849546577fa0d8117"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a46b7a921fc0193f849546577fa0d8117">send_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int dest, void *message)</td></tr>
-<tr class="memitem:a95d8ca71c4b6580550b938623ed9d437"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a95d8ca71c4b6580550b938623ed9d437">receive_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int src, void *message)</td></tr>
+<tr class="memitem:aa375aebf439f9a0f522a6545b54fb0ca"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#aa375aebf439f9a0f522a6545b54fb0ca">send_rangesrv_work</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int dest, void *message)</td></tr>
+<tr class="memitem:aa3fd52dd4aabd2a5da26a4b6ecbc2290"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#aa3fd52dd4aabd2a5da26a4b6ecbc2290">receive_rangesrv_work</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int *src, void **message)</td></tr>
+<tr class="memitem:a1265a4149b46a3186e7b5c1ff760fde9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a1265a4149b46a3186e7b5c1ff760fde9">send_client_response</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int dest, void *message)</td></tr>
+<tr class="memitem:ae0b4a90e1666c6748fc6d5837b5e1b42"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#ae0b4a90e1666c6748fc6d5837b5e1b42">receive_client_response</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int src, void **message)</td></tr>
+<tr class="memitem:a6ff6ea9a88dd286c3a582a7e94039d31"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a6ff6ea9a88dd286c3a582a7e94039d31">pack_put_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d6/dcd/structmdhim__putm__t.html">mdhim_putm_t</a> *pm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memdesc:a6ff6ea9a88dd286c3a582a7e94039d31"><td class="mdescLeft">&#160;</td><td class="mdescRight">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;  <a href="#a6ff6ea9a88dd286c3a582a7e94039d31"></a><br/></td></tr>
+<tr class="memitem:a7ca89c8ce1da8109491cc2f4431ed2d9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a7ca89c8ce1da8109491cc2f4431ed2d9">pack_bput_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d1/ddf/structmdhim__bputm__t.html">mdhim_bputm_t</a> *bpm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memitem:a88acaaaf07fafd1fb67491334ced0e88"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a88acaaaf07fafd1fb67491334ced0e88">unpack_put_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **pm)</td></tr>
+<tr class="memitem:a19927e9d2f3f9e6100755fd6ca08c34a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a19927e9d2f3f9e6100755fd6ca08c34a">unpack_bput_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **bpm)</td></tr>
+<tr class="memitem:a5e11caadbb71fcb30353b57b38b113e7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a5e11caadbb71fcb30353b57b38b113e7">pack_get_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d9/d54/structmdhim__getm__t.html">mdhim_getm_t</a> *gm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memdesc:a5e11caadbb71fcb30353b57b38b113e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;  <a href="#a5e11caadbb71fcb30353b57b38b113e7"></a><br/></td></tr>
+<tr class="memitem:a7af6dd1b1f02815a72425f471b7585ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a7af6dd1b1f02815a72425f471b7585ce">pack_bget_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d5/def/structmdhim__bgetm__t.html">mdhim_bgetm_t</a> *bgm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memitem:a66e99086a77ccd15fb4364188b93f48a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a66e99086a77ccd15fb4364188b93f48a">unpack_get_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **gm)</td></tr>
+<tr class="memitem:a9a43d7b8328eb4ad0b49c489c06c33da"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a9a43d7b8328eb4ad0b49c489c06c33da">unpack_bget_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **bgm)</td></tr>
+<tr class="memitem:acb76ffd6680d8a2851d84e018c9d8fd3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#acb76ffd6680d8a2851d84e018c9d8fd3">pack_getrm_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d5/dfb/structmdhim__getrm__t.html">mdhim_getrm_t</a> *grm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memdesc:acb76ffd6680d8a2851d84e018c9d8fd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;  <a href="#acb76ffd6680d8a2851d84e018c9d8fd3"></a><br/></td></tr>
+<tr class="memitem:a9e2eae9c5addc486be2f35294e8c8780"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a9e2eae9c5addc486be2f35294e8c8780">pack_bgetrm_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d0/d48/structmdhim__bgetrm__t.html">mdhim_bgetrm_t</a> *bgrm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memitem:ac2ba189e1b3b24b627112096d38ecc21"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#ac2ba189e1b3b24b627112096d38ecc21">unpack_getrm_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **grm)</td></tr>
+<tr class="memitem:a34dff02c15f3567d4865de782e2e9c38"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a34dff02c15f3567d4865de782e2e9c38">unpack_bgetrm_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **bgrm)</td></tr>
+<tr class="memitem:a47b0df223117e39cb20a96bbd753344b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a47b0df223117e39cb20a96bbd753344b">pack_del_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d7/da5/structmdhim__delm__t.html">mdhim_delm_t</a> *dm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memdesc:a47b0df223117e39cb20a96bbd753344b"><td class="mdescLeft">&#160;</td><td class="mdescRight">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;  <a href="#a47b0df223117e39cb20a96bbd753344b"></a><br/></td></tr>
+<tr class="memitem:ac3c493c5ac720efb246fda5b2733eab7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#ac3c493c5ac720efb246fda5b2733eab7">pack_bdel_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d4/ddf/structmdhim__bdelm__t.html">mdhim_bdelm_t</a> *bdm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memitem:ac8f41dc4b9d6c81a8b546f553948728c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#ac8f41dc4b9d6c81a8b546f553948728c">unpack_del_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **dm)</td></tr>
+<tr class="memitem:a1d304e7d6db45ca2ecbece630ccc244b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a1d304e7d6db45ca2ecbece630ccc244b">unpack_bdel_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, int mesg_size, void **bdm)</td></tr>
+<tr class="memitem:abbdc225fd2f4108ae6bfceb89c470e78"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#abbdc225fd2f4108ae6bfceb89c470e78">pack_return_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> *rm, void **sendbuf, int *sendsize)</td></tr>
+<tr class="memdesc:abbdc225fd2f4108ae6bfceb89c470e78"><td class="mdescLeft">&#160;</td><td class="mdescRight">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;  <a href="#abbdc225fd2f4108ae6bfceb89c470e78"></a><br/></td></tr>
+<tr class="memitem:a416ff43f012eff3f76e474ddd60f0c07"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#a416ff43f012eff3f76e474ddd60f0c07">unpack_return_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *message, void **rm)</td></tr>
 <tr class="memitem:ac147bc99967b9b2e8b7c28b9a05f1b27"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../da/dce/structrangesrv__info.html">rangesrv_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/messages_8h.html#ac147bc99967b9b2e8b7c28b9a05f1b27">get_rangesrvs</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md)</td></tr>
 </table>
 <hr/><h2>Macro Definition Documentation</h2>
@@ -296,6 +321,18 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ab763af650593db4d360d9638baa45b22"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MDHIM_MAX_MSG_SIZE&#160;&#160;&#160;2147483647</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a class="anchor" id="a17cf4ec938355f5e11f7f685e13cbd31"></a>
 <div class="memitem">
 <div class="memproto">
@@ -314,18 +351,6 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define MDHIM_RECV&#160;&#160;&#160;7</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a class="anchor" id="a27fe1497cf664884a21c489e5c05816c"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define MDHIM_RECV_BULK&#160;&#160;&#160;10</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -425,12 +450,472 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a95d8ca71c4b6580550b938623ed9d437"></a>
+<a class="anchor" id="ac3c493c5ac720efb246fda5b2733eab7"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int receive_message </td>
+          <td class="memname">int pack_bdel_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d4/ddf/structmdhim__bdelm__t.html">mdhim_bdelm_t</a> *&#160;</td>
+          <td class="paramname"><em>bdm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>pack_bdel_message Packs a bdel message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">bdm</td><td>in structure bdel_message which will be packed into the message </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer for packed message size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d4/ddf/structmdhim__bdelm__t.html">mdhim_bdelm_t</a> { int mtype; void **keys; int *key_lens; int num_keys; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a7af6dd1b1f02815a72425f471b7585ce"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_bget_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d5/def/structmdhim__bgetm__t.html">mdhim_bgetm_t</a> *&#160;</td>
+          <td class="paramname"><em>bgm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>pack_bget_message Packs a bget message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">bgm</td><td>in structure bget_message which will be packed into the sendbuf </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer for sendbuf size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d5/def/structmdhim__bgetm__t.html">mdhim_bgetm_t</a> { int mtype; int op; void **keys; int *key_lens; int num_keys; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a9e2eae9c5addc486be2f35294e8c8780"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_bgetrm_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d0/d48/structmdhim__bgetrm__t.html">mdhim_bgetrm_t</a> *&#160;</td>
+          <td class="paramname"><em>bgrm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>pack_bgetrm_message Packs a bulk get return message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">bgrm</td><td>in structure bget_return_message which will be packed into the message </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer to sendbuf's size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d0/d48/structmdhim__bgetrm__t.html">mdhim_bgetrm_t</a> { int mtype; int error; void **keys; int *key_lens; void **values; int *value_lens; int num_records; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a7ca89c8ce1da8109491cc2f4431ed2d9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_bput_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d1/ddf/structmdhim__bputm__t.html">mdhim_bputm_t</a> *&#160;</td>
+          <td class="paramname"><em>bpm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>pack_bput_message Packs a bulk put message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">bpm</td><td>in structure bput_message which will be packed into the sendbuf </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer for packed message size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d1/ddf/structmdhim__bputm__t.html">mdhim_bputm_t</a> { int mtype; void **keys; int *key_lens; void **data; int *data_lens; int num_keys; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a47b0df223117e39cb20a96bbd753344b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_del_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d7/da5/structmdhim__delm__t.html">mdhim_delm_t</a> *&#160;</td>
+          <td class="paramname"><em>dm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash; </p>
+<p>pack_del_message Packs a delete message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">dm</td><td>in structure del_message which will be packed into the sendbuf </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer for packed message size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d7/da5/structmdhim__delm__t.html">mdhim_delm_t</a> { int mtype; void *key; int key_len; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a5e11caadbb71fcb30353b57b38b113e7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_get_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d9/d54/structmdhim__getm__t.html">mdhim_getm_t</a> *&#160;</td>
+          <td class="paramname"><em>gm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash; </p>
+<p>pack_get_message Packs a get message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">gm</td><td>in structure get_message which will be packed into the sendbuf </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer to sendbuf's size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d9/d54/structmdhim__getm__t.html">mdhim_getm_t</a> { int mtype; int op; void *key; int key_len; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="acb76ffd6680d8a2851d84e018c9d8fd3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_getrm_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d5/dfb/structmdhim__getrm__t.html">mdhim_getrm_t</a> *&#160;</td>
+          <td class="paramname"><em>grm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash; </p>
+<p>pack_getrm_message Packs a get return message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">grm</td><td>in structure get_return_message which will be packed into the message </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer to sendbuf's size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d5/dfb/structmdhim__getrm__t.html">mdhim_getrm_t</a> { int mtype; int error; void *key; int key_len; void *value; int value_len; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a6ff6ea9a88dd286c3a582a7e94039d31"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_put_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d6/dcd/structmdhim__putm__t.html">mdhim_putm_t</a> *&#160;</td>
+          <td class="paramname"><em>pm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash; </p>
+<p>pack_put_message Packs a put message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">pm</td><td>in structure put_message which will be packed into the sendbuf </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer to size of sendbuf </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d6/dcd/structmdhim__putm__t.html">mdhim_putm_t</a> { int mtype; void *key; int key_len; void *data; int data_len; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="abbdc225fd2f4108ae6bfceb89c470e78"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pack_return_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> *&#160;</td>
+          <td class="paramname"><em>rm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>sendbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>sendsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash; </p>
+<p>pack_return_message Packs a return message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">pm</td><td>in structure which will be packed into the sendbuf </td></tr>
+    <tr><td class="paramname">sendbuf</td><td>out double pointer for packed message to send </td></tr>
+    <tr><td class="paramname">sendsize</td><td>out pointer for packed message size </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> { int mtype; int error; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="ae0b4a90e1666c6748fc6d5837b5e1b42"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int receive_client_response </td>
           <td>(</td>
           <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
           <td class="paramname"><em>md</em>, </td>
@@ -444,7 +929,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
+          <td class="paramtype">void **&#160;</td>
           <td class="paramname"><em>message</em>&#160;</td>
         </tr>
         <tr>
@@ -454,15 +939,67 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>receive_client_response message Receives a message from the given source</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">src</td><td>in source to receive from </td></tr>
+    <tr><td class="paramname">message</td><td>out double pointer for message received </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a46b7a921fc0193f849546577fa0d8117"></a>
+<a class="anchor" id="aa3fd52dd4aabd2a5da26a4b6ecbc2290"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int send_message </td>
+          <td class="memname">int receive_rangesrv_work </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>message</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>receive_rangesrv_work message Receives a message from the given source</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>out double pointer for message received </td></tr>
+    <tr><td class="paramname">src</td><td>out pointer to source of message received </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1265a4149b46a3186e7b5c1ff760fde9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int send_client_response </td>
           <td>(</td>
           <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
           <td class="paramname"><em>md</em>, </td>
@@ -486,13 +1023,509 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>send_client_response Sends a message to a client</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
+    <tr><td class="paramname">dest</td><td>destination to send to </td></tr>
+    <tr><td class="paramname">message</td><td>pointer to message to send </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aa375aebf439f9a0f522a6545b54fb0ca"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int send_rangesrv_work </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>send_rangesrv_work Sends a message to the range server at the given destination</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
+    <tr><td class="paramname">dest</td><td>destination to send to </td></tr>
+    <tr><td class="paramname">message</td><td>pointer to message struct to send </td></tr>
+    <tr><td class="paramname">size</td><td>size of the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1d304e7d6db45ca2ecbece630ccc244b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_bdel_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>bdelm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_bdel_message Unpacks a bulk del message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">bdelm</td><td>out structure bulk_del_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d4/ddf/structmdhim__bdelm__t.html">mdhim_bdelm_t</a> { int mtype; void **keys; int *key_lens; int num_keys; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a9a43d7b8328eb4ad0b49c489c06c33da"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_bget_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>bgetm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_bget_message Unpacks a bulk get message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message we received </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">bgm</td><td>out structure bulk_get_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d5/def/structmdhim__bgetm__t.html">mdhim_bgetm_t</a> { int mtype; int op; void **keys; int *key_lens; int num_records; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a34dff02c15f3567d4865de782e2e9c38"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_bgetrm_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>bgetrm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_bgetrm_message Unpacks a bulk get return message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">bgtrm</td><td>out structure bulk_get_return_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d0/d48/structmdhim__bgetrm__t.html">mdhim_bgetrm_t</a> { int mtype; int error; void **keys; int *key_lens; void **values; int *value_lens; int num_records; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a19927e9d2f3f9e6100755fd6ca08c34a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_bput_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>bput</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_bput_message Unpacks a bulk put message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message we received </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">bpm</td><td>out structure bulk_put_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d1/ddf/structmdhim__bputm__t.html">mdhim_bputm_t</a> { int mtype; void **keys; int *key_lens; void **data; int *data_lens; int num_keys; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="ac8f41dc4b9d6c81a8b546f553948728c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_del_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>delm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_del_message Unpacks a del message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">delm</td><td>out structure get_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d7/da5/structmdhim__delm__t.html">mdhim_delm_t</a> { int mtype; void *key; int key_len; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a66e99086a77ccd15fb4364188b93f48a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_get_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>getm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_get_message Unpacks a get message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message we received </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">pm</td><td>out structure get_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d9/d54/structmdhim__getm__t.html">mdhim_getm_t</a> { int mtype; Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV int op; void *key; int key_len; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="ac2ba189e1b3b24b627112096d38ecc21"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_getrm_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>getrm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_getrm_message Unpacks a get return message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message we received </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">getrm</td><td>out structure getrm_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d5/dfb/structmdhim__getrm__t.html">mdhim_getrm_t</a> { int mtype; int error; void *key; int key_len; void *value; int value_len; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a88acaaaf07fafd1fb67491334ced0e88"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_put_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>mesg_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>putm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_put_message Unpacks a put message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>in pointer for packed message we received </td></tr>
+    <tr><td class="paramname">mesg_size</td><td>in size of the incoming message </td></tr>
+    <tr><td class="paramname">pm</td><td>out structure put_message which will be unpacked from the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d6/dcd/structmdhim__putm__t.html">mdhim_putm_t</a> { int mtype; void *key; int key_len; void *data; int data_len; int server_rank; }; </p>
+
+</div>
+</div>
+<a class="anchor" id="a416ff43f012eff3f76e474ddd60f0c07"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unpack_return_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>retm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>unpack_return_message unpacks a return message structure into contiguous memory for message passing</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">pm</td><td>in structure return_message which will be packed into the message </td></tr>
+    <tr><td class="paramname">message</td><td>out pointer for packed message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error</dd></dl>
+<p>struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> { int mtype; int error; }; </p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 24 2013 10:24:43 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 24 2013 15:10:15 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

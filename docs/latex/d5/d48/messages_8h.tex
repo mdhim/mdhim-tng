@@ -50,8 +50,6 @@ struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t}
 \item 
 \#define \hyperlink{messages_8h_aebe14949ac93aefb15394dbbf7d93d55}{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K\-\_\-\-G\-E\-T}~9
 \item 
-\#define \hyperlink{messages_8h_a27fe1497cf664884a21c489e5c05816c}{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K}~10
-\item 
 \#define \hyperlink{messages_8h_a6018ee1648e2c4ff727d92c889f1fcfe}{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}~0
 \item 
 \#define \hyperlink{messages_8h_abccc97c7a5b416abe6891a99b931a846}{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-N\-E\-X\-T}~1
@@ -73,13 +71,55 @@ struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t}
 \#define \hyperlink{messages_8h_a46d611fc0a3afaa0895d915f1ff1b5f7}{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G}~5
 \item 
 \#define \hyperlink{messages_8h_a221c897f1d7f44a45ef3e12d0c902057}{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S}~100
+\item 
+\#define \hyperlink{messages_8h_ab763af650593db4d360d9638baa45b22}{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}~2147483647
 \end{DoxyCompactItemize}
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-int \hyperlink{messages_8h_a46b7a921fc0193f849546577fa0d8117}{send\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int dest, void $\ast$message)
+int \hyperlink{messages_8h_aa375aebf439f9a0f522a6545b54fb0ca}{send\-\_\-rangesrv\-\_\-work} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int dest, void $\ast$message)
 \item 
-int \hyperlink{messages_8h_a95d8ca71c4b6580550b938623ed9d437}{receive\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int src, void $\ast$message)
+int \hyperlink{messages_8h_aa3fd52dd4aabd2a5da26a4b6ecbc2290}{receive\-\_\-rangesrv\-\_\-work} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int $\ast$src, void $\ast$$\ast$message)
+\item 
+int \hyperlink{messages_8h_a1265a4149b46a3186e7b5c1ff760fde9}{send\-\_\-client\-\_\-response} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int dest, void $\ast$message)
+\item 
+int \hyperlink{messages_8h_ae0b4a90e1666c6748fc6d5837b5e1b42}{receive\-\_\-client\-\_\-response} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int src, void $\ast$$\ast$message)
+\item 
+int \hyperlink{messages_8h_a6ff6ea9a88dd286c3a582a7e94039d31}{pack\-\_\-put\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__putm__t}{mdhim\-\_\-putm\-\_\-t} $\ast$pm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\begin{DoxyCompactList}\small\item\em ------------------------ \end{DoxyCompactList}\item 
+int \hyperlink{messages_8h_a7ca89c8ce1da8109491cc2f4431ed2d9}{pack\-\_\-bput\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__bputm__t}{mdhim\-\_\-bputm\-\_\-t} $\ast$bpm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\item 
+int \hyperlink{messages_8h_a88acaaaf07fafd1fb67491334ced0e88}{unpack\-\_\-put\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$pm)
+\item 
+int \hyperlink{messages_8h_a19927e9d2f3f9e6100755fd6ca08c34a}{unpack\-\_\-bput\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$bpm)
+\item 
+int \hyperlink{messages_8h_a5e11caadbb71fcb30353b57b38b113e7}{pack\-\_\-get\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__getm__t}{mdhim\-\_\-getm\-\_\-t} $\ast$gm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\begin{DoxyCompactList}\small\item\em ------------------------ \end{DoxyCompactList}\item 
+int \hyperlink{messages_8h_a7af6dd1b1f02815a72425f471b7585ce}{pack\-\_\-bget\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__bgetm__t}{mdhim\-\_\-bgetm\-\_\-t} $\ast$bgm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\item 
+int \hyperlink{messages_8h_a66e99086a77ccd15fb4364188b93f48a}{unpack\-\_\-get\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$gm)
+\item 
+int \hyperlink{messages_8h_a9a43d7b8328eb4ad0b49c489c06c33da}{unpack\-\_\-bget\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$bgm)
+\item 
+int \hyperlink{messages_8h_acb76ffd6680d8a2851d84e018c9d8fd3}{pack\-\_\-getrm\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__getrm__t}{mdhim\-\_\-getrm\-\_\-t} $\ast$grm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\begin{DoxyCompactList}\small\item\em ------------------------ \end{DoxyCompactList}\item 
+int \hyperlink{messages_8h_a9e2eae9c5addc486be2f35294e8c8780}{pack\-\_\-bgetrm\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__bgetrm__t}{mdhim\-\_\-bgetrm\-\_\-t} $\ast$bgrm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\item 
+int \hyperlink{messages_8h_ac2ba189e1b3b24b627112096d38ecc21}{unpack\-\_\-getrm\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$grm)
+\item 
+int \hyperlink{messages_8h_a34dff02c15f3567d4865de782e2e9c38}{unpack\-\_\-bgetrm\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$bgrm)
+\item 
+int \hyperlink{messages_8h_a47b0df223117e39cb20a96bbd753344b}{pack\-\_\-del\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__delm__t}{mdhim\-\_\-delm\-\_\-t} $\ast$dm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\begin{DoxyCompactList}\small\item\em ------------------------ \end{DoxyCompactList}\item 
+int \hyperlink{messages_8h_ac3c493c5ac720efb246fda5b2733eab7}{pack\-\_\-bdel\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__bdelm__t}{mdhim\-\_\-bdelm\-\_\-t} $\ast$bdm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\item 
+int \hyperlink{messages_8h_ac8f41dc4b9d6c81a8b546f553948728c}{unpack\-\_\-del\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$dm)
+\item 
+int \hyperlink{messages_8h_a1d304e7d6db45ca2ecbece630ccc244b}{unpack\-\_\-bdel\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, int mesg\-\_\-size, void $\ast$$\ast$bdm)
+\item 
+int \hyperlink{messages_8h_abbdc225fd2f4108ae6bfceb89c470e78}{pack\-\_\-return\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$rm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
+\begin{DoxyCompactList}\small\item\em ------------------------ \end{DoxyCompactList}\item 
+int \hyperlink{messages_8h_a416ff43f012eff3f76e474ddd60f0c07}{unpack\-\_\-return\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$message, void $\ast$$\ast$rm)
 \item 
 struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{messages_8h_ac147bc99967b9b2e8b7c28b9a05f1b27}{get\-\_\-rangesrvs} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
 \end{DoxyCompactItemize}
@@ -125,15 +165,15 @@ struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{me
 \hypertarget{messages_8h_a6018ee1648e2c4ff727d92c889f1fcfe}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}}
 \index{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L~0}}\label{d5/d48/messages_8h_a6018ee1648e2c4ff727d92c889f1fcfe}
+\hypertarget{messages_8h_ab763af650593db4d360d9638baa45b22}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}}
+\index{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}!messages.h@{messages.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E~2147483647}}\label{d5/d48/messages_8h_ab763af650593db4d360d9638baa45b22}
 \hypertarget{messages_8h_a17cf4ec938355f5e11f7f685e13cbd31}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-P\-U\-T@{M\-D\-H\-I\-M\-\_\-\-P\-U\-T}}
 \index{M\-D\-H\-I\-M\-\_\-\-P\-U\-T@{M\-D\-H\-I\-M\-\_\-\-P\-U\-T}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-P\-U\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-P\-U\-T~1}}\label{d5/d48/messages_8h_a17cf4ec938355f5e11f7f685e13cbd31}
 \hypertarget{messages_8h_a3d3a1cd7597edbd83b5f45437bb8900e}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V@{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V}}
 \index{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V@{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V~7}}\label{d5/d48/messages_8h_a3d3a1cd7597edbd83b5f45437bb8900e}
-\hypertarget{messages_8h_a27fe1497cf664884a21c489e5c05816c}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K@{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K}}
-\index{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K@{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K}!messages.h@{messages.\-h}}
-\subsubsection[{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K~10}}\label{d5/d48/messages_8h_a27fe1497cf664884a21c489e5c05816c}
 \hypertarget{messages_8h_aebe14949ac93aefb15394dbbf7d93d55}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K\-\_\-\-G\-E\-T@{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K\-\_\-\-G\-E\-T}}
 \index{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K\-\_\-\-G\-E\-T@{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K\-\_\-\-G\-E\-T}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K\-\_\-\-G\-E\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-R\-E\-C\-V\-\_\-\-B\-U\-L\-K\-\_\-\-G\-E\-T~9}}\label{d5/d48/messages_8h_aebe14949ac93aefb15394dbbf7d93d55}
@@ -169,21 +209,583 @@ get\-\_\-rangesrvs Receives range server info from every process and constructs 
 \begin{DoxyReturn}{Returns}
 a list of range servers 
 \end{DoxyReturn}
-\hypertarget{messages_8h_a95d8ca71c4b6580550b938623ed9d437}{\index{messages.\-h@{messages.\-h}!receive\-\_\-message@{receive\-\_\-message}}
-\index{receive\-\_\-message@{receive\-\_\-message}!messages.h@{messages.\-h}}
-\subsubsection[{receive\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int receive\-\_\-message (
+\hypertarget{messages_8h_ac3c493c5ac720efb246fda5b2733eab7}{\index{messages.\-h@{messages.\-h}!pack\-\_\-bdel\-\_\-message@{pack\-\_\-bdel\-\_\-message}}
+\index{pack\-\_\-bdel\-\_\-message@{pack\-\_\-bdel\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-bdel\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-bdel\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-bdelm\-\_\-t} $\ast$}]{bdm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_ac3c493c5ac720efb246fda5b2733eab7}
+pack\-\_\-bdel\-\_\-message Packs a bdel message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em bdm} & in structure bdel\-\_\-message which will be packed into the message \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer for packed message size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bdelm__t}{mdhim\-\_\-bdelm\-\_\-t} \{ int mtype; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; int num\-\_\-keys; int server\-\_\-rank; \}; \hypertarget{messages_8h_a7af6dd1b1f02815a72425f471b7585ce}{\index{messages.\-h@{messages.\-h}!pack\-\_\-bget\-\_\-message@{pack\-\_\-bget\-\_\-message}}
+\index{pack\-\_\-bget\-\_\-message@{pack\-\_\-bget\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-bget\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-bget\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-bgetm\-\_\-t} $\ast$}]{bgm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a7af6dd1b1f02815a72425f471b7585ce}
+pack\-\_\-bget\-\_\-message Packs a bget message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em bgm} & in structure bget\-\_\-message which will be packed into the sendbuf \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer for sendbuf size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bgetm__t}{mdhim\-\_\-bgetm\-\_\-t} \{ int mtype; int op; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; int num\-\_\-keys; int server\-\_\-rank; \}; \hypertarget{messages_8h_a9e2eae9c5addc486be2f35294e8c8780}{\index{messages.\-h@{messages.\-h}!pack\-\_\-bgetrm\-\_\-message@{pack\-\_\-bgetrm\-\_\-message}}
+\index{pack\-\_\-bgetrm\-\_\-message@{pack\-\_\-bgetrm\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-bgetrm\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-bgetrm\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-bgetrm\-\_\-t} $\ast$}]{bgrm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a9e2eae9c5addc486be2f35294e8c8780}
+pack\-\_\-bgetrm\-\_\-message Packs a bulk get return message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em bgrm} & in structure bget\-\_\-return\-\_\-message which will be packed into the message \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer to sendbuf's size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bgetrm__t}{mdhim\-\_\-bgetrm\-\_\-t} \{ int mtype; int error; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; void $\ast$$\ast$values; int $\ast$value\-\_\-lens; int num\-\_\-records; \}; \hypertarget{messages_8h_a7ca89c8ce1da8109491cc2f4431ed2d9}{\index{messages.\-h@{messages.\-h}!pack\-\_\-bput\-\_\-message@{pack\-\_\-bput\-\_\-message}}
+\index{pack\-\_\-bput\-\_\-message@{pack\-\_\-bput\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-bput\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-bput\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-bputm\-\_\-t} $\ast$}]{bpm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a7ca89c8ce1da8109491cc2f4431ed2d9}
+pack\-\_\-bput\-\_\-message Packs a bulk put message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em bpm} & in structure bput\-\_\-message which will be packed into the sendbuf \\
+\hline
+{\em sendsize} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer for packed message size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bputm__t}{mdhim\-\_\-bputm\-\_\-t} \{ int mtype; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; void $\ast$$\ast$data; int $\ast$data\-\_\-lens; int num\-\_\-keys; int server\-\_\-rank; \}; \hypertarget{messages_8h_a47b0df223117e39cb20a96bbd753344b}{\index{messages.\-h@{messages.\-h}!pack\-\_\-del\-\_\-message@{pack\-\_\-del\-\_\-message}}
+\index{pack\-\_\-del\-\_\-message@{pack\-\_\-del\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-del\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-del\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-delm\-\_\-t} $\ast$}]{dm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a47b0df223117e39cb20a96bbd753344b}
+
+
+------------------------ 
+
+pack\-\_\-del\-\_\-message Packs a delete message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em dm} & in structure del\-\_\-message which will be packed into the sendbuf \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer for packed message size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__delm__t}{mdhim\-\_\-delm\-\_\-t} \{ int mtype; void $\ast$key; int key\-\_\-len; int server\-\_\-rank; \}; \hypertarget{messages_8h_a5e11caadbb71fcb30353b57b38b113e7}{\index{messages.\-h@{messages.\-h}!pack\-\_\-get\-\_\-message@{pack\-\_\-get\-\_\-message}}
+\index{pack\-\_\-get\-\_\-message@{pack\-\_\-get\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-get\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-get\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-getm\-\_\-t} $\ast$}]{gm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a5e11caadbb71fcb30353b57b38b113e7}
+
+
+------------------------ 
+
+pack\-\_\-get\-\_\-message Packs a get message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em gm} & in structure get\-\_\-message which will be packed into the sendbuf \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer to sendbuf's size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__getm__t}{mdhim\-\_\-getm\-\_\-t} \{ int mtype; int op; void $\ast$key; int key\-\_\-len; int server\-\_\-rank; \}; \hypertarget{messages_8h_acb76ffd6680d8a2851d84e018c9d8fd3}{\index{messages.\-h@{messages.\-h}!pack\-\_\-getrm\-\_\-message@{pack\-\_\-getrm\-\_\-message}}
+\index{pack\-\_\-getrm\-\_\-message@{pack\-\_\-getrm\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-getrm\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-getrm\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-getrm\-\_\-t} $\ast$}]{grm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_acb76ffd6680d8a2851d84e018c9d8fd3}
+
+
+------------------------ 
+
+pack\-\_\-getrm\-\_\-message Packs a get return message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em grm} & in structure get\-\_\-return\-\_\-message which will be packed into the message \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer to sendbuf's size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__getrm__t}{mdhim\-\_\-getrm\-\_\-t} \{ int mtype; int error; void $\ast$key; int key\-\_\-len; void $\ast$value; int value\-\_\-len; \}; \hypertarget{messages_8h_a6ff6ea9a88dd286c3a582a7e94039d31}{\index{messages.\-h@{messages.\-h}!pack\-\_\-put\-\_\-message@{pack\-\_\-put\-\_\-message}}
+\index{pack\-\_\-put\-\_\-message@{pack\-\_\-put\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-put\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-put\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-putm\-\_\-t} $\ast$}]{pm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a6ff6ea9a88dd286c3a582a7e94039d31}
+
+
+------------------------ 
+
+pack\-\_\-put\-\_\-message Packs a put message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em pm} & in structure put\-\_\-message which will be packed into the sendbuf \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer to size of sendbuf \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__putm__t}{mdhim\-\_\-putm\-\_\-t} \{ int mtype; void $\ast$key; int key\-\_\-len; void $\ast$data; int data\-\_\-len; int server\-\_\-rank; \}; \hypertarget{messages_8h_abbdc225fd2f4108ae6bfceb89c470e78}{\index{messages.\-h@{messages.\-h}!pack\-\_\-return\-\_\-message@{pack\-\_\-return\-\_\-message}}
+\index{pack\-\_\-return\-\_\-message@{pack\-\_\-return\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{pack\-\_\-return\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int pack\-\_\-return\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-rm\-\_\-t} $\ast$}]{rm, }
+\item[{void $\ast$$\ast$}]{sendbuf, }
+\item[{int $\ast$}]{sendsize}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_abbdc225fd2f4108ae6bfceb89c470e78}
+
+
+------------------------ 
+
+pack\-\_\-return\-\_\-message Packs a return message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em pm} & in structure which will be packed into the sendbuf \\
+\hline
+{\em sendbuf} & out double pointer for packed message to send \\
+\hline
+{\em sendsize} & out pointer for packed message size \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} \{ int mtype; int error; \}; \hypertarget{messages_8h_ae0b4a90e1666c6748fc6d5837b5e1b42}{\index{messages.\-h@{messages.\-h}!receive\-\_\-client\-\_\-response@{receive\-\_\-client\-\_\-response}}
+\index{receive\-\_\-client\-\_\-response@{receive\-\_\-client\-\_\-response}!messages.h@{messages.\-h}}
+\subsubsection[{receive\-\_\-client\-\_\-response}]{\setlength{\rightskip}{0pt plus 5cm}int receive\-\_\-client\-\_\-response (
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{int}]{src, }
-\item[{void $\ast$}]{message}
+\item[{void $\ast$$\ast$}]{message}
 \end{DoxyParamCaption}
-)}}\label{d5/d48/messages_8h_a95d8ca71c4b6580550b938623ed9d437}
-\hypertarget{messages_8h_a46b7a921fc0193f849546577fa0d8117}{\index{messages.\-h@{messages.\-h}!send\-\_\-message@{send\-\_\-message}}
-\index{send\-\_\-message@{send\-\_\-message}!messages.h@{messages.\-h}}
-\subsubsection[{send\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-message (
+)}}\label{d5/d48/messages_8h_ae0b4a90e1666c6748fc6d5837b5e1b42}
+receive\-\_\-client\-\_\-response message Receives a message from the given source
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em src} & in source to receive from \\
+\hline
+{\em message} & out double pointer for message received \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{messages_8h_aa3fd52dd4aabd2a5da26a4b6ecbc2290}{\index{messages.\-h@{messages.\-h}!receive\-\_\-rangesrv\-\_\-work@{receive\-\_\-rangesrv\-\_\-work}}
+\index{receive\-\_\-rangesrv\-\_\-work@{receive\-\_\-rangesrv\-\_\-work}!messages.h@{messages.\-h}}
+\subsubsection[{receive\-\_\-rangesrv\-\_\-work}]{\setlength{\rightskip}{0pt plus 5cm}int receive\-\_\-rangesrv\-\_\-work (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int $\ast$}]{src, }
+\item[{void $\ast$$\ast$}]{message}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_aa3fd52dd4aabd2a5da26a4b6ecbc2290}
+receive\-\_\-rangesrv\-\_\-work message Receives a message from the given source
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & out double pointer for message received \\
+\hline
+{\em src} & out pointer to source of message received \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{messages_8h_a1265a4149b46a3186e7b5c1ff760fde9}{\index{messages.\-h@{messages.\-h}!send\-\_\-client\-\_\-response@{send\-\_\-client\-\_\-response}}
+\index{send\-\_\-client\-\_\-response@{send\-\_\-client\-\_\-response}!messages.h@{messages.\-h}}
+\subsubsection[{send\-\_\-client\-\_\-response}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-client\-\_\-response (
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{int}]{dest, }
 \item[{void $\ast$}]{message}
 \end{DoxyParamCaption}
-)}}\label{d5/d48/messages_8h_a46b7a921fc0193f849546577fa0d8117}
+)}}\label{d5/d48/messages_8h_a1265a4149b46a3186e7b5c1ff760fde9}
+send\-\_\-client\-\_\-response Sends a message to a client
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em dest} & destination to send to \\
+\hline
+{\em message} & pointer to message to send \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{messages_8h_aa375aebf439f9a0f522a6545b54fb0ca}{\index{messages.\-h@{messages.\-h}!send\-\_\-rangesrv\-\_\-work@{send\-\_\-rangesrv\-\_\-work}}
+\index{send\-\_\-rangesrv\-\_\-work@{send\-\_\-rangesrv\-\_\-work}!messages.h@{messages.\-h}}
+\subsubsection[{send\-\_\-rangesrv\-\_\-work}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-rangesrv\-\_\-work (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{dest, }
+\item[{void $\ast$}]{message}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_aa375aebf439f9a0f522a6545b54fb0ca}
+send\-\_\-rangesrv\-\_\-work Sends a message to the range server at the given destination
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em dest} & destination to send to \\
+\hline
+{\em message} & pointer to message struct to send \\
+\hline
+{\em size} & size of the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{messages_8h_a1d304e7d6db45ca2ecbece630ccc244b}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-bdel\-\_\-message@{unpack\-\_\-bdel\-\_\-message}}
+\index{unpack\-\_\-bdel\-\_\-message@{unpack\-\_\-bdel\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-bdel\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-bdel\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{bdelm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a1d304e7d6db45ca2ecbece630ccc244b}
+unpack\-\_\-bdel\-\_\-message Unpacks a bulk del message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em bdelm} & out structure bulk\-\_\-del\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bdelm__t}{mdhim\-\_\-bdelm\-\_\-t} \{ int mtype; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; int num\-\_\-keys; int server\-\_\-rank; \}; \hypertarget{messages_8h_a9a43d7b8328eb4ad0b49c489c06c33da}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-bget\-\_\-message@{unpack\-\_\-bget\-\_\-message}}
+\index{unpack\-\_\-bget\-\_\-message@{unpack\-\_\-bget\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-bget\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-bget\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{bgetm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a9a43d7b8328eb4ad0b49c489c06c33da}
+unpack\-\_\-bget\-\_\-message Unpacks a bulk get message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message we received \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em bgm} & out structure bulk\-\_\-get\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bgetm__t}{mdhim\-\_\-bgetm\-\_\-t} \{ int mtype; int op; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; int num\-\_\-records; int server\-\_\-rank; \}; \hypertarget{messages_8h_a34dff02c15f3567d4865de782e2e9c38}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-bgetrm\-\_\-message@{unpack\-\_\-bgetrm\-\_\-message}}
+\index{unpack\-\_\-bgetrm\-\_\-message@{unpack\-\_\-bgetrm\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-bgetrm\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-bgetrm\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{bgetrm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a34dff02c15f3567d4865de782e2e9c38}
+unpack\-\_\-bgetrm\-\_\-message Unpacks a bulk get return message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em bgtrm} & out structure bulk\-\_\-get\-\_\-return\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bgetrm__t}{mdhim\-\_\-bgetrm\-\_\-t} \{ int mtype; int error; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; void $\ast$$\ast$values; int $\ast$value\-\_\-lens; int num\-\_\-records; \}; \hypertarget{messages_8h_a19927e9d2f3f9e6100755fd6ca08c34a}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-bput\-\_\-message@{unpack\-\_\-bput\-\_\-message}}
+\index{unpack\-\_\-bput\-\_\-message@{unpack\-\_\-bput\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-bput\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-bput\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{bput}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a19927e9d2f3f9e6100755fd6ca08c34a}
+unpack\-\_\-bput\-\_\-message Unpacks a bulk put message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message we received \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em bpm} & out structure bulk\-\_\-put\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__bputm__t}{mdhim\-\_\-bputm\-\_\-t} \{ int mtype; void $\ast$$\ast$keys; int $\ast$key\-\_\-lens; void $\ast$$\ast$data; int $\ast$data\-\_\-lens; int num\-\_\-keys; int server\-\_\-rank; \}; \hypertarget{messages_8h_ac8f41dc4b9d6c81a8b546f553948728c}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-del\-\_\-message@{unpack\-\_\-del\-\_\-message}}
+\index{unpack\-\_\-del\-\_\-message@{unpack\-\_\-del\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-del\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-del\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{delm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_ac8f41dc4b9d6c81a8b546f553948728c}
+unpack\-\_\-del\-\_\-message Unpacks a del message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em delm} & out structure get\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__delm__t}{mdhim\-\_\-delm\-\_\-t} \{ int mtype; void $\ast$key; int key\-\_\-len; int server\-\_\-rank; \}; \hypertarget{messages_8h_a66e99086a77ccd15fb4364188b93f48a}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-get\-\_\-message@{unpack\-\_\-get\-\_\-message}}
+\index{unpack\-\_\-get\-\_\-message@{unpack\-\_\-get\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-get\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-get\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{getm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a66e99086a77ccd15fb4364188b93f48a}
+unpack\-\_\-get\-\_\-message Unpacks a get message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message we received \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em pm} & out structure get\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__getm__t}{mdhim\-\_\-getm\-\_\-t} \{ int mtype; Operation type e.\-g., M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L, M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-N\-E\-X\-T, M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V int op; void $\ast$key; int key\-\_\-len; int server\-\_\-rank; \}; \hypertarget{messages_8h_ac2ba189e1b3b24b627112096d38ecc21}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-getrm\-\_\-message@{unpack\-\_\-getrm\-\_\-message}}
+\index{unpack\-\_\-getrm\-\_\-message@{unpack\-\_\-getrm\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-getrm\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-getrm\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{getrm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_ac2ba189e1b3b24b627112096d38ecc21}
+unpack\-\_\-getrm\-\_\-message Unpacks a get return message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message we received \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em getrm} & out structure getrm\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__getrm__t}{mdhim\-\_\-getrm\-\_\-t} \{ int mtype; int error; void $\ast$key; int key\-\_\-len; void $\ast$value; int value\-\_\-len; \}; \hypertarget{messages_8h_a88acaaaf07fafd1fb67491334ced0e88}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-put\-\_\-message@{unpack\-\_\-put\-\_\-message}}
+\index{unpack\-\_\-put\-\_\-message@{unpack\-\_\-put\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-put\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-put\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{int}]{mesg\-\_\-size, }
+\item[{void $\ast$$\ast$}]{putm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a88acaaaf07fafd1fb67491334ced0e88}
+unpack\-\_\-put\-\_\-message Unpacks a put message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em message} & in pointer for packed message we received \\
+\hline
+{\em mesg\-\_\-size} & in size of the incoming message \\
+\hline
+{\em pm} & out structure put\-\_\-message which will be unpacked from the message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__putm__t}{mdhim\-\_\-putm\-\_\-t} \{ int mtype; void $\ast$key; int key\-\_\-len; void $\ast$data; int data\-\_\-len; int server\-\_\-rank; \}; \hypertarget{messages_8h_a416ff43f012eff3f76e474ddd60f0c07}{\index{messages.\-h@{messages.\-h}!unpack\-\_\-return\-\_\-message@{unpack\-\_\-return\-\_\-message}}
+\index{unpack\-\_\-return\-\_\-message@{unpack\-\_\-return\-\_\-message}!messages.h@{messages.\-h}}
+\subsubsection[{unpack\-\_\-return\-\_\-message}]{\setlength{\rightskip}{0pt plus 5cm}int unpack\-\_\-return\-\_\-message (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{message, }
+\item[{void $\ast$$\ast$}]{retm}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a416ff43f012eff3f76e474ddd60f0c07}
+unpack\-\_\-return\-\_\-message unpacks a return message structure into contiguous memory for message passing
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em pm} & in structure return\-\_\-message which will be packed into the message \\
+\hline
+{\em message} & out pointer for packed message \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
+\end{DoxyReturn}
+struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} \{ int mtype; int error; \}; 
