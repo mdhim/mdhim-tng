@@ -39,10 +39,6 @@ int send_message(struct mdhim_t *md, int dest, void *message) {
  */
 int receive_message(struct mdhim_t *md, int src, void *message) {
 
-<<<<<<< HEAD
-=======
-	int max_size = 2147483647; //At most receive 2GB
->>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
 	MPI_Status status;
 	int return_code;
         
@@ -66,7 +62,7 @@ int receive_message(struct mdhim_t *md, int src, void *message) {
 	return MDHIM_SUCCESS;
 }
 
-<<<<<<< HEAD
+
 ///------------------------
 
 /*
@@ -305,7 +301,7 @@ int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, struct
         }
         
         // For the each of the keys and data unpack the chars plus two ints for key_lens[i] and data_lens[i].
-        for (i=0; i < bpm->num_keys; i++) {
+        for (i=0; i < bpm->num_records; i++) {
             // Unpack the key_lens[i]
             return_code += MPI_Unpack(message, mesg_size, &mesg_idx, bpm->key_lens[i], 1, MPI_INT, md->mdhim_comm);
             
@@ -410,7 +406,7 @@ int pack_get_message(struct mdhim_t *md, struct mdhim_getm_t *gm, void *message)
 	int op;
 	void **keys;
 	int *key_lens;
-	int num_records;
+	int num_keys;
 	int server_rank;
 };
  */
@@ -424,10 +420,10 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void *messa
         
         // For each of the key_lens
         // WARNING We are treating ints as the same size as char for packing purposes
-        m_size += bgm->num_records;
+        m_size += bgm->num_keys;
         
         // For the each of the keys add enough chars.
-        for (i=0; i < bgm->num_records; i++)
+        for (i=0; i < bgm->num_keys; i++)
                 m_size += bgm->key_lens[i];
         
         // Is the computed message size of a safe value? (less than a max message size?)
@@ -448,7 +444,7 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void *messa
 	return_code = MPI_Pack(bgm, sizeof(struct mdhim_bgetm_t), MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
          
         // For the each of the keys and data pack the chars plus one int for key_len.
-        for (i=0; i < bgm->num_records; i++) {
+        for (i=0; i < bgm->num_keys; i++) {
                 return_code += MPI_Pack(bgm->key_lens[i], 1, MPI_INT, message, mesg_size, &mesg_idx, md->mdhim_comm);
                 return_code += MPI_Pack(bgm->keys[i], bgm->key_lens[i], MPI_CHAR, message, mesg_size, &mesg_idx, md->mdhim_comm);
         }
@@ -549,14 +545,14 @@ int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, struct
         return_code = MPI_Unpack(message, mesg_size, &mesg_idx, bgm, sizeof(struct mdhim_bgetm_t), MPI_CHAR, md->mdhim_comm);
         
         // Allocate memory for key_lens first, to be populated later.
-        if ((bgm->key_lens = (int *)malloc(bgm->num_records * sizeof(int))) == NULL) {
+        if ((bgm->key_lens = (int *)malloc(bgm->num_keys * sizeof(int))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bget message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
         
         // For the each of the keys and data unpack the chars plus an int for key_lens[i].
-        for (i=0; i < bgm->num_records; i++) {
+        for (i=0; i < bgm->num_keys; i++) {
             // Unpack the key_lens[i]
             return_code += MPI_Unpack(message, mesg_size, &mesg_idx, bgm->key_lens[i], 1, MPI_INT, md->mdhim_comm);
             
@@ -1169,7 +1165,6 @@ int unpack_return_message(struct mdhim_t *md, void *message, struct mdhim_rm_t *
 	return MDHIM_SUCCESS;
 }
 
-=======
 /**
  * get_rangesrvs
  * Receives range server info from every process and constructs a rangesrv_info list
@@ -1259,4 +1254,4 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 
 	return rs_head;
 }
->>>>>>> fa18054a4fbde50b91a2820167af40fa0ceba65a
+
