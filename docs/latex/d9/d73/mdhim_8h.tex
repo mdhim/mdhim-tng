@@ -41,6 +41,8 @@ struct \hyperlink{structmdhim__bgetrm__t}{mdhim\-\_\-bgetrm\-\_\-t} $\ast$ \hype
 struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ \hyperlink{mdhim_8h_ad3ceb8c19250d1c76227d68619bc8ef8}{mdhim\-Delete} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int key\-\_\-type)
 \item 
 struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t} $\ast$ \hyperlink{mdhim_8h_a244fd1625c0fbf8d8c94b1beae7f7063}{mdhim\-Bdelete} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$$\ast$keys, int $\ast$key\-\_\-lens, int $\ast$key\-\_\-types, int num\-\_\-keys)
+\item 
+void \hyperlink{mdhim_8h_ad01f149d55242835ef0a63f20ef6884b}{mdhim\-\_\-release\-\_\-recv\-\_\-msg} (void $\ast$msg)
 \end{DoxyCompactItemize}
 
 
@@ -57,6 +59,20 @@ struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t} $\ast$ \hyperlink{
 
 
 \subsection{Function Documentation}
+\hypertarget{mdhim_8h_ad01f149d55242835ef0a63f20ef6884b}{\index{mdhim.\-h@{mdhim.\-h}!mdhim\-\_\-release\-\_\-recv\-\_\-msg@{mdhim\-\_\-release\-\_\-recv\-\_\-msg}}
+\index{mdhim\-\_\-release\-\_\-recv\-\_\-msg@{mdhim\-\_\-release\-\_\-recv\-\_\-msg}!mdhim.h@{mdhim.\-h}}
+\subsubsection[{mdhim\-\_\-release\-\_\-recv\-\_\-msg}]{\setlength{\rightskip}{0pt plus 5cm}void mdhim\-\_\-release\-\_\-recv\-\_\-msg (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{msg}
+\end{DoxyParamCaption}
+)}}\label{d9/d73/mdhim_8h_ad01f149d55242835ef0a63f20ef6884b}
+Frees memory taken up by receive type messages
+
+
+\begin{DoxyParams}{Parameters}
+{\em msg} & pointer to the message to free \\
+\hline
+\end{DoxyParams}
 \hypertarget{mdhim_8h_a244fd1625c0fbf8d8c94b1beae7f7063}{\index{mdhim.\-h@{mdhim.\-h}!mdhim\-Bdelete@{mdhim\-Bdelete}}
 \index{mdhim\-Bdelete@{mdhim\-Bdelete}!mdhim.h@{mdhim.\-h}}
 \subsubsection[{mdhim\-Bdelete}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-brm\-\_\-t}$\ast$ mdhim\-Bdelete (

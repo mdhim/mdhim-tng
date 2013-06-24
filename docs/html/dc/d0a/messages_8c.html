@@ -93,8 +93,10 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a46b7a921fc0193f849546577fa0d8117"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d0a/messages_8c.html#a46b7a921fc0193f849546577fa0d8117">send_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int dest, void *message)</td></tr>
-<tr class="memitem:a95d8ca71c4b6580550b938623ed9d437"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d0a/messages_8c.html#a95d8ca71c4b6580550b938623ed9d437">receive_message</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int src, void *message)</td></tr>
+<tr class="memitem:aa375aebf439f9a0f522a6545b54fb0ca"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d0a/messages_8c.html#aa375aebf439f9a0f522a6545b54fb0ca">send_rangesrv_work</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int dest, void *message)</td></tr>
+<tr class="memitem:ac627aead6477a0efc38027329dc45be0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d0a/messages_8c.html#ac627aead6477a0efc38027329dc45be0">receive_rangesrv_work</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **message, int *source)</td></tr>
+<tr class="memitem:a1265a4149b46a3186e7b5c1ff760fde9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d0a/messages_8c.html#a1265a4149b46a3186e7b5c1ff760fde9">send_client_response</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int dest, void *message)</td></tr>
+<tr class="memitem:ae0b4a90e1666c6748fc6d5837b5e1b42"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d0a/messages_8c.html#ae0b4a90e1666c6748fc6d5837b5e1b42">receive_client_response</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int src, void **message)</td></tr>
 <tr class="memitem:ac147bc99967b9b2e8b7c28b9a05f1b27"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../da/dce/structrangesrv__info.html">rangesrv_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d0a/messages_8c.html#ac147bc99967b9b2e8b7c28b9a05f1b27">get_rangesrvs</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md)</td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
@@ -130,12 +132,12 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a95d8ca71c4b6580550b938623ed9d437"></a>
+<a class="anchor" id="ae0b4a90e1666c6748fc6d5837b5e1b42"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int receive_message </td>
+          <td class="memname">int receive_client_response </td>
           <td>(</td>
           <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
           <td class="paramname"><em>md</em>, </td>
@@ -149,7 +151,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
+          <td class="paramtype">void **&#160;</td>
           <td class="paramname"><em>message</em>&#160;</td>
         </tr>
         <tr>
@@ -159,11 +161,12 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>receive_message Receives a message from the given source</p>
+<p>receive_client_response message Receives a message from the given source</p>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
-    <tr><td class="paramname">src</td><td>in source to receive from  out pointer for message received </td></tr>
+    <tr><td class="paramname">src</td><td>in source to receive from </td></tr>
+    <tr><td class="paramname">message</td><td>out double pointer for message received </td></tr>
   </table>
   </dd>
 </dl>
@@ -171,12 +174,54 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a46b7a921fc0193f849546577fa0d8117"></a>
+<a class="anchor" id="ac627aead6477a0efc38027329dc45be0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int send_message </td>
+          <td class="memname">int receive_rangesrv_work </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>source</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>receive_rangesrv_work message Receives a message from the given source</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>in main MDHIM struct </td></tr>
+    <tr><td class="paramname">message</td><td>out double pointer for message received </td></tr>
+    <tr><td class="paramname">source</td><td>out pointer to source of message received </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1265a4149b46a3186e7b5c1ff760fde9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int send_client_response </td>
           <td>(</td>
           <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
           <td class="paramname"><em>md</em>, </td>
@@ -200,7 +245,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>send_message Sends a message to the given destination</p>
+<p>send_client_response Sends a message to a client</p>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
@@ -213,10 +258,53 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="aa375aebf439f9a0f522a6545b54fb0ca"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int send_rangesrv_work </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>send_rangesrv_work Sends a message to the range server at the given destination</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
+    <tr><td class="paramname">dest</td><td>destination to send to </td></tr>
+    <tr><td class="paramname">message</td><td>pointer to message struct to send </td></tr>
+    <tr><td class="paramname">size</td><td>size of the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 21 2013 10:15:20 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 24 2013 10:24:43 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

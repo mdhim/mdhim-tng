@@ -189,8 +189,8 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
 	//Initialize the put message
 	pm->key = key;
 	pm->key_len = key_len;
-	pm->data = value;
-	pm->data_len = value_len;
+	pm->value = value;
+	pm->value_len = value_len;
 	pm->server_rank = ret;
 	
 	//Test if I'm a range server
@@ -257,8 +257,8 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			bpm = malloc(sizeof(struct mdhim_bputm_t));			       
 			bpm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bpm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
-			bpm->data = malloc(sizeof(void *) * MAX_BULK_OPS);
-			bpm->data_lens = malloc(sizeof(int) * MAX_BULK_OPS);
+			bpm->values = malloc(sizeof(void *) * MAX_BULK_OPS);
+			bpm->value_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bpm->num_records = 0;
 			bpm->server_rank = range_srv;
 		}
@@ -266,8 +266,8 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 		//Add the key, lengths, and data to the message
 		bpm->keys[bpm->num_records] = keys[i];
 		bpm->key_lens[bpm->num_records] = key_lens[i];
-		bpm->data[bpm->num_records] = values[i];
-		bpm->data_lens[bpm->num_records] = value_lens[i];
+		bpm->values[bpm->num_records] = values[i];
+		bpm->value_lens[bpm->num_records] = value_lens[i];
 		bpm->num_records++;		
 	}
 
@@ -615,4 +615,61 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 	return brm_head;
 }
 
+/**
+ * Frees memory taken up by receive type messages
+ *
+ * @param msg          pointer to the message to free
+ */
+void mdhim_release_recv_msg(void *msg) {
+	int mtype;
+	int i;
 
+	if (!msg) {
+		return;
+	}
+
+	//Determine the message type and free accordingly
+	mtype = ((struct mdhim_basem_t *) msg)->mtype;
+	switch(mtype) {
+	case MDHIM_RECV:
+		free((struct mdhim_rm_t *) msg);
+		break;
+	case MDHIM_RECV_GET:
+		if (((struct mdhim_getrm_t *) msg)->key) {
+			free(((struct mdhim_getrm_t *) msg)->key);
+		}	
+
+		free((struct mdhim_getrm_t *) msg);
+		break;
+	case MDHIM_RECV_BULK_GET:
+		for (i = 0; i < ((struct mdhim_bgetrm_t *) msg)->num_records; i++) {
+			if (((struct mdhim_bgetrm_t *) msg)->keys[i]) {
+				free(((struct mdhim_bgetrm_t *) msg)->keys[i]);
+			}
+			if (((struct mdhim_bgetrm_t *) msg)->values[i]) {
+				free(((struct mdhim_bgetrm_t *) msg)->values[i]);
+			}
+		}
+		
+		if (((struct mdhim_bgetrm_t *) msg)->key_lens) {
+			free(((struct mdhim_bgetrm_t *) msg)->key_lens);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->keys) {
+			free(((struct mdhim_bgetrm_t *) msg)->keys);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->value_lens) {
+			free(((struct mdhim_bgetrm_t *) msg)->value_lens);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->values) {
+			free(((struct mdhim_bgetrm_t *) msg)->values);	
+		}
+
+		free((struct mdhim_bgetrm_t *) msg);
+		break;
+	case MDHIM_RECV_BULK:
+		free((struct mdhim_brm_t *) msg);
+		break;
+	default:
+		break;
+	}
+}

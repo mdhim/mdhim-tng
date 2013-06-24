@@ -14,6 +14,8 @@ int \hyperlink{range__server_8c_a6b69ffdb719e4f7c525be5849b15135d}{im\-\_\-range
 \item 
 void $\ast$ \hyperlink{range__server_8c_aad716e6e048277f3558a807e07d2cb6f}{get\-\_\-cursor} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int source)
 \item 
+int \hyperlink{range__server_8c_a9d1efa04e20d7fe6fa8d6e4aa6568c25}{send\-\_\-locally\-\_\-or\-\_\-remote} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int dest, void $\ast$message)
+\item 
 int \hyperlink{range__server_8c_a67d81ae80b7799b6bf558b32b10f81f1}{range\-\_\-server\-\_\-add\-\_\-work} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, \hyperlink{structwork__item}{work\-\_\-item} $\ast$item)
 \item 
 \hyperlink{structwork__item}{work\-\_\-item} $\ast$ \hyperlink{range__server_8c_ae604c28e13543a742d51747f9c454128}{get\-\_\-work} (struct \hyperlink{structmdhim__rs__t}{mdhim\-\_\-rs\-\_\-t} $\ast$mdhim\-\_\-rs)
@@ -29,10 +31,6 @@ int \hyperlink{range__server_8c_ad850088b2378dff726323e7524853585}{range\-\_\-se
 int \hyperlink{range__server_8c_adc8bdb750078dd2a2d0c7b0414670a44}{range\-\_\-server\-\_\-bdel} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__bdelm__t}{mdhim\-\_\-bdelm\-\_\-t} $\ast$bdm, int source)
 \item 
 int \hyperlink{range__server_8c_a54a70f71c0a8fbe85510661ad0d319c0}{range\-\_\-server\-\_\-get} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__getm__t}{mdhim\-\_\-getm\-\_\-t} $\ast$gm, int source)
-\item 
-int \hyperlink{range__server_8c_a1d2fb1702423cd1c2bfe2cb3118fd515}{range\-\_\-server\-\_\-get\-\_\-next} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__getm__t}{mdhim\-\_\-getm\-\_\-t} $\ast$gm, int source)
-\item 
-int \hyperlink{range__server_8c_ab8ad93c656a108bbb49543874049ee70}{range\-\_\-server\-\_\-get\-\_\-prev} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__getm__t}{mdhim\-\_\-getm\-\_\-t} $\ast$gm, int source)
 \item 
 int \hyperlink{range__server_8c_adf44f3067182640c986252a7b95368ee}{range\-\_\-server\-\_\-bget} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__bgetm__t}{mdhim\-\_\-bgetm\-\_\-t} $\ast$bgm, int source)
 \item 
@@ -229,52 +227,6 @@ range\-\_\-server\-\_\-get Handles the get message, retrieves the data from the 
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
 \end{DoxyReturn}
-\hypertarget{range__server_8c_a1d2fb1702423cd1c2bfe2cb3118fd515}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!range\-\_\-server\-\_\-get\-\_\-next@{range\-\_\-server\-\_\-get\-\_\-next}}
-\index{range\-\_\-server\-\_\-get\-\_\-next@{range\-\_\-server\-\_\-get\-\_\-next}!range_server.c@{range\-\_\-server.\-c}}
-\subsubsection[{range\-\_\-server\-\_\-get\-\_\-next}]{\setlength{\rightskip}{0pt plus 5cm}int range\-\_\-server\-\_\-get\-\_\-next (
-\begin{DoxyParamCaption}
-\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
-\item[{struct {\bf mdhim\-\_\-getm\-\_\-t} $\ast$}]{gm, }
-\item[{int}]{source}
-\end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a1d2fb1702423cd1c2bfe2cb3118fd515}
-range\-\_\-server\-\_\-get\-\_\-next Handles the get next message, retrieves the data from the database, and sends the results back
-
-
-\begin{DoxyParams}{Parameters}
-{\em md} & Pointer to the main M\-D\-H\-I\-M struct \\
-\hline
-{\em im} & pointer to the get message to handle \\
-\hline
-{\em source} & source of the message \\
-\hline
-\end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
-\end{DoxyReturn}
-\hypertarget{range__server_8c_ab8ad93c656a108bbb49543874049ee70}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!range\-\_\-server\-\_\-get\-\_\-prev@{range\-\_\-server\-\_\-get\-\_\-prev}}
-\index{range\-\_\-server\-\_\-get\-\_\-prev@{range\-\_\-server\-\_\-get\-\_\-prev}!range_server.c@{range\-\_\-server.\-c}}
-\subsubsection[{range\-\_\-server\-\_\-get\-\_\-prev}]{\setlength{\rightskip}{0pt plus 5cm}int range\-\_\-server\-\_\-get\-\_\-prev (
-\begin{DoxyParamCaption}
-\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
-\item[{struct {\bf mdhim\-\_\-getm\-\_\-t} $\ast$}]{gm, }
-\item[{int}]{source}
-\end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_ab8ad93c656a108bbb49543874049ee70}
-range\-\_\-server\-\_\-get\-\_\-prev Handles the get previous message, retrieves the data from the database, and sends the results back
-
-
-\begin{DoxyParams}{Parameters}
-{\em md} & Pointer to the main M\-D\-H\-I\-M struct \\
-\hline
-{\em im} & pointer to the get message to handle \\
-\hline
-{\em source} & source of the message \\
-\hline
-\end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
-\end{DoxyReturn}
 \hypertarget{range__server_8c_af34269b3d0d34cd441697cc0e7376d3f}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!range\-\_\-server\-\_\-init@{range\-\_\-server\-\_\-init}}
 \index{range\-\_\-server\-\_\-init@{range\-\_\-server\-\_\-init}!range_server.c@{range\-\_\-server.\-c}}
 \subsubsection[{range\-\_\-server\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}int range\-\_\-server\-\_\-init (
@@ -332,6 +284,15 @@ range\-\_\-server\-\_\-stop Stop the range server (i.\-e., stops the threads and
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
 \end{DoxyReturn}
+\hypertarget{range__server_8c_a9d1efa04e20d7fe6fa8d6e4aa6568c25}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!send\-\_\-locally\-\_\-or\-\_\-remote@{send\-\_\-locally\-\_\-or\-\_\-remote}}
+\index{send\-\_\-locally\-\_\-or\-\_\-remote@{send\-\_\-locally\-\_\-or\-\_\-remote}!range_server.c@{range\-\_\-server.\-c}}
+\subsubsection[{send\-\_\-locally\-\_\-or\-\_\-remote}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-locally\-\_\-or\-\_\-remote (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{dest, }
+\item[{void $\ast$}]{message}
+\end{DoxyParamCaption}
+)}}\label{d9/d67/range__server_8c_a9d1efa04e20d7fe6fa8d6e4aa6568c25}
 \hypertarget{range__server_8c_a6395e14f1667f32b638bae4d22a3771f}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!worker\-\_\-thread@{worker\-\_\-thread}}
 \index{worker\-\_\-thread@{worker\-\_\-thread}!range_server.c@{range\-\_\-server.\-c}}
 \subsubsection[{worker\-\_\-thread}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ worker\-\_\-thread (

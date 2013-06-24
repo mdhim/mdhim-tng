@@ -8,6 +8,8 @@ var searchData=
   ['client_5fdelete',['client_delete',['../dd/d93/client_8c.html#a51e7d69f5c766fec387b345073edbf13',1,'client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm):&#160;client.c'],['../d8/de1/client_8h.html#a51e7d69f5c766fec387b345073edbf13',1,'client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm):&#160;client.c']]],
   ['client_5fget',['client_get',['../dd/d93/client_8c.html#ab599addcef097d104690c4e308fc2c88',1,'client_get(struct mdhim_t *md, struct mdhim_getm_t *gm):&#160;client.c'],['../d8/de1/client_8h.html#ab599addcef097d104690c4e308fc2c88',1,'client_get(struct mdhim_t *md, struct mdhim_getm_t *gm):&#160;client.c']]],
   ['client_5fput',['client_put',['../dd/d93/client_8c.html#a530ac58bd88dbb3c0899e1bd531913d9',1,'client_put(struct mdhim_t *md, struct mdhim_putm_t *pm):&#160;client.c'],['../d8/de1/client_8h.html#a530ac58bd88dbb3c0899e1bd531913d9',1,'client_put(struct mdhim_t *md, struct mdhim_putm_t *pm):&#160;client.c']]],
+  ['client_5fresponse_5fmsg',['CLIENT_RESPONSE_MSG',['../d5/d48/messages_8h.html#a46d611fc0a3afaa0895d915f1ff1b5f7',1,'messages.h']]],
+  ['client_5fresponse_5fsize',['CLIENT_RESPONSE_SIZE',['../d5/d48/messages_8h.html#a95873fdea4af850672cf0b8b18c9038a',1,'messages.h']]],
   ['close',['close',['../d1/dab/structmdhim__store__t.html#a41daefe3effd7441930c4296fb6002de',1,'mdhim_store_t']]],
   ['cursor',['cursor',['../d8/d3b/structmdhim__cursor.html#a71f00460e78bd91613d5173f64b7c41f',1,'mdhim_cursor']]],
   ['cursor_5finit',['cursor_init',['../d1/dab/structmdhim__store__t.html#ade2a566d298ab48a666cf2cfdec58f25',1,'mdhim_store_t']]],

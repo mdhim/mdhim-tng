@@ -105,8 +105,32 @@ Functions</h2></td></tr>
 <tr class="memitem:a1fa87363c0b34fedad7012acfacf76e6"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d0/d48/structmdhim__bgetrm__t.html">mdhim_bgetrm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a1fa87363c0b34fedad7012acfacf76e6">mdhimBGet</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **keys, int *key_lens, int *key_types, int num_keys)</td></tr>
 <tr class="memitem:ad3ceb8c19250d1c76227d68619bc8ef8"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#ad3ceb8c19250d1c76227d68619bc8ef8">mdhimDelete</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *key, int key_len, int key_type)</td></tr>
 <tr class="memitem:a244fd1625c0fbf8d8c94b1beae7f7063"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a244fd1625c0fbf8d8c94b1beae7f7063">mdhimBdelete</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **keys, int *key_lens, int *key_types, int num_keys)</td></tr>
+<tr class="memitem:ad01f149d55242835ef0a63f20ef6884b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#ad01f149d55242835ef0a63f20ef6884b">mdhim_release_recv_msg</a> (void *msg)</td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
+<a class="anchor" id="ad01f149d55242835ef0a63f20ef6884b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mdhim_release_recv_msg </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>msg</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Frees memory taken up by receive type messages</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">msg</td><td>pointer to the message to free </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="a244fd1625c0fbf8d8c94b1beae7f7063"></a>
 <div class="memitem">
 <div class="memproto">
@@ -557,7 +581,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 21 2013 10:15:20 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 24 2013 10:24:43 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

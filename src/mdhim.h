@@ -66,6 +66,6 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int key_type);
 struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
 				 int num_keys);
-
+void mdhim_release_recv_msg(void *msg);
 #endif
 

@@ -38,8 +38,12 @@
 //Get the last key and value
 #define MDHIM_GET_LAST   4
 
-#define RANGESRV_WORK 1
-#define RANGESRV_INFO 2
+//Message Types
+#define RANGESRV_WORK_SIZE   1
+#define RANGESRV_WORK_MSG    2
+#define RANGESRV_INFO        3
+#define CLIENT_RESPONSE_SIZE 4
+#define CLIENT_RESPONSE_MSG  5
 
 #define MAX_BULK_OPS 100
 struct mdhim_t;
@@ -55,8 +59,8 @@ struct mdhim_putm_t {
 	int mtype;
 	void *key;
 	int key_len;
-	void *data;
-	int64_t data_len;
+	void *value;
+	int value_len;
 	int server_rank;
 };
 
@@ -65,8 +69,8 @@ struct mdhim_bputm_t {
 	int mtype;
 	void **keys;
 	int *key_lens;
-	void **data;
-	int64_t *data_lens;
+	void **values;
+	int *value_lens;
 	int num_records;
 	int server_rank;
 };
@@ -78,6 +82,7 @@ struct mdhim_getm_t {
 	int op;  
 	void *key;
 	int key_len;
+	int num_records;
 	int server_rank;
 };
 
@@ -118,7 +123,7 @@ struct mdhim_rsi_t {
 	uint64_t end_range;
 };
 
-/*Get receive message */
+/*Generic receive message */
 struct mdhim_rm_t {
 	int mtype;  
 	int error;
@@ -133,7 +138,7 @@ struct mdhim_getrm_t {
 	void *key;
 	int key_len;
 	void *value;
-	int64_t value_len;
+	int value_len;
 };
 
 /*Bulk get receive message */
@@ -145,7 +150,7 @@ struct mdhim_bgetrm_t {
 	void **keys;
 	int *key_lens;
 	void **values;
-	int64_t *value_lens;
+	int *value_lens;
 	int num_records;
 	struct mdhim_bgetrm_t *next;
 };
@@ -160,7 +165,9 @@ struct mdhim_brm_t {
 };
 
 
-int send_message(struct mdhim_t *md, int dest, void *message);
-int receive_message(struct mdhim_t *md, int src, void *message);
+int send_rangesrv_work(struct mdhim_t *md, int dest, void *message);
+int receive_rangesrv_work(struct mdhim_t *md, void **message, int *source);
+int send_client_response(struct mdhim_t *md, int dest, void *message);
+int receive_client_response(struct mdhim_t *md, int src, void **message);
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
 #endif

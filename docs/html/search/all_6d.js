@@ -53,6 +53,7 @@ var searchData=
   ['mdhim_5frecv_5fbulk',['MDHIM_RECV_BULK',['../d5/d48/messages_8h.html#a27fe1497cf664884a21c489e5c05816c',1,'messages.h']]],
   ['mdhim_5frecv_5fbulk_5fget',['MDHIM_RECV_BULK_GET',['../d5/d48/messages_8h.html#aebe14949ac93aefb15394dbbf7d93d55',1,'messages.h']]],
   ['mdhim_5frecv_5fget',['MDHIM_RECV_GET',['../d5/d48/messages_8h.html#a586d34cf2e69c16d7a57ddb9c207a21e',1,'messages.h']]],
+  ['mdhim_5frelease_5frecv_5fmsg',['mdhim_release_recv_msg',['../d0/d51/mdhim_8c.html#ad01f149d55242835ef0a63f20ef6884b',1,'mdhim_release_recv_msg(void *msg):&#160;mdhim.c'],['../d9/d73/mdhim_8h.html#ad01f149d55242835ef0a63f20ef6884b',1,'mdhim_release_recv_msg(void *msg):&#160;mdhim.c']]],
   ['mdhim_5frm_5ft',['mdhim_rm_t',['../d2/d0c/structmdhim__rm__t.html',1,'']]],
   ['mdhim_5frs',['mdhim_rs',['../d8/dbc/structmdhim__t.html#ae555c224ade4584fcc3895f8ea19a302',1,'mdhim_t']]],
   ['mdhim_5frs_5ft',['mdhim_rs_t',['../d3/d34/structmdhim__rs__t.html',1,'mdhim_rs_t'],['../de/d8a/range__server_8h.html#a7a8d15b08f386c7da5a3bc452a2ae872',1,'mdhim_rs_t():&#160;range_server.h']]],
