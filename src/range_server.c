@@ -429,7 +429,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	int error;
 
 	//Iterate through the arrays and delete each record
-	for (i = 0; i < bgm->num_keys && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
 		//Get records from the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
@@ -477,7 +477,7 @@ void *listener_thread(void *data) {
 
 	while (1) {		
 		//Receive messages sent to this server
-		ret = receive_rangesrv_work(md, &message, &source);
+		ret = receive_rangesrv_work(md, &source, &message);
 		if (ret != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error receiving message in listener", 
 			     md->mdhim_rank);
