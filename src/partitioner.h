@@ -39,7 +39,6 @@ struct mdhim_char {
     UT_hash_handle hh; /* makes this structure hashable */
 };
 
-struct mdhim_char *mdhim_alphabet = NULL;
 int max_rangesrvs;
 void partitioner_init(struct mdhim_t *md);
 void partitioner_release();

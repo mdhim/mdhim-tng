@@ -60,7 +60,6 @@ struct mdhim_cursor {
 	UT_hash_handle hh; /* makes this structure hashable */
 };
 
-struct mdhim_cursor *mdhim_cursors = NULL;
 int range_server_add_work(struct mdhim_t *md, work_item *item);
 int range_server_init(struct mdhim_t *md);
 int range_server_stop(struct mdhim_t *md);

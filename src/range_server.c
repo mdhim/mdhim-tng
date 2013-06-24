@@ -11,6 +11,9 @@
 #include "range_server.h"
 #include "partitioner.h"
 
+//Global cursor list - one for each rank
+struct mdhim_cursor *mdhim_cursors = NULL;
+
 /**
  * is_range_server
  * checks if I'm a range server

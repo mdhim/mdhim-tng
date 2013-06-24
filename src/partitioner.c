@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "partitioner.h"
 
+//Global hashtable for alphabet used in partitioner algorithm
+struct mdhim_char *mdhim_alphabet = NULL;
+
 /**
  * partitioner_init
  * Initializes portions of the mdhim_t struct dealing with the partitioner

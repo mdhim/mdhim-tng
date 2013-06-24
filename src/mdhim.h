@@ -13,6 +13,7 @@
 #include "data_store.h"
 #include "range_server.h"
 #include "messages.h"
+#include "partitioner.h"
 #include "Mlog/mlog.h"
 #include "Mlog/mlogfacs.h"
 
