@@ -89,6 +89,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	int return_code;
 	int msg_size;
 	int msg_source;
+	void *recvbuf;
+	int mtype;
+
 	// Receive the message size from any client
 	return_code = MPI_Recv(&msg_size, 1, MPI_INT, MPI_ANY_SOURCE, RANGESRV_WORK_SIZE, 
 			       md->mdhim_comm, &status);
@@ -108,7 +111,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 
 	// Receive a message from the client that sent the previous message
 	msg_source = status.MPI_SOURCE;
-	return_code = MPI_Recv(message, msg_size, MPI_PACKED, msg_source, RANGESRV_WORK_MSG, 
+	*src = msg_source;
+	recvbuf = malloc(msg_size);
+	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, msg_source, RANGESRV_WORK_MSG, 
 			       md->mdhim_comm, &status);
 
 	// If the receive did not succed then return the error code back
@@ -119,7 +124,37 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	}
 
 	//Unpack buffer to produce a message struct and place result in message pointer
-	*src = msg_source;
+	//Pack the work message in into sendbuf and set sendsize
+	mtype = ((struct mdhim_basem_t *) message)->mtype;
+	switch(mtype) {
+	case MDHIM_PUT:
+		return_code = unpack_put_message(md, recvbuf, msg_size, message);
+		break;
+	case MDHIM_BULK_PUT:
+		return_code = unpack_bput_message(md, recvbuf, msg_size, message);
+		break;
+	case MDHIM_GET:
+		return_code = unpack_get_message(md, recvbuf, msg_size, message);
+		break;
+	case MDHIM_BULK_GET:
+		return_code = unpack_bget_message(md, recvbuf, msg_size, message);
+		break;
+	case MDHIM_DEL:
+		return_code = unpack_del_message(md, recvbuf, msg_size, message);
+		break;
+	case MDHIM_BULK_DEL:
+		return_code = unpack_bdel_message(md, recvbuf, msg_size, message);			
+		break;
+	default:
+		break;
+	}
+
+	if (return_code != MPI_SUCCESS) {
+		mlog(MPI_CRIT, "Rank: %d - " 
+		     "Error receiving work message in receive_rangesrv_work", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
 
 	return MDHIM_SUCCESS;
 }
@@ -347,7 +382,7 @@ int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **send
  * Unpacks a put message structure into contiguous memory for message passing
  *
  * @param md         in   main MDHIM struct
- * @param message    in   pointer for packed message
+ * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
  * @param pm         out  structure put_message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
@@ -361,11 +396,12 @@ int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **send
 	int server_rank;
 };
  */
-int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_putm_t *pm) {
+int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size,  void **putm) {
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
-        
+        struct mdhim_putm_t *pm = *((struct mdhim_putm_t **) putm);
+
         if ((pm = malloc(sizeof(struct mdhim_putm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack put message.", md->mdhim_rank);
@@ -406,7 +442,7 @@ int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, struct 
  * Unpacks a bulk put message structure into contiguous memory for message passing
  *
  * @param md         in   main MDHIM struct
- * @param message    in   pointer for packed message
+ * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
  * @param bpm        out  structure bulk_put_message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
@@ -421,12 +457,13 @@ int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, struct 
 	int server_rank;
 };
  */
-int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bputm_t *bpm) {
+int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, void **bput) {
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
         int i;
-        
+	struct mdhim_bputm_t *bpm = *((struct mdhim_bputm_t **) bput);
+
         if ((bpm = malloc(sizeof(struct mdhim_bputm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bput message.", md->mdhim_rank);
@@ -617,7 +654,7 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **send
  * Unpacks a get message structure into contiguous memory for message passing
  *
  * @param md         in   main MDHIM struct
- * @param message    in   pointer for packed message
+ * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
  * @param pm         out  structure get_message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
@@ -631,11 +668,11 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **send
 	int server_rank;
 };
  */
-int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getm_t *gm) {
-
+int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, void **getm) {
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
-        
+        struct mdhim_getm_t *gm = *((struct mdhim_getm_t **) getm);
+
         if ((gm = malloc(sizeof(struct mdhim_getm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack get message.", md->mdhim_rank);
@@ -668,7 +705,7 @@ int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, struct 
  * Unpacks a bulk get message structure into contiguous memory for message passing
  *
  * @param md         in   main MDHIM struct
- * @param message    in   pointer for packed message
+ * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
  * @param bgm        out  structure bulk_get_message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
@@ -682,12 +719,12 @@ int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, struct 
 	int server_rank;
 };
  */
-int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetm_t *bgm) {
-
+int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void **bgetm) {
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
         int i;
-        
+        struct mdhim_bgetm_t *bgm = *((struct mdhim_bgetm_t **) bgetm);
+
         if ((bgm = malloc(sizeof(struct mdhim_bgetm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bget message.", md->mdhim_rank);
@@ -866,9 +903,9 @@ int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void **
  * Unpacks a get return message structure into contiguous memory for message passing
  *
  * @param md         in   main MDHIM struct
- * @param message    in   pointer for packed message
+ * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
- * @param bgrm       out  structure getrm_message which will be unpacked from the message 
+ * @param getrm      out  structure getrm_message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_getrm_t {
@@ -880,11 +917,12 @@ int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void **
 	int value_len;
 };
  */
-int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getrm_t *grm) {
+int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, void **getrm) {
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
-        
+        struct mdhim_getrm_t *grm = *((struct mdhim_getrm_t **) getrm);
+
         if ((grm = malloc(sizeof(struct mdhim_getrm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack put message.", md->mdhim_rank);
@@ -940,12 +978,13 @@ int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, struc
 	int num_records;
 };
  */
-int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetrm_t *bgrm) {
+int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, void **bgetrm) {
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
         int i;
-        
+        struct mdhim_bgetrm_t *bgrm = *((struct mdhim_bgetrm_t **) bgetrm);
+
         if ((bgrm = malloc(sizeof(struct mdhim_bgetrm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bget return message.", md->mdhim_rank);
@@ -1138,7 +1177,7 @@ int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void **send
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message
  * @param mesg_size  in   size of the incoming message
- * @param dm         out  structure get_message which will be unpacked from the message 
+ * @param delm         out  structure get_message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_delm_t {
@@ -1148,11 +1187,11 @@ int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void **send
 	int server_rank;
 };
  */
-int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_delm_t *dm) {
+int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, void **delm) {
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
-        
+        struct mdhim_delm_t *dm = *((struct mdhim_delm_t **) delm);
         if ((dm = malloc(sizeof(struct mdhim_delm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack del message.", md->mdhim_rank);
@@ -1187,7 +1226,7 @@ int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, struct 
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message
  * @param mesg_size  in   size of the incoming message
- * @param bdm        out  structure bulk_del_message which will be unpacked from the message 
+ * @param bdelm        out  structure bulk_del_message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_bdelm_t {
@@ -1198,12 +1237,13 @@ int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, struct 
 	int server_rank;
 };
  */
-int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bdelm_t *bdm) {
+int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, void **bdelm) {
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
         int i;
-        
+        struct mdhim_bdelm_t *bdm = *((struct mdhim_bdelm_t **) bdelm);
+
         if ((bdm = malloc(sizeof(struct mdhim_bdelm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bdel message.", md->mdhim_rank);
@@ -1303,12 +1343,13 @@ int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbu
 	int error;
 };
  */
-int unpack_return_message(struct mdhim_t *md, void *message, struct mdhim_rm_t *rm) {
+int unpack_return_message(struct mdhim_t *md, void *message, void **retm) {
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
         int mesg_size = sizeof(struct mdhim_rm_t); 
         int mesg_idx = 0;
-        
+        struct mdhim_rm_t *rm = *((struct mdhim_rm_t **) retm);
+
         if ((rm = malloc(sizeof(struct mdhim_rm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack return message.", md->mdhim_rank);

@@ -172,25 +172,25 @@ int send_client_response(struct mdhim_t *md, int dest, void *message);
 int receive_client_response(struct mdhim_t *md, int src, void **message);
 int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf, int *sendsize);
 int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **sendbuf, int *sendsize);
-int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_putm_t *pm);
-int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bputm_t *bpm);
+int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, void **pm);
+int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, void **bpm);
 
 int pack_get_message(struct mdhim_t *md, struct mdhim_getm_t *gm, void **sendbuf, int *sendsize);
 int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **sendbuf, int *sendsize);
-int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getm_t *gm);
-int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetm_t *bgm);
+int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, void **gm);
+int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void **bgm);
 
 int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void **sendbuf, int *sendsize);
 int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void **sendbuf, int *sendsize);
-int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getrm_t *grm);
-int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetrm_t *bgrm);
+int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, void **grm);
+int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, void **bgrm);
 
 int pack_del_message(struct mdhim_t *md, struct mdhim_delm_t *dm, void **sendbuf, int *sendsize);
 int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void **sendbuf, int *sendsize);
-int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_delm_t *dm);
-int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bdelm_t *bdm);
+int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, void **dm);
+int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, void **bdm);
 
 int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbuf, int *sendsize);
-int unpack_return_message(struct mdhim_t *md, void *message, struct mdhim_rm_t *rm);
+int unpack_return_message(struct mdhim_t *md, void *message, void **rm);
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
 #endif
