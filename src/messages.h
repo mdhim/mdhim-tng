@@ -46,6 +46,9 @@
 #define CLIENT_RESPONSE_MSG  5
 
 #define MAX_BULK_OPS 100
+
+//Maximum size of messages allowed
+#define MDHIM_MAX_MSG_SIZE 1048576 //At most send/receive 1MB
 struct mdhim_t;
 
 /* Base message */
@@ -64,7 +67,7 @@ struct mdhim_putm_t {
 	int server_rank;
 };
 
-/*Bulk put message */
+/* Bulk put message */
 struct mdhim_bputm_t {
 	int mtype;
 	void **keys;
@@ -75,7 +78,7 @@ struct mdhim_bputm_t {
 	int server_rank;
 };
 
-/*Get record message */
+/* Get record message */
 struct mdhim_getm_t {
 	int mtype;  
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
@@ -86,19 +89,19 @@ struct mdhim_getm_t {
 	int server_rank;
 };
 
-/*Bulk get record message */
+/* Bulk get record message */
 struct mdhim_bgetm_t {
 	int mtype;  
 	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;
-	//Number of records to retreive
 	void **keys;
 	int *key_lens;
-	int num_keys;
+        //Number of records to retrieve
+	int num_records;
 	int server_rank;
 };
 
-/* delete message */
+/* Delete message */
 struct mdhim_delm_t {
 	int mtype;
 	void *key;
@@ -106,7 +109,7 @@ struct mdhim_delm_t {
 	int server_rank;
 };
 
-/*bulk delete record message */
+/* Bulk delete record message */
 struct mdhim_bdelm_t {
 	int mtype;  
 	void **keys;
@@ -123,14 +126,14 @@ struct mdhim_rsi_t {
 	uint64_t end_range;
 };
 
-/*Generic receive message */
+/*Get receive message */
 struct mdhim_rm_t {
 	int mtype;  
 	int error;
 	int server_rank;
 };
 
-/*Get receive message */
+/* Get receive message */
 struct mdhim_getrm_t {
 	int mtype;
 	int error;
@@ -141,7 +144,7 @@ struct mdhim_getrm_t {
 	int value_len;
 };
 
-/*Bulk get receive message */
+/* Bulk get receive message */
 struct mdhim_bgetrm_t;
 struct mdhim_bgetrm_t {
 	int mtype;
@@ -169,5 +172,28 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message);
 int receive_rangesrv_work(struct mdhim_t *md, void **message, int *source);
 int send_client_response(struct mdhim_t *md, int dest, void *message);
 int receive_client_response(struct mdhim_t *md, int src, void **message);
+
+int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void *message);
+int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void *message);
+int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_putm_t *pm);
+int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bputm_t *bpm);
+
+int pack_get_message(struct mdhim_t *md, struct mdhim_getm_t *gm, void *message);
+int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void *message);
+int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getm_t *gm);
+int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetm_t *bgm);
+
+int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void *message);
+int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void *message);
+int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_getrm_t *grm);
+int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bgetrm_t *bgrm);
+
+int pack_del_message(struct mdhim_t *md, struct mdhim_delm_t *dm, void *message);
+int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void *message);
+int unpack_del_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_delm_t *dm);
+int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_bdelm_t *bdm);
+
+int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void *message);
+int unpack_return_message(struct mdhim_t *md, void *message, struct mdhim_rm_t *rm);
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
 #endif

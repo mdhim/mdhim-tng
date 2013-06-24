@@ -412,14 +412,14 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm = malloc(sizeof(struct mdhim_bgetm_t));			       
 			bgm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bgm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
-			bgm->num_keys = 0;
+			bgm->num_records = 0;
 			bgm->server_rank = range_srv;
 		}
 
 		//Add the key, lengths, and data to the message
-		bgm->keys[bgm->num_keys] = keys[i];
-		bgm->key_lens[bgm->num_keys] = key_lens[i];
-		bgm->num_keys++;		
+		bgm->keys[bgm->num_records] = keys[i];
+		bgm->key_lens[bgm->num_records] = key_lens[i];
+		bgm->num_records++;		
 	}
 
 	//Make a list out of the received messages to return
