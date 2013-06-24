@@ -48,7 +48,7 @@
 #define MAX_BULK_OPS 100
 
 //Maximum size of messages allowed
-#define MDHIM_MAX_MSG_SIZE 1048576 //At most send/receive 1MB
+#define MDHIM_MAX_MSG_SIZE 2147483647 //At most send/receive 2GB
 struct mdhim_t;
 
 /* Base message */
@@ -118,7 +118,7 @@ struct mdhim_bdelm_t {
 	int server_rank;
 };
 
-/*Range server info message*/
+/* Range server info message */
 struct mdhim_rsi_t {
 	//The start range (inclusive)
 	uint64_t start_range;
@@ -126,7 +126,7 @@ struct mdhim_rsi_t {
 	uint64_t end_range;
 };
 
-/*Get receive message */
+/* Generic receive message */
 struct mdhim_rm_t {
 	int mtype;  
 	int error;
@@ -145,7 +145,6 @@ struct mdhim_getrm_t {
 };
 
 /* Bulk get receive message */
-struct mdhim_bgetrm_t;
 struct mdhim_bgetrm_t {
 	int mtype;
 	int error;
@@ -158,8 +157,7 @@ struct mdhim_bgetrm_t {
 	struct mdhim_bgetrm_t *next;
 };
 
-/*Bulk generic receive message */
-struct mdhim_brm_t;
+/* Bulk generic receive message */
 struct mdhim_brm_t {
 	int mtype;
 	int error;
@@ -172,7 +170,6 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message);
 int receive_rangesrv_work(struct mdhim_t *md, void **message, int *source);
 int send_client_response(struct mdhim_t *md, int dest, void *message);
 int receive_client_response(struct mdhim_t *md, int src, void **message);
-
 int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void *message);
 int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void *message);
 int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, struct mdhim_putm_t *pm);

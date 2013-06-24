@@ -520,7 +520,7 @@ int pack_get_message(struct mdhim_t *md, struct mdhim_getm_t *gm, void *message)
 	int op;
 	void **keys;
 	int *key_lens;
-	int num_records;
+	int num_keys;
 	int server_rank;
 };
  */
