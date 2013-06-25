@@ -355,7 +355,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	//Initialize the get message
 	gm->key = key;
 	gm->key_len = key_len;
-	gm->server_rank = ret;
+	gm->server_rank = range_srv;
 	
 	//Test if I'm a range server
 	ret = im_range_server(md);

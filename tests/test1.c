@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	struct mdhim_rm_t *rm;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
-	if (ret != MPI_SUCCESS || provided != MPI_THREAD_MULTIPLE) {
+	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");
 		exit(1);
 	}

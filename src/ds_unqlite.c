@@ -189,7 +189,7 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *d
 		      struct mdhim_store_opts_t *mstore_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
-	int64_t nbytes;
+	unqlite_int64 nbytes;
 	char *buf;
 
 	*data = NULL;
@@ -281,14 +281,16 @@ int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len,
 	*key = key_buf;
 
 	//Find the size of the data
-	if ((ret = unqlite_kv_cursor_data(cur, NULL, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, NULL, (unqlite_int64 *) data_len)) 
+	    != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
 	//Get the data
 	data_buf = malloc(*data_len);
-	if ((ret = unqlite_kv_cursor_data(cur, data_buf, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, data_buf, (unqlite_int64 *) data_len)) 
+	    != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}      
@@ -357,14 +359,15 @@ int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len,
 	*key = key_buf;
 
 	//Find the size of the data
-	if ((ret = unqlite_kv_cursor_data(cur, NULL, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, NULL, (unqlite_int64 *) data_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
 	//Get the data
 	data_buf = malloc(*data_len);
-	if ((ret = unqlite_kv_cursor_data(cur, data_buf, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_cursor_data(cur, data_buf, (unqlite_int64 *) data_len)) 
+	    != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}      

@@ -4,7 +4,7 @@ CC	= mpicc -g -O0 -Wall
 CLIBS	= -L${MPI_ROOT}/lib -L../src
 CINC	= -I${MPI_ROOT}/include -IMlog/ -Iuthash -I../src -I../src/uthash
 
-CFLAGS	= -lmpi -lmdhim
+CFLAGS	= -lmpi -lmdhim -lm
 
 all:	test1
 

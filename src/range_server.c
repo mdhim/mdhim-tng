@@ -608,7 +608,7 @@ int range_server_init(struct mdhim_t *md) {
 	}
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
-	sprintf(filename, "%s%lld", "/scratch/mdhim/range", md->mdhim_rs->info.start_range);
+	sprintf(filename, "%s%lld", "/scratch/mdhim/range", (long long int) md->mdhim_rs->info.start_range);
 	//Initialize data store
 	md->mdhim_rs->mdhim_store = mdhim_db_init(UNQLITE);
 	if (!md->mdhim_rs->mdhim_store) {
