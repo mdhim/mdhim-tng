@@ -84,12 +84,17 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
 	
 	//Lock the work queue mutex
 	pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
-	//Add work to the work queue
-	if (md->mdhim_rs->work_queue->tail) {
-		md->mdhim_rs->work_queue->tail->next = item;
-		item->prev = md->mdhim_rs->work_queue->tail;
-		md->mdhim_rs->work_queue->tail = item;
-	} else if (!md->mdhim_rs->work_queue->head) {
+
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - Adding work to queue", 
+			     md->mdhim_rank);
+
+	//Add work to the head of the work queue
+	if (md->mdhim_rs->work_queue->head) {
+		md->mdhim_rs->work_queue->head->prev = item;
+		item->next = md->mdhim_rs->work_queue->head;
+		item->prev = NULL;
+		md->mdhim_rs->work_queue->head = item;
+	} else {
 		md->mdhim_rs->work_queue->head = item;
 		md->mdhim_rs->work_queue->tail = item;
 	}
@@ -169,6 +174,7 @@ int range_server_stop(struct mdhim_t *md) {
 		free(head);
 		head = temp_item;
 	}
+	free(md->mdhim_rs->work_queue);
 
 	//Close all the open cursors and free the hash table
 	HASH_ITER(hh, mdhim_cursors, cur_cursor, tmp) {
@@ -523,8 +529,10 @@ void *worker_thread(void *data) {
 		pthread_cond_wait(mdhim_rs->work_ready_cv, mdhim_rs->work_queue_mutex);
 		//while there is work, get it
 		while ((item = get_work(mdhim_rs)) != NULL) {
-			//Call the appropriate function depending on the message type
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue", 
+			     md->mdhim_rank);
 
+			//Call the appropriate function depending on the message type			
 			//Get the message type
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
 			switch(mtype) {
@@ -590,6 +598,17 @@ void *worker_thread(void *data) {
 int range_server_init(struct mdhim_t *md) {
 	int ret;
 	char filename[255];
+	int rangesrv_num;
+
+	//There was an error figuring out if I'm a range server
+	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {
+		return MDHIM_ERROR;		
+	}
+
+	//I'm not a range server
+	if (!rangesrv_num) {
+		return MDHIM_SUCCESS;
+	}
 
 	//Allocate memory for the mdhim_rs_t struct
 	md->mdhim_rs = malloc(sizeof(struct mdhim_rs_t));
@@ -601,7 +620,7 @@ int range_server_init(struct mdhim_t *md) {
 	}
   
 	//Populate md->mdhim_rs
-	if ((ret = populate_my_ranges(md)) == MDHIM_ERROR) {
+	if ((ret = populate_my_ranges(md, rangesrv_num)) == MDHIM_ERROR) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error populating my ranges",
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
@@ -628,8 +647,11 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 	
-	//Initialize work queue to null
-	md->mdhim_rs->work_queue = NULL;
+	//Initialize work queue
+	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
+	md->mdhim_rs->work_queue->head = NULL;
+	md->mdhim_rs->work_queue->tail = NULL;
+
 	//Initialize work queue mutex
 	md->mdhim_rs->work_queue_mutex = malloc(sizeof(pthread_mutex_t));
 	if (!md->mdhim_rs->work_queue_mutex) {

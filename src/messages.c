@@ -12,7 +12,7 @@
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
-	int return_code;
+	int return_code = MDHIM_ERROR;
 	void *sendbuf = NULL;
 	int sendsize = 0;
 	int mtype;
@@ -49,8 +49,8 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
 	}
 
 	if (return_code != MDHIM_SUCCESS || !sendbuf || !sendsize) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to pack "
-                     "the message while sending.", md->mdhim_rank);
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: Packing message "
+                     "failed before sending.", md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 
@@ -320,29 +320,40 @@ int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf
         int64_t m_size = sizeof(struct mdhim_putm_t); // Generous variable for size calculation
         int mesg_size;  // Variable to be used as parameter for MPI_pack of safe size
     	int mesg_idx = 0;  // Variable for incremental pack
-        
+        void *outbuf;
+
         // Add to size the length of the key and data fields
-        m_size += pm->key_len + pm->value_len;
-        
+        m_size += pm->key_len + pm->value_len;	
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Packing put message with key: %d with len: %d," 
+	     " value: %d with len: %d.", md->mdhim_rank, *((int *) pm->key), pm->key_len, 
+	     *((int *) pm->value), pm->value_len);
+
         if (m_size > MDHIM_MAX_MSG_SIZE) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: put message too large."
                      " Put is over Maximum size allowed of %d.", md->mdhim_rank, MDHIM_MAX_MSG_SIZE);
              return MDHIM_ERROR; 
         }
-        mesg_size = m_size;
-        *sendsize = mesg_size;
 
+	//Set output variable for the size to send
+	mesg_size = (int) m_size;
+        *sendsize = mesg_size;
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Packing put message has size: %d.", md->mdhim_rank,
+	    mesg_size);
         // Is the computed message size of a safe value? (less than a max message size?)
-        if ((sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
+        if ((*((char **) sendbuf) = malloc(mesg_size * sizeof(char))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to pack put message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
         
+	outbuf = *((char **) sendbuf);
         // pack the message first with the structure and then followed by key and data values.
-	return_code = MPI_Pack(pm, sizeof(struct mdhim_putm_t), MPI_CHAR, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
-        return_code += MPI_Pack(pm->key, pm->key_len, MPI_CHAR, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
-        return_code += MPI_Pack(pm->value, pm->value_len, MPI_CHAR, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
+	return_code = MPI_Pack(pm, sizeof(struct mdhim_putm_t), MPI_CHAR, outbuf, mesg_size, 
+			       &mesg_idx, md->mdhim_comm);
+        return_code += MPI_Pack(pm->key, pm->key_len, MPI_CHAR, outbuf, mesg_size, &mesg_idx,
+				md->mdhim_comm);
+        return_code += MPI_Pack(pm->value, pm->value_len, MPI_CHAR, outbuf, mesg_size, &mesg_idx, 
+				md->mdhim_comm);
 
 	// If the pack did not succeed then log the error and return the error code
 	if ( return_code != MPI_SUCCESS ) {
@@ -1447,10 +1458,14 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 	if (md->mdhim_rs) {
 		rsi.start_range = md->mdhim_rs->info.start_range;
 		rsi.end_range = md->mdhim_rs->info.end_range;
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
+		     "I'm a range server: start_range: %llu, end_range: %llu", 
+		     md->mdhim_rank, (long long unsigned int) rsi.start_range, 
+		     (long long unsigned int) rsi.end_range);
 	} else {
 		//I'm not a range server
-		rsi.start_range = -1;
-		rsi.end_range = -1;
+		rsi.start_range = 0;
+		rsi.end_range = 0;
 	}
 	
 	//Pack the range server info
@@ -1463,7 +1478,7 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 	}
 
 	//Receive the range server info from each rank
-	if ((ret = MPI_Allgather(sendbuf, sendsize, MPI_PACKED, recvbuf, recvsize,
+	if ((ret = MPI_Allgather(sendbuf, sendsize, MPI_PACKED, recvbuf, sendsize,
 				 MPI_PACKED, md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error while receiving range server info", 
@@ -1473,7 +1488,7 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 
 	//Unpack the receive buffer and construct a linked list of range servers
 	for (i = 0; i < md->mdhim_comm_size; i++) {
-		if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, &rsi, sizeof(struct mdhim_rsi_t), 
+		if ((ret = MPI_Unpack(recvbuf, sendsize, &recvidx, &rsi, sizeof(struct mdhim_rsi_t), 
 				      MPI_CHAR, md->mdhim_comm)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
 			     "Error while unpacking range server info", 
@@ -1481,7 +1496,12 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 			return NULL;
 		}
 
-		if (rsi.start_range == -1 || rsi.end_range == -1) {
+		mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
+		     "Received range server with rank: %d, start_range: %llu, end_range: %llu", 
+		     md->mdhim_rank, i, (long long unsigned int) rsi.start_range, 
+		     (long long unsigned int) rsi.end_range);
+
+		if (rsi.start_range == 0 && rsi.end_range == 0) {
 			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
 			     "Rank: %d is not a range server", 
 			     md->mdhim_rank, i);

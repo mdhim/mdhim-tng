@@ -31,6 +31,10 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 	struct mdhim_t *md;
 	struct rangesrv_info *rangesrvs;
 
+	//Open mlog - stolen from plfs
+	ret = mlog_open((char *)"mdhim", 0,
+			MLOG_DBG, MLOG_DBG, NULL, 0, MLOG_LOGPID, 0);
+
 	//Allocate memory for the main MDHIM structure
 	md = malloc(sizeof(struct mdhim_t));
 	if (!md) {
@@ -49,7 +53,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 		mlog(MDHIM_CLIENT_CRIT, "Error getting our rank while initializing MDHIM");
 		return NULL;
 	}
-  
+ 
         //Get the size of the main MDHIM communicator
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &md->mdhim_comm_size)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error getting the size of the " 
@@ -123,7 +127,7 @@ int mdhimClose(struct mdhim_t *md) {
 	struct rangesrv_info *rsrv, *trsrv;
 
 	//Stop range server if I'm a range server	
-	if ((ret = range_server_stop(md)) != MDHIM_SUCCESS) {
+	if (im_range_server(md) && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
 	}
 
@@ -187,6 +191,7 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
 	}
 
 	//Initialize the put message
+	pm->mtype = MDHIM_PUT;
 	pm->key = key;
 	pm->key_len = key_len;
 	pm->value = value;
@@ -262,6 +267,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			bpm->value_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bpm->num_records = 0;
 			bpm->server_rank = range_srv;
+			bpm->mtype = MDHIM_BULK_PUT;
 		}
 
 		//Add the key, lengths, and data to the message
@@ -353,6 +359,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	}
 
 	//Initialize the get message
+	gm->mtype = MDHIM_GET;
 	gm->key = key;
 	gm->key_len = key_len;
 	gm->server_rank = range_srv;
@@ -421,6 +428,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bgm->num_records = 0;
 			bgm->server_rank = range_srv;
+			bgm->mtype = MDHIM_BULK_GET;
 		}
 
 		//Add the key, lengths, and data to the message
@@ -503,6 +511,7 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int k
 	}
 
 	//Initialize the del message
+	dm->mtype = MDHIM_DEL;
 	dm->key = key;
 	dm->key_len = key_len;
 	dm->server_rank = ret;
@@ -572,6 +581,7 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 			bdm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bdm->num_keys = 0;
 			bdm->server_rank = range_srv;
+			bdm->mtype = MDHIM_BULK_DEL;
 		}
 
 		//Add the key, lengths, and data to the message

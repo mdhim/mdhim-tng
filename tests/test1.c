@@ -38,5 +38,7 @@ int main(int argc, char **argv) {
 		printf("Error closing MDHIM\n");
 	}
 
+	MPI_Finalize();
+
 	return 0;
 }

@@ -247,25 +247,17 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
  * populate_my_ranges
  *
  * sets the rangesrv_info struct in md->mdhim_rs
- * @param md      main MDHIM struct
+ * @param md             main MDHIM struct
+ * @param rangesrv_num   a range server number that is a assigned based on rank - 
+ *                       calculated by is_range_server
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int populate_my_ranges(struct mdhim_t *md) {
+int populate_my_ranges(struct mdhim_t *md, int rangesrv_num) {
 	//The number of keys held per range server
 	uint64_t split;
-	uint64_t rangesrv_num;
 	uint64_t start_range;
 	uint64_t end_range;
 
-	//There was an error figuring out if I'm a range server
-	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {
-		return MDHIM_ERROR;		
-	}
-
-	//I'm not a range server
-	if (!rangesrv_num) {
-		return MDHIM_SUCCESS;
-	}
 
 	/* Find the number of keys per range server
 	   The last range server could have a little bit less than the others */
