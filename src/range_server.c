@@ -58,13 +58,27 @@ void *get_cursor(struct mdhim_t *md, int source) {
 	return cursor;
 }
 
+/**
+ * send_locally_or_remote
+ * Sends the message remotely or locally
+ *
+ * @param md       Pointer to the main MDHIM structure
+ * @param dest     Destination rank
+ * @param message  pointer to message to send
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
 int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	int ret = MDHIM_SUCCESS;
 
 	if (md->mdhim_rank != dest) {
+		//Sends the message remotely
 		ret = send_client_response(md, dest, message);
 	} else {
-
+		//Sends the message locally
+		pthread_mutex_lock(md->receive_msg_mutex);
+		md->receive_msg = message;
+		pthread_cond_signal(md->receive_msg_ready_cv);
+		pthread_mutex_unlock(md->receive_msg_mutex);
 	}
 
 	return ret;
@@ -529,16 +543,11 @@ void *worker_thread(void *data) {
 			pthread_cond_wait(md->mdhim_rs->work_ready_cv, md->mdhim_rs->work_queue_mutex);
 		}
 
-		//if there is work, get it
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Getting work from the queue", 
-		     md->mdhim_rank);
-		
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue", 
-		     md->mdhim_rank);
-
 		//Call the appropriate function depending on the message type			
 		//Get the message type
 		mtype = ((struct mdhim_basem_t *) item->message)->mtype;
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue with type: %d", 
+		     md->mdhim_rank, mtype);
 		switch(mtype) {
 		case MDHIM_PUT:
 			//Pack the put message and pass to range_server_put

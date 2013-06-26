@@ -48,7 +48,7 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
 		break;
 	}
 
-	if (return_code != MDHIM_SUCCESS || !sendbuf || !sendsize) {
+	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: Packing message "
                      "failed before sending.", md->mdhim_rank);
 		return MDHIM_ERROR;
@@ -202,7 +202,7 @@ int send_client_response(struct mdhim_t *md, int dest, void *message) {
 		break;
 	}
 
-	if (return_code != MDHIM_SUCCESS || !sendbuf || !sendsize) {
+	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to pack "
                      "the message while sending.", md->mdhim_rank);
 		return MDHIM_ERROR;
@@ -245,7 +245,9 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	int msg_size;
 	int msg_source;
 	int mtype;
+	int mesg_idx = 0;
 	void *recvbuf;
+	struct mdhim_basem_t bm;
 
 	// Receive the message size from src
 	return_code = MPI_Recv(&msg_size, 1, MPI_INT, src, CLIENT_RESPONSE_SIZE, 
@@ -277,9 +279,12 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 		return MDHIM_ERROR;
 	}
 
-	//Unpack buffer to produce a message struct and place result in message pointer
-	*message = NULL;
-	mtype = ((struct mdhim_basem_t *) message)->mtype;
+	*((char **) message) = NULL;
+	//Unpack buffer to get the message type
+	return_code = MPI_Unpack(recvbuf, msg_size, &mesg_idx, &bm, 
+				 sizeof(struct mdhim_basem_t), MPI_CHAR, 
+				 md->mdhim_comm);
+	mtype = bm.mtype;
 	switch(mtype) {
 	case MDHIM_RECV:
 		return_code = unpack_return_message(md, recvbuf, message);
@@ -294,7 +299,7 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 		break;
 	}
 
-	if (return_code != MDHIM_SUCCESS || !*message) {
+	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to unpack "
                      "the message while receiving from client.", md->mdhim_rank);
 		return MDHIM_ERROR;
@@ -1380,16 +1385,19 @@ int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbu
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
         int mesg_size = sizeof(struct mdhim_rm_t); 
         int mesg_idx = 0;
-        
+        void *outbuf;
+	
 	*sendsize = mesg_size;
-        if ((sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
+        if (((*(char **) sendbuf) = malloc(mesg_size * sizeof(char))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to pack return message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
         
+	outbuf = (*(char **) sendbuf);
         // Pack the message from the structure
-	return_code = MPI_Pack(rm, sizeof(struct mdhim_rm_t), MPI_CHAR, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
+	return_code = MPI_Pack(rm, sizeof(struct mdhim_rm_t), MPI_CHAR, outbuf, mesg_size, &mesg_idx, 
+			       md->mdhim_comm);
 
 	// If the pack did not succeed then log the error and return the error code
 	if ( return_code != MPI_SUCCESS ) {
@@ -1420,16 +1428,19 @@ int unpack_return_message(struct mdhim_t *md, void *message, void **retm) {
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
         int mesg_size = sizeof(struct mdhim_rm_t); 
         int mesg_idx = 0;
-        struct mdhim_rm_t *rm = *((struct mdhim_rm_t **) retm);
+        struct mdhim_rm_t *rm;
 
-        if ((rm = malloc(sizeof(struct mdhim_rm_t))) == NULL) {
+        if (((*(struct mdhim_rm_t **) retm) = malloc(sizeof(struct mdhim_rm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack return message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
         
+        rm = *((struct mdhim_rm_t **) retm);
+
         // Unpack the structure from the message
-        return_code = MPI_Unpack(message, mesg_size, &mesg_idx, rm, sizeof(struct mdhim_rm_t), MPI_CHAR, md->mdhim_comm);
+        return_code = MPI_Unpack(message, mesg_size, &mesg_idx, rm, sizeof(struct mdhim_rm_t), 
+				 MPI_CHAR, md->mdhim_comm);
 
 	// If the pack did not succeed then log the error and return the error code
 	if ( return_code != MPI_SUCCESS ) {

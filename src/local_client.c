@@ -23,7 +23,10 @@ static void *get_msg_self(struct mdhim_t *md) {
 	//Lock the receive msg mutex
 	pthread_mutex_lock(md->receive_msg_mutex);
 	//Wait until there is a message to receive
-	pthread_cond_wait(md->receive_msg_ready_cv, md->receive_msg_mutex);
+	if (!md->receive_msg) {
+		pthread_cond_wait(md->receive_msg_ready_cv, md->receive_msg_mutex);
+	}
+	
 	//Get the message
 	msg = md->receive_msg;
 	//Set the message queue to null
