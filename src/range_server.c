@@ -114,10 +114,10 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
  * @return  the next work_item to process
  */
 
-work_item *get_work(struct mdhim_rs_t *mdhim_rs) {
+work_item *get_work(struct mdhim_t *md) {
 	work_item *item;
 
-	item = mdhim_rs->work_queue->tail;
+	item = md->mdhim_rs->work_queue->tail;
 	if (!item) {
 		return NULL;
 	}
@@ -125,10 +125,10 @@ work_item *get_work(struct mdhim_rs_t *mdhim_rs) {
 	//Remove the item from the tail and set the pointers accordingly
 	if (item->prev) {
 		item->prev->next = NULL;
-		mdhim_rs->work_queue->tail = item->prev;
+		md->mdhim_rs->work_queue->tail = item->prev;
 	} else if (!item->prev) {
-		mdhim_rs->work_queue->tail = NULL;
-		mdhim_rs->work_queue->head = NULL;
+		md->mdhim_rs->work_queue->tail = NULL;
+		md->mdhim_rs->work_queue->head = NULL;
 	}
 
 	item->next = NULL;
@@ -495,7 +495,7 @@ void *listener_thread(void *data) {
 	
                 //Get the message type
 		mtype = ((struct mdhim_basem_t *) message)->mtype;
-		mlog(MPI_DBG, "Rank: %d - Received message from : %d of type: %d", 
+		mlog(MPI_DBG, "Rank: %d - Received message from rank: %d of type: %d", 
 		     md->mdhim_rank, source, mtype);
 		
                 //Create a new work item
@@ -517,75 +517,78 @@ void *listener_thread(void *data) {
  */
 void *worker_thread(void *data) {
 	struct mdhim_t *md = (struct mdhim_t *) data;
-	struct mdhim_rs_t *mdhim_rs = md->mdhim_rs;
 	work_item *item;
 	int mtype;
 	int op;
 
 	while (1) {
 		//Lock the work queue mutex
-		pthread_mutex_lock(mdhim_rs->work_queue_mutex);
+		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
 		//Wait until there is work to be performed
-		pthread_cond_wait(mdhim_rs->work_ready_cv, mdhim_rs->work_queue_mutex);
-		//while there is work, get it
-		while ((item = get_work(mdhim_rs)) != NULL) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue", 
-			     md->mdhim_rank);
-
-			//Call the appropriate function depending on the message type			
-			//Get the message type
-			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
-			switch(mtype) {
-			case MDHIM_PUT:
-				//Pack the put message and pass to range_server_put
-				range_server_put(md, 
-						 item->message, 
-						 item->source);
-				break;
-			case MDHIM_BULK_PUT:
-				//Pack the bulk put message and pass to range_server_put
-				range_server_bput(md, 
-						  item->message, 
-						  item->source);
-				break;
-			case MDHIM_GET:
-				//Determine the operation passed and call the appropriate function
-				op = ((struct mdhim_bgetm_t *) item->message)->op;
-				if (op == MDHIM_GET_VAL) {
-					range_server_get(md, 
-							 item->message, 
-							 item->source);
-				} else if (op == MDHIM_GET_NEXT) {
-/*					range_server_get_next(md, 
-							      item->message, 
-							      item->source); */
-				} else if (op == MDHIM_GET_PREV) {
-					/*
-					range_server_get_prev(md, item->message, 
-					item->source);*/
-				}
-				break;
-			case MDHIM_BULK_GET:
-				//Determine the operation passed and call the appropriate function
-				range_server_bget(md, 
-						  item->message, 
-						  item->source);
-				break;
-			case MDHIM_DEL:
-				range_server_del(md, item->message, item->source);
-				break;
-			case MDHIM_BULK_DEL:
-				range_server_bdel(md, item->message, item->source);
-				break;
-			default:
-				break;
-			}
-			
-			free(item);
+		if ((item = get_work(md)) == NULL) {
+			pthread_cond_wait(md->mdhim_rs->work_ready_cv, md->mdhim_rs->work_queue_mutex);
 		}
 
-		pthread_mutex_unlock(mdhim_rs->work_queue_mutex);
+		//if there is work, get it
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Getting work from the queue", 
+		     md->mdhim_rank);
+		
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue", 
+		     md->mdhim_rank);
+
+		//Call the appropriate function depending on the message type			
+		//Get the message type
+		mtype = ((struct mdhim_basem_t *) item->message)->mtype;
+		switch(mtype) {
+		case MDHIM_PUT:
+			//Pack the put message and pass to range_server_put
+			range_server_put(md, 
+					 item->message, 
+					 item->source);
+			break;
+		case MDHIM_BULK_PUT:
+			//Pack the bulk put message and pass to range_server_put
+			range_server_bput(md, 
+					  item->message, 
+					  item->source);
+			break;
+		case MDHIM_GET:
+			//Determine the operation passed and call the appropriate function
+			op = ((struct mdhim_bgetm_t *) item->message)->op;
+			if (op == MDHIM_GET_VAL) {
+				range_server_get(md, 
+						 item->message, 
+						 item->source);
+			} else if (op == MDHIM_GET_NEXT) {
+/*					range_server_get_next(md, 
+					item->message, 
+					item->source); */
+			} else if (op == MDHIM_GET_PREV) {
+				/*
+				  range_server_get_prev(md, item->message, 
+				  item->source);*/
+			}
+			break;
+		case MDHIM_BULK_GET:
+			//Determine the operation passed and call the appropriate function
+			range_server_bget(md, 
+					  item->message, 
+					  item->source);
+			break;
+		case MDHIM_DEL:
+			range_server_del(md, item->message, item->source);
+			break;
+		case MDHIM_BULK_DEL:
+			range_server_bdel(md, item->message, item->source);
+			break;
+		default:
+			break;
+		}
+			
+		free(item);		
+		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 	}
+	
 }
 
 /**
@@ -627,7 +630,7 @@ int range_server_init(struct mdhim_t *md) {
 	}
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
-	sprintf(filename, "%s%lld", "/scratch/mdhim/range", (long long int) md->mdhim_rs->info.start_range);
+	sprintf(filename, "%s%lld", "range", (long long int) md->mdhim_rs->info.start_range);
 	//Initialize data store
 	md->mdhim_rs->mdhim_store = mdhim_db_init(UNQLITE);
 	if (!md->mdhim_rs->mdhim_store) {

@@ -36,7 +36,6 @@ static void print_unqlite_err_msg(unqlite *dh) {
 	}
 	
 	mlog(MDHIM_SERVER_CRIT, "Unqlite error: %s", msg);
-	free(msg);
 }
 
 /**

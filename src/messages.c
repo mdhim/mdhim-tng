@@ -91,6 +91,8 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	int msg_source;
 	void *recvbuf;
 	int mtype;
+	struct mdhim_basem_t bm;
+	int mesg_idx = 0;
 
 	// Receive the message size from any client
 	return_code = MPI_Recv(&msg_size, 1, MPI_INT, MPI_ANY_SOURCE, RANGESRV_WORK_SIZE, 
@@ -116,16 +118,23 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, msg_source, RANGESRV_WORK_MSG, 
 			       md->mdhim_comm, &status);
 
-	// If the receive did not succed then return the error code back
+	// If the receive did not succeed then return the error code back
 	if ( return_code != MPI_SUCCESS ) {
-             	mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d "
+             	mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: %d "
                      "receive message failed.", md->mdhim_rank, return_code);
 		return MDHIM_ERROR;
 	}
 
-	*message = NULL;
-	//Unpack buffer to produce a message struct and place result in message pointer
-	mtype = ((struct mdhim_basem_t *) message)->mtype;
+	*((char **) message) = NULL;
+	//Unpack buffer to get the message type
+	return_code = MPI_Unpack(recvbuf, msg_size, &mesg_idx, &bm, 
+				 sizeof(struct mdhim_basem_t), MPI_CHAR, 
+				 md->mdhim_comm);
+	mtype = bm.mtype;
+	mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - "
+	     "Received message with size: %d and type: %d.", md->mdhim_rank, msg_size, 
+	     mtype);
+
 	switch(mtype) {
 	case MDHIM_PUT:
 		return_code = unpack_put_message(md, recvbuf, msg_size, message);
@@ -149,7 +158,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 		break;
 	}
 
-	if (return_code != MPI_SUCCESS || !*message) {
+	if (return_code != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error unpacking message in receive_rangesrv_work", 
 		     md->mdhim_rank);
@@ -459,19 +468,23 @@ int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size,  void *
 
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
-        struct mdhim_putm_t *pm = *((struct mdhim_putm_t **) putm);
+        struct mdhim_putm_t *pm;
 
-        if ((pm = malloc(sizeof(struct mdhim_putm_t))) == NULL) {
+	mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - Unpacking put message with size: %d",
+	     md->mdhim_rank, mesg_size);
+        if ((*((struct mdhim_putm_t **) putm) = malloc(sizeof(struct mdhim_putm_t))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack put message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
         
+	pm = *((struct mdhim_putm_t **) putm);
         // Unpack the message first with the structure and then followed by key and data values.
-        return_code = MPI_Unpack(message, mesg_size, &mesg_idx, pm, sizeof(struct mdhim_putm_t), MPI_CHAR, md->mdhim_comm);
+        return_code = MPI_Unpack(message, mesg_size, &mesg_idx, pm, sizeof(struct mdhim_putm_t), MPI_CHAR, 
+				 md->mdhim_comm);
         
         // Unpack key by first allocating memory and then extracting the values from message
-        if ((pm->key = (char *)malloc(pm->key_len * sizeof(char))) == NULL) {
+        if ((pm->key = malloc(pm->key_len * sizeof(char))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack put message.", md->mdhim_rank);
              return MDHIM_ERROR; 
@@ -479,7 +492,7 @@ int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size,  void *
         return_code += MPI_Unpack(message, mesg_size, &mesg_idx, pm->key, pm->key_len, MPI_CHAR, md->mdhim_comm);
         
         // Unpack data by first allocating memory and then extracting the values from message
-        if ((pm->value = (char *)malloc(pm->value_len * sizeof(char))) == NULL) {
+        if ((pm->value = malloc(pm->value_len * sizeof(char))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack put message.", md->mdhim_rank);
              return MDHIM_ERROR; 
