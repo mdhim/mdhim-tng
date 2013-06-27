@@ -118,10 +118,8 @@ struct mdhim_bdelm_t {
 
 /* Range server info message */
 struct mdhim_rsi_t {
-	//The start range (inclusive)
-	uint64_t start_range;
-	//The end range (inclusive)
-	uint64_t end_range;
+	//The range server number, which is a number 1 - N where N is the number of servers
+	uint32_t rangesrv_num;
 };
 
 /* Generic receive message */

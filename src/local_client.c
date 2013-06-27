@@ -61,9 +61,11 @@ struct mdhim_rm_t *local_client_put(struct mdhim_t *md, struct mdhim_putm_t *pm)
 		return NULL;
 	}
 	
+	mlog(MDHIM_CLIENT_DBG, "Rank: %d - Added work locally for range server", md->mdhim_rank);
 	rm = (struct mdhim_rm_t *) get_msg_self(md);
-
+	mlog(MDHIM_CLIENT_DBG, "Rank: %d - Received response locally from range server", md->mdhim_rank);
 	// Return response
+
 	return rm;
 }
 

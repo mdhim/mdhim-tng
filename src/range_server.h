@@ -29,10 +29,8 @@ typedef struct rangesrv_info rangesrv_info;
 struct rangesrv_info {
 	//The range server's rank in the mdhim_comm
 	uint32_t rank;
-	//The start range this server is serving (inclusive)
-	uint64_t start_range;
-	//The end range this server is serving (inclusive)
-	uint64_t end_range;
+	//The range server's identifier based on rank and number of servers
+	uint32_t rangesrv_num;
 	//The next range server in the list
 	rangesrv_info *next;
 	//The previous range server in the list

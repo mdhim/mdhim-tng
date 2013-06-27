@@ -16,6 +16,7 @@
 #define RANGE_SERVER_FACTOR 4
 #define MDHIM_MAX_KEY 9223372036854775807LL
 #define MDHIM_MIN_KEY -9223372036854775807LL
+#define MDHIM_MAX_RECS_PER_SLICE 100
 //32 bit signed integer
 #define MDHIM_INT_KEY 1
 //64 bit signed integer
@@ -44,7 +45,6 @@ void partitioner_init(struct mdhim_t *md);
 void partitioner_release();
 uint32_t get_num_range_servers(struct mdhim_t *md);
 uint32_t is_range_server(struct mdhim_t *md, int rank);
-int populate_my_ranges(struct mdhim_t *md, int rangesrv_num);
 uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_type);
 void build_alphabet();
 int verify_key(void *key, int key_len, int key_type);

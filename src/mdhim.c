@@ -117,7 +117,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 }
 
 /**
- * Quits the MDHIM instance
+ * Quits the MDHIM instance - collective call
  *
  * @param md main MDHIM struct
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
@@ -126,6 +126,7 @@ int mdhimClose(struct mdhim_t *md) {
 	int ret;
 	struct rangesrv_info *rsrv, *trsrv;
 
+	MPI_Barrier(md->mdhim_comm);
 	//Stop range server if I'm a range server	
 	if (im_range_server(md) && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
@@ -142,18 +143,18 @@ int mdhimClose(struct mdhim_t *md) {
 		rsrv = trsrv;
 	}
 
-	//Destroy the receive mutex
-	if ((ret = pthread_mutex_destroy(md->receive_msg_mutex)) != 0) {
-		return MDHIM_ERROR;
-	}
-	free(md->receive_msg_mutex);
-
 	//Destroy the receive condition variable
 	if ((ret = pthread_cond_destroy(md->receive_msg_ready_cv)) != 0) {
 		return MDHIM_ERROR;
 	}
 	free(md->receive_msg_ready_cv);
 
+	//Destroy the receive mutex
+	if ((ret = pthread_mutex_destroy(md->receive_msg_mutex)) != 0) {
+		return MDHIM_ERROR;
+	}
+	free(md->receive_msg_mutex);
+       
 	return MDHIM_SUCCESS;
 }
 

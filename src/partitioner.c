@@ -244,40 +244,6 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 }
 
 /**
- * populate_my_ranges
- *
- * sets the rangesrv_info struct in md->mdhim_rs
- * @param md             main MDHIM struct
- * @param rangesrv_num   a range server number that is a assigned based on rank - 
- *                       calculated by is_range_server
- * @return MDHIM_SUCCESS or MDHIM_ERROR on error
- */
-int populate_my_ranges(struct mdhim_t *md, int rangesrv_num) {
-	//The number of keys held per range server
-	uint64_t split;
-	uint64_t start_range;
-	uint64_t end_range;
-
-
-	/* Find the number of keys per range server
-	   The last range server could have a little bit less than the others */
-	split = (uint64_t) ceil((double) (md->max_key + llabs(md->min_key))/md->num_rangesrvs);
-
-	//Get my start range
-	start_range = split * (rangesrv_num - 1);
-	//Get my end range
-	end_range = (split * rangesrv_num) - 1;
-	//Populate the rangesrv_info structure
-	md->mdhim_rs->info.rank = md->mdhim_rank;
-	md->mdhim_rs->info.start_range = start_range;
-	md->mdhim_rs->info.end_range = end_range;
-	md->mdhim_rs->info.next = NULL;
-	md->mdhim_rs->info.prev = NULL;
-
-	return MDHIM_SUCCESS;
-}
-
-/**
  * get_range_server
  *
  * gets the range server that handles the key given
@@ -414,10 +380,15 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 		return MDHIM_ERROR;
 	}
 
-	//Iterate through the range servers to find one, if any, that serves the key we have
+	/* Convert the key to a range server number, which is a number 1 - N, 
+	   where N is the number of range servers */
+	key_num = ((uint32_t) ceil((double) key_num/MDHIM_MAX_RECS_PER_SLICE)) % md->num_rangesrvs;
+	key_num++;
+
+	//Match the range server number of the key with the range server we have in our list
 	rp = md->rangesrvs;
 	while (rp) {
-		if (key_num >= rp->start_range && key_num <= rp->end_range) {
+		if (key_num == rp->rangesrv_num) {
 			rangesrv_rank = rp->rank;
 			break;
 		}
@@ -425,6 +396,7 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 		rp = rp->next;
 	}
        
+	//Return the rank
 	return rangesrv_rank;
 }
 

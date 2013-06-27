@@ -70,11 +70,19 @@ void *get_cursor(struct mdhim_t *md, int source) {
 int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	int ret = MDHIM_SUCCESS;
 
+
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending response to: %d", 
+	     md->mdhim_rank, dest);
+
 	if (md->mdhim_rank != dest) {
 		//Sends the message remotely
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending remote response to: %d", 
+		     md->mdhim_rank, dest);
 		ret = send_client_response(md, dest, message);
 	} else {
 		//Sends the message locally
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending local response to: %d", 
+		     md->mdhim_rank, dest);
 		pthread_mutex_lock(md->receive_msg_mutex);
 		md->receive_msg = message;
 		pthread_cond_signal(md->receive_msg_ready_cv);
@@ -93,12 +101,10 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
  * @return MDHIM_SUCCESS
  */
 int range_server_add_work(struct mdhim_t *md, work_item *item) {
-	item->next = NULL;
-	item->prev = NULL;
-	
 	//Lock the work queue mutex
 	pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
-
+	item->next = NULL;
+	item->prev = NULL;       
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - Adding work to queue", 
 			     md->mdhim_rank);
 
@@ -106,7 +112,6 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
 	if (md->mdhim_rs->work_queue->head) {
 		md->mdhim_rs->work_queue->head->prev = item;
 		item->next = md->mdhim_rs->work_queue->head;
-		item->prev = NULL;
 		md->mdhim_rs->work_queue->head = item;
 	} else {
 		md->mdhim_rs->work_queue->head = item;
@@ -164,22 +169,31 @@ int range_server_stop(struct mdhim_t *md) {
 
 	//Cancel the threads
 	if ((ret = pthread_cancel(md->mdhim_rs->listener)) != 0) {
-		return MDHIM_ERROR;
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling listener thread", 
+		     md->mdhim_rank);
 	}
 	if ((ret = pthread_cancel(md->mdhim_rs->worker)) != 0) {
-		return MDHIM_ERROR;
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling worker thread", 
+		     md->mdhim_rank);
 	}
-	//Destroy the mutex
-	if ((ret = pthread_mutex_destroy(md->mdhim_rs->work_queue_mutex)) != 0) {
-		return MDHIM_ERROR;
-	}
-	free(md->mdhim_rs->work_queue_mutex);
+
+	/* Wait for the threads to finish */
+	pthread_join(md->mdhim_rs->listener, NULL);
+	pthread_join(md->mdhim_rs->worker, NULL);
 
 	//Destroy the condition variable
 	if ((ret = pthread_cond_destroy(md->mdhim_rs->work_ready_cv)) != 0) {
-		return MDHIM_ERROR;
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work cond variable", 
+		     md->mdhim_rank);
 	}
 	free(md->mdhim_rs->work_ready_cv);
+
+	//Destroy the mutex
+	if ((ret = pthread_mutex_destroy(md->mdhim_rs->work_queue_mutex)) != 0) {
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
+		     md->mdhim_rank);
+	}
+	free(md->mdhim_rs->work_queue_mutex);
 
 	//Free the work queue
 	head = md->mdhim_rs->work_queue->head;
@@ -197,7 +211,6 @@ int range_server_stop(struct mdhim_t *md) {
 		    != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error releasing cursor", 
 			     md->mdhim_rank);
-			return MDHIM_ERROR;
 		}
 		HASH_DEL(mdhim_cursors, cur_cursor);  /*delete it (mdhim_cursors advances to next)*/
 		free(cur_cursor);            /* free it */
@@ -206,7 +219,8 @@ int range_server_stop(struct mdhim_t *md) {
 	//Close the database
 	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, NULL)) 
 	    != MDHIM_SUCCESS) {
-		return MDHIM_ERROR;
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
+		     md->mdhim_rank);
 	}
 
 	//Free the range server information
@@ -247,6 +261,8 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	//Set the server's rank
 	rm->server_rank = md->mdhim_rank;
 
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending response for put request", 
+	     md->mdhim_rank);
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
 
@@ -412,6 +428,8 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 		     md->mdhim_rank);
 	}
 
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d", 
+	     md->mdhim_rank, *((int *) value), value_len);
 	//Create the response message
 	grm = malloc(sizeof(struct mdhim_getrm_t));
 	//Set the type
@@ -498,6 +516,9 @@ void *listener_thread(void *data) {
 	int ret;
 	work_item *item;
 
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
 	while (1) {		
 		//Receive messages sent to this server
 		ret = receive_rangesrv_work(md, &source, &message);
@@ -535,12 +556,25 @@ void *worker_thread(void *data) {
 	int mtype;
 	int op;
 
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	while (1) {
 		//Lock the work queue mutex
 		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
+		pthread_cleanup_push((void (*)(void *)) pthread_mutex_unlock,
+				     (void *) md->mdhim_rs->work_queue_mutex);
 		//Wait until there is work to be performed
 		if ((item = get_work(md)) == NULL) {
 			pthread_cond_wait(md->mdhim_rs->work_ready_cv, md->mdhim_rs->work_queue_mutex);
+			item = get_work(md);
+		}
+
+		pthread_cleanup_pop(0);
+		if (!item) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Got empty work item from queue", 
+			     md->mdhim_rank);
+			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+			continue;
 		}
 
 		//Call the appropriate function depending on the message type			
@@ -598,6 +632,7 @@ void *worker_thread(void *data) {
 		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 	}
 	
+	return NULL;
 }
 
 /**
@@ -632,14 +667,11 @@ int range_server_init(struct mdhim_t *md) {
 	}
   
 	//Populate md->mdhim_rs
-	if ((ret = populate_my_ranges(md, rangesrv_num)) == MDHIM_ERROR) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error populating my ranges",
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
-	}
+	md->mdhim_rs->info.rank = md->mdhim_rank;
+	md->mdhim_rs->info.rangesrv_num = rangesrv_num;
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
-	sprintf(filename, "%s%lld", "range", (long long int) md->mdhim_rs->info.start_range);
+	sprintf(filename, "%s%d", "mdhim_db", md->mdhim_rank);
 	//Initialize data store
 	md->mdhim_rs->mdhim_store = mdhim_db_init(UNQLITE);
 	if (!md->mdhim_rs->mdhim_store) {
