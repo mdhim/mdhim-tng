@@ -44,6 +44,9 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
 		return_code = pack_bdel_message(md, (struct mdhim_bdelm_t *)message, &sendbuf, 
 					       &sendsize);
 		break;
+	case MDHIM_CLOSE:
+		return_code = pack_close_message(md, (struct mdhim_basem_t *)message, &sendbuf, 
+						  &sendsize);
 	default:
 		break;
 	}
@@ -153,6 +156,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 		break;
 	case MDHIM_BULK_DEL:
 		return_code = unpack_bdel_message(md, recvbuf, msg_size, message);			
+		break;
+	case MDHIM_CLOSE:
+		return MDHIM_CLOSE;
 		break;
 	default:
 		break;
@@ -1155,6 +1161,54 @@ int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, void
 	if ( return_code != MPI_SUCCESS ) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to unpack "
                      "the bget return message.", md->mdhim_rank);
+             return MDHIM_ERROR; 
+        }
+
+	return MDHIM_SUCCESS;
+}
+
+///------------------------
+
+/**
+ * pack_cloase_message
+ * Packs a close message structure into contiguous memory for message passing
+ *
+ * @param md       in   main MDHIM struct
+ * @param cm       in   structure base message which will be packed into the sendbuf 
+ * @param sendbuf  out  double pointer for packed message to send
+ * @param sendsize out  pointer for packed message size
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ * 
+ * struct mdhim_basem_t {
+	int mtype;
+};
+ */
+int pack_close_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendbuf, int *sendsize) {
+
+	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
+        int64_t m_size = sizeof(struct mdhim_basem_t); // Generous variable for size calculation
+        int mesg_size;  // Variable to be used as parameter for MPI_pack of safe size
+    	int mesg_idx = 0;  // Variable for incremental pack
+        void *outbuf;
+      
+        mesg_size = m_size;
+        *sendsize = mesg_size;
+	
+        if ((*((char **) sendbuf) = malloc(mesg_size * sizeof(char))) == NULL) {
+             mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
+                     "memory to pack del message.", md->mdhim_rank);
+             return MDHIM_ERROR; 
+        }
+        
+	outbuf = *((char **) sendbuf);
+        // pack the message first with the structure and then followed by key and data values.
+	return_code = MPI_Pack(cm, sizeof(struct mdhim_basem_t), MPI_CHAR, outbuf, mesg_size, 
+			       &mesg_idx, md->mdhim_comm);
+
+	// If the pack did not succeed then log the error and return the error code
+	if ( return_code != MPI_SUCCESS ) {
+             mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to pack "
+                     "the del message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
 

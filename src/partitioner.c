@@ -214,6 +214,11 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 		return MDHIM_ERROR;
 	}
 
+	//Rank zero can't be a range server so it can do maintenance later
+	if (!rank) {
+		return rangesrv_num;
+	}
+
 	/* Get the range server number, which is just a number from 1 onward
 	   It represents the ranges the server serves and is calculated with the RANGE_SERVER_FACTOR
 	   

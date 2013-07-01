@@ -17,12 +17,14 @@
 #define MDHIM_DEL 5
 //Delete multiple keys from the data store at once
 #define MDHIM_BULK_DEL 6
+//Close message
+#define MDHIM_CLOSE 7
 //Generic receive message
-#define MDHIM_RECV 7
+#define MDHIM_RECV 8
 //Receive message for a get request
-#define MDHIM_RECV_GET 8
+#define MDHIM_RECV_GET 9
 //Receive message for a bulk get request
-#define MDHIM_RECV_BULK_GET 9
+#define MDHIM_RECV_BULK_GET 10
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
@@ -188,6 +190,8 @@ int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, void *
 
 int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbuf, int *sendsize);
 int unpack_return_message(struct mdhim_t *md, void *message, void **rm);
+
+int pack_close_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendbuf, int *sendsize);
 
 void mdhim_release_msg(void *message);
 

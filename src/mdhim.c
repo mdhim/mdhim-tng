@@ -62,6 +62,12 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 		return NULL;
 	}
 
+	if (md->mdhim_comm_size < 2) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - The communicator size must be 2" 
+		     " or greater", md->mdhim_rank);
+		return NULL;
+	}
+
 	//Initialize receive msg mutex - used for receiving a message from myself
 	md->receive_msg_mutex = malloc(sizeof(pthread_mutex_t));
 	if (!md->receive_msg_mutex) {
@@ -125,8 +131,18 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 int mdhimClose(struct mdhim_t *md) {
 	int ret;
 	struct rangesrv_info *rsrv, *trsrv;
+	struct mdhim_basem_t *cm;
 
 	MPI_Barrier(md->mdhim_comm);
+
+	//If I'm rank 0, send a close message to every range server to it can stop its thread
+	if (!md->mdhim_rank) {
+		cm = malloc(sizeof(struct mdhim_basem_t));
+		cm->mtype = MDHIM_CLOSE;
+		client_close(md, cm);
+		free(cm);
+	}
+
 	//Stop range server if I'm a range server	
 	if (im_range_server(md) && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;

@@ -197,3 +197,29 @@ struct mdhim_rm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm)
 	// Return response
 	return brm;
 }
+
+
+/**
+ * Send close to all range servers
+ *
+ * @param md main MDHIM struct
+ * @param cm pointer to close message to be sent
+ */
+void client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
+	int return_code;
+	rangesrv_info *rs;
+
+	rs = md->rangesrvs;
+	while (rs) {
+		return_code = send_rangesrv_work(md, rs->rank, cm);
+		// If there was an error then log the error code and return MDHIM_ERROR
+		if (return_code != MDHIM_SUCCESS) {
+			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
+			     "close record request",  md->mdhim_rank, return_code);
+		}
+
+		rs = rs->next;
+	}
+
+	return;
+}

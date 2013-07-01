@@ -168,11 +168,7 @@ int range_server_stop(struct mdhim_t *md) {
 	int ret;	
 	struct mdhim_cursor *cur_cursor, *tmp;
 
-	//Cancel the threads
-	if ((ret = pthread_cancel(md->mdhim_rs->listener)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling listener thread", 
-		     md->mdhim_rank);
-	}
+	//Cancel the worker thread
 	if ((ret = pthread_cancel(md->mdhim_rs->worker)) != 0) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling worker thread", 
 		     md->mdhim_rank);
@@ -507,12 +503,19 @@ void *listener_thread(void *data) {
 	while (1) {		
 		//Receive messages sent to this server
 		ret = receive_rangesrv_work(md, &source, &message);
-		if (ret != MDHIM_SUCCESS) {
+		if (ret < MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error receiving message in listener", 
 			     md->mdhim_rank);
 			continue;
 		}
 	
+		//We received a close message - so quit
+		if (ret == MDHIM_CLOSE) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Received close message", 
+			     md->mdhim_rank);
+			break;
+		}
+
                 //Get the message type
 		mtype = ((struct mdhim_basem_t *) message)->mtype;
 		mlog(MPI_DBG, "Rank: %d - Received message from rank: %d of type: %d", 
@@ -529,6 +532,8 @@ void *listener_thread(void *data) {
 		//Add the new item to the work queue
 		range_server_add_work(md, item);
 	}
+
+	return NULL;
 }
 
 /*
