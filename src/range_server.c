@@ -414,22 +414,24 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
  */
 int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	int error;
-	void *value;
+	void **value;
 	int value_len;
 	struct mdhim_getrm_t *grm;
 	int ret;
 
+	value = malloc(sizeof(void *));
+	*value = NULL;
 	//Get a record from the database
 	if ((error = 
 	     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-					    gm->key, gm->key_len, (void **) &value, 
+					    gm->key, gm->key_len, value, 
 					    (int64_t *) &value_len, NULL)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record", 
 		     md->mdhim_rank);
 	}
 
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d", 
-	     md->mdhim_rank, *((int *) value), value_len);
+	     md->mdhim_rank, **((int **) value), value_len);
 	//Create the response message
 	grm = malloc(sizeof(struct mdhim_getrm_t));
 	//Set the type
@@ -441,13 +443,14 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	//Set the key and value
 	grm->key = gm->key;
 	grm->key_len = gm->key_len;
-	grm->value = value;
+	grm->value = (void *) (((char **) value));
 	grm->value_len = value_len;
 	//Send response
 	ret = send_locally_or_remote(md, source, grm);
 
 	//We are done with this message
-	mdhim_release_recv_msg(grm);
+	free(*value);
+	free(value);
 
 	return MDHIM_SUCCESS;
 }

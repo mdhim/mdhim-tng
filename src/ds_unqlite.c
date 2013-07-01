@@ -189,9 +189,8 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *d
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
 	unqlite_int64 nbytes;
-	char *buf;
 
-	*data = NULL;
+	*((char **) data) = NULL;
 	*data_len = 0;
 
 	//Extract data size first
@@ -201,20 +200,17 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *d
 	}
 	
         //Allocate the buffer to the value's size
-	buf = (char *) malloc(nbytes);
-	if (buf == NULL) { 
-		mlog(MDHIM_SERVER_CRIT, "Error allocating memory while getting value for key");
-		return MDHIM_DB_ERROR;
-	}
+	*((char **) data) = (char *) malloc(nbytes);
 
         //Copy record content in our buffer
-	if ((ret = unqlite_kv_fetch(dh, key, key_len, buf, &nbytes)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_fetch(dh, key, key_len, *((char **) data), 
+				    &nbytes)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 
+	mlog(MDHIM_SERVER_DBG, "Retrieved value: %d", **((int **) data));
 	//Set the output arguments
-	*data = (void *) buf;
 	*data_len = nbytes;
 
 	return MDHIM_SUCCESS;
