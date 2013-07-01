@@ -1600,3 +1600,63 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 
 	return rs_head;
 }
+
+/**
+ * Frees memory taken up by receive type messages
+ *
+ * @param msg          pointer to the message to free
+ */
+void mdhim_release_msg(void *msg) {
+	int mtype;
+	int i;
+
+	if (!msg) {
+		return;
+	}
+
+	//Determine the message type and free accordingly
+	mtype = ((struct mdhim_basem_t *) msg)->mtype;
+	switch(mtype) {
+	case MDHIM_RECV:
+		free((struct mdhim_rm_t *) msg);
+		break;
+	case MDHIM_RECV_GET:
+		if (((struct mdhim_getrm_t *) msg)->key) {
+			free(((struct mdhim_getrm_t *) msg)->key);
+		}	
+
+		if (((struct mdhim_getrm_t *) msg)->value) {
+			free(((struct mdhim_getrm_t *) msg)->value);
+		}	
+
+		free((struct mdhim_getrm_t *) msg);
+		break;
+	case MDHIM_RECV_BULK_GET:
+		for (i = 0; i < ((struct mdhim_bgetrm_t *) msg)->num_records; i++) {
+			if (((struct mdhim_bgetrm_t *) msg)->keys[i]) {
+				free(((struct mdhim_bgetrm_t *) msg)->keys[i]);
+			}
+			if (((struct mdhim_bgetrm_t *) msg)->values[i]) {
+				free(((struct mdhim_bgetrm_t *) msg)->values[i]);
+			}
+		}
+		
+		if (((struct mdhim_bgetrm_t *) msg)->key_lens) {
+			free(((struct mdhim_bgetrm_t *) msg)->key_lens);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->keys) {
+			free(((struct mdhim_bgetrm_t *) msg)->keys);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->value_lens) {
+			free(((struct mdhim_bgetrm_t *) msg)->value_lens);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->values) {
+			free(((struct mdhim_bgetrm_t *) msg)->values);	
+		}
+
+		free((struct mdhim_bgetrm_t *) msg);
+		break;
+	default:
+		break;
+	}
+}

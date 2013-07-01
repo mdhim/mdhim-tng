@@ -188,5 +188,8 @@ int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, void *
 
 int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbuf, int *sendsize);
 int unpack_return_message(struct mdhim_t *md, void *message, void **rm);
+
+void mdhim_release_msg(void *message);
+
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
 #endif

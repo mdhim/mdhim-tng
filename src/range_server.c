@@ -79,6 +79,7 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending remote response to: %d", 
 		     md->mdhim_rank, dest);
 		ret = send_client_response(md, dest, message);
+		mdhim_release_msg(message);
 	} else {
 		//Sends the message locally
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending local response to: %d", 
@@ -266,9 +267,6 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
 
-	//We are done with this message
-	mdhim_release_recv_msg(rm);
-
 	return MDHIM_SUCCESS;
 }
 
@@ -312,9 +310,6 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
 
-	//We are done with this message
-	mdhim_release_recv_msg(brm);
-
 	return MDHIM_SUCCESS;
 }
 
@@ -350,9 +345,6 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
-
-	//We are done with this message
-	mdhim_release_recv_msg(rm);
 
 	return MDHIM_SUCCESS;
 }
@@ -397,9 +389,6 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
 
-	//We are done with this message
-	mdhim_release_recv_msg(brm);
-
 	return MDHIM_SUCCESS;
 }
 
@@ -443,14 +432,10 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	//Set the key and value
 	grm->key = gm->key;
 	grm->key_len = gm->key_len;
-	grm->value = (void *) (((char **) value));
+	grm->value = (void *) *(((char **) value));
 	grm->value_len = value_len;
 	//Send response
 	ret = send_locally_or_remote(md, source, grm);
-
-	//We are done with this message
-	free(*value);
-	free(value);
 
 	return MDHIM_SUCCESS;
 }
@@ -500,9 +485,6 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	bgrm->value_lens = value_lens;
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
-
-	//We are done with this message
-	mdhim_release_recv_msg(bgrm);
 
 	return MDHIM_SUCCESS;
 }

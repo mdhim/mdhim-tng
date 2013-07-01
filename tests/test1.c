@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 
-	key = 100 * md->mdhim_rank + 1;
-	value = 500 * md->mdhim_rank;
+	key = 100 * (md->mdhim_rank + 1);
+	value = 500 * (md->mdhim_rank + 1);
 	rm = mdhimPut(md, &key, sizeof(key), MDHIM_INT_KEY, 
 		       &value, sizeof(value));
 	if (!rm || rm->error) {
