@@ -135,8 +135,8 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 				 md->mdhim_comm);
 	mtype = bm.mtype;
 	mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - "
-	     "Received message with size: %d and type: %d.", md->mdhim_rank, msg_size, 
-	     mtype);
+	     "Received message with size: %d and type: %d from rank: %d.", md->mdhim_rank, msg_size, 
+	     mtype, msg_source);
 
 	switch(mtype) {
 	case MDHIM_PUT:
@@ -215,6 +215,9 @@ int send_client_response(struct mdhim_t *md, int dest, void *message) {
 	}
 
 	//Send the size
+	mlog(MPI_DBG, "Rank: %d - " 
+	     "Sending client: %d size: %d", 
+	     md->mdhim_rank, dest, sendsize);
 	return_code = MPI_Send(&sendsize, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE, md->mdhim_comm);
 	if (return_code != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
@@ -222,7 +225,10 @@ int send_client_response(struct mdhim_t *md, int dest, void *message) {
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
-
+	
+	mlog(MPI_DBG, "Rank: %d - " 
+	     "Sending response message to: %d", 
+	     md->mdhim_rank, dest);
 	return_code = MPI_Send(sendbuf, sendsize, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
 			       md->mdhim_comm);
 	if (return_code != MPI_SUCCESS) {
@@ -249,7 +255,6 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	MPI_Status status;
 	int return_code;
 	int msg_size;
-	int msg_source;
 	int mtype;
 	int mesg_idx = 0;
 	void *recvbuf;
@@ -272,9 +277,12 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	}
 
 	// Receive a message from the client that sent the previous message
-	msg_source = status.MPI_SOURCE;
+	//Received the size
+	mlog(MPI_DBG, "Rank: %d - " 
+	     "Received size message from server: %d with size: %d", 
+	     md->mdhim_rank, src, msg_size);
 	recvbuf = malloc(msg_size);
-	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, msg_source, CLIENT_RESPONSE_MSG, 
+	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, src, CLIENT_RESPONSE_MSG, 
 			       md->mdhim_comm, &status);
 
 	// If the receive did not succeed then return the error code back
@@ -284,6 +292,11 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
+
+	//Received the message
+	mlog(MPI_DBG, "Rank: %d - " 
+	     "Received the message from server: %d", 
+	     md->mdhim_rank, src);
 
 	*((char **) message) = NULL;
 	//Unpack buffer to get the message type
@@ -1627,14 +1640,13 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 			return NULL;
 		}
 
-		mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
-		     "Received range server with rank: %d, range server number: %u", 
-		     md->mdhim_rank, i, rsi.rangesrv_num);
+	
 
-		if (rsi.rangesrv_num == 0) {
+		if (rsi.rangesrv_num != 0) {
 			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
-			     "Rank: %d is not a range server", 
-			     md->mdhim_rank, i);
+			     "Received range server with rank: %d, range server number: %u", 
+			     md->mdhim_rank, i, rsi.rangesrv_num);
+		} else {
 			continue;
 		}
 

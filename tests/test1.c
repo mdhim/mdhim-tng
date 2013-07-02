@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
 		printf("Error closing MDHIM\n");
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 
 	return 0;

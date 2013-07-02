@@ -21,7 +21,7 @@
 
 /**
  * mdhimInit
- * Initializes MDHIM
+ * Initializes MDHIM - Collective call
  *
  * @param appComm  the communicator that was passed in from the application (e.g., MPI_COMM_WORLD)
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
@@ -37,6 +37,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 
 	//Allocate memory for the main MDHIM structure
 	md = malloc(sizeof(struct mdhim_t));
+	memset(md, 0, sizeof(struct mdhim_t));
 	if (!md) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM - Error while allocating memory while initializing");
 		return NULL;
@@ -119,6 +120,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 	//Set the receive queue to NULL 
 	md->receive_msg = NULL;
 
+	MPI_Barrier(md->mdhim_comm);
 	return md;
 }
 
@@ -134,7 +136,6 @@ int mdhimClose(struct mdhim_t *md) {
 	struct mdhim_basem_t *cm;
 
 	MPI_Barrier(md->mdhim_comm);
-
 	//If I'm rank 0, send a close message to every range server to it can stop its thread
 	if (!md->mdhim_rank) {
 		cm = malloc(sizeof(struct mdhim_basem_t));
@@ -377,6 +378,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 
 	//Initialize the get message
 	gm->mtype = MDHIM_GET;
+	gm->op = MDHIM_GET_VAL;
 	gm->key = key;
 	gm->key_len = key_len;
 	gm->server_rank = range_srv;

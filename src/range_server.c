@@ -415,8 +415,8 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 		     md->mdhim_rank);
 	}
 
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d", 
-	     md->mdhim_rank, **((int **) value), value_len);
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d for rank: %d", 
+	     md->mdhim_rank, **((int **) value), value_len, source);
 	//Create the response message
 	grm = malloc(sizeof(struct mdhim_getrm_t));
 	//Set the type
@@ -431,6 +431,8 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	grm->value = (void *) *(((char **) value));
 	grm->value_len = value_len;
 	//Send response
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - About to send get response to: %d", 
+	     md->mdhim_rank, source);
 	ret = send_locally_or_remote(md, source, grm);
 
 	return MDHIM_SUCCESS;
@@ -558,7 +560,7 @@ void *worker_thread(void *data) {
 			pthread_cond_wait(md->mdhim_rs->work_ready_cv, md->mdhim_rs->work_queue_mutex);
 			item = get_work(md);
 		}
-
+	       
 		pthread_cleanup_pop(0);
 		if (!item) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Got empty work item from queue", 
@@ -567,58 +569,64 @@ void *worker_thread(void *data) {
 			continue;
 		}
 
-		//Call the appropriate function depending on the message type			
-		//Get the message type
-		mtype = ((struct mdhim_basem_t *) item->message)->mtype;
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue with type: %d", 
-		     md->mdhim_rank, mtype);
-		switch(mtype) {
-		case MDHIM_PUT:
-			//Pack the put message and pass to range_server_put
-			range_server_put(md, 
-					 item->message, 
-					 item->source);
-			break;
-		case MDHIM_BULK_PUT:
-			//Pack the bulk put message and pass to range_server_put
-			range_server_bput(md, 
-					  item->message, 
-					  item->source);
-			break;
-		case MDHIM_GET:
-			//Determine the operation passed and call the appropriate function
-			op = ((struct mdhim_bgetm_t *) item->message)->op;
-			if (op == MDHIM_GET_VAL) {
-				range_server_get(md, 
+		while (item) {
+			//Call the appropriate function depending on the message type			
+			//Get the message type
+			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue with type: %d" 
+			     " from: %d", md->mdhim_rank, mtype, item->source);
+			switch(mtype) {
+			case MDHIM_PUT:
+				//Pack the put message and pass to range_server_put
+				range_server_put(md, 
 						 item->message, 
 						 item->source);
-			} else if (op == MDHIM_GET_NEXT) {
+				break;
+			case MDHIM_BULK_PUT:
+				//Pack the bulk put message and pass to range_server_put
+				range_server_bput(md, 
+						  item->message, 
+						  item->source);
+				break;
+			case MDHIM_GET:
+				//Determine the operation passed and call the appropriate function
+				op = ((struct mdhim_bgetm_t *) item->message)->op;
+				if (op == MDHIM_GET_VAL) {
+					range_server_get(md, 
+							 item->message, 
+							 item->source);
+				} else if (op == MDHIM_GET_NEXT) {
 /*					range_server_get_next(md, 
 					item->message, 
 					item->source); */
-			} else if (op == MDHIM_GET_PREV) {
-				/*
-				  range_server_get_prev(md, item->message, 
-				  item->source);*/
+				} else if (op == MDHIM_GET_PREV) {
+					/*
+					  range_server_get_prev(md, item->message, 
+					  item->source);*/
+				}
+				break;
+			case MDHIM_BULK_GET:
+				//Determine the operation passed and call the appropriate function
+				range_server_bget(md, 
+						  item->message, 
+						  item->source);
+				break;
+			case MDHIM_DEL:
+				range_server_del(md, item->message, item->source);
+				break;
+			case MDHIM_BULK_DEL:
+				range_server_bdel(md, item->message, item->source);
+				break;
+			default:
+				mlog(MDHIM_SERVER_CRIT, "Rank: %d - Got unknown work type: %d" 
+				     " from: %d", md->mdhim_rank, mtype, item->source);
+				break;
 			}
-			break;
-		case MDHIM_BULK_GET:
-			//Determine the operation passed and call the appropriate function
-			range_server_bget(md, 
-					  item->message, 
-					  item->source);
-			break;
-		case MDHIM_DEL:
-			range_server_del(md, item->message, item->source);
-			break;
-		case MDHIM_BULK_DEL:
-			range_server_bdel(md, item->message, item->source);
-			break;
-		default:
-			break;
-		}
-			
-		free(item);		
+				
+			free(item);
+			item = get_work(md);
+		}		
+
 		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 	}
 	
