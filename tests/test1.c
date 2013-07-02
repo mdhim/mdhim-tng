@@ -18,6 +18,11 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
+	if (provided != MPI_THREAD_MULTIPLE) {
+                printf("Not able to enable MPI_THREAD_MULTIPLE mode\n");
+                exit(1);
+        }
+
 	md = mdhimInit(MPI_COMM_WORLD);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
