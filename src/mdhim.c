@@ -254,6 +254,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 	
 	//Create an array of bulk put messages that holds one bulk message per range server
 	bpm_list = malloc(sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
+	memset(bpm_list, 0, sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
 
 	//Initialize the pointers of the list to null
 	for (i = 0; i < md->num_rangesrvs; i++) {
@@ -274,7 +275,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 		}
 
 		//Get the message for this range server
-		bpm = bpm_list[range_srv];
+		bpm = bpm_list[range_srv - 1];
 
 		//If the message doesn't exist, create one
 		if (!bpm) {
@@ -286,6 +287,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			bpm->num_records = 0;
 			bpm->server_rank = range_srv;
 			bpm->mtype = MDHIM_BULK_PUT;
+			bpm_list[range_srv - 1] = bpm;
 		}
 
 		//Add the key, lengths, and data to the message
@@ -310,6 +312,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			rm = local_client_bput(md, bpm);
 		} else {
 			rm = client_bput(md, bpm);
+			free(bpm);
 		}		
 
 		brm = malloc(sizeof(struct mdhim_brm_t));
@@ -327,16 +330,6 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			brm_tail->next = brm;
 			brm_tail = brm;
 		}
-	}
-
-	//Free up the memory we don't need anymore
-	for (i = 0; i < md->num_rangesrvs; i++) {
-		if (!bpm_list[i]) {
-			continue;
-		}
-
-		free(bpm_list[i]);
-		bpm_list[i] = NULL;
 	}
 
 	free(bpm_list);

@@ -424,10 +424,10 @@ int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **send
         int mesg_size;   // Variable to be used as parameter for MPI_pack of safe size
     	int mesg_idx = 0;
         int i;
-        
-        // For each of the lens (key_lens and data_lens)
-        // WARNING We are treating ints as the same size as char for packing purposes
-        m_size += 2 * bpm->num_records;
+	void *outbuf;
+
+        // Add the sizes of the length arrays (key_lens and data_lens)
+        m_size += 2 * bpm->num_records * sizeof(int);
         
         // For the each of the keys and data add enough chars.
         for (i=0; i < bpm->num_records; i++)
@@ -442,21 +442,22 @@ int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **send
         mesg_size = m_size;  // Safe size to use in MPI_pack     
 	*sendsize = mesg_size;
 
-        if ((sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
+        if (((*(char **) sendbuf) = malloc(mesg_size * sizeof(char))) == NULL) {
              mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to pack bulk put message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
-        
+
+	outbuf = *(char **) sendbuf;
         // pack the message first with the structure and then followed by key and data values (plus lengths).
-	return_code = MPI_Pack(bpm, sizeof(struct mdhim_bputm_t), MPI_CHAR, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
+	return_code = MPI_Pack(bpm, sizeof(struct mdhim_bputm_t), MPI_CHAR, outbuf, mesg_size, &mesg_idx, md->mdhim_comm);
          
         // For the each of the keys and data pack the chars plus two ints for key_len and data_len.
         for (i=0; i < bpm->num_records; i++) {
-                return_code += MPI_Pack(&bpm->key_lens[i], 1, MPI_INT, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
-                return_code += MPI_Pack(bpm->keys[i], bpm->key_lens[i], MPI_CHAR, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
-                return_code += MPI_Pack(&bpm->value_lens[i], 1, MPI_INT, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
-                return_code += MPI_Pack(bpm->values[i], bpm->value_lens[i], MPI_CHAR, sendbuf, mesg_size, &mesg_idx, md->mdhim_comm);
+                return_code += MPI_Pack(&bpm->key_lens[i], 1, MPI_INT, outbuf, mesg_size, &mesg_idx, md->mdhim_comm);
+                return_code += MPI_Pack(bpm->keys[i], bpm->key_lens[i], MPI_CHAR, outbuf, mesg_size, &mesg_idx, md->mdhim_comm);
+                return_code += MPI_Pack(&bpm->value_lens[i], 1, MPI_INT, outbuf, mesg_size, &mesg_idx, md->mdhim_comm);
+                return_code += MPI_Pack(bpm->values[i], bpm->value_lens[i], MPI_CHAR, outbuf, mesg_size, &mesg_idx, md->mdhim_comm);
         }
 
 	// If the pack did not succeed then log the error and return the error code
@@ -571,16 +572,30 @@ int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, void *
         return_code = MPI_Unpack(message, mesg_size, &mesg_idx, bpm, sizeof(struct mdhim_bputm_t), 
 				 MPI_CHAR, md->mdhim_comm);
         
-        // Allocate memory for key_lens first, to be populated later.
+	// Allocate memory for key pointers, to be populated later.
+        if ((bpm->keys = malloc(bpm->num_records * sizeof(void *))) == NULL) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
+		     "memory to unpack bput message.", md->mdhim_rank);
+		return MDHIM_ERROR; 
+        }
+
+	// Allocate memory for value pointers, to be populated later.
+        if ((bpm->values = malloc(bpm->num_records * sizeof(void *))) == NULL) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
+		     "memory to unpack bput message.", md->mdhim_rank);
+		return MDHIM_ERROR; 
+        }
+
+        // Allocate memory for key_lens, to be populated later.
         if ((bpm->key_lens = (int *)malloc(bpm->num_records * sizeof(int))) == NULL) {
-             mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
+             mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bput message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
         
-        // Allocate memory for key_lens first, to be populated later.
+        // Allocate memory for value_lens, to be populated later.
         if ((bpm->value_lens = (int *)malloc(bpm->num_records * sizeof(int))) == NULL) {
-             mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
+             mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bput message.", md->mdhim_rank);
              return MDHIM_ERROR; 
         }
@@ -593,7 +608,7 @@ int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, void *
             
             // Unpack key by first allocating memory and then extracting the values from message
             if ((bpm->keys[i] = (char *)malloc(bpm->key_lens[i] * sizeof(char))) == NULL) {
-                 mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
+                 mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                          "memory to unpack bput message.", md->mdhim_rank);
                  return MDHIM_ERROR; 
             }
@@ -606,7 +621,7 @@ int unpack_bput_message(struct mdhim_t *md, void *message, int mesg_size, void *
 
             // Unpack data by first allocating memory and then extracting the values from message
             if ((bpm->values[i] = (char *)malloc(bpm->value_lens[i] * sizeof(char))) == NULL) {
-                 mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
+                 mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                          "memory to unpack bput message.", md->mdhim_rank);
                  return MDHIM_ERROR; 
             }
@@ -1668,11 +1683,11 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 }
 
 /**
- * Frees memory taken up by receive type messages
+ * Frees all memory taken up by messages - including keys and values
  *
  * @param msg          pointer to the message to free
  */
-void mdhim_release_msg(void *msg) {
+void mdhim_full_release_msg(void *msg) {
 	int mtype;
 	int i;
 
@@ -1721,6 +1736,90 @@ void mdhim_release_msg(void *msg) {
 		}
 
 		free((struct mdhim_bgetrm_t *) msg);
+		break;
+	case MDHIM_BULK_PUT:
+		for (i = 0; i < ((struct mdhim_bputm_t *) msg)->num_records; i++) {
+			if (((struct mdhim_bputm_t *) msg)->keys[i]) {
+				free(((struct mdhim_bputm_t *) msg)->keys[i]);
+			}
+			if (((struct mdhim_bputm_t *) msg)->values[i]) {
+				free(((struct mdhim_bputm_t *) msg)->values[i]);
+			}
+		}
+		
+		if (((struct mdhim_bputm_t *) msg)->key_lens) {
+			free(((struct mdhim_bputm_t *) msg)->key_lens);	
+		}
+		if (((struct mdhim_bputm_t *) msg)->keys) {
+			free(((struct mdhim_bputm_t *) msg)->keys);	
+		}
+		if (((struct mdhim_bputm_t *) msg)->value_lens) {
+			free(((struct mdhim_bputm_t *) msg)->value_lens);	
+		}
+		if (((struct mdhim_bputm_t *) msg)->values) {
+			free(((struct mdhim_bputm_t *) msg)->values);	
+		}
+
+		free((struct mdhim_bputm_t *) msg);
+		break;
+	default:
+		break;
+	}
+}
+
+
+/**
+ * Frees memory taken up by messages except for the keys and values
+ *
+ * @param msg          pointer to the message to free
+ */
+void mdhim_partial_release_msg(void *msg) {
+	int mtype;
+
+	if (!msg) {
+		return;
+	}
+
+	//Determine the message type and free accordingly
+	mtype = ((struct mdhim_basem_t *) msg)->mtype;
+	switch(mtype) {
+	case MDHIM_RECV:
+		free((struct mdhim_rm_t *) msg);
+		break;
+	case MDHIM_RECV_GET:
+		free((struct mdhim_getrm_t *) msg);
+		break;
+	case MDHIM_RECV_BULK_GET:			
+		if (((struct mdhim_bgetrm_t *) msg)->key_lens) {
+			free(((struct mdhim_bgetrm_t *) msg)->key_lens);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->keys) {
+			free(((struct mdhim_bgetrm_t *) msg)->keys);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->value_lens) {
+			free(((struct mdhim_bgetrm_t *) msg)->value_lens);	
+		}
+		if (((struct mdhim_bgetrm_t *) msg)->values) {
+			free(((struct mdhim_bgetrm_t *) msg)->values);	
+		}
+
+		free((struct mdhim_bgetrm_t *) msg);
+		break;
+	case MDHIM_BULK_PUT:	
+		if (((struct mdhim_bputm_t *) msg)->key_lens) {
+			free(((struct mdhim_bputm_t *) msg)->key_lens);	
+		}
+		if (((struct mdhim_bputm_t *) msg)->keys) {
+			free(((struct mdhim_bputm_t *) msg)->keys);	
+		}
+		if (((struct mdhim_bputm_t *) msg)->value_lens) {
+			free(((struct mdhim_bputm_t *) msg)->value_lens);	
+		}
+		if (((struct mdhim_bputm_t *) msg)->values) {
+			free(((struct mdhim_bputm_t *) msg)->values);	
+		}
+
+		free((struct mdhim_bputm_t *) msg);
 		break;
 	default:
 		break;

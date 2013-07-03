@@ -79,7 +79,7 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending remote response to: %d", 
 		     md->mdhim_rank, dest);
 		ret = send_client_response(md, dest, message);
-		mdhim_release_msg(message);
+		mdhim_full_release_msg(message);
 	} else {
 		//Sends the message locally
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending local response to: %d", 
@@ -278,11 +278,11 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source) {
 	int i;
 	int ret;
-	int error;
+	int error = 0;
 	struct mdhim_rm_t *brm;
 
 	//Iterate through the arrays and insert each record
-	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
@@ -302,6 +302,9 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	brm->error = error;
 	//Set the server's rank
 	brm->server_rank = md->mdhim_rank;
+
+	//Release the bputm message, but don't free the keys and values
+	mdhim_partial_release_msg(bim);
 
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
@@ -406,17 +409,21 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 
 	value = malloc(sizeof(void *));
 	*value = NULL;
+	value_len = 0;
 	//Get a record from the database
 	if ((error = 
 	     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 					    gm->key, gm->key_len, value, 
 					    (int64_t *) &value_len, NULL)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record", 
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
 		     md->mdhim_rank);
 	}
 
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d for rank: %d", 
-	     md->mdhim_rank, **((int **) value), value_len, source);
+	if (*((char **) value)) {
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d for rank: %d", 
+		     md->mdhim_rank, **((int **) value), value_len, source);
+	}
+
 	//Create the response message
 	grm = malloc(sizeof(struct mdhim_getrm_t));
 	//Set the type

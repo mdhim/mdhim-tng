@@ -193,7 +193,8 @@ int unpack_return_message(struct mdhim_t *md, void *message, void **rm);
 
 int pack_close_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendbuf, int *sendsize);
 
-void mdhim_release_msg(void *message);
+void mdhim_full_release_msg(void *message);
+void mdhim_partial_release_msg(void *message);
 
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
 #endif

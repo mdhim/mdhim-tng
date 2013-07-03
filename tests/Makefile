@@ -6,10 +6,13 @@ CINC	= -I${MPI_ROOT}/include -IMlog/ -Iuthash -I../src -I../src/uthash
 
 CFLAGS	= -lmpi -lmdhim -lm
 
-all:	test1
+all:	get-put bget-bput
 
-test1: test1.c 
+get-put: get-put.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
+bget-bput: bget-bput.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 clean:
-	rm -rf test1
+	rm -rf get-put bget-bput
