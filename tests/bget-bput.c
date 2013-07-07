@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	int **values;
 	int value_lens[KEYS];
 	struct mdhim_brm_t *brm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_bgetrm_t *bgrm;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
@@ -54,11 +54,12 @@ int main(int argc, char **argv) {
 		printf("Successfully inserted keys/values into MDHIM\n");
 	}
 
-	grm = mdhimGet(md, keys[0], sizeof(*keys[0]), MDHIM_INT_KEY);
-	if (!grm || grm->error) {
-		printf("Error getting value for key: %d from MDHIM\n", *keys[0]);
+	bgrm = mdhimBGet(md, (void **) keys, key_lens, key_types, 
+			 KEYS);
+	if (!bgrm || bgrm->error) {
+		printf("Error getting values for keys\n");
 	} else {
-		printf("Successfully got value: %d from MDHIM\n", *((int *) grm->value));
+		printf("Successfully got values for keys\n");
 	}
 
 	ret = mdhimClose(md);

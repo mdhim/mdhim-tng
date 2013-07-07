@@ -94,7 +94,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	int msg_source;
 	void *recvbuf;
 	int mtype;
-	struct mdhim_basem_t bm;
+	struct mdhim_basem_t *bm;
 	int mesg_idx = 0;
 
 	// Receive the message size from any client
@@ -117,7 +117,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	// Receive a message from the client that sent the previous message
 	msg_source = status.MPI_SOURCE;
 	*src = msg_source;
-	recvbuf = malloc(msg_size);
+	recvbuf = (void *) malloc(msg_size);
 	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, msg_source, RANGESRV_WORK_MSG, 
 			       md->mdhim_comm, &status);
 
@@ -130,10 +130,12 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 
 	*((char **) message) = NULL;
 	//Unpack buffer to get the message type
-	return_code = MPI_Unpack(recvbuf, msg_size, &mesg_idx, &bm, 
+	bm = malloc(sizeof(struct mdhim_basem_t));
+	return_code = MPI_Unpack(recvbuf, msg_size, &mesg_idx, bm, 
 				 sizeof(struct mdhim_basem_t), MPI_CHAR, 
 				 md->mdhim_comm);
-	mtype = bm.mtype;
+	mtype = bm->mtype;
+	free(bm);
 	mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - "
 	     "Received message with size: %d and type: %d from rank: %d.", md->mdhim_rank, msg_size, 
 	     mtype, msg_source);

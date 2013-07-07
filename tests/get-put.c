@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv) {
 	int ret;
-	int provided;
+	int provided = 0;
 	struct mdhim_t *md;
 	int key;
 	int value;
