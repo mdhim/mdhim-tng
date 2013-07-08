@@ -609,7 +609,7 @@ void *worker_thread(void *data) {
 				break;
 			case MDHIM_GET:
 				//Determine the operation passed and call the appropriate function
-				op = ((struct mdhim_bgetm_t *) item->message)->op;
+				op = ((struct mdhim_getm_t *) item->message)->op;
 				if (op == MDHIM_GET_VAL) {
 					range_server_get(md, 
 							 item->message, 

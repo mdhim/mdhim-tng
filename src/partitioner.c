@@ -386,7 +386,8 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len, int 
 
 	/* Convert the key to a range server number, which is a number 1 - N, 
 	   where N is the number of range servers */
-	key_num = ((uint32_t) ceil((double) key_num/MDHIM_MAX_RECS_PER_SLICE)) % md->num_rangesrvs;
+	key_num = ((uint32_t) ceil((double) (key_num/MDHIM_MAX_RECS_PER_SLICE))) % 
+		(md->num_rangesrvs - 1);
 	key_num++;
 
 	//Match the range server number of the key with the range server we have in our list
