@@ -403,7 +403,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	int error;
 	void **value;
-	int value_len;
+	int32_t value_len;
 	struct mdhim_getrm_t *grm;
 	int ret;
 
@@ -414,7 +414,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	if ((error = 
 	     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 					    gm->key, gm->key_len, value, 
-					    (int64_t *) &value_len, NULL)) != MDHIM_SUCCESS) {
+					    &value_len, NULL)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
 		     md->mdhim_rank);
 	}
@@ -456,22 +456,33 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
  */
 int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source) {
 	int ret;
-	void *values[MAX_BULK_OPS];
-	int value_lens[MAX_BULK_OPS];
+	void **values;
+	int32_t *value_lens;
 	int i;
 	struct mdhim_bgetrm_t *bgrm;
-	int error;
-
+	int error = 0;
+	
+	values = malloc(sizeof(void *) * MAX_BULK_OPS);
+	memset(values, 0, sizeof(void *) * MAX_BULK_OPS);
+	value_lens = malloc(sizeof(int) * MAX_BULK_OPS);
+	memset(value_lens, 0, sizeof(int) * MAX_BULK_OPS);
 	//Iterate through the arrays and delete each record
 	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
 		//Get records from the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-						    bgm->keys[i], bgm->key_lens[i], (void **) &values[i], 
-						    (int64_t *) &value_lens[i], NULL)) != MDHIM_SUCCESS) {
+						    bgm->keys[i], bgm->key_lens[i], (void **) (values + i), 
+						    (int32_t *) (value_lens + i), NULL)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record", 
 			     md->mdhim_rank);
 			error = ret;
+			value_lens[i] = 0;
+			continue;
+		}
+
+		if (*((char *) values[i])) {
+		  mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d for rank: %d", 
+		       md->mdhim_rank, *((int **) values)[i], value_lens[i], source);
 		}
 	}
 
@@ -488,6 +499,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	bgrm->key_lens = bgm->key_lens;
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
+	bgrm->num_records = bgm->num_records;
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
 

@@ -135,7 +135,6 @@ int mdhimClose(struct mdhim_t *md) {
 	struct rangesrv_info *rsrv, *trsrv;
 	struct mdhim_basem_t *cm;
 
-	MPI_Barrier(md->mdhim_comm);
 	//If I'm rank 0, send a close message to every range server to it can stop its thread
 	if (!md->mdhim_rank) {
 		cm = malloc(sizeof(struct mdhim_basem_t));
@@ -144,6 +143,7 @@ int mdhimClose(struct mdhim_t *md) {
 		free(cm);
 	}
 
+	MPI_Barrier(md->mdhim_comm);
 	//Stop range server if I'm a range server	
 	if (im_range_server(md) && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
@@ -431,7 +431,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 		}
 
 		//Get the message for this range server
-		bgm = bgm_list[range_srv];
+		bgm = bgm_list[range_srv - 1];
 
 		//If the message doesn't exist, create one
 		if (!bgm) {
@@ -441,6 +441,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm->num_records = 0;
 			bgm->server_rank = range_srv;
 			bgm->mtype = MDHIM_BULK_GET;
+                        bgm_list[range_srv - 1] = bgm;
 		}
 
 		//Add the key, lengths, and data to the message

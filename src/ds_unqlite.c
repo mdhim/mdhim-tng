@@ -134,12 +134,12 @@ int mdhim_unqlite_open(void **dbh, char *path, int flags,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int64_t data_len, 
+int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int32_t data_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
 
-	if ((ret = unqlite_kv_append(dh, key, key_len, data, data_len)) != UNQLITE_OK) {
+	if ((ret = unqlite_kv_append(dh, key, key_len, data, (int64_t) data_len)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
@@ -184,7 +184,7 @@ int mdhim_unqlite_del(void *dbh, void *key, int key_len,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *data_len, 
+int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *data_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
@@ -211,7 +211,7 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *d
 
 	mlog(MDHIM_SERVER_DBG, "Retrieved value: %d", **((int **) data));
 	//Set the output arguments
-	*data_len = nbytes;
+	*data_len = (int32_t) nbytes;
 
 	return MDHIM_SUCCESS;
 }
@@ -230,7 +230,7 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int64_t *d
  * 
  */
 int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len, 
-			   void **data, int64_t *data_len, 
+			   void **data, int32_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
@@ -241,7 +241,7 @@ int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len,
 	*key = NULL;
 	*key_len = 0;
 	*data = NULL;
-	data_len = 0;
+	*data_len = 0;
 
 
         //Make sure the cursor isn't empty
@@ -309,7 +309,7 @@ int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len,
  * 
  */
 int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len, 
-			   void **data, int64_t *data_len, 
+			   void **data, int32_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
@@ -383,7 +383,7 @@ int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len,
 int mdhim_unqlite_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 
-	if ((ret = unqlite_close(dbh)) != UNQLITE_OK) {
+	if ((ret = unqlite_close((unqlite *) dbh)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dbh);
 		return MDHIM_DB_ERROR;
 	}

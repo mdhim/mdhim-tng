@@ -25,15 +25,15 @@ struct mdhim_store_cur_opts_t;
 
 /* Function pointers for abstracting data stores */
 typedef int (*mdhim_store_open_fn_t)(void **db_handle, char *path, int flags, struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, void *data, int64_t data_len, 
+typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, void *data, int32_t data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int64_t *data_len, 
+typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int32_t *data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_next_fn_t)(void *db_handle, void *curh, void **key, int *key_len,
-					 void **data, int64_t *data_len, 
+					 void **data, int32_t *data_len, 
 					 struct mdhim_store_cur_opts_t *mstore_cur_opts);
 typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void *curh, void **key, int *key_len,
-					 void **data, int64_t *data_len, 
+					 void **data, int32_t *data_len, 
 					 struct mdhim_store_cur_opts_t *mstore_cur_opts);
 typedef void *(*mdhim_store_cursor_init_fn_t)(void *db_handle);
 typedef int (*mdhim_store_cursor_release_fn_t)(void *db_handle, void *cursor);
