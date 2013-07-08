@@ -191,9 +191,10 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
 	int ret;
 	struct mdhim_putm_t *pm;
 	struct mdhim_rm_t *rm = NULL;
+	rangesrv_info *ri;
 
 	//Get the range server this key will be sent to
-	if ((ret = get_range_server(md, key, key_len, key_type)) == MDHIM_ERROR) {
+	if ((ri = get_range_server(md, key, key_len, key_type)) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimPut", 
 		     md->mdhim_rank);
@@ -214,7 +215,7 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
 	pm->key_len = key_len;
 	pm->value = value;
 	pm->value_len = value_len;
-	pm->server_rank = ret;
+	pm->server_rank = ri->rank;
 	
 	//Test if I'm a range server
 	ret = im_range_server(md);
@@ -245,13 +246,14 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
  */
 struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
 			     void **values, int *value_lens, int num_records) {
-	int range_srv, ret;
+	int ret;
 	struct mdhim_bputm_t **bpm_list;
 	struct mdhim_bputm_t *bpm;
 	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
 	struct mdhim_rm_t *rm;
 	int i;
-	
+	rangesrv_info *ri;
+
 	//Create an array of bulk put messages that holds one bulk message per range server
 	bpm_list = malloc(sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
 	memset(bpm_list, 0, sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
@@ -266,8 +268,8 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_records && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((range_srv = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
-		    MDHIM_ERROR) {
+		if ((ri = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
+		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBput", 
 			     md->mdhim_rank);
@@ -275,7 +277,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 		}
 
 		//Get the message for this range server
-		bpm = bpm_list[range_srv - 1];
+		bpm = bpm_list[ri->rangesrv_num - 1];
 
 		//If the message doesn't exist, create one
 		if (!bpm) {
@@ -285,9 +287,9 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			bpm->values = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bpm->value_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bpm->num_records = 0;
-			bpm->server_rank = range_srv;
+			bpm->server_rank = ri->rank;
 			bpm->mtype = MDHIM_BULK_PUT;
-			bpm_list[range_srv - 1] = bpm;
+			bpm_list[ri->rangesrv_num - 1] = bpm;
 		}
 
 		//Add the key, lengths, and data to the message
@@ -349,12 +351,13 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
  */
 struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len, 
 			       int key_type) {
-	int ret, range_srv;
+	int ret;
 	struct mdhim_getm_t *gm;
 	struct mdhim_getrm_t *grm;
+	rangesrv_info *ri;
 
 	//Get the range server this key will be sent to
-	if ((range_srv = get_range_server(md, key, key_len, key_type)) == MDHIM_ERROR) {
+	if ((ri = get_range_server(md, key, key_len, key_type)) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimGet", 
 		     md->mdhim_rank);
@@ -374,7 +377,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	gm->op = MDHIM_GET_VAL;
 	gm->key = key;
 	gm->key_len = key_len;
-	gm->server_rank = range_srv;
+	gm->server_rank = ri->rank;
 	
 	//Test if I'm a range server
 	ret = im_range_server(md);
@@ -403,15 +406,15 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
  */
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, int *key_types, 
 				 int num_keys) {
-	int range_srv, ret;
+	int ret;
 	struct mdhim_bgetm_t **bgm_list;
 	struct mdhim_bgetm_t *bgm;
 	struct mdhim_bgetrm_t *bgrm, *bgrm_head, *bgrm_tail;
 	int i;
-	
+	rangesrv_info *ri;
+
 	//Create an array of bulk put messages that holds one bulk message per range server
 	bgm_list = malloc(sizeof(struct mdhim_bgetm_t *) * md->num_rangesrvs);
-
 	//Initialize the pointers of the list to null
 	for (i = 0; i < md->num_rangesrvs; i++) {
 		bgm_list[i] = NULL;
@@ -422,8 +425,8 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_keys && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((range_srv = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
-		    MDHIM_ERROR) {
+		if ((ri = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
+		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBget", 
 			     md->mdhim_rank);
@@ -431,7 +434,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 		}
 
 		//Get the message for this range server
-		bgm = bgm_list[range_srv - 1];
+		bgm = bgm_list[ri->rangesrv_num - 1];
 
 		//If the message doesn't exist, create one
 		if (!bgm) {
@@ -439,9 +442,9 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bgm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bgm->num_records = 0;
-			bgm->server_rank = range_srv;
+			bgm->server_rank = ri->rank;
 			bgm->mtype = MDHIM_BULK_GET;
-                        bgm_list[range_srv - 1] = bgm;
+                        bgm_list[ri->rangesrv_num - 1] = bgm;
 		}
 
 		//Add the key, lengths, and data to the message
@@ -503,12 +506,13 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
  * @return mdhim_rm_t * or NULL on error
  */
 struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int key_type) {
-	int ret;
 	struct mdhim_delm_t *dm;
 	struct mdhim_rm_t *rm = NULL;
+	rangesrv_info *ri;
+	int ret;
 
 	//Get the range server this key will be sent to
-	if ((ret = get_range_server(md, key, key_len, key_type)) == MDHIM_ERROR) {
+	if ((ri = get_range_server(md, key, key_len, key_type)) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimDel", 
 		     md->mdhim_rank);
@@ -527,7 +531,7 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int k
 	dm->mtype = MDHIM_DEL;
 	dm->key = key;
 	dm->key_len = key_len;
-	dm->server_rank = ret;
+	dm->server_rank = ri->rank;
 	
 	//Test if I'm a range server
 	ret = im_range_server(md);
@@ -556,13 +560,14 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int k
  */
 struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
 				 int num_keys) {
-	int range_srv, ret;
+	int ret;
 	struct mdhim_bdelm_t **bdm_list;
 	struct mdhim_bdelm_t *bdm;
 	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
 	int i;
 	struct mdhim_rm_t *rm;
-	
+	rangesrv_info *ri;
+
 	//Create an array of bulk del messages that holds one bulk message per range server
 	bdm_list = malloc(sizeof(struct mdhim_delm_t *) * md->num_rangesrvs);
 
@@ -576,8 +581,8 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_keys && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((range_srv = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
-		    MDHIM_ERROR) {
+		if ((ri = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
+		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBdelete", 
 			     md->mdhim_rank);
@@ -585,7 +590,7 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 		}
 
 		//Get the message for this range server
-		bdm = bdm_list[range_srv];
+		bdm = bdm_list[ri->rangesrv_num - 1];
 
 		//If the message doesn't exist, create one
 		if (!bdm) {
@@ -593,7 +598,7 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 			bdm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bdm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bdm->num_keys = 0;
-			bdm->server_rank = range_srv;
+			bdm->server_rank = ri->rank;
 			bdm->mtype = MDHIM_BULK_DEL;
 		}
 

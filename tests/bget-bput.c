@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>  
 #include "mpi.h"
 #include "mdhim.h"
 
@@ -34,15 +35,16 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 	
+	srand(time(NULL));	
 	keys = malloc(sizeof(int *) * KEYS);
         values = malloc(sizeof(int *) * KEYS);
 	for (i = 0; i < KEYS; i++) {
 		keys[i] = malloc(sizeof(int));
-		*keys[i] = (int) random();
+		*keys[i] = rand();
 		key_lens[i] = sizeof(int);
 		key_types[i] = MDHIM_INT_KEY;
 		values[i] = malloc(sizeof(int));
-		*values[i] = (int) random();
+		*values[i] = rand();
 		value_lens[i] = sizeof(int);		
 	}
 

@@ -258,12 +258,11 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
  * @param key_type  type of the key
  * @return the rank of the range server or MDHIM_ERROR on error
  */
-uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_type) {
+rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len, int key_type) {
 	//The number that maps a key to range server (dependent on key type)
 	uint64_t key_num;
 	//The range server number that we return
-	uint32_t rangesrv_rank = MDHIM_ERROR;
-	rangesrv_info *rp;
+	rangesrv_info *rp, *ret_rp;
 	int32_t ikey;
 	int64_t likey;
 	float fkey;
@@ -282,7 +281,7 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given to get_range_server()", 
 		     md->mdhim_rank);
-		return MDHIM_ERROR;
+		return NULL;
 	}
 
 	//Perform key dependent algorithm to get the key in terms of the ranges served
@@ -374,7 +373,7 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 		key_num = floor(str_num * total_keys);
 		break;
 	default:
-		return MDHIM_ERROR;
+		return NULL;
 		break;
 	}
 
@@ -382,7 +381,7 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 		mlog(MPI_EMERG, "Rank: %d - Key is larger than any of the ranges served" 
 		     " in get_range_server", 
 		     md->mdhim_rank);
-		return MDHIM_ERROR;
+		return NULL;
 	}
 
 	/* Convert the key to a range server number, which is a number 1 - N, 
@@ -391,10 +390,11 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 	key_num++;
 
 	//Match the range server number of the key with the range server we have in our list
+	ret_rp = NULL;
 	rp = md->rangesrvs;
 	while (rp) {
 		if (key_num == rp->rangesrv_num) {
-			rangesrv_rank = rp->rank;
+			ret_rp = rp;
 			break;
 		}
 		
@@ -402,7 +402,7 @@ uint32_t get_range_server(struct mdhim_t *md, void *key, int key_len, int key_ty
 	}
        
 	//Return the rank
-	return rangesrv_rank;
+	return ret_rp;
 }
 
 
