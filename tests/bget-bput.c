@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>  
+#include <sys/time.h>
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 50
+#define KEYS 10
 int main(int argc, char **argv) {
 	int ret;
 	int provided;
@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
 	int value_lens[KEYS];
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
+	struct timeval tv;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
@@ -35,16 +36,17 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 	
-	srand(time(NULL));	
 	keys = malloc(sizeof(int *) * KEYS);
         values = malloc(sizeof(int *) * KEYS);
 	for (i = 0; i < KEYS; i++) {
+		gettimeofday(&tv, NULL);
 		keys[i] = malloc(sizeof(int));
-		*keys[i] = rand();
+		*keys[i] = rand_r((unsigned int *) &tv.tv_usec);
+		printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
 		key_lens[i] = sizeof(int);
 		key_types[i] = MDHIM_INT_KEY;
 		values[i] = malloc(sizeof(int));
-		*values[i] = rand();
+		*values[i] = rand_r((unsigned int *) &tv.tv_usec);
 		value_lens[i] = sizeof(int);		
 	}
 
@@ -54,6 +56,14 @@ int main(int argc, char **argv) {
 		printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
 	} else {
 		printf("Successfully inserted keys/values into MDHIM\n");
+	}
+
+	//Commit the database
+	ret = mdhimCommit(md);
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error committing MDHIM database\n");
+	} else {
+		printf("Committed MDHIM database\n");
 	}
 
 	bgrm = mdhimBGet(md, (void **) keys, key_lens, key_types, 

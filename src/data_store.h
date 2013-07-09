@@ -39,6 +39,7 @@ typedef void *(*mdhim_store_cursor_init_fn_t)(void *db_handle);
 typedef int (*mdhim_store_cursor_release_fn_t)(void *db_handle, void *cursor);
 typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
 				    struct mdhim_store_opts_t *mstore_opts);
+typedef int (*mdhim_store_commit_fn_t)(void *db_handle);
 typedef int (*mdhim_store_close_fn_t)(void *db_handle, struct mdhim_store_opts_t *mstore_opts);
 
 /* Generic mdhim storage object */
@@ -54,6 +55,7 @@ struct mdhim_store_t {
 	mdhim_store_cursor_init_fn_t cursor_init;
 	mdhim_store_cursor_release_fn_t cursor_release;
 	mdhim_store_del_fn_t del;
+	mdhim_store_commit_fn_t commit;
 	mdhim_store_close_fn_t close;
 };
 

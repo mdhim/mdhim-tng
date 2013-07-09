@@ -56,6 +56,7 @@ struct mdhim_t {
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm);
 int mdhimClose(struct mdhim_t *md);
+int mdhimCommit(struct mdhim_t *md);
 struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_type, 
 			    void *value, int value_len);
 struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,

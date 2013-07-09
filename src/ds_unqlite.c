@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include "ds_unqlite.h"
 
 /**
@@ -139,7 +140,11 @@ int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int32_t dat
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
 
-	if ((ret = unqlite_kv_append(dh, key, key_len, data, (int64_t) data_len)) != UNQLITE_OK) {
+	while ((ret = unqlite_kv_append(dh, key, key_len, data, (int64_t) data_len)) == UNQLITE_BUSY) {
+		usleep(10000);
+	}
+
+	if (ret != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
@@ -188,27 +193,33 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 		      struct mdhim_store_opts_t *mstore_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
-	unqlite_int64 nbytes;
+	unqlite_int64 nbytes = 0;
 
 	*((char **) data) = NULL;
 	*data_len = 0;
 
 	//Extract data size first
-	if ((ret = unqlite_kv_fetch(dh, key, key_len, NULL, &nbytes)) != UNQLITE_OK) {
+	while ((ret = unqlite_kv_fetch(dh, key, key_len, NULL, &nbytes)) == UNQLITE_BUSY) {
+		usleep(10000);
+	}
+	if (ret != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
         //Allocate the buffer to the value's size
-	*((char **) data) = (char *) malloc(nbytes);
+	*((char **) data) = malloc(nbytes);
 
         //Copy record content in our buffer
-	if ((ret = unqlite_kv_fetch(dh, key, key_len, *((char **) data), 
-				    &nbytes)) != UNQLITE_OK) {
+	while ((ret = unqlite_kv_fetch(dh, key, key_len, *((char **) data), 
+				    &nbytes)) == UNQLITE_BUSY) {
+		usleep(10000);
+	}	
+	if (ret != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
-
+	
 	mlog(MDHIM_SERVER_DBG, "Retrieved value: %d", **((int **) data));
 	//Set the output arguments
 	*data_len = (int32_t) nbytes;
@@ -367,6 +378,31 @@ int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len,
 		return MDHIM_DB_ERROR;
 	}      
 	*data = data_buf;
+
+	return MDHIM_SUCCESS;
+}
+
+
+/**
+ * mdhim_unqlite_commit
+ * Commits outstanding writes the data store
+ *
+ * @param dbh         in   pointer to the unqlite db handle 
+ * 
+ * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
+ */
+int mdhim_unqlite_commit(void *dbh) {
+	int ret = 0;
+	unqlite *dh = (unqlite *) dbh;
+  
+	while ((ret = unqlite_commit(dh)) == UNQLITE_BUSY) {
+		usleep(10000);
+	}
+
+	if (ret != UNQLITE_OK) {
+		print_unqlite_err_msg(dbh);
+		return MDHIM_DB_ERROR;
+	}
 
 	return MDHIM_SUCCESS;
 }

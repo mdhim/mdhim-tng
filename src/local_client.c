@@ -160,6 +160,38 @@ struct mdhim_bgetrm_t *local_client_bget(struct mdhim_t *md, struct mdhim_bgetm_
 }
 
 /**
+ * Send commit to range server
+ *
+ * @param md main MDHIM struct
+ * @param cm pointer to put message to be inserted into the range server's work queue
+ * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
+ */
+struct mdhim_rm_t *local_client_commit(struct mdhim_t *md, struct mdhim_basem_t *cm) {
+	int ret;
+	struct mdhim_rm_t *rm;
+	work_item *item;
+
+	if ((item = malloc(sizeof(work_item))) == NULL) {
+		mlog(MDHIM_CLIENT_CRIT, "Error while allocating memory for client");
+		return NULL;
+	}
+
+	item->message = (void *)cm;
+	item->source = md->mdhim_rank;
+	if ((ret = range_server_add_work(md, item)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Error adding work to range server in local_client_put");
+		return NULL;
+	}
+	
+	mlog(MDHIM_CLIENT_DBG, "Rank: %d - Added work locally for range server", md->mdhim_rank);
+	rm = (struct mdhim_rm_t *) get_msg_self(md);
+	mlog(MDHIM_CLIENT_DBG, "Rank: %d - Received response locally from range server", md->mdhim_rank);
+	// Return response
+
+	return rm;
+}
+
+/**
  * Send delete to range server
  *
  * @param md main MDHIM struct

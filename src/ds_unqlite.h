@@ -17,3 +17,4 @@ int mdhim_unqlite_cursor_release(void *dbh, void *curh);
 int mdhim_unqlite_close(void *dbh, struct mdhim_store_opts_t *mstore_opts);
 int mdhim_unqlite_del(void *dbh, void *key, int key_len, 
 		      struct mdhim_store_opts_t *mstore_opts);
+int mdhim_unqlite_commit(void *dbh);

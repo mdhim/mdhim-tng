@@ -25,6 +25,8 @@
 #define MDHIM_RECV_GET 9
 //Receive message for a bulk get request
 #define MDHIM_RECV_BULK_GET 10
+//Commit message
+#define MDHIM_COMMIT 11
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
@@ -191,7 +193,7 @@ int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, void *
 int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbuf, int *sendsize);
 int unpack_return_message(struct mdhim_t *md, void *message, void **rm);
 
-int pack_close_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendbuf, int *sendsize);
+int pack_base_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendbuf, int *sendsize);
 
 void mdhim_full_release_msg(void *message);
 void mdhim_partial_release_msg(void *message);

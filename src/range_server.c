@@ -239,7 +239,7 @@ int range_server_stop(struct mdhim_t *md) {
 int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	int ret;
 	struct mdhim_rm_t *rm;
-
+	int error = 0;
         //Put the record in the database
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
@@ -247,6 +247,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 					im->value_len, NULL)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	
+		error = ret;
 	}
 
 	//Create the response message
@@ -254,7 +255,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	//Set the type
 	rm->mtype = MDHIM_RECV;
 	//Set the operation return code as the error
-	rm->error = ret;
+	rm->error = error;
 	//Set the server's rank
 	rm->server_rank = md->mdhim_rank;
 
@@ -392,6 +393,44 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 }
 
 /**
+ * range_server_commit
+ * Handles the commit message and commits outstanding writes to the database
+ *
+ * @param md        pointer to the main MDHIM struct
+ * @param im        pointer to the commit message to handle
+ * @param source    source of the message
+ * @return          MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source) {
+	int ret;
+	struct mdhim_rm_t *rm;
+	
+        //Put the record in the database
+	if ((ret = 
+	     md->mdhim_rs->mdhim_store->commit(md->mdhim_rs->mdhim_store->db_handle)) 
+	    != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error committing database", 
+		     md->mdhim_rank);	
+	}
+	
+	//Create the response message
+	rm = malloc(sizeof(struct mdhim_rm_t));
+	//Set the type
+	rm->mtype = MDHIM_RECV;
+	//Set the operation return code as the error
+	rm->error = ret;
+	//Set the server's rank
+	rm->server_rank = md->mdhim_rank;
+
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending response for commit request", 
+	     md->mdhim_rank);
+	//Send response
+	ret = send_locally_or_remote(md, source, rm);
+
+	return MDHIM_SUCCESS;
+}
+
+/**
  * range_server_get
  * Handles the get message, retrieves the data from the database, and sends the results back
  * 
@@ -401,7 +440,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
-	int error;
+	int error = 0;
 	void **value;
 	int32_t value_len;
 	struct mdhim_getrm_t *grm;
@@ -411,12 +450,13 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	*value = NULL;
 	value_len = 0;
 	//Get a record from the database
-	if ((error = 
+	if ((ret = 
 	     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 					    gm->key, gm->key_len, value, 
 					    &value_len, NULL)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
 		     md->mdhim_rank);
+		error = ret;
 	}
 
 	if (*((char **) value)) {
@@ -473,8 +513,8 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 						    bgm->keys[i], bgm->key_lens[i], (void **) (values + i), 
 						    (int32_t *) (value_lens + i), NULL)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record", 
-			     md->mdhim_rank);
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record: %d with length: %d", 
+			     md->mdhim_rank, *(int *)bgm->keys[i], bgm->key_lens[i]);
 			error = ret;
 			value_lens[i] = 0;
 			continue;
@@ -635,6 +675,9 @@ void *worker_thread(void *data) {
 				break;
 			case MDHIM_BULK_DEL:
 				range_server_bdel(md, item->message, item->source);
+				break;
+			case MDHIM_COMMIT:
+				range_server_commit(md, item->message, item->source);
 				break;
 			default:
 				mlog(MDHIM_SERVER_CRIT, "Rank: %d - Got unknown work type: %d" 

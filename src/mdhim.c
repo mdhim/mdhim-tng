@@ -19,6 +19,7 @@
  *
  */
 
+
 /**
  * mdhimInit
  * Initializes MDHIM - Collective call
@@ -176,6 +177,41 @@ int mdhimClose(struct mdhim_t *md) {
 }
 
 /**
+ * Commits outstanding MDHIM writes - collective call
+ *
+ * @param md main MDHIM struct
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int mdhimCommit(struct mdhim_t *md) {
+	int ret = MDHIM_SUCCESS;
+	struct mdhim_basem_t *cm;
+	struct mdhim_rm_t *rm = NULL;
+
+	MPI_Barrier(md->mdhim_comm);      
+
+	//If I'm a range server, send a commit message to myself
+	if (im_range_server(md)) {
+		cm = malloc(sizeof(struct mdhim_basem_t));
+		cm->mtype = MDHIM_COMMIT;
+		rm = local_client_commit(md, cm);
+		if (!rm || rm->error) {
+			ret = MDHIM_ERROR;
+			mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+			     "Error while committing database in mdhimCommit",
+			     md->mdhim_rank);
+		}
+
+		if (rm) {
+			free(rm);
+		}
+		free(cm);
+	}
+
+	MPI_Barrier(md->mdhim_comm);      
+	return ret;
+}
+
+/**
  * Inserts a single record into MDHIM
  *
  * @param md main MDHIM struct
@@ -200,7 +236,10 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
 		     md->mdhim_rank);
 		return NULL;
 	}
-
+	
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - " 
+	     "Sending put request for key: %d to rank: %d", 
+	     md->mdhim_rank, *(int *)key, ri->rank);
 	pm = malloc(sizeof(struct mdhim_putm_t));
 	if (!pm) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
@@ -226,9 +265,9 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
 	} else {
 		//Send the message through the network as this message is for another rank
 		rm = client_put(md, pm);
+		free(pm);
 	}
 
-	free(pm);
 	return rm;
 }
 
@@ -310,7 +349,11 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 		}
 
 		//Send the message to the appropriate server
-		if ((ret = im_range_server(md)) == 1 && bpm->server_rank) {
+		//Test if I'm a range server
+		ret = im_range_server(md);
+
+		//If I'm a range server and I'm the one this key goes to, send the message locally
+		if (ret && md->mdhim_rank == bpm->server_rank) {
 			rm = local_client_bput(md, bpm);
 		} else {
 			rm = client_bput(md, bpm);
@@ -379,6 +422,9 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	gm->key_len = key_len;
 	gm->server_rank = ri->rank;
 	
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - " 
+	     "Sending get request for key: %d to rank: %d", 
+	     md->mdhim_rank, *(int *)key, ri->rank);
 	//Test if I'm a range server
 	ret = im_range_server(md);
 
@@ -388,9 +434,9 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	} else {
 		//Send the message through the network as this message is for another rank
 		grm = client_get(md, gm);
+		free(gm);
 	}
 
-	free(gm);
 	return grm;
 }
 
@@ -463,11 +509,16 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			continue;
 		}
 
-		//Send the messages to the appropriate servers
-		if ((ret = im_range_server(md)) == 1 && bgm->server_rank) {
+		//Send the message to the appropriate server
+		//Test if I'm a range server
+		ret = im_range_server(md);
+
+		//If I'm a range server and I'm the one this key goes to, send the message locally
+		if (ret && md->mdhim_rank == bgm->server_rank) {
 			bgrm = local_client_bget(md, bgm);
 		} else {
 			bgrm = client_bget(md, bgm);
+			free(bgm);
 		}		
 
 		//Build the linked list to return
@@ -479,16 +530,6 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgrm_tail->next = bgrm;
 			bgrm_tail = bgrm;
 		}
-	}
-
-	//Free up the memory we don't need anymore
-	for (i = 0; i < md->num_rangesrvs; i++) {
-		if (!bgm_list[i]) {
-			continue;
-		}
-
-		free(bgm_list[i]);
-		bgm_list[i] = NULL;
 	}
 
 	free(bgm_list);
@@ -543,9 +584,9 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int k
 	} else {
 		//Send the message through the network as this message is for another rank
 		rm = client_delete(md, dm);
+		free(dm);
 	}
 
-	free(dm);
 	return rm;
 }
 
@@ -623,6 +664,7 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 			rm = local_client_bdelete(md, bdm);
 		} else {
 			rm = client_bdelete(md, bdm);
+			free(bdm);
 		}		
 
 		brm = malloc(sizeof(struct mdhim_brm_t));

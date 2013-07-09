@@ -40,6 +40,7 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->del = mdhim_unqlite_del;
 		store->cursor_init = mdhim_unqlite_cursor_init;
 		store->cursor_release = mdhim_unqlite_cursor_release;
+		store->commit = mdhim_unqlite_commit;
 		store->close = mdhim_unqlite_close;
 		break;
 	default:

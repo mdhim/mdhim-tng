@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 
+	//Put the keys and values
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
 	rm = mdhimPut(md, &key, sizeof(key), MDHIM_INT_KEY, 
@@ -39,6 +40,15 @@ int main(int argc, char **argv) {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
 
+	//Commit the database
+	ret = mdhimCommit(md);
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error committing MDHIM database\n");
+	} else {
+		printf("Committed MDHIM database\n");
+	}
+
+	//Get the values
 	value = 0;
 	grm = mdhimGet(md, &key, sizeof(key), MDHIM_INT_KEY);
 	if (!grm || grm->error) {
