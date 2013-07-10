@@ -36,7 +36,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * $SymiscID: unqlite.c v1.1.6 Unix|Win32/64 2013-05-21 22:39:15 stable <chm@symisc.net> $ 
+ * $SymiscID: unqlite.c v1.1.6 Unix|Win32/64 2013-07-08 03:38:18 stable <chm@symisc.net> $ 
  */
 /* This file is an amalgamation of many separate C source files from unqlite version 1.1.6
  * By combining all the individual C code files into this single large file, the entire code
@@ -67,7 +67,7 @@
 /*
  * ----------------------------------------------------------
  * File: unqlite.h
- * MD5: df5da92eec0f513e6daaeee18dff981a
+ * MD5: d26e9847c6587edbbb183d0115d172cb
  * ----------------------------------------------------------
  */
 /* This file was automatically generated.  Do not edit (Except for compile time directives)! */ 
@@ -158,7 +158,10 @@
  *   contact@symisc.net
  */
 #define UNQLITE_COPYRIGHT "Copyright (C) Symisc Systems, S.U.A.R.L [Mrad Chems Eddine <chm@symisc.net>] 2012-2013, http://unqlite.org/"
-
+/* Make sure we can call this stuff from C++ */
+#ifdef __cplusplus
+extern "C" { 
+#endif
 /* Forward declaration to public objects */
 typedef struct unqlite_io_methods unqlite_io_methods;
 typedef struct unqlite_kv_methods unqlite_kv_methods;
@@ -1017,12 +1020,14 @@ UNQLITE_APIEXPORT const char * unqlite_lib_version(void);
 UNQLITE_APIEXPORT const char * unqlite_lib_signature(void);
 UNQLITE_APIEXPORT const char * unqlite_lib_ident(void);
 UNQLITE_APIEXPORT const char * unqlite_lib_copyright(void);
-
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif /* _UNQLITE_H_ */
 /*
  * ----------------------------------------------------------
  * File: jx9.h
- * MD5: 8a8548429796b64f4afad5fab7312e93
+ * MD5: d23a1e182f596794001533e1d6aa16a0
  * ----------------------------------------------------------
  */
 /* This file was automatically generated.  Do not edit (except for compile time directive)! */ 
@@ -1122,10 +1127,7 @@ UNQLITE_APIEXPORT const char * unqlite_lib_copyright(void);
  *   contact@symisc.net
  */
 #define JX9_COPYRIGHT "Copyright (C) Symisc Systems 2012-2013, http://jx9.symisc.net/"
-/* Make sure we can call this stuff from C++ */
-#ifdef __cplusplus
-extern "C" { 
-#endif
+
 /* Forward declaration to public objects */
 typedef struct jx9_io_stream jx9_io_stream;
 typedef struct jx9_context jx9_context;
@@ -1488,15 +1490,13 @@ JX9_PRIVATE int jx9_lib_shutdown(void);
 JX9_PRIVATE const char * jx9_lib_signature(void);
 /*JX9_PRIVATE const char * jx9_lib_ident(void);*/
 /*JX9_PRIVATE const char * jx9_lib_copyright(void);*/
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+
 #endif /* _JX9H_ */
 
 /*
  * ----------------------------------------------------------
  * File: jx9Int.h
- * MD5: 539aa6619fb06376acda88ba66311be9
+ * MD5: fb8dffc8ba1425a139091aa145067e16
  * ----------------------------------------------------------
  */
 /*
@@ -3173,10 +3173,6 @@ JX9_PRIVATE void *SyMemBackendPoolAlloc(SyMemBackend *pBackend, sxu32 nByte);
 JX9_PRIVATE sxi32 SyMemBackendFree(SyMemBackend *pBackend, void *pChunk);
 JX9_PRIVATE void *SyMemBackendRealloc(SyMemBackend *pBackend, void *pOld, sxu32 nByte);
 JX9_PRIVATE void *SyMemBackendAlloc(SyMemBackend *pBackend, sxu32 nByte);
-#if defined(JX9_ENABLE_THREADS)
-JX9_PRIVATE sxi32 SyMemBackendMakeThreadSafe(SyMemBackend *pBackend, const SyMutexMethods *pMethods);
-JX9_PRIVATE sxi32 SyMemBackendDisbaleMutexing(SyMemBackend *pBackend);
-#endif
 JX9_PRIVATE sxu32 SyMemcpy(const void *pSrc, void *pDest, sxu32 nLen);
 JX9_PRIVATE sxi32 SyMemcmp(const void *pB1, const void *pB2, sxu32 nSize);
 JX9_PRIVATE void SyZero(void *pSrc, sxu32 nSize);
@@ -3537,7 +3533,7 @@ UNQLITE_PRIVATE sxu32 unqlitePagerRandomNum(Pager *pPager);
 /*
  * ----------------------------------------------------------
  * File: api.c
- * MD5: 5d020de5ba84f99af867d524f4f99769
+ * MD5: d79e8404e50dacd0ea75635c1ebe553a
  * ----------------------------------------------------------
  */
 /*
@@ -4295,6 +4291,7 @@ static int unqliteConfigure(unqlite *pDb,int nOp,va_list ap)
 			/* Point to the name */
 			*pzPtr = pEngine->pIo->pMethods->zName;
 		}
+		break;
 									 }
 	default:
 		/* Unknown configuration option */
@@ -48651,7 +48648,7 @@ static sxi32 VmGetNextLine(SyString *pCursor, SyString *pCurrent)
 /*
  * ----------------------------------------------------------
  * File: lhash_kv.c
- * MD5: 1c9e0b9759c2c53c78e1e04b44dac494
+ * MD5: 581b07ce2984fd95740677285d8a11d3
  * ----------------------------------------------------------
  */
 /*
@@ -50930,8 +50927,9 @@ fail:
 /*
  * Perform the infamous linear hash split operation.
  */
-static int lhSplit(lhash_kv_engine *pEngine)
+static int lhSplit(lhpage *pTarget,int *pRetry)
 {
+	lhash_kv_engine *pEngine = pTarget->pHash;
 	lhash_bmap_rec *pRec;
 	lhpage *pOld,*pNew;
 	unqlite_page *pRaw;
@@ -50969,6 +50967,9 @@ static int lhSplit(lhash_kv_engine *pEngine)
 		);
 	if( rc != UNQLITE_OK ){
 		goto fail;
+	}
+	if( pTarget->pRaw->pgno == pOld->pRaw->pgno ){
+		*pRetry = 1;
 	}
 	/* Perform the split */
 	rc = lhPageSplit(pOld,pNew,pEngine->split_bucket,pEngine->nmax_split_nucket - 1);
@@ -51018,9 +51019,14 @@ static int lhRecordInstall(
 	int rc;
 	rc = lhStoreCell(pPage,pKey,nKeyLen,pData,nDataLen,nHash,0);
 	if( rc == UNQLITE_FULL ){
+		int do_retry = 0;
 		/* Split */
-		rc = lhSplit(pPage->pHash);
+		rc = lhSplit(pPage,&do_retry);
 		if( rc == UNQLITE_OK ){
+			if( do_retry ){
+				/* Re-calculate logical bucket number */
+				return SXERR_RETRY;
+			}
 			/* Perform the store */
 			rc = lhStoreCell(pPage,pKey,nKeyLen,pData,nDataLen,nHash,1);
 		}
@@ -51044,6 +51050,7 @@ static int lh_record_insert(
 	lhcell *pCell;
 	pgno iBucket;
 	sxu32 nHash;
+	int iCnt;
 	int rc;
 
 	/* Acquire the first page (DB hash Header) so that everything gets loaded autmatically */
@@ -51051,8 +51058,10 @@ static int lh_record_insert(
 	if( rc != UNQLITE_OK ){
 		return rc;
 	}
+	iCnt = 0;
 	/* Compute the hash of the key first */
 	nHash = pEngine->xHash(pKey,(sxu32)nKeyLen);
+retry:
 	/* Extract the logical bucket number */
 	iBucket = nHash & (pEngine->nmax_split_nucket - 1);
 	if( iBucket >= pEngine->split_bucket + pEngine->max_split_bucket ){
@@ -51100,6 +51109,10 @@ static int lh_record_insert(
 		if( pCell == 0 ){
 			/* Create the record */
 			rc = lhRecordInstall(pPage,nHash,pKey,nKeyLen,pData,nDataLen);
+			if( rc == SXERR_RETRY && iCnt++ < 2 ){
+				rc = UNQLITE_OK;
+				goto retry;
+			}
 		}else{
 			if( is_append ){
 				/* Append operation */
@@ -58039,7 +58052,7 @@ static int pager_kv_io_init(Pager *pPager,unqlite_kv_methods *pMethods,unqlite_k
 /*
  * ----------------------------------------------------------
  * File: unqlite_vm.c
- * MD5: 358e7f319791c11c8262b81573d3a90e
+ * MD5: 2a0c56efb2ab87d3e52d0d7c3147c53b
  * ----------------------------------------------------------
  */
 /*
@@ -58150,7 +58163,7 @@ static int CollectionCacheInstallRecord(
 				if( n >= pCol->nRec ){
 					break;
 				}
-				pEntry->pNext = pEntry->pPrevCol = 0;
+				pEntry->pNextCol = pEntry->pPrevCol = 0;
 				/* Install in the new bucket */
 				iBucket = COL_RECORD_HASH(pEntry->nId) & (nNewSize - 1);
 				pEntry->pNextCol = apNew[iBucket];
