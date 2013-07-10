@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "data_store.h"
 #include "ds_unqlite.h"
+#include "ds_leveldb.h"
 
 /**
  * mdhim_db_init
@@ -20,11 +21,6 @@
 struct mdhim_store_t *mdhim_db_init(int type) {
 	struct mdhim_store_t *store;
 	
-	//UNQLITE is the only data store supported at this time
-	if (type != UNQLITE) {
-		return NULL;
-	}
-
 	//Initialize the store structure
 	store = malloc(sizeof(struct mdhim_store_t));
 	store->type = type;
@@ -42,6 +38,18 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->cursor_release = mdhim_unqlite_cursor_release;
 		store->commit = mdhim_unqlite_commit;
 		store->close = mdhim_unqlite_close;
+		break;
+	case LEVELDB:
+		store->open = mdhim_leveldb_open;
+		store->put = mdhim_leveldb_put;
+		store->get = mdhim_leveldb_get;
+		store->get_next = mdhim_leveldb_get_next;
+		store->get_prev = mdhim_leveldb_get_prev;
+		store->del = mdhim_leveldb_del;
+		store->cursor_init = mdhim_leveldb_cursor_init;
+		store->cursor_release = mdhim_leveldb_cursor_release;
+		store->commit = mdhim_leveldb_commit;
+		store->close = mdhim_leveldb_close;
 		break;
 	default:
 		break;

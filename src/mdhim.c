@@ -186,11 +186,15 @@ int mdhimCommit(struct mdhim_t *md) {
 	int ret = MDHIM_SUCCESS;
 	struct mdhim_basem_t *cm;
 	struct mdhim_rm_t *rm = NULL;
+	int rs = 0;
 
 	MPI_Barrier(md->mdhim_comm);      
-
 	//If I'm a range server, send a commit message to myself
-	if (im_range_server(md)) {
+	if ((rs = im_range_server(md)) == 1) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "I'm a range server doing a commit",
+		     md->mdhim_rank);
+
 		cm = malloc(sizeof(struct mdhim_basem_t));
 		cm->mtype = MDHIM_COMMIT;
 		rm = local_client_commit(md, cm);
@@ -208,6 +212,7 @@ int mdhimCommit(struct mdhim_t *md) {
 	}
 
 	MPI_Barrier(md->mdhim_comm);      
+
 	return ret;
 }
 
@@ -315,6 +320,9 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			continue;
 		}
 
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Key: %d going to range server rank: %d", 
+		     md->mdhim_rank, *(int *)keys[i], ri->rank);
 		//Get the message for this range server
 		bpm = bpm_list[ri->rangesrv_num - 1];
 

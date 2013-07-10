@@ -1,11 +1,12 @@
 MPI_ROOT	= /usr/local
+LEVEL_DB_ROOT   = /turquoise/users/hng/leveldb-1.12.0
 
 CC	= mpicc -g -O0 -Wall
-CLIBS	= -L${MPI_ROOT}/lib
-CINC	= -I${MPI_ROOT}/include -IMlog/ -Iuthash
+CLIBS	= -L${MPI_ROOT}/lib -L${LEVEL_DB_ROOT}
+CINC	= -I${MPI_ROOT}/include -I${LEVEL_DB_ROOT}/include -IMlog/ -Iuthash
 CFLAGS	= 
 
-OBJS    = mlog.o unqlite.o client.o local_client.o data_store.o ds_unqlite.o partitioner.o messages.o range_server.o
+OBJS    = mlog.o unqlite.o client.o local_client.o data_store.o ds_unqlite.o ds_leveldb.o partitioner.o messages.o range_server.o
 all:	mdhim.o lib
 
 mdhim.o: mdhim.c $(OBJS)
@@ -33,6 +34,9 @@ data_store.o: data_store.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 ds_unqlite.o: ds_unqlite.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+ds_leveldb.o: ds_leveldb.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 range_server.o: range_server.c

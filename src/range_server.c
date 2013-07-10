@@ -241,6 +241,8 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	struct mdhim_rm_t *rm;
 	int error = 0;
         //Put the record in the database
+	mlog(MDHIM_SERVER_CRIT, "Rank: %d - Putting record", 
+		     md->mdhim_rank);	
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
 					im->key, im->key_len, im->value, 
@@ -284,6 +286,9 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
+	  mlog(MDHIM_SERVER_CRIT, "Rank: %d - Putting record - num recs: %d", 
+	       md->mdhim_rank, bim->num_records);	
+
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
@@ -473,8 +478,15 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	//Set the server's rank
 	grm->server_rank = md->mdhim_rank;
 	//Set the key and value
-	grm->key = gm->key;
-	grm->key_len = gm->key_len;
+	if (source == md->mdhim_rank) {
+		//If this message is coming from myself, copy the key
+		grm->key = malloc(gm->key_len);
+		memcpy(grm->key, gm->key, gm->key_len);
+	} else {
+		grm->key = gm->key;
+		grm->key_len = gm->key_len;
+	}
+
 	grm->value = (void *) *(((char **) value));
 	grm->value_len = value_len;
 	//Send response
@@ -535,8 +547,20 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	//Set the server's rank
 	bgrm->server_rank = md->mdhim_rank;
 	//Set the key and value
-	bgrm->keys = bgm->keys;
-	bgrm->key_lens = bgm->key_lens;
+	if (source == md->mdhim_rank) {
+		//If this message is coming from myself, copy the keys
+		bgrm->key_lens = malloc(bgm->num_records * sizeof(int));		
+		bgrm->keys = malloc(bgm->num_records * sizeof(void *));
+		for (i = 0; i < bgm->num_records; i++) {
+			bgrm->key_lens[i] = bgm->key_lens[i];
+			bgrm->keys[i] = malloc(bgrm->key_lens[i]);
+			memcpy(bgrm->keys[i], bgm->keys[i], bgrm->key_lens[i]);
+		}
+	} else {
+		bgrm->keys = bgm->keys;
+		bgrm->key_lens = bgm->key_lens;
+	}
+
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_records = bgm->num_records;
@@ -733,7 +757,7 @@ int range_server_init(struct mdhim_t *md) {
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
 	sprintf(filename, "%s%d", "mdhim_db", md->mdhim_rank);
 	//Initialize data store
-	md->mdhim_rs->mdhim_store = mdhim_db_init(UNQLITE);
+	md->mdhim_rs->mdhim_store = mdhim_db_init(LEVELDB);
 	if (!md->mdhim_rs->mdhim_store) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while initializing data store with file: %s",

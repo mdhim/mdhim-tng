@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <unistd.h>
 #include "ds_unqlite.h"
 
 /**
@@ -30,7 +29,8 @@ static char *get_unqlite_err_msg(unqlite *dh) {
  */
 static void print_unqlite_err_msg(unqlite *dh) {
 	char *msg;
-	
+
+	mlog(MDHIM_SERVER_CRIT, "Unqlite error");	
 	msg = get_unqlite_err_msg(dh);
 	if (!msg) {
 		return;
@@ -139,12 +139,9 @@ int mdhim_unqlite_put(void *dbh, void *key, int key_len, void *data, int32_t dat
 		      struct mdhim_store_opts_t *mstore_opts) {
 	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
-
-	while ((ret = unqlite_kv_append(dh, key, key_len, data, (int64_t) data_len)) == UNQLITE_BUSY) {
-		usleep(10000);
-	}
-
-	if (ret != UNQLITE_OK) {
+	int64_t dlen = data_len;
+	
+	if ((ret = unqlite_kv_append(dh, key, key_len, data, dlen)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
@@ -199,10 +196,7 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	*data_len = 0;
 
 	//Extract data size first
-	while ((ret = unqlite_kv_fetch(dh, key, key_len, NULL, &nbytes)) == UNQLITE_BUSY) {
-		usleep(10000);
-	}
-	if (ret != UNQLITE_OK) {
+	if ((ret = unqlite_kv_fetch(dh, key, key_len, NULL, &nbytes)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
@@ -211,16 +205,12 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	*((char **) data) = malloc(nbytes);
 
         //Copy record content in our buffer
-	while ((ret = unqlite_kv_fetch(dh, key, key_len, *((char **) data), 
-				    &nbytes)) == UNQLITE_BUSY) {
-		usleep(10000);
-	}	
-	if (ret != UNQLITE_OK) {
+	if ((ret = unqlite_kv_fetch(dh, key, key_len, *((char **) data), 
+				    &nbytes)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dh);
 		return MDHIM_DB_ERROR;
 	}
 	
-	mlog(MDHIM_SERVER_DBG, "Retrieved value: %d", **((int **) data));
 	//Set the output arguments
 	*data_len = (int32_t) nbytes;
 
@@ -395,11 +385,7 @@ int mdhim_unqlite_commit(void *dbh) {
 	int ret = 0;
 	unqlite *dh = (unqlite *) dbh;
   
-	while ((ret = unqlite_commit(dh)) == UNQLITE_BUSY) {
-		usleep(10000);
-	}
-
-	if (ret != UNQLITE_OK) {
+	if ((ret = unqlite_commit(dh)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dbh);
 		return MDHIM_DB_ERROR;
 	}

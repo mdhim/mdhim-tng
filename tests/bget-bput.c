@@ -16,8 +16,7 @@ int main(int argc, char **argv) {
 	int **values;
 	int value_lens[KEYS];
 	struct mdhim_brm_t *brm;
-	struct mdhim_bgetrm_t *bgrm;
-	struct timeval tv;
+	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
@@ -39,14 +38,13 @@ int main(int argc, char **argv) {
 	keys = malloc(sizeof(int *) * KEYS);
         values = malloc(sizeof(int *) * KEYS);
 	for (i = 0; i < KEYS; i++) {
-		gettimeofday(&tv, NULL);
 		keys[i] = malloc(sizeof(int));
-		*keys[i] = rand_r((unsigned int *) &tv.tv_usec);
+		*keys[i] = (i + 1) * (md->mdhim_rank + 1);
 		printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
 		key_lens[i] = sizeof(int);
 		key_types[i] = MDHIM_INT_KEY;
 		values[i] = malloc(sizeof(int));
-		*values[i] = rand_r((unsigned int *) &tv.tv_usec);
+		*values[i] = (i + 1) * (md->mdhim_rank + 1);
 		value_lens[i] = sizeof(int);		
 	}
 
@@ -74,10 +72,26 @@ int main(int argc, char **argv) {
 		printf("Successfully got values for keys\n");
 	}
 
+	bgrmp = bgrm;
+	while (bgrmp) {
+		for (i = 0; i < bgrmp->num_records; i++) {
+			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
+			       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);
+		}
+		bgrmp = bgrmp->next;
+		mdhim_full_release_msg(bgrm);
+		bgrm = bgrmp;
+	}
+
 	ret = mdhimClose(md);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}
+
+	
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
 
 	for (i = 0; i < KEYS; i++) {
 		free(keys[i]);
@@ -86,8 +100,6 @@ int main(int argc, char **argv) {
 
 	free(keys);
 	free(values);
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Finalize();
 
 	return 0;
 }

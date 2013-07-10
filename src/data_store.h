@@ -11,6 +11,7 @@
 
 /* Storage Methods */
 #define UNQLITE 1 //UNQLITE storage method
+#define LEVELDB 2 //LEVELDB storage method
 
 /* mdhim_store_t flags */
 #define MDHIM_CREATE 1 //Implies read/write 
