@@ -4,6 +4,7 @@ var searchData=
   ['range_5fserver_5fbdel',['range_server_bdel',['../d9/d67/range__server_8c.html#adc8bdb750078dd2a2d0c7b0414670a44',1,'range_server.c']]],
   ['range_5fserver_5fbget',['range_server_bget',['../d9/d67/range__server_8c.html#adf44f3067182640c986252a7b95368ee',1,'range_server.c']]],
   ['range_5fserver_5fbput',['range_server_bput',['../d9/d67/range__server_8c.html#acf4eb15dd578eb67350021764cd33644',1,'range_server.c']]],
+  ['range_5fserver_5fcommit',['range_server_commit',['../d9/d67/range__server_8c.html#a627d6e42e21bbe440d663f64790cad39',1,'range_server.c']]],
   ['range_5fserver_5fdel',['range_server_del',['../d9/d67/range__server_8c.html#ad850088b2378dff726323e7524853585',1,'range_server.c']]],
   ['range_5fserver_5fget',['range_server_get',['../d9/d67/range__server_8c.html#a54a70f71c0a8fbe85510661ad0d319c0',1,'range_server.c']]],
   ['range_5fserver_5finit',['range_server_init',['../d9/d67/range__server_8c.html#af34269b3d0d34cd441697cc0e7376d3f',1,'range_server_init(struct mdhim_t *md):&#160;range_server.c'],['../de/d8a/range__server_8h.html#af34269b3d0d34cd441697cc0e7376d3f',1,'range_server_init(struct mdhim_t *md):&#160;range_server.c']]],

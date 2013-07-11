@@ -105,6 +105,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2><a name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a93ec449f501d747ce72605f974f7e705"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a93ec449f501d747ce72605f974f7e705">UNQLITE</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memitem:a1b66d8dcf1ec465b57ad4d4b1a978b8f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a1b66d8dcf1ec465b57ad4d4b1a978b8f">LEVELDB</a>&#160;&#160;&#160;2</td></tr>
 <tr class="memitem:a330a924c66ef70961b1f2b096ead193b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a330a924c66ef70961b1f2b096ead193b">MDHIM_CREATE</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memitem:a08ec938c5e09267cc632a3d770d48c76"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a08ec938c5e09267cc632a3d770d48c76">MDHIM_RDONLY</a>&#160;&#160;&#160;2</td></tr>
 <tr class="memitem:ad1ae7c50f2568c0d1c50ebfb07febce7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#ad1ae7c50f2568c0d1c50ebfb07febce7">MDHIM_RDWR</a>&#160;&#160;&#160;3</td></tr>
@@ -112,13 +113,14 @@ Macros</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:af26a1cac009a37a5d7f0ac20ee19fc61"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#af26a1cac009a37a5d7f0ac20ee19fc61">mdhim_store_open_fn_t</a> )(void **db_handle, char *path, int flags, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
-<tr class="memitem:a875c1ab1167b729dbcdbfb7d2b1ad991"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a875c1ab1167b729dbcdbfb7d2b1ad991">mdhim_store_put_fn_t</a> )(void *db_handle, void *key, int key_len, void *data, int64_t data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
-<tr class="memitem:a8f519c64037ae01264558808566cbb2e"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a8f519c64037ae01264558808566cbb2e">mdhim_store_get_fn_t</a> )(void *db_handle, void *key, int key_len, void **data, int64_t *data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
-<tr class="memitem:a920fa97b0bf3d87d9376232430344f81"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a920fa97b0bf3d87d9376232430344f81">mdhim_store_get_next_fn_t</a> )(void *db_handle, void *curh, void **key, int *key_len, void **data, int64_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
-<tr class="memitem:ab8c6a76ed0f5920f8fbcb19b9e0d3ff2"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#ab8c6a76ed0f5920f8fbcb19b9e0d3ff2">mdhim_store_get_prev_fn_t</a> )(void *db_handle, void *curh, void **key, int *key_len, void **data, int64_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
+<tr class="memitem:a53be65de68e4f03efc8816cdd2ce65b8"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a53be65de68e4f03efc8816cdd2ce65b8">mdhim_store_put_fn_t</a> )(void *db_handle, void *key, int key_len, void *data, int32_t data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:a39ec0bff4eb89b9081fdaaa94700766f"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a39ec0bff4eb89b9081fdaaa94700766f">mdhim_store_get_fn_t</a> )(void *db_handle, void *key, int key_len, void **data, int32_t *data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:ae7b10d7cbd8818f21da6d573aca3b9a5"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#ae7b10d7cbd8818f21da6d573aca3b9a5">mdhim_store_get_next_fn_t</a> )(void *db_handle, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
+<tr class="memitem:a2ee5c86262bb132c24a144766cf5bef8"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a2ee5c86262bb132c24a144766cf5bef8">mdhim_store_get_prev_fn_t</a> )(void *db_handle, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
 <tr class="memitem:a987c504ec34ab0559d95d014034a2585"><td class="memItemLeft" align="right" valign="top">typedef void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a987c504ec34ab0559d95d014034a2585">mdhim_store_cursor_init_fn_t</a> )(void *db_handle)</td></tr>
 <tr class="memitem:a7c97bfb9cd30831f1ab1dbdfd9aa25e0"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#a7c97bfb9cd30831f1ab1dbdfd9aa25e0">mdhim_store_cursor_release_fn_t</a> )(void *db_handle, void *cursor)</td></tr>
 <tr class="memitem:aabc5c9879c73c85349c660530f687f52"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#aabc5c9879c73c85349c660530f687f52">mdhim_store_del_fn_t</a> )(void *db_handle, void *key, int key_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:acbf72a3c5eaa36c296d1ecf18ab6e1ed"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#acbf72a3c5eaa36c296d1ecf18ab6e1ed">mdhim_store_commit_fn_t</a> )(void *db_handle)</td></tr>
 <tr class="memitem:ab4037e75447b1b75d7cea3555024aa74"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#ab4037e75447b1b75d7cea3555024aa74">mdhim_store_close_fn_t</a> )(void *db_handle, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
@@ -127,6 +129,18 @@ Functions</h2></td></tr>
 <tr class="memitem:afc31028a79d580245e25549d88eb62ca"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d4/d50/structmdhim__store__cur__t.html">mdhim_store_cur_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d32/data__store_8h.html#afc31028a79d580245e25549d88eb62ca">mdhim_cursor_init</a> (struct <a class="el" href="../../d1/dab/structmdhim__store__t.html">mdhim_store_t</a> *mds, int type)</td></tr>
 </table>
 <hr/><h2>Macro Definition Documentation</h2>
+<a class="anchor" id="a1b66d8dcf1ec465b57ad4d4b1a978b8f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LEVELDB&#160;&#160;&#160;2</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a class="anchor" id="a330a924c66ef70961b1f2b096ead193b"></a>
 <div class="memitem">
 <div class="memproto">
@@ -188,6 +202,18 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="acbf72a3c5eaa36c296d1ecf18ab6e1ed"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* mdhim_store_commit_fn_t)(void *db_handle)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a class="anchor" id="a987c504ec34ab0559d95d014034a2585"></a>
 <div class="memitem">
 <div class="memproto">
@@ -224,36 +250,36 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a8f519c64037ae01264558808566cbb2e"></a>
+<a class="anchor" id="a39ec0bff4eb89b9081fdaaa94700766f"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef int(* mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int64_t *data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td>
+          <td class="memname">typedef int(* mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int32_t *data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a class="anchor" id="a920fa97b0bf3d87d9376232430344f81"></a>
+<a class="anchor" id="ae7b10d7cbd8818f21da6d573aca3b9a5"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef int(* mdhim_store_get_next_fn_t)(void *db_handle, void *curh, void **key, int *key_len, void **data, int64_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td>
+          <td class="memname">typedef int(* mdhim_store_get_next_fn_t)(void *db_handle, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a class="anchor" id="ab8c6a76ed0f5920f8fbcb19b9e0d3ff2"></a>
+<a class="anchor" id="a2ee5c86262bb132c24a144766cf5bef8"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef int(* mdhim_store_get_prev_fn_t)(void *db_handle, void *curh, void **key, int *key_len, void **data, int64_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td>
+          <td class="memname">typedef int(* mdhim_store_get_prev_fn_t)(void *db_handle, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -272,12 +298,12 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a875c1ab1167b729dbcdbfb7d2b1ad991"></a>
+<a class="anchor" id="a53be65de68e4f03efc8816cdd2ce65b8"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef int(* mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, void *data, int64_t data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td>
+          <td class="memname">typedef int(* mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, void *data, int32_t data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -354,7 +380,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 24 2013 15:10:15 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jul 11 2013 10:08:11 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

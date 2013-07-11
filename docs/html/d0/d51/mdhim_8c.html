@@ -99,39 +99,16 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 Functions</h2></td></tr>
 <tr class="memitem:ac888aae2f17340b47f760750c4b79643"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#ac888aae2f17340b47f760750c4b79643">mdhimInit</a> (MPI_Comm appComm)</td></tr>
 <tr class="memitem:a03a23e1aa36fdaa3c66db0ed9bd2da62"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a03a23e1aa36fdaa3c66db0ed9bd2da62">mdhimClose</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md)</td></tr>
+<tr class="memitem:a9395f68ca82078f9cc4992f2c1fb0bf2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a9395f68ca82078f9cc4992f2c1fb0bf2">mdhimCommit</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md)</td></tr>
 <tr class="memitem:aac6b4b5d1f51e73487bba86a44f950a6"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#aac6b4b5d1f51e73487bba86a44f950a6">mdhimPut</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *key, int key_len, int key_type, void *value, int value_len)</td></tr>
-<tr class="memitem:aedb2cd2b047e209bf8342a5cfdbe20e1"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#aedb2cd2b047e209bf8342a5cfdbe20e1">mdhimBput</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **keys, int *key_lens, int *key_types, void **values, int *value_lens, int num_records)</td></tr>
+<tr class="memitem:a2a84ff01236c556dc988d200b9e64dc2"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a2a84ff01236c556dc988d200b9e64dc2">mdhimBPut</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **keys, int *key_lens, int *key_types, void **values, int *value_lens, int num_records)</td></tr>
 <tr class="memitem:ad892892ab83baa4c7a9795735433eae7"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d5/dfb/structmdhim__getrm__t.html">mdhim_getrm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#ad892892ab83baa4c7a9795735433eae7">mdhimGet</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *key, int key_len, int key_type)</td></tr>
 <tr class="memitem:a1fa87363c0b34fedad7012acfacf76e6"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d0/d48/structmdhim__bgetrm__t.html">mdhim_bgetrm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a1fa87363c0b34fedad7012acfacf76e6">mdhimBGet</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **keys, int *key_lens, int *key_types, int num_keys)</td></tr>
 <tr class="memitem:ad3ceb8c19250d1c76227d68619bc8ef8"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#ad3ceb8c19250d1c76227d68619bc8ef8">mdhimDelete</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *key, int key_len, int key_type)</td></tr>
-<tr class="memitem:a244fd1625c0fbf8d8c94b1beae7f7063"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a244fd1625c0fbf8d8c94b1beae7f7063">mdhimBdelete</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **keys, int *key_lens, int *key_types, int num_keys)</td></tr>
-<tr class="memitem:ad01f149d55242835ef0a63f20ef6884b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#ad01f149d55242835ef0a63f20ef6884b">mdhim_release_recv_msg</a> (void *msg)</td></tr>
+<tr class="memitem:a6b5e54ee6c6851c519b649616b8b0d8f"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d51/mdhim_8c.html#a6b5e54ee6c6851c519b649616b8b0d8f">mdhimBDelete</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void **keys, int *key_lens, int *key_types, int num_records)</td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
-<a class="anchor" id="ad01f149d55242835ef0a63f20ef6884b"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void mdhim_release_recv_msg </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>msg</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Frees memory taken up by receive type messages</p>
-<dl class="params"><dt>Parameters:</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">msg</td><td>pointer to the message to free </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="a244fd1625c0fbf8d8c94b1beae7f7063"></a>
+<a class="anchor" id="a6b5e54ee6c6851c519b649616b8b0d8f"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -139,7 +116,7 @@ Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a>* mdhimBdelete </td>
+          <td class="memname">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a>* mdhimBDelete </td>
           <td>(</td>
           <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
           <td class="paramname"><em>md</em>, </td>
@@ -166,7 +143,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>num_keys</em>&#160;</td>
+          <td class="paramname"><em>num_records</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -259,7 +236,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="aedb2cd2b047e209bf8342a5cfdbe20e1"></a>
+<a class="anchor" id="a2a84ff01236c556dc988d200b9e64dc2"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -267,7 +244,7 @@ Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a>* mdhimBput </td>
+          <td class="memname">struct <a class="el" href="../../de/d70/structmdhim__brm__t.html">mdhim_brm_t</a>* mdhimBPut </td>
           <td>(</td>
           <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
           <td class="paramname"><em>md</em>, </td>
@@ -350,7 +327,31 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Quits the MDHIM instance</p>
+<p>Quits the MDHIM instance - collective call</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9395f68ca82078f9cc4992f2c1fb0bf2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mdhimCommit </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Commits outstanding MDHIM writes - collective call</p>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
@@ -496,7 +497,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>mdhimInit Initializes MDHIM</p>
+<p>mdhimInit Initializes MDHIM - Collective call</p>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">appComm</td><td>the communicator that was passed in from the application (e.g., MPI_COMM_WORLD) </td></tr>
@@ -581,7 +582,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 24 2013 15:10:15 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jul 11 2013 10:08:11 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

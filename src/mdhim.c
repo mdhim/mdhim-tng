@@ -288,7 +288,7 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
  * @param num_records  the number of records to store (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
-struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
 			     void **values, int *value_lens, int num_records) {
 	int ret;
 	struct mdhim_bputm_t **bpm_list;
@@ -319,10 +319,7 @@ struct mdhim_brm_t *mdhimBput(struct mdhim_t *md, void **keys, int *key_lens, in
 			     md->mdhim_rank);
 			continue;
 		}
-
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Key: %d going to range server rank: %d", 
-		     md->mdhim_rank, *(int *)keys[i], ri->rank);
+       
 		//Get the message for this range server
 		bpm = bpm_list[ri->rangesrv_num - 1];
 
@@ -608,18 +605,19 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int k
  * @param num_keys     the number of keys to delete (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
-struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
-				 int num_keys) {
+struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
+				 int num_records) {
 	int ret;
 	struct mdhim_bdelm_t **bdm_list;
 	struct mdhim_bdelm_t *bdm;
 	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
-	int i;
 	struct mdhim_rm_t *rm;
+	int i;
 	rangesrv_info *ri;
 
 	//Create an array of bulk del messages that holds one bulk message per range server
 	bdm_list = malloc(sizeof(struct mdhim_delm_t *) * md->num_rangesrvs);
+	memset(bdm_list, 0, sizeof(struct mdhim_delm_t *) * md->num_rangesrvs);
 
 	//Initialize the pointers of the list to null
 	for (i = 0; i < md->num_rangesrvs; i++) {
@@ -627,14 +625,14 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 	}
 
 	/* Go through each of the records to find the range server the record belongs to.
-	   If there is not a bulk message in the bdm_list array for the range server the key belongs to, 
+	   If there is not a bulk message in the array for the range server the key belongs to, 
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
-	for (i = 0; i < num_keys && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < num_records && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
 		if ((ri = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-			     "Error while determining range server in mdhimBdelete", 
+			     "Error while determining range server in mdhimBDel", 
 			     md->mdhim_rank);
 			continue;
 		}
@@ -647,15 +645,16 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 			bdm = malloc(sizeof(struct mdhim_bdelm_t));			       
 			bdm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bdm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
-			bdm->num_keys = 0;
+			bdm->num_records = 0;
 			bdm->server_rank = ri->rank;
 			bdm->mtype = MDHIM_BULK_DEL;
+			bdm_list[ri->rangesrv_num - 1] = bdm;
 		}
 
 		//Add the key, lengths, and data to the message
-		bdm->keys[bdm->num_keys] = keys[i];
-		bdm->key_lens[bdm->num_keys] = key_lens[i];
-		bdm->num_keys++;		
+		bdm->keys[bdm->num_records] = keys[i];
+		bdm->key_lens[bdm->num_records] = key_lens[i];
+		bdm->num_records++;		
 	}
 
 	//Make a list out of the received messages to return
@@ -667,8 +666,12 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 			continue;
 		}
 
-		//Send the messages to the appropriate servers
-		if ((ret = im_range_server(md)) == 1 && bdm->server_rank) {
+		//Send the message to the appropriate server
+		//Test if I'm a range server
+		ret = im_range_server(md);
+
+		//If I'm a range server and I'm the one this key goes to, send the message locally
+		if (ret && md->mdhim_rank == bdm->server_rank) {
 			rm = local_client_bdelete(md, bdm);
 		} else {
 			rm = client_bdelete(md, bdm);
@@ -678,7 +681,7 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 		brm = malloc(sizeof(struct mdhim_brm_t));
 		brm->error = rm->error;
 		brm->mtype = rm->mtype;
-		brm->server_rank = rm->server_rank;  
+		brm->server_rank = rm->server_rank;
 		free(rm);
 
 		//Build the linked list to return
@@ -690,16 +693,6 @@ struct mdhim_brm_t *mdhimBdelete(struct mdhim_t *md, void **keys, int *key_lens,
 			brm_tail->next = brm;
 			brm_tail = brm;
 		}
-	}
-
-	//Free up the memory we don't need anymore
-	for (i = 0; i < md->num_rangesrvs; i++) {
-		if (!bdm_list[i]) {
-			continue;
-		}
-
-		free(bdm_list[i]);
-		bdm_list[i] = NULL;
 	}
 
 	free(bdm_list);

@@ -116,7 +116,7 @@ struct mdhim_bdelm_t {
 	int mtype;  
 	void **keys;
 	int *key_lens;
-	int num_keys;
+	int num_records;
 	int server_rank;
 };
 

@@ -100,6 +100,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a90a0237c395642f92cc0a4530144c649"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d0/d48/structmdhim__bgetrm__t.html">mdhim_bgetrm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de1/client_8h.html#a90a0237c395642f92cc0a4530144c649">client_bget</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d5/def/structmdhim__bgetm__t.html">mdhim_bgetm_t</a> *bgm)</td></tr>
 <tr class="memitem:a51e7d69f5c766fec387b345073edbf13"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de1/client_8h.html#a51e7d69f5c766fec387b345073edbf13">client_delete</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d7/da5/structmdhim__delm__t.html">mdhim_delm_t</a> *dm)</td></tr>
 <tr class="memitem:a420142e56a91083f6a65fd3ded4d4513"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d2/d0c/structmdhim__rm__t.html">mdhim_rm_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de1/client_8h.html#a420142e56a91083f6a65fd3ded4d4513">client_bdelete</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../d4/ddf/structmdhim__bdelm__t.html">mdhim_bdelm_t</a> *dm)</td></tr>
+<tr class="memitem:a1b96cc6dc568e1d24615d5aea287fc26"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de1/client_8h.html#a1b96cc6dc568e1d24615d5aea287fc26">client_close</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, struct <a class="el" href="../../de/df7/structmdhim__basem__t.html">mdhim_basem_t</a> *cm)</td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
 <a class="anchor" id="a420142e56a91083f6a65fd3ded4d4513"></a>
@@ -228,6 +229,40 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns:</dt><dd>return_message structure with -&gt;error = MDHIM_SUCCESS or MDHIM_ERROR </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1b96cc6dc568e1d24615d5aea287fc26"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void client_close </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
+          <td class="paramname"><em>md</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../de/df7/structmdhim__basem__t.html">mdhim_basem_t</a> *&#160;</td>
+          <td class="paramname"><em>cm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Send close to all range servers</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
+    <tr><td class="paramname">cm</td><td>pointer to close message to be sent </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -363,7 +398,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 24 2013 15:10:15 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jul 11 2013 10:08:11 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

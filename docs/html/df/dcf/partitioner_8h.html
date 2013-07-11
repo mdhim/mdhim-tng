@@ -105,6 +105,7 @@ Macros</h2></td></tr>
 <tr class="memitem:ab153476631c26b28926262eccee970a0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#ab153476631c26b28926262eccee970a0">RANGE_SERVER_FACTOR</a>&#160;&#160;&#160;4</td></tr>
 <tr class="memitem:af35f5e13aa59c20494761958a7be86e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#af35f5e13aa59c20494761958a7be86e4">MDHIM_MAX_KEY</a>&#160;&#160;&#160;9223372036854775807LL</td></tr>
 <tr class="memitem:ad8cd63f9efc2b786ab034c8bf9ac9da3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#ad8cd63f9efc2b786ab034c8bf9ac9da3">MDHIM_MIN_KEY</a>&#160;&#160;&#160;-9223372036854775807LL</td></tr>
+<tr class="memitem:af9e3ddf2bc764d8e4f9ec0cb598f3675"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#af9e3ddf2bc764d8e4f9ec0cb598f3675">MDHIM_MAX_RECS_PER_SLICE</a>&#160;&#160;&#160;100</td></tr>
 <tr class="memitem:ac03dbdb6fcafe420b667a386ee72811f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#ac03dbdb6fcafe420b667a386ee72811f">MDHIM_INT_KEY</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memitem:a6ae4c7be730071e549c8f82b47842db4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#a6ae4c7be730071e549c8f82b47842db4">MDHIM_LONG_INT_KEY</a>&#160;&#160;&#160;2</td></tr>
 <tr class="memitem:a1c833532dc45bec9a7c7aa4bfe7f36b2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#a1c833532dc45bec9a7c7aa4bfe7f36b2">MDHIM_FLOAT_KEY</a>&#160;&#160;&#160;3</td></tr>
@@ -119,14 +120,12 @@ Functions</h2></td></tr>
 <tr class="memitem:ae6dbb6c65178e0ca143fe8d10c55f98c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#ae6dbb6c65178e0ca143fe8d10c55f98c">partitioner_release</a> ()</td></tr>
 <tr class="memitem:af78375fc65d2cfe6a01bf02bd8a17253"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#af78375fc65d2cfe6a01bf02bd8a17253">get_num_range_servers</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md)</td></tr>
 <tr class="memitem:a7e8b2c01361a47a75957d29420d76a89"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#a7e8b2c01361a47a75957d29420d76a89">is_range_server</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, int rank)</td></tr>
-<tr class="memitem:a9e92c25cea839c60a6d9179405e3c417"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#a9e92c25cea839c60a6d9179405e3c417">populate_my_ranges</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md)</td></tr>
-<tr class="memitem:a9981a82d3463edad803b80bf002de0e7"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#a9981a82d3463edad803b80bf002de0e7">get_range_server</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *key, int key_len, int key_type)</td></tr>
+<tr class="memitem:aaedfddad0f8cccefaf6c99e2a227663a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/dce/structrangesrv__info.html">rangesrv_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#aaedfddad0f8cccefaf6c99e2a227663a">get_range_server</a> (struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *md, void *key, int key_len, int key_type)</td></tr>
 <tr class="memitem:a0faa616c6ca379c72bba6468737b99c0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#a0faa616c6ca379c72bba6468737b99c0">build_alphabet</a> ()</td></tr>
 <tr class="memitem:ae6bce3dfa508cb7b92b2d4e9d991480a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#ae6bce3dfa508cb7b92b2d4e9d991480a">verify_key</a> (void *key, int key_len, int key_type)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a2b25553eefbd4e031777a50e4d94139e"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="../../d8/d9f/structmdhim__char.html">mdhim_char</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#a2b25553eefbd4e031777a50e4d94139e">mdhim_alphabet</a> = NULL</td></tr>
 <tr class="memitem:ad6d142f9c526f895866dfd0a68a7da25"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dcf/partitioner_8h.html#ad6d142f9c526f895866dfd0a68a7da25">max_rangesrvs</a></td></tr>
 </table>
 <hr/><h2>Macro Definition Documentation</h2>
@@ -214,6 +213,18 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="af9e3ddf2bc764d8e4f9ec0cb598f3675"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MDHIM_MAX_RECS_PER_SLICE&#160;&#160;&#160;100</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a class="anchor" id="ad8cd63f9efc2b786ab034c8bf9ac9da3"></a>
 <div class="memitem">
 <div class="memproto">
@@ -291,12 +302,12 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a9981a82d3463edad803b80bf002de0e7"></a>
+<a class="anchor" id="aaedfddad0f8cccefaf6c99e2a227663a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t get_range_server </td>
+          <td class="memname"><a class="el" href="../../da/dce/structrangesrv__info.html">rangesrv_info</a>* get_range_server </td>
           <td>(</td>
           <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
           <td class="paramname"><em>md</em>, </td>
@@ -415,31 +426,6 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a9e92c25cea839c60a6d9179405e3c417"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int populate_my_ranges </td>
-          <td>(</td>
-          <td class="paramtype">struct <a class="el" href="../../d8/dbc/structmdhim__t.html">mdhim_t</a> *&#160;</td>
-          <td class="paramname"><em>md</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>populate_my_ranges</p>
-<p>sets the <a class="el" href="../../da/dce/structrangesrv__info.html">rangesrv_info</a> struct in md-&gt;mdhim_rs </p>
-<dl class="params"><dt>Parameters:</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">md</td><td>main MDHIM struct </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS or MDHIM_ERROR on error </dd></dl>
-
-</div>
-</div>
 <a class="anchor" id="ae6bce3dfa508cb7b92b2d4e9d991480a"></a>
 <div class="memitem">
 <div class="memproto">
@@ -495,22 +481,10 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a2b25553eefbd4e031777a50e4d94139e"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct <a class="el" href="../../d8/d9f/structmdhim__char.html">mdhim_char</a>* mdhim_alphabet = NULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 24 2013 15:10:15 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jul 11 2013 10:08:11 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

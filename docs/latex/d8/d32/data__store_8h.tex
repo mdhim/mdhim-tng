@@ -18,6 +18,8 @@ struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\
 \item 
 \#define \hyperlink{data__store_8h_a93ec449f501d747ce72605f974f7e705}{U\-N\-Q\-L\-I\-T\-E}~1
 \item 
+\#define \hyperlink{data__store_8h_a1b66d8dcf1ec465b57ad4d4b1a978b8f}{L\-E\-V\-E\-L\-D\-B}~2
+\item 
 \#define \hyperlink{data__store_8h_a330a924c66ef70961b1f2b096ead193b}{M\-D\-H\-I\-M\-\_\-\-C\-R\-E\-A\-T\-E}~1
 \item 
 \#define \hyperlink{data__store_8h_a08ec938c5e09267cc632a3d770d48c76}{M\-D\-H\-I\-M\-\_\-\-R\-D\-O\-N\-L\-Y}~2
@@ -29,19 +31,21 @@ struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\
 \item 
 typedef int($\ast$ \hyperlink{data__store_8h_af26a1cac009a37a5d7f0ac20ee19fc61}{mdhim\-\_\-store\-\_\-open\-\_\-fn\-\_\-t} )(void $\ast$$\ast$db\-\_\-handle, char $\ast$path, int flags, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-typedef int($\ast$ \hyperlink{data__store_8h_a875c1ab1167b729dbcdbfb7d2b1ad991}{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$data, int64\-\_\-t data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+typedef int($\ast$ \hyperlink{data__store_8h_a53be65de68e4f03efc8816cdd2ce65b8}{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$data, int32\-\_\-t data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-typedef int($\ast$ \hyperlink{data__store_8h_a8f519c64037ae01264558808566cbb2e}{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+typedef int($\ast$ \hyperlink{data__store_8h_a39ec0bff4eb89b9081fdaaa94700766f}{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-typedef int($\ast$ \hyperlink{data__store_8h_a920fa97b0bf3d87d9376232430344f81}{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+typedef int($\ast$ \hyperlink{data__store_8h_ae7b10d7cbd8818f21da6d573aca3b9a5}{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
 \item 
-typedef int($\ast$ \hyperlink{data__store_8h_ab8c6a76ed0f5920f8fbcb19b9e0d3ff2}{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+typedef int($\ast$ \hyperlink{data__store_8h_a2ee5c86262bb132c24a144766cf5bef8}{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
 \item 
 typedef void $\ast$($\ast$ \hyperlink{data__store_8h_a987c504ec34ab0559d95d014034a2585}{mdhim\-\_\-store\-\_\-cursor\-\_\-init\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle)
 \item 
 typedef int($\ast$ \hyperlink{data__store_8h_a7c97bfb9cd30831f1ab1dbdfd9aa25e0}{mdhim\-\_\-store\-\_\-cursor\-\_\-release\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$cursor)
 \item 
 typedef int($\ast$ \hyperlink{data__store_8h_aabc5c9879c73c85349c660530f687f52}{mdhim\-\_\-store\-\_\-del\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+\item 
+typedef int($\ast$ \hyperlink{data__store_8h_acbf72a3c5eaa36c296d1ecf18ab6e1ed}{mdhim\-\_\-store\-\_\-commit\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle)
 \item 
 typedef int($\ast$ \hyperlink{data__store_8h_ab4037e75447b1b75d7cea3555024aa74}{mdhim\-\_\-store\-\_\-close\-\_\-fn\-\_\-t} )(void $\ast$db\-\_\-handle, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \end{DoxyCompactItemize}
@@ -55,6 +59,9 @@ struct \hyperlink{structmdhim__store__cur__t}{mdhim\-\_\-store\-\_\-cur\-\_\-t} 
 
 
 \subsection{Macro Definition Documentation}
+\hypertarget{data__store_8h_a1b66d8dcf1ec465b57ad4d4b1a978b8f}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!L\-E\-V\-E\-L\-D\-B@{L\-E\-V\-E\-L\-D\-B}}
+\index{L\-E\-V\-E\-L\-D\-B@{L\-E\-V\-E\-L\-D\-B}!data_store.h@{data\-\_\-store.\-h}}
+\subsubsection[{L\-E\-V\-E\-L\-D\-B}]{\setlength{\rightskip}{0pt plus 5cm}\#define L\-E\-V\-E\-L\-D\-B~2}}\label{d8/d32/data__store_8h_a1b66d8dcf1ec465b57ad4d4b1a978b8f}
 \hypertarget{data__store_8h_a330a924c66ef70961b1f2b096ead193b}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!M\-D\-H\-I\-M\-\_\-\-C\-R\-E\-A\-T\-E@{M\-D\-H\-I\-M\-\_\-\-C\-R\-E\-A\-T\-E}}
 \index{M\-D\-H\-I\-M\-\_\-\-C\-R\-E\-A\-T\-E@{M\-D\-H\-I\-M\-\_\-\-C\-R\-E\-A\-T\-E}!data_store.h@{data\-\_\-store.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-C\-R\-E\-A\-T\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-C\-R\-E\-A\-T\-E~1}}\label{d8/d32/data__store_8h_a330a924c66ef70961b1f2b096ead193b}
@@ -73,6 +80,9 @@ struct \hyperlink{structmdhim__store__cur__t}{mdhim\-\_\-store\-\_\-cur\-\_\-t} 
 \hypertarget{data__store_8h_ab4037e75447b1b75d7cea3555024aa74}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-close\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-close\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-close\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-close\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
 \subsubsection[{mdhim\-\_\-store\-\_\-close\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-close\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)}}\label{d8/d32/data__store_8h_ab4037e75447b1b75d7cea3555024aa74}
+\hypertarget{data__store_8h_acbf72a3c5eaa36c296d1ecf18ab6e1ed}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-commit\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-commit\-\_\-fn\-\_\-t}}
+\index{mdhim\-\_\-store\-\_\-commit\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-commit\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
+\subsubsection[{mdhim\-\_\-store\-\_\-commit\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-commit\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle)}}\label{d8/d32/data__store_8h_acbf72a3c5eaa36c296d1ecf18ab6e1ed}
 \hypertarget{data__store_8h_a987c504ec34ab0559d95d014034a2585}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-cursor\-\_\-init\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-cursor\-\_\-init\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-cursor\-\_\-init\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-cursor\-\_\-init\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
 \subsubsection[{mdhim\-\_\-store\-\_\-cursor\-\_\-init\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef void$\ast$($\ast$ mdhim\-\_\-store\-\_\-cursor\-\_\-init\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle)}}\label{d8/d32/data__store_8h_a987c504ec34ab0559d95d014034a2585}
@@ -82,21 +92,21 @@ struct \hyperlink{structmdhim__store__cur__t}{mdhim\-\_\-store\-\_\-cur\-\_\-t} 
 \hypertarget{data__store_8h_aabc5c9879c73c85349c660530f687f52}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-del\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-del\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-del\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-del\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
 \subsubsection[{mdhim\-\_\-store\-\_\-del\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-del\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)}}\label{d8/d32/data__store_8h_aabc5c9879c73c85349c660530f687f52}
-\hypertarget{data__store_8h_a8f519c64037ae01264558808566cbb2e}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t}}
+\hypertarget{data__store_8h_a39ec0bff4eb89b9081fdaaa94700766f}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
-\subsubsection[{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)}}\label{d8/d32/data__store_8h_a8f519c64037ae01264558808566cbb2e}
-\hypertarget{data__store_8h_a920fa97b0bf3d87d9376232430344f81}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t}}
+\subsubsection[{mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-get\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)}}\label{d8/d32/data__store_8h_a39ec0bff4eb89b9081fdaaa94700766f}
+\hypertarget{data__store_8h_ae7b10d7cbd8818f21da6d573aca3b9a5}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
-\subsubsection[{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)}}\label{d8/d32/data__store_8h_a920fa97b0bf3d87d9376232430344f81}
-\hypertarget{data__store_8h_ab8c6a76ed0f5920f8fbcb19b9e0d3ff2}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t}}
+\subsubsection[{mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-get\-\_\-next\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)}}\label{d8/d32/data__store_8h_ae7b10d7cbd8818f21da6d573aca3b9a5}
+\hypertarget{data__store_8h_a2ee5c86262bb132c24a144766cf5bef8}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
-\subsubsection[{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int64\-\_\-t $\ast$data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)}}\label{d8/d32/data__store_8h_ab8c6a76ed0f5920f8fbcb19b9e0d3ff2}
+\subsubsection[{mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-get\-\_\-prev\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)}}\label{d8/d32/data__store_8h_a2ee5c86262bb132c24a144766cf5bef8}
 \hypertarget{data__store_8h_af26a1cac009a37a5d7f0ac20ee19fc61}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-open\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-open\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-open\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-open\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
 \subsubsection[{mdhim\-\_\-store\-\_\-open\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-open\-\_\-fn\-\_\-t)(void $\ast$$\ast$db\-\_\-handle, char $\ast$path, int flags, struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)}}\label{d8/d32/data__store_8h_af26a1cac009a37a5d7f0ac20ee19fc61}
-\hypertarget{data__store_8h_a875c1ab1167b729dbcdbfb7d2b1ad991}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t}}
+\hypertarget{data__store_8h_a53be65de68e4f03efc8816cdd2ce65b8}{\index{data\-\_\-store.\-h@{data\-\_\-store.\-h}!mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t}}
 \index{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t@{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t}!data_store.h@{data\-\_\-store.\-h}}
-\subsubsection[{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$data, int64\-\_\-t data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)}}\label{d8/d32/data__store_8h_a875c1ab1167b729dbcdbfb7d2b1ad991}
+\subsubsection[{mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ mdhim\-\_\-store\-\_\-put\-\_\-fn\-\_\-t)(void $\ast$db\-\_\-handle, void $\ast$key, int key\-\_\-len, void $\ast$data, int32\-\_\-t data\-\_\-len, struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)}}\label{d8/d32/data__store_8h_a53be65de68e4f03efc8816cdd2ce65b8}
 
 
 \subsection{Function Documentation}

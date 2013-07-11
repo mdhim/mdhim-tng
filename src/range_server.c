@@ -366,11 +366,11 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source) {
  	int i;
 	int ret;
-	int error;
+	int error = 0;
 	struct mdhim_rm_t *brm;
 
 	//Iterate through the arrays and delete each record
-	for (i = 0; i < bdm->num_keys && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bdm->num_records && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
