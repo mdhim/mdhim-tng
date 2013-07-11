@@ -241,8 +241,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	struct mdhim_rm_t *rm;
 	int error = 0;
         //Put the record in the database
-	mlog(MDHIM_SERVER_CRIT, "Rank: %d - Putting record", 
-		     md->mdhim_rank);	
+
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
 					im->key, im->key_len, im->value, 
@@ -286,9 +285,6 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
-	  mlog(MDHIM_SERVER_CRIT, "Rank: %d - Putting record - num recs: %d", 
-	       md->mdhim_rank, bim->num_records);	
-
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
@@ -464,11 +460,6 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 		error = ret;
 	}
 
-	if (*((char **) value)) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d for rank: %d", 
-		     md->mdhim_rank, **((int **) value), value_len, source);
-	}
-
 	//Create the response message
 	grm = malloc(sizeof(struct mdhim_getrm_t));
 	//Set the type
@@ -530,12 +521,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 			error = ret;
 			value_lens[i] = 0;
 			continue;
-		}
-
-		if (*((char *) values[i])) {
-		  mlog(MDHIM_SERVER_DBG, "Rank: %d - Retrieved value: %d with length: %d for rank: %d", 
-		       md->mdhim_rank, *((int **) values)[i], value_lens[i], source);
-		}
+		}	
 	}
 
 	//Create the response message
@@ -596,7 +582,7 @@ void *listener_thread(void *data) {
 	
 		//We received a close message - so quit
 		if (ret == MDHIM_CLOSE) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Received close message", 
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Received close message", 
 			     md->mdhim_rank);
 			break;
 		}

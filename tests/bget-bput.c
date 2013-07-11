@@ -4,7 +4,7 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 50
+#define KEYS 100
 int main(int argc, char **argv) {
 	int ret;
 	int provided;
@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
 	int value_lens[KEYS];
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm, *bgrmp;
+	struct timeval start_tv, end_tv;
 
 	//Initialize MPI with multiple thread support
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -31,6 +32,7 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
+	gettimeofday(&start_tv, NULL);
 	//Initialize MDHIM
 	md = mdhimInit(MPI_COMM_WORLD);
 	if (!md) {
@@ -102,6 +104,7 @@ int main(int argc, char **argv) {
 
 	//Quit MDHIM
 	ret = mdhimClose(md);
+	gettimeofday(&end_tv, NULL);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}
@@ -115,6 +118,9 @@ int main(int argc, char **argv) {
 
 	free(keys);
 	free(values);
+
+	printf("Took: %u seconds to insert and get %u keys/values\n", 
+	       (unsigned int) (end_tv.tv_sec - start_tv.tv_sec), KEYS);
 
 	return 0;
 }

@@ -34,7 +34,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
-			MLOG_DBG, MLOG_DBG, NULL, 0, MLOG_LOGPID, 0);
+			MLOG_CRIT, MLOG_CRIT, NULL, 0, MLOG_LOGPID, 0);
 
 	//Allocate memory for the main MDHIM structure
 	md = malloc(sizeof(struct mdhim_t));
@@ -190,11 +190,7 @@ int mdhimCommit(struct mdhim_t *md) {
 
 	MPI_Barrier(md->mdhim_comm);      
 	//If I'm a range server, send a commit message to myself
-	if ((rs = im_range_server(md)) == 1) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "I'm a range server doing a commit",
-		     md->mdhim_rank);
-
+	if ((rs = im_range_server(md)) == 1) {       
 		cm = malloc(sizeof(struct mdhim_basem_t));
 		cm->mtype = MDHIM_COMMIT;
 		rm = local_client_commit(md, cm);

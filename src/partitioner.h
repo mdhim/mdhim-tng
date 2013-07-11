@@ -25,6 +25,11 @@
 #define MDHIM_DOUBLE_KEY 4
 #define MDHIM_LONG_DOUBLE_KEY 5
 #define MDHIM_STRING_KEY 6
+//An arbitrary sized key
+#define MDHIM_BYTE_KEY 7
+
+//Maximum length of a key
+#define MAX_KEY_LEN 1073741824
 
 /* The exponent used for the algorithm that determines the range server
 

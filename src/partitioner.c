@@ -138,17 +138,16 @@ int verify_key(void *key, int key_len, int key_type) {
 	int id;
 	struct mdhim_char *mc;
 
-	if (key_type != MDHIM_STRING_KEY) {
-		if (key_len > sizeof(int64_t)) {
-			return MDHIM_ERROR;
-		}
-	} else {
+	if (key_len > MAX_KEY_LEN) {
+		return MDHIM_ERROR;
+	}
+	if (key_type == MDHIM_STRING_KEY) {
 		for (i = 0; i < key_len; i++) {
 			//Ignore null terminating char
 			if (i == key_len - 1 && ((char *)key)[i] == '\0') {
 				break;
 			}
-
+			
 			id = (int) ((char *)key)[i];
 			HASH_FIND_INT(mdhim_alphabet, &id, mc);
 			if (!mc) {
@@ -156,7 +155,7 @@ int verify_key(void *key, int key_len, int key_type) {
 			}
 		}
 	}
-
+	
 	return MDHIM_SUCCESS;
 }
 
@@ -296,6 +295,7 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len, int 
 		}
 
 		break;
+	case MDHIM_BYTE_KEY:
 	case MDHIM_LONG_INT_KEY:
 		//Convert the key to a signed 64 bit integer
 		likey = *((int64_t *) key);
