@@ -267,6 +267,7 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
+	const char *res;
 
 	//Init the data to return
 	*((char **) data) = NULL;
@@ -283,9 +284,10 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 		//Otherwise, seek to the key given and then get the next key
 		leveldb_iter_seek(iter, *((char **)key), *key_len);
 		if (!leveldb_iter_valid(iter)) { 
-			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb after seeking");
 			return MDHIM_DB_ERROR;
 		}
+
 		leveldb_iter_next(iter);
 	}
 
@@ -294,10 +296,13 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 		return MDHIM_DB_ERROR;
 	}
 
-	*((char **) data) = (char *) leveldb_iter_value(iter, (size_t *) data_len);
-	if (!*((char **) key)) {
-		*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
+	res = leveldb_iter_value(iter, (size_t *) data_len);
+	if (res) {
+		*((char **) data) = malloc(sizeof(*data_len));
+		memcpy(*((char **) data), res, sizeof(*data_len));
 	}
+
+	*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
 		return MDHIM_DB_ERROR;
@@ -325,6 +330,7 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
+	const char *res;
 
 	//Init the data to return
 	*((char **) data) = NULL;
@@ -352,10 +358,13 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 		return MDHIM_DB_ERROR;
 	}
 
-	*((char **) data) = (char *) leveldb_iter_value(iter, (size_t *) data_len);
-	if (!*((char **) key)) {
-		*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
+	res = leveldb_iter_value(iter, (size_t *) data_len);
+	if (res) {
+		*((char **) data) = malloc(sizeof(*data_len));
+		memcpy(*((char **) data), res, sizeof(*data_len));
 	}
+
+	*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
 		return MDHIM_DB_ERROR;

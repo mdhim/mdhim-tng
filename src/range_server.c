@@ -400,30 +400,41 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
 int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, int op) {
 	int error = 0;
 	void **value;
-	int32_t value_len;
+	void **key;
+	int32_t value_len, key_len;
 	struct mdhim_getrm_t *grm;
 	int ret;
 
+	//Initialize pointers and lengths
 	value = malloc(sizeof(void *));
-	*value = NULL;
+	*(char **) value = NULL;
+	key = malloc(sizeof(void *));
+	*(char **) key = NULL;
+	key_len = 0;
 	value_len = 0;
-	//Get a record from the database
 
+	//Set our local pointer to the key and length
+	if (gm->key_len) {
+		*key = gm->key;
+		key_len = gm->key_len;
+	}
+
+	//Get a record from the database
 	switch(op) {
 	case MDHIM_GET_EQ:
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-						    gm->key, gm->key_len, value, 
+						    *key, key_len, value, 
 						    &value_len, NULL)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
 		break;
-	case MDHIM_GET_NEXT:
+	case MDHIM_GET_NEXT:	
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
-							 gm->key, &gm->key_len, value, 
+							 key, &key_len, value, 
 							 &value_len, NULL)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
@@ -433,7 +444,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	case MDHIM_GET_PREV:
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
-							 gm->key, &gm->key_len, value, 
+							 key, &key_len, value, 
 							 &value_len, NULL)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
 			     md->mdhim_rank);
@@ -455,21 +466,26 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	//Set the server's rank
 	grm->server_rank = md->mdhim_rank;
 	//Set the key and value
-	if (source == md->mdhim_rank) {
-		//If this message is coming from myself, copy the key
-		grm->key = malloc(gm->key_len);
-		memcpy(grm->key, gm->key, gm->key_len);
+
+	//Free the passed in key (gm->key) according to the where it came from and what operation we are handling
+	if (source == md->mdhim_rank && gm->key_len) {
+		//If this message is coming from myself and a key was sent, copy the key
+		grm->key = malloc(key_len);
+		memcpy(grm->key, *(char **) key, key_len);
 	} else {
-		grm->key = gm->key;
+		grm->key = *(char **) key;
 	}
 
-	grm->key_len = gm->key_len;
-	grm->value = (void *) *(((char **) value));
+	grm->key_len = key_len;
+	grm->value = *(char **)value;
 	grm->value_len = value_len;
 	//Send response
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - About to send get response to: %d", 
 	     md->mdhim_rank, source);
 	ret = send_locally_or_remote(md, source, grm);
+
+	free(value);
+	free(key);
 
 	return MDHIM_SUCCESS;
 }
