@@ -257,7 +257,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
  * @param key_type  type of the key
  * @return the rank of the range server or MDHIM_ERROR on error
  */
-rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len, int key_type) {
+rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	//The number that maps a key to range server (dependent on key type)
 	uint64_t key_num;
 	//The range server number that we return
@@ -272,7 +272,8 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len, int 
 	struct mdhim_char *mc;
 	double str_num;
 	uint64_t total_keys;
-	
+	int key_type = md->key_type;
+
 	//The total number of keys we can hold in all range servers combined
 	total_keys = (uint64_t)MDHIM_MAX_KEY + (uint64_t)llabs(MDHIM_MIN_KEY);
 

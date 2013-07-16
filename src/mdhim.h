@@ -35,6 +35,8 @@ struct mdhim_t {
 	int mdhim_rank;
 	//The size of mdhim_comm
 	int mdhim_comm_size;
+	//The key type of this database
+	int key_type;
 	//The number of range servers in the rangesrvs list
 	uint32_t num_rangesrvs;
 	//A linked list of range servers
@@ -54,19 +56,19 @@ struct mdhim_t {
 	void *receive_msg;
 };
 
-struct mdhim_t *mdhimInit(MPI_Comm appComm);
+struct mdhim_t *mdhimInit(MPI_Comm appComm, int key_type);
 int mdhimClose(struct mdhim_t *md);
 int mdhimCommit(struct mdhim_t *md);
-struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_type, 
+struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,  
 			    void *value, int value_len);
-struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 			      void **values, int *value_lens, int num_records);
 struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len, 
-			       int key_type);
-struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, int *key_types, 
+			       int op);
+struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, 
 				 int num_keys);
-struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int key_type);
-struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
+struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len);
+struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 				 int num_keys);
 void mdhim_release_recv_msg(void *msg);
 #endif

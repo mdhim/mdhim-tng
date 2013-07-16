@@ -12,7 +12,6 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	int **keys;
 	int key_lens[KEYS];
-	int key_types[KEYS];
 	int **values;
 	int value_lens[KEYS];
 	struct mdhim_brm_t *brm, *brmp;
@@ -32,7 +31,7 @@ int main(int argc, char **argv) {
         }
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD);
+	md = mdhimInit(MPI_COMM_WORLD, MDHIM_INT_KEY);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);
@@ -46,14 +45,13 @@ int main(int argc, char **argv) {
 		*keys[i] = (i + 1) * (md->mdhim_rank + 1);
 		printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
 		key_lens[i] = sizeof(int);
-		key_types[i] = MDHIM_INT_KEY;
 		values[i] = malloc(sizeof(int));
 		*values[i] = (i + 1) * (md->mdhim_rank + 1);
 		value_lens[i] = sizeof(int);		
 	}
 
 	//Insert the records
-	brm = mdhimBPut(md, (void **) keys, key_lens, key_types, 
+	brm = mdhimBPut(md, (void **) keys, key_lens,  
 			(void **) values, value_lens, KEYS);
 	brmp = brm;
 	if (!brm || brm->error) {
@@ -71,7 +69,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Delete the records
-	brm = mdhimBDelete(md, (void **) keys, key_lens, key_types, 
+	brm = mdhimBDelete(md, (void **) keys, key_lens, 
 			   KEYS);
 	brmp = brm;
 	if (!brm || brm->error) {
@@ -89,7 +87,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Try to get the records back - should fail
-	bgrm = mdhimBGet(md, (void **) keys, key_lens, key_types, 
+	bgrm = mdhimBGet(md, (void **) keys, key_lens, 
 			 KEYS);
 	bgrmp = bgrm;
 	while (bgrmp) {

@@ -30,7 +30,7 @@
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
-#define MDHIM_GET_VAL       0
+#define MDHIM_GET_EQ       0
 //Get the next key and value
 #define MDHIM_GET_NEXT   1
 //Get the previous key and value
@@ -83,9 +83,13 @@ struct mdhim_bputm_t {
 /* Get record message */
 struct mdhim_getm_t {
 	int mtype;  
-	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
+	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
+	/* The key to get if op is MDHIM_GET_EQ
+	   If op is MDHIM_GET_NEXT or MDHIM_GET_PREV the key is the last key to start from
+	 */
 	void *key;
+	//The length of the key
 	int key_len;
 	int num_records;
 	int server_rank;
@@ -94,8 +98,7 @@ struct mdhim_getm_t {
 /* Bulk get record message */
 struct mdhim_bgetm_t {
 	int mtype;  
-	//Operation type e.g., MDHIM_GET_VAL, MDHIM_GET_NEXT, MDHIM_GET_PREV
-	int op;
+	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	void **keys;
 	int *key_lens;
         //Number of records to retrieve

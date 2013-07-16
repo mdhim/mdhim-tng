@@ -40,48 +40,6 @@ static void print_unqlite_err_msg(unqlite *dh) {
 }
 
 /**
- * mdhim_unqlite_cursor_init
- * Initializes a cursor
- *
- * @param dbh   in   * to the unqlite db handle
- * @return void * to cursor or NULL on failure
- */
-void *mdhim_unqlite_cursor_init(void *dbh) {
-	unqlite *dh = (unqlite *) dbh;
-	unqlite_kv_cursor *cursor;
-	int ret = 0;
-	
-	if ((ret = unqlite_kv_cursor_init(dh, &cursor)) 
-	    != UNQLITE_OK) {
-		print_unqlite_err_msg(dh);
-		return NULL;
-	}
-
-	return (void *)cursor;
-}
-
-/**
- * mdhim_unqlite_cursor_release
- * Releases a cursor
- *
- * @param dbh   in   * to the unqlite db handle
- * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
- */
-int mdhim_unqlite_cursor_release(void *dbh, void *curh) {
-	unqlite *dh = (unqlite *) dbh;
-	unqlite_kv_cursor *cursor = (unqlite_kv_cursor *) curh;
-	int ret = 0;
-	
-	if ((ret = unqlite_kv_cursor_release(dh, cursor)) 
-	    != UNQLITE_OK) {
-		print_unqlite_err_msg(dh);
-		return MDHIM_DB_ERROR;
-	}
-
-	return MDHIM_SUCCESS;
-}
-
-/**
  * mdhim_unqlite_open
  * Opens the database
  *
@@ -92,7 +50,7 @@ int mdhim_unqlite_cursor_release(void *dbh, void *curh) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_open(void **dbh, char *path, int flags, 
+int mdhim_unqlite_open(void **dbh, void **dbc, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 	int imode;
@@ -230,15 +188,17 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *d
  * @param mstore_cur_opts in   additional cursor options for the data store layer 
  * 
  */
-int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len, 
+int mdhim_unqlite_get_next(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
-	unqlite *dh = (unqlite *) dbh;
+/*	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
-	unqlite_kv_cursor *cur = (unqlite_kv_cursor *) curh;	
+	unqlite_kv_cursor *cur;	
 	char *data_buf;
 	char *key_buf;
+*/
 
+	/*
 	*key = NULL;
 	*key_len = 0;
 	*data = NULL;
@@ -291,6 +251,7 @@ int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len,
 		return MDHIM_DB_ERROR;
 	}      
 	*data = data_buf;
+	*/
 
 	return MDHIM_SUCCESS;
 }
@@ -300,21 +261,22 @@ int mdhim_unqlite_get_next(void *dbh, void *curh, void **key, int *key_len,
  * mdhim_unqlite_get_prev
  * Gets the next key/value from the data store
  *
- * @param dbh             in   pointer to the unqlite db handle
- * @param mcur            in   pointer to the db cursor
- * @param key             out  void ** to the key that we get
- * @param key_len         out  int * to the length of the key 
- * @param data            out  void ** to the value belonging to the key
- * @param data_len        out  int * to the length of the value data 
- * @param mstore_cur_opts in   additional cursor options for the data store layer 
+ * @param dbh             in      pointer to the unqlite db handle
+ * @param key             in/out  void ** to the last key to start from and void** 
+                                  to the key that we get back
+ * @param key_len         int/out int * to the length of the key to start from and
+                                  to the key that we get back
+ * @param data            out     void ** to the value belonging to the key
+ * @param data_len        out     int * to the length of the value data 
+ * @param mstore_cur_opts in     additional cursor options for the data store layer 
  * 
  */
-int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len, 
+int mdhim_unqlite_get_prev(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
-	unqlite *dh = (unqlite *) dbh;
+/*	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
-	unqlite_kv_cursor *cur = (unqlite_kv_cursor *) curh;	
+	unqlite_kv_cursor *cur;	
 	char *data_buf;
 	char *key_buf;
 
@@ -322,7 +284,8 @@ int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len,
 	*key_len = 0;
 	*data = NULL;
 	data_len = 0;
-
+*/
+	/*
 	//Make sure the cursor isn't empty
 	if (!cur) {
 		mlog(MDHIM_SERVER_INFO, "Cursor empty");
@@ -368,7 +331,7 @@ int mdhim_unqlite_get_prev(void *dbh, void *curh, void **key, int *key_len,
 		return MDHIM_DB_ERROR;
 	}      
 	*data = data_buf;
-
+	*/
 	return MDHIM_SUCCESS;
 }
 
@@ -402,7 +365,7 @@ int mdhim_unqlite_commit(void *dbh) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_unqlite_close(void *dbh, void *dbc, struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 
 	if ((ret = unqlite_close((unqlite *) dbh)) != UNQLITE_OK) {

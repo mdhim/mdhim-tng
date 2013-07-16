@@ -1,6 +1,112 @@
 #include <stdlib.h>
+#include <string.h>
 #include <leveldb/c.h>
 #include "ds_leveldb.h"
+
+
+static void cmp_destroy(void* arg) { }
+
+static int cmp_int_compare(void* arg, const char* a, size_t alen,
+			   const char* b, size_t blen) {
+	int ret;
+
+	if (*(int32_t *) a < *(int32_t *) b) {
+		ret = -1;
+	} else if (*(int32_t *) a == *(int32_t *) b) {
+		ret = 0;
+	} else {
+		ret = 1;
+	}
+
+	return ret;
+}
+
+static int cmp_lint_compare(void* arg, const char* a, size_t alen,
+			   const char* b, size_t blen) {
+	int ret;
+
+	if (*(int64_t *) a < *(int64_t *) b) {
+		ret = -1;
+	} else if (*(int64_t *) a == *(int64_t *) b) {
+		ret = 0;
+	} else {
+		ret = 1;
+	}
+
+	return ret;
+}
+
+static int cmp_double_compare(void* arg, const char* a, size_t alen,
+			      const char* b, size_t blen) {
+	int ret;
+
+	if (*(double *) a < *(double *) b) {
+		ret = -1;
+	} else if (*(double *) a == *(double *) b) {
+		ret = 0;
+	} else {
+		ret = 1;
+	}
+
+	return ret;
+}
+
+static int cmp_float_compare(void* arg, const char* a, size_t alen,
+			   const char* b, size_t blen) {
+	int ret;
+
+	if (*(float *) a < *(float *) b) {
+		ret = -1;
+	} else if (*(float *) a == *(float *) b) {
+		ret = 0;
+	} else {
+		ret = 1;
+	}
+
+	return ret;
+}
+
+static int cmp_ldouble_compare(void* arg, const char* a, size_t alen,
+			       const char* b, size_t blen) {
+	int ret;
+
+	if (*(long double *) a < *(long double *) b) {
+		ret = -1;
+	} else if (*(long double *) a == *(long double *) b) {
+		ret = 0;
+	} else {
+		ret = 1;
+	}
+	
+	return ret;
+}
+
+static int cmp_string_compare(void* arg, const char* a, size_t alen,
+			   const char* b, size_t blen) {
+	int ret;
+
+	ret = strcmp(a, b);
+
+	return ret;
+}
+
+static int cmp_byte_compare(void* arg, const char* a, size_t alen,
+			    const char* b, size_t blen) {
+	int ret;
+
+	if (alen < blen) {
+		ret = -1;
+	} else if (alen > blen) {
+		ret = 1;
+	} else {
+		ret = memcmp(a, b, alen);
+	}
+
+	return ret;
+}
+static const char* cmp_name(void* arg) {
+	return "mdhim_cmp";
+}
 
 /**
  * mdhim_leveldb_open
@@ -13,19 +119,58 @@
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_open(void **dbh, char *path, int flags, struct mdhim_store_opts_t *mstore_opts) {
+
+#define MDHIM_INT_KEY 1
+//64 bit signed integer
+#define MDHIM_LONG_INT_KEY 2
+#define MDHIM_FLOAT_KEY 3
+#define MDHIM_DOUBLE_KEY 4
+#define MDHIM_LONG_DOUBLE_KEY 5
+#define MDHIM_STRING_KEY 6
+//An arbitrary sized key
+#define MDHIM_BYTE_KEY 7
+int mdhim_leveldb_open(void **dbh, void **dbc, char *path, int flags, 
+		       struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db;
 	leveldb_options_t *options;
 	char *err = NULL;
-	
+	leveldb_comparator_t* cmp = NULL;
+
 	//Create the options
 	options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(options, 1);
+	switch( mstore_opts->key_type) {
+	case MDHIM_INT_KEY:
+		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
+		break;
+	case MDHIM_LONG_INT_KEY:
+		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_lint_compare, cmp_name);
+		break;
+	case MDHIM_FLOAT_KEY:
+		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_float_compare, cmp_name);
+		break;
+	case MDHIM_DOUBLE_KEY:
+		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_double_compare, cmp_name);
+		break;
+	case MDHIM_LONG_DOUBLE_KEY:
+		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_ldouble_compare, cmp_name);
+		break;
+	case MDHIM_STRING_KEY:
+		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_string_compare, cmp_name);
+		break;
+	default:
+		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_byte_compare, cmp_name);
+		break;
+	}
+	
+	leveldb_options_set_comparator(options, cmp);
+
 	//Open the database
 	db = leveldb_open(options, path, &err);
 	//Set the output handle
-	*dbh = db;
-
+	*((leveldb_t **) dbh) = db;
+	//Set the output comparator
+	*((leveldb_comparator_t **) dbc) = cmp;
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
@@ -36,7 +181,6 @@ int mdhim_leveldb_open(void **dbh, char *path, int flags, struct mdhim_store_opt
 
 	//Destroy the options
 	leveldb_options_destroy(options);
-
 	return MDHIM_SUCCESS;
 }
 
@@ -115,25 +259,120 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	return ret;
 }
 
-int mdhim_leveldb_get_next(void *dbh, void *curh, void **key, int *key_len, 
+int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
-	return MDHIM_SUCCESS;
+	leveldb_readoptions_t *options;
+	char *err = NULL;
+	leveldb_t *db = (leveldb_t *) dbh;
+	int ret = MDHIM_SUCCESS;
+	leveldb_iterator_t *iter;
+
+	//Init the data to return
+	*((char **) data) = NULL;
+	*data_len = 0;
+
+	//Create the options and iterator
+	options = leveldb_readoptions_create();
+	iter = leveldb_create_iterator(db, options);
+	
+	//If the user didn't supply a key, then seek to the first
+	if (!*((char **) key) || *key_len == 0) {
+		leveldb_iter_seek_to_first(iter);
+	} else {
+		//Otherwise, seek to the key given and then get the next key
+		leveldb_iter_seek(iter, *((char **)key), *key_len);
+		if (!leveldb_iter_valid(iter)) { 
+			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+			return MDHIM_DB_ERROR;
+		}
+		leveldb_iter_next(iter);
+	}
+
+	if (!leveldb_iter_valid(iter)) {
+		mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+		return MDHIM_DB_ERROR;
+	}
+
+	*((char **) data) = (char *) leveldb_iter_value(iter, (size_t *) data_len);
+	if (!*((char **) key)) {
+		*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
+	}
+	if (err != NULL) {
+		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
+		return MDHIM_DB_ERROR;
+	}
+	if (!*((char **) data)) {
+		ret = MDHIM_DB_ERROR;
+	}
+
+	//Reset error variable
+	leveldb_free(err); 
+	
+	//Destroy the options
+	leveldb_readoptions_destroy(options);
+	//Destroy iterator
+	leveldb_iter_destroy(iter);
+
+	return ret;
 }
 
-int mdhim_leveldb_get_prev(void *dbh, void *curh, void **key, int *key_len, 
+int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
 			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
-	return MDHIM_SUCCESS;
-}
+	leveldb_readoptions_t *options;
+	char *err = NULL;
+	leveldb_t *db = (leveldb_t *) dbh;
+	int ret = MDHIM_SUCCESS;
+	leveldb_iterator_t *iter;
 
-void *mdhim_leveldb_cursor_init(void *dbh) {
-	return NULL;
-}
+	//Init the data to return
+	*((char **) data) = NULL;
+	*data_len = 0;
 
-int mdhim_leveldb_cursor_release(void *dbh, void *curh) {
-	return MDHIM_SUCCESS;
+	//Create the options and iterator
+	options = leveldb_readoptions_create();
+	iter = leveldb_create_iterator(db, options);
+	
+	//If the user didn't supply a key, then seek to the last
+	if (!*((char **) key) || *key_len == 0) {
+		leveldb_iter_seek_to_last(iter);
+	} else {
+		//Otherwise, seek to the key given and then get the next key
+		leveldb_iter_seek(iter, *((char **)key), *key_len);
+		if (!leveldb_iter_valid(iter)) { 
+			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+			return MDHIM_DB_ERROR;
+		}
+		leveldb_iter_prev(iter);
+	}
 
+	if (!leveldb_iter_valid(iter)) {
+		mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+		return MDHIM_DB_ERROR;
+	}
+
+	*((char **) data) = (char *) leveldb_iter_value(iter, (size_t *) data_len);
+	if (!*((char **) key)) {
+		*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
+	}
+	if (err != NULL) {
+		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
+		return MDHIM_DB_ERROR;
+	}
+	if (!*((char **) data)) {
+		ret = MDHIM_DB_ERROR;
+	}
+
+	//Reset error variable
+	leveldb_free(err); 
+	
+	//Destroy the options
+	leveldb_readoptions_destroy(options);
+	//Destroy iterator
+	leveldb_iter_destroy(iter);
+
+	return ret;
 }
 
 /**
@@ -145,10 +384,13 @@ int mdhim_leveldb_cursor_release(void *dbh, void *curh) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_leveldb_close(void *dbh, void *dbc, struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db = (leveldb_t *) dbh;
+	leveldb_comparator_t *cmp = (leveldb_comparator_t *) dbc;
 
 	leveldb_close(db);
+	leveldb_comparator_destroy(cmp);
+
 	return MDHIM_SUCCESS;
 }
 

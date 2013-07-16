@@ -11,9 +11,6 @@
 #include "range_server.h"
 #include "partitioner.h"
 
-//Global cursor list - one for each rank
-struct mdhim_cursor *mdhim_cursors = NULL;
-
 /**
  * is_range_server
  * checks if I'm a range server
@@ -28,34 +25,6 @@ int im_range_server(struct mdhim_t *md) {
 	}
 	
 	return 0;
-}
-
-void *get_cursor(struct mdhim_t *md, int source) {
-	struct mdhim_cursor *mc;
-	void *cursor;
-
-	HASH_FIND_INT(mdhim_cursors, &source, mc);
-	if (mc) {
-		return mc->cursor;
-	}
-
-	cursor = md->mdhim_rs->mdhim_store->cursor_init(md->mdhim_rs->mdhim_store->db_handle);
-	if (!cursor) {
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error initializing cursor", 
-		     md->mdhim_rank);
-		return NULL;
-	}
-
-	//Create a new mdhim_char to hold our entry
-	mc = malloc(sizeof(struct mdhim_cursor));
-
-	//Set the mdhim_char
-	mc->id = source;
-	mc->cursor = cursor;
-
-	//Add it to the hash table
-	HASH_ADD_INT(mdhim_cursors, id, mc);    
-	return cursor;
 }
 
 /**
@@ -166,7 +135,6 @@ work_item *get_work(struct mdhim_t *md) {
 int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
 	int ret;	
-	struct mdhim_cursor *cur_cursor, *tmp;
 
 	//Cancel the worker thread
 	if ((ret = pthread_cancel(md->mdhim_rs->worker)) != 0) {
@@ -201,20 +169,9 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 	free(md->mdhim_rs->work_queue);
 
-	//Close all the open cursors and free the hash table
-	HASH_ITER(hh, mdhim_cursors, cur_cursor, tmp) {
-		if ((ret = md->mdhim_rs->mdhim_store->cursor_release(
-			     md->mdhim_rs->mdhim_store->db_handle, cur_cursor->cursor)) 
-		    != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error releasing cursor", 
-			     md->mdhim_rank);
-		}
-		HASH_DEL(mdhim_cursors, cur_cursor);  /*delete it (mdhim_cursors advances to next)*/
-		free(cur_cursor);            /* free it */
-	}
-
 	//Close the database
-	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, NULL)) 
+	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, 
+						    md->mdhim_rs->mdhim_store->db_cmp, NULL)) 
 	    != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
 		     md->mdhim_rank);
@@ -440,7 +397,7 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
  * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
+int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, int op) {
 	int error = 0;
 	void **value;
 	int32_t value_len;
@@ -451,13 +408,42 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 	*value = NULL;
 	value_len = 0;
 	//Get a record from the database
-	if ((ret = 
-	     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-					    gm->key, gm->key_len, value, 
-					    &value_len, NULL)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
-		     md->mdhim_rank);
-		error = ret;
+
+	switch(op) {
+	case MDHIM_GET_EQ:
+		if ((ret = 
+		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+						    gm->key, gm->key_len, value, 
+						    &value_len, NULL)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
+			     md->mdhim_rank);
+			error = ret;
+		}
+		break;
+	case MDHIM_GET_NEXT:
+		if ((ret = 
+		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
+							 gm->key, &gm->key_len, value, 
+							 &value_len, NULL)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
+			     md->mdhim_rank);
+			error = ret;
+		}
+		break;
+	case MDHIM_GET_PREV:
+		if ((ret = 
+		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
+							 gm->key, &gm->key_len, value, 
+							 &value_len, NULL)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
+			     md->mdhim_rank);
+			error = ret;
+		}
+		break;
+	default:
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Invalid operation: %d given in range_server_get", 
+		     md->mdhim_rank, op);
+		break;
 	}
 
 	//Create the response message
@@ -475,9 +461,9 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source) {
 		memcpy(grm->key, gm->key, gm->key_len);
 	} else {
 		grm->key = gm->key;
-		grm->key_len = gm->key_len;
 	}
 
+	grm->key_len = gm->key_len;
 	grm->value = (void *) *(((char **) value));
 	grm->value_len = value_len;
 	//Send response
@@ -660,19 +646,9 @@ void *worker_thread(void *data) {
 			case MDHIM_GET:
 				//Determine the operation passed and call the appropriate function
 				op = ((struct mdhim_getm_t *) item->message)->op;
-				if (op == MDHIM_GET_VAL) {
-					range_server_get(md, 
-							 item->message, 
-							 item->source);
-				} else if (op == MDHIM_GET_NEXT) {
-/*					range_server_get_next(md, 
-					item->message, 
-					item->source); */
-				} else if (op == MDHIM_GET_PREV) {
-					/*
-					  range_server_get_prev(md, item->message, 
-					  item->source);*/
-				}
+				range_server_get(md, 
+						 item->message, 
+						 item->source, op);
 				break;
 			case MDHIM_BULK_GET:
 				//Determine the operation passed and call the appropriate function
@@ -716,6 +692,8 @@ int range_server_init(struct mdhim_t *md) {
 	int ret;
 	char filename[255];
 	int rangesrv_num;
+	int flags = MDHIM_CREATE;
+	struct mdhim_store_opts_t opts;
 
 	//There was an error figuring out if I'm a range server
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {
@@ -739,7 +717,6 @@ int range_server_init(struct mdhim_t *md) {
 	//Populate md->mdhim_rs
 	md->mdhim_rs->info.rank = md->mdhim_rank;
 	md->mdhim_rs->info.rangesrv_num = rangesrv_num;
-
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
 	sprintf(filename, "%s%d", "mdhim_db", md->mdhim_rank);
 	//Initialize data store
@@ -752,9 +729,15 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 
+	//Clear the options
+	memset(&opts, 0, sizeof(struct mdhim_store_opts_t));
+	//Set the key type
+	opts.key_type = md->key_type;
+
 	//Open the database
-	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle, 
-						   filename, MDHIM_CREATE, NULL)) != MDHIM_SUCCESS){
+	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle,
+						   &md->mdhim_rs->mdhim_store->db_cmp, 
+						   filename, flags, &opts)) != MDHIM_SUCCESS){
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while opening database", 
 		     md->mdhim_rank);

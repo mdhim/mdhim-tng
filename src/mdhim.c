@@ -27,7 +27,7 @@
  * @param appComm  the communicator that was passed in from the application (e.g., MPI_COMM_WORLD)
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
  */
-struct mdhim_t *mdhimInit(MPI_Comm appComm) {
+struct mdhim_t *mdhimInit(MPI_Comm appComm, int key_type) {
 	int ret;
 	struct mdhim_t *md;
 	struct rangesrv_info *rangesrvs;
@@ -40,7 +40,14 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm) {
 	md = malloc(sizeof(struct mdhim_t));
 	memset(md, 0, sizeof(struct mdhim_t));
 	if (!md) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM - Error while allocating memory while initializing");
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Error while allocating memory while initializing");
+		return NULL;
+	}
+
+	//Set the key type for this database
+	md->key_type = key_type;
+	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Invalid key type specified");
 		return NULL;
 	}
 
@@ -218,12 +225,11 @@ int mdhimCommit(struct mdhim_t *md) {
  * @param md main MDHIM struct
  * @param key       pointer to key to store
  * @param key_len   the length of the key
- * @param key_type  the type of the key
  * @param value     pointer to the value to store
  * @param value_len the length of the value
  * @return mdhim_rm_t * or NULL on error
  */
-struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_type, 
+struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,  
 			    void *value, int value_len) {
 	int ret;
 	struct mdhim_putm_t *pm;
@@ -231,7 +237,7 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
 	rangesrv_info *ri;
 
 	//Get the range server this key will be sent to
-	if ((ri = get_range_server(md, key, key_len, key_type)) == NULL) {
+	if ((ri = get_range_server(md, key, key_len)) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimPut", 
 		     md->mdhim_rank);
@@ -278,14 +284,13 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len, int key_
  * @param md main MDHIM struct
  * @param keys         pointer to array of keys to store
  * @param key_lens     array with lengths of each key in keys
- * @param key_types    array with the type of each key in keys
  * @param values       pointer to array of values to store
  * @param value_lens   array with lengths of each value
  * @param num_records  the number of records to store (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
-struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
-			     void **values, int *value_lens, int num_records) {
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, 
+			      void **values, int *value_lens, int num_records) {
 	int ret;
 	struct mdhim_bputm_t **bpm_list;
 	struct mdhim_bputm_t *bpm;
@@ -308,7 +313,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, in
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_records && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((ri = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
+		if ((ri = get_range_server(md, keys[i], key_lens[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBput", 
@@ -388,20 +393,21 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, in
  * Retrieves a single record from MDHIM
  *
  * @param md main MDHIM struct
- * @param key       pointer to key to get value of
+ * @param key       pointer to key to get value of or last key to start from if op is 
+                    (MDHIM_GET_NEXT or MDHIM_GET_PREV)
  * @param key_len   the length of the key
- * @param key_type  the type of the key
+ * @param op        the operation type
  * @return mdhim_getrm_t * or NULL on error
  */
 struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len, 
-			       int key_type) {
+			       int op) {
 	int ret;
 	struct mdhim_getm_t *gm;
 	struct mdhim_getrm_t *grm;
 	rangesrv_info *ri;
 
 	//Get the range server this key will be sent to
-	if ((ri = get_range_server(md, key, key_len, key_type)) == NULL) {
+	if ((ri = get_range_server(md, key, key_len)) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimGet", 
 		     md->mdhim_rank);
@@ -418,7 +424,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 
 	//Initialize the get message
 	gm->mtype = MDHIM_GET;
-	gm->op = MDHIM_GET_VAL;
+	gm->op = op;
 	gm->key = key;
 	gm->key_len = key_len;
 	gm->server_rank = ri->rank;
@@ -447,11 +453,10 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
  * @param md main MDHIM struct
  * @param keys         pointer to array of keys to get values for
  * @param key_lens     array with lengths of each key in keys
- * @param key_types    array with the type of each key in keys
  * @param num_keys     the number of keys to get (i.e., the number of keys in keys array)
  * @return mdhim_bgetrm_t * or NULL on error
  */
-struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, int *key_types, 
+struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, 
 				 int num_keys) {
 	int ret;
 	struct mdhim_bgetm_t **bgm_list;
@@ -472,7 +477,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_keys && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((ri = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
+		if ((ri = get_range_server(md, keys[i], key_lens[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBget", 
@@ -489,7 +494,6 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bgm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bgm->num_records = 0;
-			bgm->op = MDHIM_GET_VAL;
 			bgm->server_rank = ri->rank;
 			bgm->mtype = MDHIM_BULK_GET;
                         bgm_list[ri->rangesrv_num - 1] = bgm;
@@ -545,17 +549,16 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
  * @param md main MDHIM struct
  * @param key       pointer to key to delete
  * @param key_len   the length of the key
- * @param key_type  the type of the key
  * @return mdhim_rm_t * or NULL on error
  */
-struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int key_type) {
+struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len) {
 	struct mdhim_delm_t *dm;
 	struct mdhim_rm_t *rm = NULL;
 	rangesrv_info *ri;
 	int ret;
 
 	//Get the range server this key will be sent to
-	if ((ri = get_range_server(md, key, key_len, key_type)) == NULL) {
+	if ((ri = get_range_server(md, key, key_len)) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimDel", 
 		     md->mdhim_rank);
@@ -597,11 +600,10 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len, int k
  * @param md main MDHIM struct
  * @param keys         pointer to array of keys to delete
  * @param key_lens     array with lengths of each key in keys
- * @param key_types    array with the type of each key in keys
  * @param num_keys     the number of keys to delete (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
-struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens, int *key_types,
+struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 				 int num_records) {
 	int ret;
 	struct mdhim_bdelm_t **bdm_list;
@@ -625,7 +627,7 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_records && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((ri = get_range_server(md, keys[i], key_lens[i], key_types[i])) == 
+		if ((ri = get_range_server(md, keys[i], key_lens[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBDel", 

@@ -761,7 +761,7 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **send
         int i;
         
         // Calculate the size of the message to send
-        m_size += bgm->num_records * sizeof(int);
+        m_size += bgm->num_records * sizeof(int) * 2;
         
         // For the each of the keys add the size to the length
         for (i=0; i < bgm->num_records; i++)
@@ -782,14 +782,15 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **send
 		return MDHIM_ERROR; 
         }
         
-        // pack the message first with the structure and then followed by key and data values (plus lengths).
+        // pack the message first with the structure and then followed by key and 
+	// data values (plus lengths).
 	return_code = MPI_Pack(bgm, sizeof(struct mdhim_bgetm_t), MPI_CHAR, 
 			       *((char **) sendbuf), mesg_size, 
                                &mesg_idx, md->mdhim_comm);
          
         // For the each of the keys and data pack the chars plus one int for key_len.
-        for (i=0; i < bgm->num_records; i++) {
-                return_code += MPI_Pack(&bgm->key_lens[i], 1, MPI_INT, 
+        for (i=0; i < bgm->num_records; i++) {	
+		return_code += MPI_Pack(&bgm->key_lens[i], 1, MPI_INT, 
 					*((char **) sendbuf), mesg_size, 
                                         &mesg_idx, md->mdhim_comm);
                 return_code += MPI_Pack(bgm->keys[i], bgm->key_lens[i], MPI_CHAR, 
@@ -909,8 +910,7 @@ int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void *
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
 		     "memory to unpack bget message.", md->mdhim_rank);
 		return MDHIM_ERROR; 
-        }
-	
+        }	
         // Allocate memory for key_lens, to be populated later.
         if (((*((struct mdhim_bgetm_t **) bgetm))->key_lens = 
 	     (int *)malloc(num_records * sizeof(int))) == NULL) {
@@ -921,7 +921,7 @@ int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void *
         
 	memset((*((struct mdhim_bgetm_t **) bgetm))->key_lens, 0, num_records * sizeof(int));
         // For the each of the keys and data unpack the chars plus an int for key_lens[i].
-        for (i=0; i < num_records; i++) {
+        for (i=0; i < num_records; i++) {	
 		// Unpack the key_lens[i]
 		return_code += MPI_Unpack(message, mesg_size, &mesg_idx, 
 					  &(*((struct mdhim_bgetm_t **) bgetm))->key_lens[i], 
@@ -938,8 +938,7 @@ int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void *
 		return_code += MPI_Unpack(message, mesg_size, &mesg_idx, 
 					  (*((struct mdhim_bgetm_t **) bgetm))->keys[i], 
 					  (*((struct mdhim_bgetm_t **) bgetm))->key_lens[i], 
-					  MPI_CHAR, md->mdhim_comm);
-            
+					  MPI_CHAR, md->mdhim_comm);            
         }
 
 	// If the unpack did not succeed then log the error and return the error code

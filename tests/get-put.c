@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
-	md = mdhimInit(MPI_COMM_WORLD);
+	md = mdhimInit(MPI_COMM_WORLD, MDHIM_INT_KEY);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 	//Put the keys and values
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
-	rm = mdhimPut(md, &key, sizeof(key), MDHIM_INT_KEY, 
+	rm = mdhimPut(md, &key, sizeof(key), 
 		       &value, sizeof(value));
 	if (!rm || rm->error) {
 		printf("Error inserting key/value into MDHIM\n");
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
 
 	//Get the values
 	value = 0;
-	grm = mdhimGet(md, &key, sizeof(key), MDHIM_INT_KEY);
+	grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
 	if (!grm || grm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
 	} else {

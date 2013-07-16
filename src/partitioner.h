@@ -50,7 +50,7 @@ void partitioner_init(struct mdhim_t *md);
 void partitioner_release();
 uint32_t get_num_range_servers(struct mdhim_t *md);
 uint32_t is_range_server(struct mdhim_t *md, int rank);
-rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len, int key_type);
+rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len);
 void build_alphabet();
 int verify_key(void *key, int key_len, int key_type);
 

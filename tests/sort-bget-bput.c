@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	void **keys;
 	int key_lens[KEYS];
-	int key_types[KEYS];
 	char **values;
 	int value_lens[KEYS];
 	struct mdhim_brm_t *brm, *brmp;
@@ -43,7 +42,7 @@ int main(int argc, char **argv) {
 
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD);
+	md = mdhimInit(MPI_COMM_WORLD, MDHIM_BYTE_KEY);
 	sprintf(filename, "%s%d", "input/input", md->mdhim_rank);
 	if ((fd = open(filename, O_RDONLY)) < 0) {
 		printf("Error opening input file");
@@ -67,7 +66,6 @@ int main(int argc, char **argv) {
 			}
 
 			key_lens[i] = KEY_SIZE;
-			key_types[i] = MDHIM_BYTE_KEY;
 			values[i] = malloc(sizeof(char));
 			*values[i] = '0';
 			value_lens[i] = sizeof(char);		
@@ -75,7 +73,7 @@ int main(int argc, char **argv) {
 
 		//Insert the keys into MDHIM
 		gettimeofday(&start_tv, NULL);
-		brm = mdhimBPut(md, (void **) keys, key_lens, key_types, 
+		brm = mdhimBPut(md, (void **) keys, key_lens, 
 				(void **) values, value_lens, KEYS);
 		brmp = brm;
 		if (!brm || brm->error) {
@@ -102,7 +100,7 @@ int main(int argc, char **argv) {
 
 		//Get the values back for each key inserted
 		gettimeofday(&start_tv, NULL);
-		bgrm = mdhimBGet(md, (void **) keys, key_lens, key_types, 
+		bgrm = mdhimBGet(md, (void **) keys, key_lens, 
 				 KEYS);
 		bgrmp = bgrm;
 		while (bgrmp) {
