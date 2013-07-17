@@ -129,7 +129,7 @@ static const char* cmp_name(void* arg) {
 #define MDHIM_STRING_KEY 6
 //An arbitrary sized key
 #define MDHIM_BYTE_KEY 7
-int mdhim_leveldb_open(void **dbh, void **dbc, char *path, int flags, 
+int mdhim_leveldb_open(void **dbh, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db;
 	leveldb_options_t *options;
@@ -170,17 +170,19 @@ int mdhim_leveldb_open(void **dbh, void **dbc, char *path, int flags,
 	//Set the output handle
 	*((leveldb_t **) dbh) = db;
 	//Set the output comparator
-	*((leveldb_comparator_t **) dbc) = cmp;
+	mstore_opts->db_ptr1 = cmp;
+	//Set the generic pointers to hold the options
+	mstore_opts->db_ptr2 = options;
+	mstore_opts->db_ptr3 = leveldb_readoptions_create();
+	mstore_opts->db_ptr4 = leveldb_writeoptions_create();
+
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
-
 	//Reset error variable
 	leveldb_free(err); 
 
-	//Destroy the options
-	leveldb_options_destroy(options);
 	return MDHIM_SUCCESS;
 }
 
@@ -203,7 +205,7 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
     char *err = NULL;
     leveldb_t *db = (leveldb_t *) dbh;
 
-    options = leveldb_writeoptions_create();
+    options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;
     leveldb_put(db, options, key, key_len, data, data_len, &err);
     if (err != NULL) {
 	    mlog(MDHIM_SERVER_CRIT, "Error putting key/value in leveldb");
@@ -211,10 +213,7 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
     }
 
     //Reset error variable
-    leveldb_free(err); 
-    
-    //Destroy the options
-    leveldb_writeoptions_destroy(options);
+    leveldb_free(err);      
 
     return MDHIM_SUCCESS;
 }
@@ -239,7 +238,7 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 
-	options = leveldb_readoptions_create();
+	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
 	*((char **) data) = NULL;
 	*((char **) data) = leveldb_get(db, options, key, key_len, (size_t *) data_len, &err);
 	if (err != NULL) {
@@ -251,30 +250,27 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	}
 
 	//Reset error variable
-	leveldb_free(err); 
-	
-	//Destroy the options
-	leveldb_readoptions_destroy(options);
+	leveldb_free(err);        
 	
 	return ret;
 }
 
 int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
-			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
+			   struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_readoptions_t *options;
-	char *err = NULL;
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
-	const char *res;
+	const char *res1, *res2;
+	int len = 0;
 
 	//Init the data to return
 	*((char **) data) = NULL;
 	*data_len = 0;
 
 	//Create the options and iterator
-	options = leveldb_readoptions_create();
+	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
 	iter = leveldb_create_iterator(db, options);
 	
 	//If the user didn't supply a key, then seek to the first
@@ -296,60 +292,57 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 		return MDHIM_DB_ERROR;
 	}
 
-	res = leveldb_iter_value(iter, (size_t *) data_len);
-	if (res) {
-		*((char **) data) = malloc(sizeof(*data_len));
-		memcpy(*((char **) data), res, sizeof(*data_len));
+	res1 = leveldb_iter_value(iter, (size_t *) &len);
+	if (res1) {
+		*((char **) data) = malloc(len);
+		memcpy(*((char **) data), res1, len);
+		*data_len = len;
+	}
+	res2 = leveldb_iter_key(iter, (size_t *) key_len);
+	if (res2) {
+		*((char **) key) = malloc(*key_len);
+		memcpy(*((char **) key), res2, *key_len);
 	}
 
-	*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
-	if (err != NULL) {
-		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
-		return MDHIM_DB_ERROR;
-	}
 	if (!*((char **) data)) {
 		ret = MDHIM_DB_ERROR;
 	}
 
-	//Reset error variable
-	leveldb_free(err); 
+        //Destroy iterator
+	leveldb_iter_destroy(iter);      
 	
-	//Destroy the options
-	leveldb_readoptions_destroy(options);
-	//Destroy iterator
-	leveldb_iter_destroy(iter);
-
 	return ret;
 }
 
 int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
-			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
+			   struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_readoptions_t *options;
-	char *err = NULL;
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
-	const char *res;
+	const char *res1, *res2;
+	int len = 0;
 
 	//Init the data to return
 	*((char **) data) = NULL;
 	*data_len = 0;
 
 	//Create the options and iterator
-	options = leveldb_readoptions_create();
+	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
 	iter = leveldb_create_iterator(db, options);
 	
-	//If the user didn't supply a key, then seek to the last
+	//If the user didn't supply a key, then seek to the first
 	if (!*((char **) key) || *key_len == 0) {
 		leveldb_iter_seek_to_last(iter);
 	} else {
 		//Otherwise, seek to the key given and then get the next key
 		leveldb_iter_seek(iter, *((char **)key), *key_len);
 		if (!leveldb_iter_valid(iter)) { 
-			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb after seeking");
 			return MDHIM_DB_ERROR;
 		}
+
 		leveldb_iter_prev(iter);
 	}
 
@@ -358,29 +351,25 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 		return MDHIM_DB_ERROR;
 	}
 
-	res = leveldb_iter_value(iter, (size_t *) data_len);
-	if (res) {
-		*((char **) data) = malloc(sizeof(*data_len));
-		memcpy(*((char **) data), res, sizeof(*data_len));
+	res1 = leveldb_iter_value(iter, (size_t *) &len);
+	if (res1) {
+		*((char **) data) = malloc(len);
+		memcpy(*((char **) data), res1, len);
+		*data_len = len;
+	}
+	res2 = leveldb_iter_key(iter, (size_t *) key_len);
+	if (res2) {
+		*((char **) key) = malloc(*key_len);
+		memcpy(*((char **) key), res2, *key_len);
 	}
 
-	*((char **) key) = (char *) leveldb_iter_key(iter, (size_t *) key_len);
-	if (err != NULL) {
-		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
-		return MDHIM_DB_ERROR;
-	}
 	if (!*((char **) data)) {
 		ret = MDHIM_DB_ERROR;
 	}
 
-	//Reset error variable
-	leveldb_free(err); 
+        //Destroy iterator
+	leveldb_iter_destroy(iter);      
 	
-	//Destroy the options
-	leveldb_readoptions_destroy(options);
-	//Destroy iterator
-	leveldb_iter_destroy(iter);
-
 	return ret;
 }
 
@@ -393,12 +382,14 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_close(void *dbh, void *dbc, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_leveldb_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db = (leveldb_t *) dbh;
-	leveldb_comparator_t *cmp = (leveldb_comparator_t *) dbc;
 
+	leveldb_comparator_destroy((leveldb_comparator_t *) mstore_opts->db_ptr1);
+	leveldb_options_destroy((leveldb_options_t *) mstore_opts->db_ptr2);
+	leveldb_readoptions_destroy((leveldb_readoptions_t *) mstore_opts->db_ptr3);
+	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr4);
 	leveldb_close(db);
-	leveldb_comparator_destroy(cmp);
 
 	return MDHIM_SUCCESS;
 }
@@ -420,7 +411,7 @@ int mdhim_leveldb_del(void *dbh, void *key, int key_len,
 	char *err = NULL;
 	leveldb_t *db = (leveldb_t *) dbh;
 	
-	options = leveldb_writeoptions_create();
+	options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;
 	leveldb_delete(db, options, key, key_len, &err);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error deleting key in leveldb");

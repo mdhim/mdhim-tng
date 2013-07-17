@@ -25,7 +25,10 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	store = malloc(sizeof(struct mdhim_store_t));
 	store->type = type;
 	store->db_handle = NULL;
-	store->db_cmp = NULL;
+	store->db_ptr1 = NULL;
+	store->db_ptr2 = NULL;
+	store->db_ptr3 = NULL;
+	store->db_ptr4 = NULL;
 	switch(type) {
 	case UNQLITE:
 		store->open = mdhim_unqlite_open;

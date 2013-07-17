@@ -19,13 +19,11 @@
 #define MDHIM_RDWR 3
 
 struct mdhim_store_t;
-struct mdhim_store_cur_t;
 struct mdhim_store_opts_t;
-struct mdhim_store_cur_opts_t;
 
 
 /* Function pointers for abstracting data stores */
-typedef int (*mdhim_store_open_fn_t)(void **db_handle, void **db_cmp, char *path, int flags, 
+typedef int (*mdhim_store_open_fn_t)(void **db_handle, char *path, int flags, 
 				     struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, void *data, int32_t data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
@@ -34,15 +32,15 @@ typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, voi
 typedef int (*mdhim_store_get_next_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
 					 int32_t *data_len, 
-					 struct mdhim_store_cur_opts_t *mstore_cur_opts);
+					 struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
 					 int32_t *data_len, 
-					 struct mdhim_store_cur_opts_t *mstore_cur_opts);
+					 struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_commit_fn_t)(void *db_handle);
-typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_cmp, 
+typedef int (*mdhim_store_close_fn_t)(void *db_handle, 
 				      struct mdhim_store_opts_t *mstore_opts);
 
 /* Generic mdhim storage object */
@@ -50,8 +48,11 @@ struct mdhim_store_t {
 	int type;
 	//handle to db
 	void *db_handle;
-	//comparator
-	void *db_cmp;
+	//Generic pointers 
+	void *db_ptr1;
+	void *db_ptr2;
+	void *db_ptr3;
+	void *db_ptr4;
 	//Pointers to functions based on data store
 	mdhim_store_open_fn_t open;
 	mdhim_store_put_fn_t put;
@@ -63,24 +64,15 @@ struct mdhim_store_t {
 	mdhim_store_close_fn_t close;
 };
 
-/* Generic mdhim cursor object */
-struct mdhim_store_cur_t {
-	void *db_cursor;
-	int flags;
-};
-
 /* mdhim storage options passed to direct storage access functions i.e.: get, put, open */
 struct mdhim_store_opts_t {
-	int key_type; //Used for leveldb to specify comparator
-};
-
-/* mdhim cursor options passed to storage access functions that require a cursor 
- * i.e.: get_next, get_prev */
-struct mdhim_store_cur_opts_t {
+	int key_type; 
+	void *db_ptr1;
+	void *db_ptr2;
+	void *db_ptr3;
+	void *db_ptr4;
 };
 
 //Initializes the data store based on the type given (i.e., UNQLITE, LEVELDB, etc...)
 struct mdhim_store_t *mdhim_db_init(int db_type);
-//Initializes a db cursor
-struct mdhim_store_cur_t *mdhim_cursor_init(struct mdhim_store_t *mds, int type);
 #endif

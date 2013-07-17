@@ -62,6 +62,13 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	return ret;
 }
 
+void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
+	opts->db_ptr1 = md->mdhim_rs->mdhim_store->db_ptr1;
+	opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr2;
+	opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr3;
+	opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr4;
+}
+
 /**
  * range_server_add_work
  * Adds work to the work queue and signals the condition variable for the worker thread
@@ -135,6 +142,7 @@ work_item *get_work(struct mdhim_t *md) {
 int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
 	int ret;	
+	struct mdhim_store_opts_t opts;
 
 	//Cancel the worker thread
 	if ((ret = pthread_cancel(md->mdhim_rs->worker)) != 0) {
@@ -168,10 +176,9 @@ int range_server_stop(struct mdhim_t *md) {
 		head = temp_item;
 	}
 	free(md->mdhim_rs->work_queue);
-
+	set_store_opts(md, &opts);
 	//Close the database
-	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, 
-						    md->mdhim_rs->mdhim_store->db_cmp, NULL)) 
+	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, &opts)) 
 	    != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
 		     md->mdhim_rank);
@@ -197,12 +204,14 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	int ret;
 	struct mdhim_rm_t *rm;
 	int error = 0;
-        //Put the record in the database
+	struct mdhim_store_opts_t opts;
 
+        //Put the record in the database
+	set_store_opts(md, &opts);
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
 					im->key, im->key_len, im->value, 
-					im->value_len, NULL)) != MDHIM_SUCCESS) {
+					im->value_len, &opts)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	
 		error = ret;
@@ -239,14 +248,16 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	int ret;
 	int error = 0;
 	struct mdhim_rm_t *brm;
+	struct mdhim_store_opts_t opts;
 
+	set_store_opts(md, &opts);
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
 						bim->keys[i], bim->key_lens[i], bim->values[i], 
-						bim->value_lens[i], NULL)) != MDHIM_SUCCESS) {
+						bim->value_lens[i], &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -283,11 +294,13 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	int ret;
 	struct mdhim_rm_t *rm;
+	struct mdhim_store_opts_t opts;
 
+	set_store_opts(md, &opts);
 	//Put the record in the database
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
-					dm->key, dm->key_len, NULL)) != MDHIM_SUCCESS) {
+					dm->key, dm->key_len, &opts)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
 		     md->mdhim_rank);
 	}
@@ -321,14 +334,16 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	int ret;
 	int error = 0;
 	struct mdhim_rm_t *brm;
+	struct mdhim_store_opts_t opts;
 
+	set_store_opts(md, &opts);
 	//Iterate through the arrays and delete each record
 	for (i = 0; i < bdm->num_records && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
 						bdm->keys[i], bdm->key_lens[i],
-						NULL)) != MDHIM_SUCCESS) {
+						&opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -401,17 +416,20 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	int error = 0;
 	void **value;
 	void **key;
-	int32_t value_len, key_len;
+	int32_t *value_len, key_len;
 	struct mdhim_getrm_t *grm;
 	int ret;
+	struct mdhim_store_opts_t opts;
 
+	set_store_opts(md, &opts);
 	//Initialize pointers and lengths
 	value = malloc(sizeof(void *));
+	value_len = malloc(sizeof(int32_t));
 	*(char **) value = NULL;
 	key = malloc(sizeof(void *));
 	*(char **) key = NULL;
 	key_len = 0;
-	value_len = 0;
+	*value_len = 0;
 
 	//Set our local pointer to the key and length
 	if (gm->key_len) {
@@ -421,31 +439,36 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 
 	//Get a record from the database
 	switch(op) {
+	// Gets the value for the given key
 	case MDHIM_GET_EQ:
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 						    *key, key_len, value, 
-						    &value_len, NULL)) != MDHIM_SUCCESS) {
+						    value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
 		break;
+	/* Gets the next key and value that is in order after the passed in key
+	   or the first key if no key was passed in */
 	case MDHIM_GET_NEXT:	
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 &value_len, NULL)) != MDHIM_SUCCESS) {
+							 value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
 		break;
+	/* Gets the previous key and value that is in order before the passed in key
+	   or the last key if no key was passed in */
 	case MDHIM_GET_PREV:
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 &value_len, NULL)) != MDHIM_SUCCESS) {
+							 value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -467,23 +490,35 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	grm->server_rank = md->mdhim_rank;
 	//Set the key and value
 
-	//Free the passed in key (gm->key) according to the where it came from and what operation we are handling
-	if (source == md->mdhim_rank && gm->key_len) {
+	//If we are responding to ourselves, copy the passed in key
+	if (source == md->mdhim_rank && gm->key_len && op == MDHIM_GET_EQ) {
 		//If this message is coming from myself and a key was sent, copy the key
 		grm->key = malloc(key_len);
-		memcpy(grm->key, *(char **) key, key_len);
-	} else {
-		grm->key = *(char **) key;
+		memcpy(grm->key, *((char **) key), key_len);
+	}  else {
+		/* Otherwise, just set the pointer to be the key passed in or found 
+		   (depends on the op) */
+		grm->key = *((char **) key);
+	}
+
+	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
+	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
+		free(gm->key);
+		gm->key = NULL;
+		gm->key_len = 0;
 	}
 
 	grm->key_len = key_len;
-	grm->value = *(char **)value;
-	grm->value_len = value_len;
+	grm->value = *((char **)value);
+	grm->value_len = *value_len;
+	mlog(MDHIM_SERVER_CRIT, "Rank: %d - Sending value: %d with length: %d", 
+	     md->mdhim_rank, *(int *) grm->value, *value_len);
+
 	//Send response
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - About to send get response to: %d", 
 	     md->mdhim_rank, source);
 	ret = send_locally_or_remote(md, source, grm);
-
+	free(value_len);
 	free(value);
 	free(key);
 
@@ -506,7 +541,9 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	int i;
 	struct mdhim_bgetrm_t *bgrm;
 	int error = 0;
-	
+	struct mdhim_store_opts_t opts;
+
+	set_store_opts(md, &opts);
 	values = malloc(sizeof(void *) * MAX_BULK_OPS);
 	memset(values, 0, sizeof(void *) * MAX_BULK_OPS);
 	value_lens = malloc(sizeof(int) * MAX_BULK_OPS);
@@ -517,7 +554,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 						    bgm->keys[i], bgm->key_lens[i], (void **) (values + i), 
-						    (int32_t *) (value_lens + i), NULL)) != MDHIM_SUCCESS) {
+						    (int32_t *) (value_lens + i), &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record: %d with length: %d", 
 			     md->mdhim_rank, *(int *)bgm->keys[i], bgm->key_lens[i]);
 			error = ret;
@@ -752,7 +789,6 @@ int range_server_init(struct mdhim_t *md) {
 
 	//Open the database
 	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle,
-						   &md->mdhim_rs->mdhim_store->db_cmp, 
 						   filename, flags, &opts)) != MDHIM_SUCCESS){
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while opening database", 
@@ -760,6 +796,11 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 	
+	md->mdhim_rs->mdhim_store->db_ptr1 = opts.db_ptr1;
+	md->mdhim_rs->mdhim_store->db_ptr2 = opts.db_ptr2;
+	md->mdhim_rs->mdhim_store->db_ptr3 = opts.db_ptr3;
+	md->mdhim_rs->mdhim_store->db_ptr4 = opts.db_ptr4;
+
 	//Initialize work queue
 	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
 	md->mdhim_rs->work_queue->head = NULL;

@@ -50,7 +50,7 @@ static void print_unqlite_err_msg(unqlite *dh) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_open(void **dbh, void **dbc, char *path, int flags, 
+int mdhim_unqlite_open(void **dbh, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 	int imode;
@@ -185,12 +185,12 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *d
  * @param key_len         out  int * to the length of the key 
  * @param data            out  void ** to the value belonging to the key
  * @param data_len        out  int * to the length of the value data 
- * @param mstore_cur_opts in   additional cursor options for the data store layer 
+ * @param mstore_opts in   additional cursor options for the data store layer 
  * 
  */
 int mdhim_unqlite_get_next(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
-			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
+			   struct mdhim_store_opts_t *mstore_opts) {
 /*	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
 	unqlite_kv_cursor *cur;	
@@ -268,12 +268,12 @@ int mdhim_unqlite_get_next(void *dbh, void **key, int *key_len,
                                   to the key that we get back
  * @param data            out     void ** to the value belonging to the key
  * @param data_len        out     int * to the length of the value data 
- * @param mstore_cur_opts in     additional cursor options for the data store layer 
+ * @param mstore_opts in     additional cursor options for the data store layer 
  * 
  */
 int mdhim_unqlite_get_prev(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
-			   struct mdhim_store_cur_opts_t *mstore_cur_opts) {
+			   struct mdhim_store_opts_t *mstore_opts) {
 /*	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
 	unqlite_kv_cursor *cur;	
@@ -365,7 +365,7 @@ int mdhim_unqlite_commit(void *dbh) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_close(void *dbh, void *dbc, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_unqlite_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 
 	if ((ret = unqlite_close((unqlite *) dbh)) != UNQLITE_OK) {
