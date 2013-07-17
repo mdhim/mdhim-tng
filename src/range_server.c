@@ -511,8 +511,6 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	grm->key_len = key_len;
 	grm->value = *((char **)value);
 	grm->value_len = *value_len;
-	mlog(MDHIM_SERVER_CRIT, "Rank: %d - Sending value: %d with length: %d", 
-	     md->mdhim_rank, *(int *) grm->value, *value_len);
 
 	//Send response
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - About to send get response to: %d", 

@@ -6,10 +6,38 @@
 
 static void cmp_destroy(void* arg) { }
 
+static int cmp_empty(const char* a, size_t alen,
+		     const char* b, size_t blen) {
+	int ret = 2;
+	if (a && !b) {
+		return 1;
+	} else if (!a && b) {
+		return -1;
+	} else if (!a && !b) {
+		return 0;
+	}
+
+	if (alen > blen) {
+		return 1;
+	} else if (blen > alen) {
+		return -1;
+	} else if (!alen && blen) {
+		return -1;
+	} else if (alen && !blen) {
+		return 1;
+	}
+
+	return ret;
+}
+
 static int cmp_int_compare(void* arg, const char* a, size_t alen,
 			   const char* b, size_t blen) {
 	int ret;
 
+	ret = cmp_empty(a, alen, b, blen);
+	if (ret != 2) {
+		return ret;
+	}
 	if (*(int32_t *) a < *(int32_t *) b) {
 		ret = -1;
 	} else if (*(int32_t *) a == *(int32_t *) b) {
@@ -25,6 +53,10 @@ static int cmp_lint_compare(void* arg, const char* a, size_t alen,
 			   const char* b, size_t blen) {
 	int ret;
 
+	ret = cmp_empty(a, alen, b, blen);
+	if (ret != 2) {
+		return ret;
+	}
 	if (*(int64_t *) a < *(int64_t *) b) {
 		ret = -1;
 	} else if (*(int64_t *) a == *(int64_t *) b) {
@@ -40,6 +72,10 @@ static int cmp_double_compare(void* arg, const char* a, size_t alen,
 			      const char* b, size_t blen) {
 	int ret;
 
+	ret = cmp_empty(a, alen, b, blen);
+	if (ret != 2) {
+		return ret;
+	}
 	if (*(double *) a < *(double *) b) {
 		ret = -1;
 	} else if (*(double *) a == *(double *) b) {
@@ -55,6 +91,10 @@ static int cmp_float_compare(void* arg, const char* a, size_t alen,
 			   const char* b, size_t blen) {
 	int ret;
 
+	ret = cmp_empty(a, alen, b, blen);
+	if (ret != 2) {
+		return ret;
+	}
 	if (*(float *) a < *(float *) b) {
 		ret = -1;
 	} else if (*(float *) a == *(float *) b) {
@@ -70,6 +110,10 @@ static int cmp_ldouble_compare(void* arg, const char* a, size_t alen,
 			       const char* b, size_t blen) {
 	int ret;
 
+	ret = cmp_empty(a, alen, b, blen);
+	if (ret != 2) {
+		return ret;
+	}
 	if (*(long double *) a < *(long double *) b) {
 		ret = -1;
 	} else if (*(long double *) a == *(long double *) b) {
@@ -85,6 +129,10 @@ static int cmp_string_compare(void* arg, const char* a, size_t alen,
 			   const char* b, size_t blen) {
 	int ret;
 
+	ret = cmp_empty(a, alen, b, blen);
+	if (ret != 2) {
+		return ret;
+	}
 	ret = strcmp(a, b);
 
 	return ret;
@@ -94,6 +142,10 @@ static int cmp_byte_compare(void* arg, const char* a, size_t alen,
 			    const char* b, size_t blen) {
 	int ret;
 
+	ret = cmp_empty(a, alen, b, blen);
+	if (ret != 2) {
+		return ret;
+	}
 	if (alen < blen) {
 		ret = -1;
 	} else if (alen > blen) {
@@ -139,6 +191,8 @@ int mdhim_leveldb_open(void **dbh, char *path, int flags,
 	//Create the options
 	options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(options, 1);
+	leveldb_options_set_compression(options, 0);
+
 	switch( mstore_opts->key_type) {
 	case MDHIM_INT_KEY:
 		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
@@ -262,8 +316,10 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
-	const char *res1, *res2;
+	const char *res;
 	int len = 0;
+	void *old_key;
+	int old_key_len;
 
 	//Init the data to return
 	*((char **) data) = NULL;
@@ -272,36 +328,40 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	//Create the options and iterator
 	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
 	iter = leveldb_create_iterator(db, options);
-	
+	old_key = (void *) *((char **) key);
+	old_key_len = *key_len;
+	*((char **) key) = NULL;
+	*key_len = 0;
+
 	//If the user didn't supply a key, then seek to the first
-	if (!*((char **) key) || *key_len == 0) {
+	if (!old_key || old_key_len == 0) {
 		leveldb_iter_seek_to_first(iter);
 	} else {
 		//Otherwise, seek to the key given and then get the next key
-		leveldb_iter_seek(iter, *((char **)key), *key_len);
+		leveldb_iter_seek(iter, old_key, old_key_len);
 		if (!leveldb_iter_valid(iter)) { 
-			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb after seeking");
+			mlog(MDHIM_SERVER_DBG, "Could not get a valid iterator in leveldb after seeking");
 			return MDHIM_DB_ERROR;
 		}
-
+	
 		leveldb_iter_next(iter);
 	}
 
 	if (!leveldb_iter_valid(iter)) {
-		mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+		mlog(MDHIM_SERVER_DBG, "Could not get a valid iterator in leveldb");
 		return MDHIM_DB_ERROR;
 	}
 
-	res1 = leveldb_iter_value(iter, (size_t *) &len);
-	if (res1) {
+	res = leveldb_iter_value(iter, (size_t *) &len);
+	if (res) {
 		*((char **) data) = malloc(len);
-		memcpy(*((char **) data), res1, len);
+		memcpy(*((char **) data), res, len);
 		*data_len = len;
 	}
-	res2 = leveldb_iter_key(iter, (size_t *) key_len);
-	if (res2) {
+	res = leveldb_iter_key(iter, (size_t *) key_len);
+	if (res) {
 		*((char **) key) = malloc(*key_len);
-		memcpy(*((char **) key), res2, *key_len);
+		memcpy(*((char **) key), res, *key_len);
 	}
 
 	if (!*((char **) data)) {
@@ -321,8 +381,10 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
-	const char *res1, *res2;
+	const char *res;
 	int len = 0;
+	void *old_key;
+	int old_key_len;
 
 	//Init the data to return
 	*((char **) data) = NULL;
@@ -331,36 +393,40 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	//Create the options and iterator
 	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
 	iter = leveldb_create_iterator(db, options);
-	
-	//If the user didn't supply a key, then seek to the first
-	if (!*((char **) key) || *key_len == 0) {
+	old_key = (void *) *((char **) key);
+	old_key_len = *key_len;
+	*((char **) key) = NULL;
+	*key_len = 0;
+
+	//If the user didn't supply a key, then seek to the last
+	if (!old_key || old_key_len == 0) {
 		leveldb_iter_seek_to_last(iter);
 	} else {
 		//Otherwise, seek to the key given and then get the next key
-		leveldb_iter_seek(iter, *((char **)key), *key_len);
+		leveldb_iter_seek(iter, old_key, old_key_len);
 		if (!leveldb_iter_valid(iter)) { 
-			mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb after seeking");
+			mlog(MDHIM_SERVER_DBG, "Could not get a valid iterator in leveldb after seeking");
 			return MDHIM_DB_ERROR;
 		}
-
+	
 		leveldb_iter_prev(iter);
 	}
 
 	if (!leveldb_iter_valid(iter)) {
-		mlog(MDHIM_SERVER_CRIT, "Could not get a valid iterator in leveldb");
+		mlog(MDHIM_SERVER_DBG, "Could not get a valid iterator in leveldb");
 		return MDHIM_DB_ERROR;
 	}
 
-	res1 = leveldb_iter_value(iter, (size_t *) &len);
-	if (res1) {
+	res = leveldb_iter_value(iter, (size_t *) &len);
+	if (res) {
 		*((char **) data) = malloc(len);
-		memcpy(*((char **) data), res1, len);
+		memcpy(*((char **) data), res, len);
 		*data_len = len;
 	}
-	res2 = leveldb_iter_key(iter, (size_t *) key_len);
-	if (res2) {
+	res = leveldb_iter_key(iter, (size_t *) key_len);
+	if (res) {
 		*((char **) key) = malloc(*key_len);
-		memcpy(*((char **) key), res2, *key_len);
+		memcpy(*((char **) key), res, *key_len);
 	}
 
 	if (!*((char **) data)) {

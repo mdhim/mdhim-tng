@@ -179,7 +179,8 @@ int mdhimClose(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 	free(md->receive_msg_mutex);
-       
+       	MPI_Barrier(md->mdhim_comm);
+
 	return MDHIM_SUCCESS;
 }
 
