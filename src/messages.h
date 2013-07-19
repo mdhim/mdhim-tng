@@ -41,48 +41,52 @@
 #define MDHIM_GET_LAST   4
 
 //Message Types
-#define RANGESRV_WORK_SIZE   1
-#define RANGESRV_WORK_MSG    2
-#define RANGESRV_INFO        3
-#define CLIENT_RESPONSE_SIZE 4
-#define CLIENT_RESPONSE_MSG  5
+#define RANGESRV_WORK_MSG    1
+#define RANGESRV_INFO        2
+#define CLIENT_RESPONSE_MSG  3
 
 #define MAX_BULK_OPS 1000
 
 //Maximum size of messages allowed
-#define MDHIM_MAX_MSG_SIZE 2147483647 //At most send/receive 2GB
+#define MDHIM_MAX_MSG_SIZE 1048576 //At most send/receive 1MB per message
 struct mdhim_t;
 
 /* Base message */
 struct mdhim_basem_t {
 	//Message type
 	int mtype; 
+	int server_rank;
+	int size;
 };
 
 /* Put message */
 struct mdhim_putm_t {
 	int mtype;
+	int server_rank;
+	int size;
 	void *key;
 	int key_len;
 	void *value;
 	int value_len;
-	int server_rank;
 };
 
 /* Bulk put message */
 struct mdhim_bputm_t {
 	int mtype;
+	int server_rank;
+	int size;
 	void **keys;
 	int *key_lens;
 	void **values;
 	int *value_lens;
 	int num_records;
-	int server_rank;
 };
 
 /* Get record message */
 struct mdhim_getm_t {
 	int mtype;  
+	int server_rank;
+	int size;
 	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
 	/* The key to get if op is MDHIM_GET_EQ
@@ -92,35 +96,37 @@ struct mdhim_getm_t {
 	//The length of the key
 	int key_len;
 	int num_records;
-	int server_rank;
 };
 
 /* Bulk get record message */
 struct mdhim_bgetm_t {
 	int mtype;  
+	int server_rank;
+	int size;
 	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	void **keys;
 	int *key_lens;
         //Number of records to retrieve
 	int num_records;
-	int server_rank;
 };
 
 /* Delete message */
 struct mdhim_delm_t {
 	int mtype;
+	int server_rank;
+	int size;
 	void *key;
 	int key_len; 
-	int server_rank;
 };
 
 /* Bulk delete record message */
 struct mdhim_bdelm_t {
 	int mtype;  
+	int server_rank;
+	int size;
 	void **keys;
 	int *key_lens;
 	int num_records;
-	int server_rank;
 };
 
 /* Range server info message */
@@ -134,6 +140,7 @@ struct mdhim_rm_t {
 	int mtype;  
 	int error;
 	int server_rank;
+	int size;
 };
 
 /* Get receive message */
@@ -141,6 +148,7 @@ struct mdhim_getrm_t {
 	int mtype;
 	int error;
 	int server_rank;
+	int size;
 	void *key;
 	int key_len;
 	void *value;
@@ -152,6 +160,7 @@ struct mdhim_bgetrm_t {
 	int mtype;
 	int error;
 	int server_rank;
+	int size;
 	void **keys;
 	int *key_lens;
 	void **values;
@@ -170,9 +179,12 @@ struct mdhim_brm_t {
 
 
 int send_rangesrv_work(struct mdhim_t *md, int dest, void *message);
+int send_all_rangesrv_work(struct mdhim_t *md, void **messages);
 int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message);
 int send_client_response(struct mdhim_t *md, int dest, void *message);
 int receive_client_response(struct mdhim_t *md, int src, void **message);
+int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs, 
+				 void ***messages);
 int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf, int *sendsize);
 int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **sendbuf, int *sendsize);
 int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size, void **pm);

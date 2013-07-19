@@ -294,12 +294,13 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 			      void **values, int *value_lens, int num_records) {
 	int ret;
 	struct mdhim_bputm_t **bpm_list;
-	struct mdhim_bputm_t *bpm;
+	struct mdhim_bputm_t *bpm, *lbpm;
 	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
 	struct mdhim_rm_t *rm;
 	int i;
 	rangesrv_info *ri;
 
+	lbpm = NULL;
 	//Create an array of bulk put messages that holds one bulk message per range server
 	bpm_list = malloc(sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
 	memset(bpm_list, 0, sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
@@ -323,7 +324,11 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 		}
        
 		//Get the message for this range server
-		bpm = bpm_list[ri->rangesrv_num - 1];
+		if (ri->rank != md->mdhim_rank) {
+			bpm = bpm_list[ri->rangesrv_num - 1];
+		} else {
+			bpm = lbpm;
+		}
 
 		//If the message doesn't exist, create one
 		if (!bpm) {
@@ -335,7 +340,11 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 			bpm->num_records = 0;
 			bpm->server_rank = ri->rank;
 			bpm->mtype = MDHIM_BULK_PUT;
-			bpm_list[ri->rangesrv_num - 1] = bpm;
+			if (ri->rank != md->mdhim_rank) {
+				bpm_list[ri->rangesrv_num - 1] = bpm;
+			} else {
+				lbpm = bpm;
+			}
 		}
 
 		//Add the key, lengths, and data to the message
@@ -348,40 +357,17 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 
 	//Make a list out of the received messages to return
 	brm_head = brm_tail = NULL;
-	for (i = 0; i < md->num_rangesrvs; i++) {
-		bpm = bpm_list[i];
-		if (!bpm) {
-			//Skip this as the bulk message doesn't exist
-			continue;
-		}
-
-		//Send the message to the appropriate server
-		//Test if I'm a range server
-		ret = im_range_server(md);
-
-		//If I'm a range server and I'm the one this key goes to, send the message locally
-		if (ret && md->mdhim_rank == bpm->server_rank) {
-			rm = local_client_bput(md, bpm);
-		} else {
-			rm = client_bput(md, bpm);
-			free(bpm);
-		}		
-
+	brm_head = client_bput(md, bpm_list);
+	ret = im_range_server(md);
+	if (lbpm) {
+		rm = local_client_bput(md, lbpm);
 		brm = malloc(sizeof(struct mdhim_brm_t));
 		brm->error = rm->error;
 		brm->mtype = rm->mtype;
 		brm->server_rank = rm->server_rank;
-		free(rm);
-
-		//Build the linked list to return
-		brm->next = NULL;
-		if (!brm_head) {
-			brm_head = brm;
-			brm_tail = brm;
-		} else {
-			brm_tail->next = brm;
-			brm_tail = brm;
-		}
+		brm->next = brm_head;
+		brm_head = brm;
+		free(rm);	
 	}
 
 	free(bpm_list);

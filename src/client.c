@@ -48,29 +48,77 @@ struct mdhim_rm_t *client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
  * @param bpm pointer to bulk put message to be sent or inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_rm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
+struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t **bpm_list) {
 
 	int return_code;
-	struct mdhim_rm_t *brm;
-	
-	return_code = send_rangesrv_work(md, bpm->server_rank, bpm);
+	struct mdhim_brm_t *brm_head, *brm_tail, *brm;
+	struct mdhim_rm_t **rm_list, *rm;
+	int i;
+	int *srvs;
+	int num_srvs;
+
+	num_srvs = 0;
+	srvs = malloc(sizeof(int) * md->num_rangesrvs);
+	for (i = 0; i < md->num_rangesrvs; i++) {
+		if (!bpm_list[i]) {
+			continue;
+		}
+
+		srvs[num_srvs] = bpm_list[i]->server_rank;
+		num_srvs++;
+	}
+
+	return_code = send_all_rangesrv_work(md, (void **) bpm_list);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
 		     "bput record request",  md->mdhim_rank, return_code);
+
 		return NULL;
 	}
-
-	return_code = receive_client_response(md, bpm->server_rank, (void **) &brm);
-	// If the receive did not succeed then log the error code and return MDHIM_ERROR
+	
+	rm_list = malloc(sizeof(struct mdhim_rm_t *) * num_srvs);
+	memset(rm_list, 0, sizeof(struct mdhim_rm_t *) * num_srvs);
+	return_code = receive_all_client_responses(md, srvs, num_srvs, (void ***) &rm_list);
+	// If the receives did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
-		     "bput record request",  md->mdhim_rank, return_code);
-		brm->error = MDHIM_ERROR;
+		     "bput record requests",  md->mdhim_rank, return_code);
 	}
 
+	brm_head = brm_tail = NULL;
+	for (i = 0; i < num_srvs; i++) {
+		rm = rm_list[i];
+		if (!rm) {
+		  mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		       "Error: did not receive a response message in client_bput",  
+		       md->mdhim_rank);
+		  //Skip this as the message doesn't exist
+		  continue;
+		}
+
+		brm = malloc(sizeof(struct mdhim_brm_t));
+		brm->error = rm->error;
+		brm->mtype = rm->mtype;
+		brm->server_rank = rm->server_rank;
+		free(rm);
+
+		//Build the linked list to return
+		brm->next = NULL;
+		if (!brm_head) {
+			brm_head = brm;
+			brm_tail = brm;
+		} else {
+			brm_tail->next = brm;
+			brm_tail = brm;
+		}
+	}
+
+	free(rm_list);
+	free(srvs);
+
 	// Return response message
-	return brm;
+	return brm_head;
 }
 
 /** Send get to range server

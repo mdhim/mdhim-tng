@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
@@ -553,8 +554,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 						    bgm->keys[i], bgm->key_lens[i], (void **) (values + i), 
 						    (int32_t *) (value_lens + i), &opts)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error getting record: %d with length: %d", 
-			     md->mdhim_rank, *(int *)bgm->keys[i], bgm->key_lens[i]);
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
 			error = ret;
 			value_lens[i] = 0;
 			continue;
@@ -768,6 +768,10 @@ int range_server_init(struct mdhim_t *md) {
 	//Populate md->mdhim_rs
 	md->mdhim_rs->info.rank = md->mdhim_rank;
 	md->mdhim_rs->info.rangesrv_num = rangesrv_num;
+	//Set the outstanding requests to null
+	memset(md->mdhim_rs->reqs, 0, sizeof(MPI_Request *) * MAX_OUT_REQS);
+	md->mdhim_rs->num_reqs = 0;
+
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
 	sprintf(filename, "%s%d", "mdhim_db", md->mdhim_rank);
 	//Initialize data store
