@@ -8,7 +8,7 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 1000
+#define KEYS 100
 #define KEY_SIZE 100
 #define NUM_KEYS 10000
 int main(int argc, char **argv) {
@@ -59,16 +59,16 @@ int main(int argc, char **argv) {
 		keys = malloc(sizeof(void *) * KEYS);
 		values = malloc(sizeof(char *) * KEYS);
 		for (i = 0; i < KEYS; i++) {
-			((char **)keys)[i] = malloc(KEY_SIZE);
+			keys[i] = malloc(KEY_SIZE);
 			ret = read(fd, keys[i], KEY_SIZE);
 			if (ret != KEY_SIZE) {
 				printf("Error reading in key\n");
 			}
 
 			key_lens[i] = KEY_SIZE;
-			values[i] = malloc(sizeof(char));
-			*values[i] = '0';
-			value_lens[i] = sizeof(char);		
+			values[i] = malloc(5);
+			sprintf(values[i], "%s", "5555");
+			value_lens[i] = 5;		
 		}
 
 		//Insert the keys into MDHIM

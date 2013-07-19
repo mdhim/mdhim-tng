@@ -1,5 +1,5 @@
 MPI_ROOT	= /usr/local
-LEVEL_DB_ROOT   = /turquoise/users/hng/leveldb-1.12.0
+LEVEL_DB_ROOT   = /users/hng/leveldb-1.12.0
 
 CC	= mpicc -g -O0 -Wall
 CLIBS	= -L${MPI_ROOT}/lib -L../src -L${LEVEL_DB_ROOT}

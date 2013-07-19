@@ -5,6 +5,7 @@
 #include "mdhim.h"
 
 #define KEYS 100
+#define TOTAL 10000
 int main(int argc, char **argv) {
 	int ret;
 	int provided;
@@ -14,6 +15,7 @@ int main(int argc, char **argv) {
 	int key_lens[KEYS];
 	int **values;
 	int value_lens[KEYS];
+	int total = 0;
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 	struct timeval start_tv, end_tv;
@@ -40,35 +42,36 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 	
-	//Populate the keys and values to insert
-	keys = malloc(sizeof(int *) * KEYS);
-        values = malloc(sizeof(int *) * KEYS);
-	for (i = 0; i < KEYS; i++) {
-		keys[i] = malloc(sizeof(int));
-		*keys[i] = (i + 1) * (md->mdhim_rank + 1);
-		printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
-		key_lens[i] = sizeof(int);
-		values[i] = malloc(sizeof(int));
-		*values[i] = (i + 1) * (md->mdhim_rank + 1);
-		value_lens[i] = sizeof(int);		
-	}
+	while (total != TOTAL) {
+		//Populate the keys and values to insert
+		keys = malloc(sizeof(int *) * KEYS);
+		values = malloc(sizeof(int *) * KEYS);
+		for (i = 0; i < KEYS; i++) {
+			keys[i] = malloc(sizeof(int));
+			*keys[i] = (i + 1) * (md->mdhim_rank + 1);
+			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
+			key_lens[i] = sizeof(int);
+			values[i] = malloc(sizeof(int));
+			*values[i] = (i + 1) * (md->mdhim_rank + 1);
+			value_lens[i] = sizeof(int);		
+		}
 
-	//Insert the keys into MDHIM
-	brm = mdhimBPut(md, (void **) keys, key_lens,  
-			(void **) values, value_lens, KEYS);
-	brmp = brm;
-	if (!brm || brm->error) {
-		printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
-	} 
-	while (brmp) {
-		if (brmp->error < 0) {
-			printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
+		//Insert the keys into MDHIM
+		brm = mdhimBPut(md, (void **) keys, key_lens,  
+				(void **) values, value_lens, KEYS);
+		brmp = brm;
+		while (brmp) {
+			if (brmp->error < 0) {
+				printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
+			}
+	
+			brmp = brmp->next;
+			//Free the message
+			mdhim_full_release_msg(brm);
+			brm = brmp;
 		}
 	
-		brmp = brmp->next;
-		//Free the message
-		mdhim_full_release_msg(brm);
-		brm = brmp;
+		total += KEYS;
 	}
 
 	//Commit the database
@@ -79,25 +82,30 @@ int main(int argc, char **argv) {
 		printf("Committed MDHIM database\n");
 	}
 
-	//Get the values back for each key inserted
-	bgrm = mdhimBGet(md, (void **) keys, key_lens, 
-			 KEYS);
-	bgrmp = bgrm;
-	while (bgrmp) {
-		if (bgrmp->error < 0) {
-			printf("Rank: %d - Error retrieving values", md->mdhim_rank);
-		}
+	total = 0;
+	while (total != TOTAL) {
+		//Get the values back for each key inserted
+		bgrm = mdhimBGet(md, (void **) keys, key_lens, 
+				 KEYS);
+		bgrmp = bgrm;
+		while (bgrmp) {
+			if (bgrmp->error < 0) {
+				printf("Rank: %d - Error retrieving values", md->mdhim_rank);
+			}
 
-		for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++) {
+			for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++) {
 		
-			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
-			       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);
+				printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
+				       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);
+			}
+
+			bgrmp = bgrmp->next;
+			//Free the message received
+			mdhim_full_release_msg(bgrm);
+			bgrm = bgrmp;
 		}
 
-		bgrmp = bgrmp->next;
-		//Free the message received
-		mdhim_full_release_msg(bgrm);
-		bgrm = bgrmp;
+		total += KEYS;
 	}
 
 	//Quit MDHIM
@@ -118,7 +126,7 @@ int main(int argc, char **argv) {
 	free(values);
 
 	printf("Took: %u seconds to insert and get %u keys/values\n", 
-	       (unsigned int) (end_tv.tv_sec - start_tv.tv_sec), KEYS);
+	       (unsigned int) (end_tv.tv_sec - start_tv.tv_sec), TOTAL);
 
 	return 0;
 }

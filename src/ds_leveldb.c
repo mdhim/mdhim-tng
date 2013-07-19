@@ -21,11 +21,7 @@ static int cmp_empty(const char* a, size_t alen,
 		return 1;
 	} else if (blen > alen) {
 		return -1;
-	} else if (!alen && blen) {
-		return -1;
-	} else if (alen && !blen) {
-		return 1;
-	}
+	} 
 
 	return ret;
 }
@@ -146,13 +142,8 @@ static int cmp_byte_compare(void* arg, const char* a, size_t alen,
 	if (ret != 2) {
 		return ret;
 	}
-	if (alen < blen) {
-		ret = -1;
-	} else if (alen > blen) {
-		ret = 1;
-	} else {
-		ret = memcmp(a, b, alen);
-	}
+
+	ret = memcmp(a, b, alen);
 
 	return ret;
 }
@@ -485,10 +476,7 @@ int mdhim_leveldb_del(void *dbh, void *key, int key_len,
 	}
 
 	//Reset error variable
-	leveldb_free(err); 
-	
-	//Destroy the options
-	leveldb_writeoptions_destroy(options);
+	leveldb_free(err); 	
 
 	return MDHIM_SUCCESS;
 }

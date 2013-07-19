@@ -292,19 +292,17 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,
  */
 struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, 
 			      void **values, int *value_lens, int num_records) {
-	int ret;
 	struct mdhim_bputm_t **bpm_list;
 	struct mdhim_bputm_t *bpm, *lbpm;
-	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
+	struct mdhim_brm_t *brm, *brm_head;
 	struct mdhim_rm_t *rm;
 	int i;
 	rangesrv_info *ri;
 
+	//The message to be sent to ourselves if necessary
 	lbpm = NULL;
 	//Create an array of bulk put messages that holds one bulk message per range server
-	bpm_list = malloc(sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
-	memset(bpm_list, 0, sizeof(struct mdhim_putm_t *) * md->num_rangesrvs);
-
+	bpm_list = malloc(sizeof(struct mdhim_bputm_t *) * md->num_rangesrvs);
 	//Initialize the pointers of the list to null
 	for (i = 0; i < md->num_rangesrvs; i++) {
 		bpm_list[i] = NULL;
@@ -323,10 +321,11 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 			continue;
 		}
        
-		//Get the message for this range server
 		if (ri->rank != md->mdhim_rank) {
+			//Set the message in the list for this range server
 			bpm = bpm_list[ri->rangesrv_num - 1];
 		} else {
+			//Set the local message
 			bpm = lbpm;
 		}
 
@@ -356,9 +355,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 	}
 
 	//Make a list out of the received messages to return
-	brm_head = brm_tail = NULL;
 	brm_head = client_bput(md, bpm_list);
-	ret = im_range_server(md);
 	if (lbpm) {
 		rm = local_client_bput(md, lbpm);
 		brm = malloc(sizeof(struct mdhim_brm_t));
@@ -368,6 +365,14 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 		brm->next = brm_head;
 		brm_head = brm;
 		free(rm);	
+	}
+	
+	for (i = 0; i < md->num_rangesrvs; i++) {
+		if (!bpm_list[i]) {
+			continue;
+		}
+
+		free(bpm_list[i]);
 	}
 
 	free(bpm_list);
@@ -444,15 +449,16 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
  * @return mdhim_bgetrm_t * or NULL on error
  */
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, 
-				 int num_keys) {
-	int ret;
+				 int num_records) {
 	struct mdhim_bgetm_t **bgm_list;
-	struct mdhim_bgetm_t *bgm;
-	struct mdhim_bgetrm_t *bgrm, *bgrm_head, *bgrm_tail;
+	struct mdhim_bgetm_t *bgm, *lbgm;
+	struct mdhim_bgetrm_t *bgrm_head, *lbgrm;
 	int i;
 	rangesrv_info *ri;
 
-	//Create an array of bulk put messages that holds one bulk message per range server
+	//The message to be sent to ourselves if necessary
+	lbgm = NULL;
+	//Create an array of bulk get messages that holds one bulk message per range server
 	bgm_list = malloc(sizeof(struct mdhim_bgetm_t *) * md->num_rangesrvs);
 	//Initialize the pointers of the list to null
 	for (i = 0; i < md->num_rangesrvs; i++) {
@@ -460,9 +466,9 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 	}
 
 	/* Go through each of the records to find the range server the record belongs to.
-	   If there is not a bulk message in the bgm_list array for the range server the key belongs to, 
+	   If there is not a bulk message in the array for the range server the key belongs to, 
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
-	for (i = 0; i < num_keys && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < num_records && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
 		if ((ri = get_range_server(md, keys[i], key_lens[i])) == 
 		    NULL) {
@@ -471,9 +477,14 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			     md->mdhim_rank);
 			continue;
 		}
-
-		//Get the message for this range server
-		bgm = bgm_list[ri->rangesrv_num - 1];
+       
+		if (ri->rank != md->mdhim_rank) {
+			//Set the message in the list for this range server
+			bgm = bgm_list[ri->rangesrv_num - 1];
+		} else {
+			//Set the local message
+			bgm = lbgm;
+		}
 
 		//If the message doesn't exist, create one
 		if (!bgm) {
@@ -483,7 +494,11 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm->num_records = 0;
 			bgm->server_rank = ri->rank;
 			bgm->mtype = MDHIM_BULK_GET;
-                        bgm_list[ri->rangesrv_num - 1] = bgm;
+			if (ri->rank != md->mdhim_rank) {
+				bgm_list[ri->rangesrv_num - 1] = bgm;
+			} else {
+				lbgm = bgm;
+			}
 		}
 
 		//Add the key, lengths, and data to the message
@@ -493,35 +508,19 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 	}
 
 	//Make a list out of the received messages to return
-	bgrm_head = bgrm_tail = NULL;
+	bgrm_head = client_bget(md, bgm_list);
+	if (lbgm) {
+		lbgrm = local_client_bget(md, lbgm);
+		lbgrm->next = bgrm_head;
+		bgrm_head = lbgrm;
+	}
+	
 	for (i = 0; i < md->num_rangesrvs; i++) {
-		bgm = bgm_list[i];
-		if (!bgm) {
-			//Skip this as the bulk message doesn't exist
+		if (!bgm_list[i]) {
 			continue;
 		}
 
-		//Send the message to the appropriate server
-		//Test if I'm a range server
-		ret = im_range_server(md);
-
-		//If I'm a range server and I'm the one this key goes to, send the message locally
-		if (ret && md->mdhim_rank == bgm->server_rank) {
-			bgrm = local_client_bget(md, bgm);
-		} else {
-			bgrm = client_bget(md, bgm);
-			free(bgm);
-		}		
-
-		//Build the linked list to return
-		bgrm->next = NULL;
-		if (!bgrm_head) {
-			bgrm_head = bgrm;
-			bgrm_tail = bgrm;
-		} else {
-			bgrm_tail->next = bgrm;
-			bgrm_tail = bgrm;
-		}
+		free(bgm_list[i]);
 	}
 
 	free(bgm_list);
@@ -592,18 +591,17 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len) {
  */
 struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 				 int num_records) {
-	int ret;
 	struct mdhim_bdelm_t **bdm_list;
-	struct mdhim_bdelm_t *bdm;
-	struct mdhim_brm_t *brm, *brm_head, *brm_tail;
+	struct mdhim_bdelm_t *bdm, *lbdm;
+	struct mdhim_brm_t *brm, *brm_head;
 	struct mdhim_rm_t *rm;
 	int i;
 	rangesrv_info *ri;
 
+	//The message to be sent to ourselves if necessary
+	lbdm = NULL;
 	//Create an array of bulk del messages that holds one bulk message per range server
-	bdm_list = malloc(sizeof(struct mdhim_delm_t *) * md->num_rangesrvs);
-	memset(bdm_list, 0, sizeof(struct mdhim_delm_t *) * md->num_rangesrvs);
-
+	bdm_list = malloc(sizeof(struct mdhim_bdelm_t *) * md->num_rangesrvs);
 	//Initialize the pointers of the list to null
 	for (i = 0; i < md->num_rangesrvs; i++) {
 		bdm_list[i] = NULL;
@@ -617,13 +615,18 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 		if ((ri = get_range_server(md, keys[i], key_lens[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-			     "Error while determining range server in mdhimBDel", 
+			     "Error while determining range server in mdhimBdel", 
 			     md->mdhim_rank);
 			continue;
 		}
-
-		//Get the message for this range server
-		bdm = bdm_list[ri->rangesrv_num - 1];
+       
+		if (ri->rank != md->mdhim_rank) {
+			//Set the message in the list for this range server
+			bdm = bdm_list[ri->rangesrv_num - 1];
+		} else {
+			//Set the local message
+			bdm = lbdm;
+		}
 
 		//If the message doesn't exist, create one
 		if (!bdm) {
@@ -633,7 +636,11 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 			bdm->num_records = 0;
 			bdm->server_rank = ri->rank;
 			bdm->mtype = MDHIM_BULK_DEL;
-			bdm_list[ri->rangesrv_num - 1] = bdm;
+			if (ri->rank != md->mdhim_rank) {
+				bdm_list[ri->rangesrv_num - 1] = bdm;
+			} else {
+				lbdm = bdm;
+			}
 		}
 
 		//Add the key, lengths, and data to the message
@@ -643,41 +650,24 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 	}
 
 	//Make a list out of the received messages to return
-	brm_head = brm_tail = NULL;
-	for (i = 0; i < md->num_rangesrvs; i++) {
-		bdm = bdm_list[i];
-		if (!bdm) {
-			//Skip this as the bulk message doesn't exist
-			continue;
-		}
-
-		//Send the message to the appropriate server
-		//Test if I'm a range server
-		ret = im_range_server(md);
-
-		//If I'm a range server and I'm the one this key goes to, send the message locally
-		if (ret && md->mdhim_rank == bdm->server_rank) {
-			rm = local_client_bdelete(md, bdm);
-		} else {
-			rm = client_bdelete(md, bdm);
-			free(bdm);
-		}		
-
+	brm_head = client_bdelete(md, bdm_list);
+	if (lbdm) {
+		rm = local_client_bdelete(md, lbdm);
 		brm = malloc(sizeof(struct mdhim_brm_t));
 		brm->error = rm->error;
 		brm->mtype = rm->mtype;
 		brm->server_rank = rm->server_rank;
-		free(rm);
-
-		//Build the linked list to return
-		brm->next = NULL;
-		if (!brm_head) {
-			brm_head = brm;
-			brm_tail = brm;
-		} else {
-			brm_tail->next = brm;
-			brm_tail = brm;
+		brm->next = brm_head;
+		brm_head = brm;
+		free(rm);	
+	}
+	
+	for (i = 0; i < md->num_rangesrvs; i++) {
+		if (!bdm_list[i]) {
+			continue;
 		}
+
+		free(bdm_list[i]);
 	}
 
 	free(bdm_list);

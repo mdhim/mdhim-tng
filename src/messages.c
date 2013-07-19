@@ -175,7 +175,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 			}		
 		}
 		
-		usleep(100);
+		usleep(200);
 	}
 
 	for (i = 0; i < num_msgs; i++) {
@@ -484,7 +484,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		}
 
 		if (done != num_sent) {
-			usleep(100);
+			usleep(200);
 		}
 	}
 
