@@ -8,6 +8,7 @@
 #define      __STORE_H
 
 #include "unqlite.h"
+#include "uthash.h"
 
 /* Storage Methods */
 #define UNQLITE 1 //UNQLITE storage method
@@ -23,9 +24,10 @@ struct mdhim_store_opts_t;
 
 
 /* Function pointers for abstracting data stores */
-typedef int (*mdhim_store_open_fn_t)(void **db_handle, char *path, int flags, 
+typedef int (*mdhim_store_open_fn_t)(void **db_handle, void **db_stats, char *path, int flags, 
 				     struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, void *data, int32_t data_len, 
+typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, 
+				    void *data, int32_t data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int32_t *data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
@@ -40,14 +42,23 @@ typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void **key,
 typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_commit_fn_t)(void *db_handle);
-typedef int (*mdhim_store_close_fn_t)(void *db_handle, 
+typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 				      struct mdhim_store_opts_t *mstore_opts);
+
+//Used for storing stats in a hash table
+struct mdhim_stat {
+	char name[10];            //Key
+	int val;                  //Value
+	UT_hash_handle hh;        /* makes this structure hashable */
+};
 
 /* Generic mdhim storage object */
 struct mdhim_store_t {
 	int type;
 	//handle to db
 	void *db_handle;
+	//Handle to db for stats
+	void *db_stats;
 	//Generic pointers 
 	void *db_ptr1;
 	void *db_ptr2;
@@ -62,6 +73,9 @@ struct mdhim_store_t {
 	mdhim_store_del_fn_t del;
 	mdhim_store_commit_fn_t commit;
 	mdhim_store_close_fn_t close;
+       
+        //Hashtable for stats
+	struct mdhim_stat *mdhim_store_stats;
 };
 
 /* mdhim storage options passed to direct storage access functions i.e.: get, put, open */

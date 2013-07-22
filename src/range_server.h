@@ -4,7 +4,6 @@
 #include <pthread.h>
 #include "data_store.h"
 #include "messages.h"
-#include "uthash.h"
 
 #define MAX_OUT_REQS 1000
 struct mdhim_t;

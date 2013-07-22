@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <linux/limits.h>
+#include <stdio.h>
 #include "ds_unqlite.h"
 
 /**
@@ -50,11 +52,12 @@ static void print_unqlite_err_msg(unqlite *dh) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_open(void **dbh, char *path, int flags, 
+int mdhim_unqlite_open(void **dbh, void **dbs, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 	int imode;
 	unqlite **dh = (unqlite **) dbh;
+	char stats_path[PATH_MAX];
 
 	//Convert the MDHIM flags to unqlite ones
 	switch(flags) {
@@ -71,8 +74,22 @@ int mdhim_unqlite_open(void **dbh, char *path, int flags,
 		break;
 	}
 	
-	//Open the database
+	//Open the main database
 	if ((ret = unqlite_open(dh, path, imode)) != UNQLITE_OK) {
+		print_unqlite_err_msg(*dh);
+		return MDHIM_DB_ERROR;
+	}
+
+	dh = (unqlite **) dbs;
+	//Check to see if the given path + "_stat" and the null char will be more than the max
+	if (strlen(path) + 6 > PATH_MAX) {
+		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database - path provided is too long");
+		return MDHIM_DB_ERROR;
+	}
+	sprintf(stats_path, "%s_stats", path);
+
+	//Open the stats database
+	if ((ret = unqlite_open(dh, path, UNQLITE_OPEN_CREATE)) != UNQLITE_OK) {
 		print_unqlite_err_msg(*dh);
 		return MDHIM_DB_ERROR;
 	}
@@ -365,11 +382,16 @@ int mdhim_unqlite_commit(void *dbh) {
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_unqlite_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_unqlite_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_opts) {
 	int ret = 0;
 
 	if ((ret = unqlite_close((unqlite *) dbh)) != UNQLITE_OK) {
 		print_unqlite_err_msg(dbh);
+		return MDHIM_DB_ERROR;
+	}
+
+	if ((ret = unqlite_close((unqlite *) dbs)) != UNQLITE_OK) {
+		print_unqlite_err_msg(dbs);
 		return MDHIM_DB_ERROR;
 	}
 

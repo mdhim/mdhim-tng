@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <leveldb/c.h>
+#include <stdio.h>
+#include <linux/limits.h>
 #include "ds_leveldb.h"
-
 
 static void cmp_destroy(void* arg) { }
 
@@ -172,19 +173,19 @@ static const char* cmp_name(void* arg) {
 #define MDHIM_STRING_KEY 6
 //An arbitrary sized key
 #define MDHIM_BYTE_KEY 7
-int mdhim_leveldb_open(void **dbh, char *path, int flags, 
+int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db;
 	leveldb_options_t *options;
 	char *err = NULL;
 	leveldb_comparator_t* cmp = NULL;
-
+	char stats_path[PATH_MAX];
 	//Create the options
 	options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(options, 1);
 	leveldb_options_set_compression(options, 0);
 
-	switch( mstore_opts->key_type) {
+	switch(mstore_opts->key_type) {
 	case MDHIM_INT_KEY:
 		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
 		break;
@@ -212,21 +213,40 @@ int mdhim_leveldb_open(void **dbh, char *path, int flags,
 
 	//Open the database
 	db = leveldb_open(options, path, &err);
+
+	//Check to see if the given path + "_stat" and the null char will be more than the max
+	if (strlen(path) + 6 > PATH_MAX) {
+		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database - path provided is too long");
+		return MDHIM_DB_ERROR;
+	}
+	sprintf(stats_path, "%s_stats", path);
+	//Open the main database
+	db = leveldb_open(options, path, &err);
 	//Set the output handle
 	*((leveldb_t **) dbh) = db;
-	//Set the output comparator
-	mstore_opts->db_ptr1 = cmp;
-	//Set the generic pointers to hold the options
-	mstore_opts->db_ptr2 = options;
-	mstore_opts->db_ptr3 = leveldb_readoptions_create();
-	mstore_opts->db_ptr4 = leveldb_writeoptions_create();
-
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
 	//Reset error variable
 	leveldb_free(err); 
+
+	//Open the stats database
+	db = leveldb_open(options, stats_path, &err);
+	*((leveldb_t **) dbs) = db;
+	if (err != NULL) {
+		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
+		return MDHIM_DB_ERROR;
+	}
+	//Reset error variable
+	leveldb_free(err); 
+
+	//Set the output comparator
+	mstore_opts->db_ptr1 = cmp;
+	//Set the generic pointers to hold the options
+	mstore_opts->db_ptr2 = options;
+	mstore_opts->db_ptr3 = leveldb_readoptions_create();
+	mstore_opts->db_ptr4 = leveldb_writeoptions_create();
 
 	return MDHIM_SUCCESS;
 }
@@ -439,13 +459,16 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_close(void *dbh, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db = (leveldb_t *) dbh;
 
 	leveldb_comparator_destroy((leveldb_comparator_t *) mstore_opts->db_ptr1);
 	leveldb_options_destroy((leveldb_options_t *) mstore_opts->db_ptr2);
 	leveldb_readoptions_destroy((leveldb_readoptions_t *) mstore_opts->db_ptr3);
 	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr4);
+	leveldb_close(db);
+	
+	db = (leveldb_t *) dbs;
 	leveldb_close(db);
 
 	return MDHIM_SUCCESS;

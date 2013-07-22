@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <linux/limits.h>
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
@@ -179,7 +180,8 @@ int range_server_stop(struct mdhim_t *md) {
 	free(md->mdhim_rs->work_queue);
 	set_store_opts(md, &opts);
 	//Close the database
-	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, &opts)) 
+	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, 
+						    md->mdhim_rs->mdhim_store->db_stats, &opts)) 
 	    != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
 		     md->mdhim_rank);
@@ -741,7 +743,7 @@ void *worker_thread(void *data) {
  */
 int range_server_init(struct mdhim_t *md) {
 	int ret;
-	char filename[255];
+	char filename[PATH_MAX];
 	int rangesrv_num;
 	int flags = MDHIM_CREATE;
 	struct mdhim_store_opts_t opts;
@@ -791,6 +793,7 @@ int range_server_init(struct mdhim_t *md) {
 
 	//Open the database
 	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle,
+						   &md->mdhim_rs->mdhim_store->db_stats,
 						   filename, flags, &opts)) != MDHIM_SUCCESS){
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while opening database", 
