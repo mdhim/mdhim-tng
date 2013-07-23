@@ -27,6 +27,7 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	store->db_ptr2 = NULL;
 	store->db_ptr3 = NULL;
 	store->db_ptr4 = NULL;
+	store->mdhim_store_stats = NULL;
 	switch(type) {
 	case UNQLITE:
 		store->open = mdhim_unqlite_open;
@@ -54,4 +55,5 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	
 	return store;
 }
+
 

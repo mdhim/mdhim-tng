@@ -72,6 +72,144 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
 }
 
 /**
+ * update_stat
+ * Adds or updates the given stat to the hash table
+ *
+ * @param md    pointer to the main MDHIM structure
+ * @param type  int that represents the type of stat
+ * @param value int for the value of the stat
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int update_stat(struct mdhim_t *md, int type, int val) {
+	struct mdhim_stat *stat, *os;
+	char *key;
+
+	//Get the key
+	switch(type) {
+	case MDHIM_MAX_STAT:
+		key = MDHIM_MAX_STAT_NAME;
+		break;
+	case MDHIM_MIN_STAT:
+		key = MDHIM_MIN_STAT_NAME;
+		break;
+	case MDHIM_NUM_STAT:
+	default:
+		key = MDHIM_NUM_STAT_NAME;
+		break;
+	}
+
+	stat = malloc(sizeof(struct mdhim_stat));
+	//Set the mdhim_stat
+	sprintf(stat->name, "%s", key);
+	stat->val = val;
+
+	HASH_FIND_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, os);
+	if (!os) {
+		//Add the stat to the hash table
+		HASH_ADD_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, name, stat);    
+	} else {
+		//Replace the existing stat
+		HASH_REPLACE_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, name, stat, os);  
+		free(os);
+	}
+
+	return MDHIM_SUCCESS;
+}
+
+/**
+ * load_stats
+ * Loads the statistics from the database
+ *
+ * @param md  Pointer to the main MDHIM structure
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int load_stats(struct mdhim_t *md) {
+	char *key;
+	int *val;
+	int val_len;
+	struct mdhim_store_opts_t opts;
+	int i;
+
+	set_store_opts(md, &opts);
+
+	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
+		//Get the key for the stat
+		if (i == MDHIM_MAX_STAT) {
+			key = MDHIM_MAX_STAT_NAME;
+		} else if (i == MDHIM_MIN_STAT) {
+			key = MDHIM_MIN_STAT_NAME;
+		} else {
+			key = MDHIM_NUM_STAT_NAME;
+		}
+
+		//Check the db for the key/value
+		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_stats, 
+					       key, strlen(key) + 1, (void **) &val, &val_len, &opts);	
+
+		//Add the stat to the hash table - the value is 0 if the key was not in the db
+		if (val) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Loaded stat: %s with val: %d", 
+			     md->mdhim_rank, key, *val);
+			update_stat(md, i, *val);
+		} else {
+			update_stat(md, i, 0);
+		}
+	}
+
+	return MDHIM_SUCCESS;
+}
+
+/**
+ * write_stats
+ * Writes the statistics stored in a hash table to the database
+ *
+ * @param md  Pointer to the main MDHIM structure
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int write_stats(struct mdhim_t *md) {
+	char *key;
+	int val_len;
+	struct mdhim_store_opts_t opts;
+	struct mdhim_stat *stat;
+	int i;
+
+	set_store_opts(md, &opts);
+	val_len = sizeof(int);
+	stat = NULL;
+
+	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
+		if (i == MDHIM_MAX_STAT) {
+			key = MDHIM_MAX_STAT_NAME;
+		} else if (i == MDHIM_MIN_STAT) {
+			key = MDHIM_MIN_STAT_NAME;
+		} else {
+			key = MDHIM_NUM_STAT_NAME;
+		}
+
+		//Get the hash entry
+		HASH_FIND_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);
+		if (!stat) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Can't find max key to save for stats", 
+			     md->mdhim_rank);
+			return MDHIM_ERROR;
+		}
+
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat: %s with val: %d", 
+		     md->mdhim_rank, key, stat->val);
+		//Write the key to the database		
+		md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_stats, 
+					       key, strlen(key) + 1, &stat->val, val_len, &opts);	
+
+		//Delete and free hash entry
+		HASH_DEL(md->mdhim_rs->mdhim_store->mdhim_store_stats, stat); 
+		free(stat);
+		stat = NULL;
+	}
+
+	return MDHIM_SUCCESS;
+}
+
+/**
  * range_server_add_work
  * Adds work to the work queue and signals the condition variable for the worker thread
  *
@@ -178,6 +316,14 @@ int range_server_stop(struct mdhim_t *md) {
 		head = temp_item;
 	}
 	free(md->mdhim_rs->work_queue);
+
+	//Write the stats to the database
+	if ((ret = write_stats(md)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while loading stats", 
+		     md->mdhim_rank);
+	}
+
 	set_store_opts(md, &opts);
 	//Close the database
 	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, 
@@ -791,7 +937,7 @@ int range_server_init(struct mdhim_t *md) {
 	//Set the key type
 	opts.key_type = md->key_type;
 
-	//Open the database
+	//Open the main database and the stats database
 	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle,
 						   &md->mdhim_rs->mdhim_store->db_stats,
 						   filename, flags, &opts)) != MDHIM_SUCCESS){
@@ -805,6 +951,13 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->mdhim_store->db_ptr2 = opts.db_ptr2;
 	md->mdhim_rs->mdhim_store->db_ptr3 = opts.db_ptr3;
 	md->mdhim_rs->mdhim_store->db_ptr4 = opts.db_ptr4;
+	
+	//Load the stats from the database
+	if ((ret = load_stats(md)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while loading stats", 
+		     md->mdhim_rank);
+	}
 
 	//Initialize work queue
 	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));

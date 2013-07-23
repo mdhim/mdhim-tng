@@ -19,6 +19,16 @@
 #define MDHIM_RDONLY 2
 #define MDHIM_RDWR 3
 
+/* Keys for stats database */
+#define MDHIM_MAX_STAT 1
+#define MDHIM_MIN_STAT 2
+#define MDHIM_NUM_STAT 3
+
+/* Keys for stats database */
+#define MDHIM_MAX_STAT_NAME "mdhim_max"
+#define MDHIM_MIN_STAT_NAME "mdhim_min"
+#define MDHIM_NUM_STAT_NAME "mdhim_num"
+
 struct mdhim_store_t;
 struct mdhim_store_opts_t;
 
@@ -47,7 +57,7 @@ typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 
 //Used for storing stats in a hash table
 struct mdhim_stat {
-	char name[10];            //Key
+	char name[15];            //Key
 	int val;                  //Value
 	UT_hash_handle hh;        /* makes this structure hashable */
 };
