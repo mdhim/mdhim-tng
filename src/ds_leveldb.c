@@ -210,10 +210,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	}
 	
 	leveldb_options_set_comparator(options, cmp);
-
-	//Open the database
-	db = leveldb_open(options, path, &err);
-
 	//Check to see if the given path + "_stat" and the null char will be more than the max
 	if (strlen(path) + 6 > PATH_MAX) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database - path provided is too long");

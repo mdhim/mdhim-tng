@@ -16,8 +16,6 @@
  * @param type           in   Database store type to use (i.e., UNQLITE, LEVELDB, etc)
  * @return mdhim_store_t      The mdhim storage abstraction struct
  */
-
-
 struct mdhim_store_t *mdhim_db_init(int type) {
 	struct mdhim_store_t *store;
 	
