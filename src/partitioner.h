@@ -14,8 +14,8 @@
 */
 
 #define RANGE_SERVER_FACTOR 4
-#define MDHIM_MAX_KEY 9223372036854775807LL
-#define MDHIM_MIN_KEY -9223372036854775807LL
+#define MDHIM_MAX_SERVERS 500
+#define MDHIM_MAX_KEYS 9007199254740991LL
 #define MDHIM_MAX_RECS_PER_SLICE 100
 //32 bit signed integer
 #define MDHIM_INT_KEY 1
@@ -29,7 +29,7 @@
 #define MDHIM_BYTE_KEY 7
 
 //Maximum length of a key
-#define MAX_KEY_LEN 1073741824
+#define MAX_KEY_LEN 262144
 
 /* The exponent used for the algorithm that determines the range server
 
@@ -53,5 +53,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank);
 rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len);
 void build_alphabet();
 int verify_key(void *key, int key_len, int key_type);
+long double get_str_num(void *key, uint32_t key_len);
+long double get_byte_num(void *key, uint32_t key_len);
 
 #endif

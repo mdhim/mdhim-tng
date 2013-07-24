@@ -80,37 +80,57 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
  * @param value int for the value of the stat
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int update_stat(struct mdhim_t *md, int type, int val) {
+int update_stat(struct mdhim_t *md, int type, long double val) {
 	struct mdhim_stat *stat, *os;
-	char *key;
-
-	//Get the key
-	switch(type) {
-	case MDHIM_MAX_STAT:
-		key = MDHIM_MAX_STAT_NAME;
-		break;
-	case MDHIM_MIN_STAT:
-		key = MDHIM_MIN_STAT_NAME;
-		break;
-	case MDHIM_NUM_STAT:
-	default:
-		key = MDHIM_NUM_STAT_NAME;
-		break;
-	}
 
 	stat = malloc(sizeof(struct mdhim_stat));
-	//Set the mdhim_stat
-	sprintf(stat->name, "%s", key);
 	stat->val = val;
-
-	HASH_FIND_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, os);
+	stat->key = type;
+	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &type, os);
 	if (!os) {
 		//Add the stat to the hash table
-		HASH_ADD_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, name, stat);    
+		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    
 	} else {
 		//Replace the existing stat
-		HASH_REPLACE_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, name, stat, os);  
+		HASH_REPLACE_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
 		free(os);
+	}
+
+	return MDHIM_SUCCESS;
+}
+
+int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
+	int i;
+	struct mdhim_stat *os;
+	long double val, nval;
+
+	if (md->key_type == MDHIM_STRING_KEY) {
+		val = get_str_num(key, key_len);
+	} else {
+		val = get_byte_num(key, key_len);
+	}
+
+	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
+		HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &i, os);
+		if (!os) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error while retrieving stats", 
+			     md->mdhim_rank);
+			continue;
+		}
+
+		if (i == MDHIM_MAX_STAT && val < os->val) {
+			continue;
+		} else if (i == MDHIM_MIN_STAT && val > os->val) {
+			continue;
+		} 
+
+		if (i == MDHIM_NUM_STAT) {
+			nval = os->val + 1;
+		} else {
+			nval = val;
+		}
+			
+		update_stat(md, i, nval);
 	}
 
 	return MDHIM_SUCCESS;
@@ -124,36 +144,43 @@ int update_stat(struct mdhim_t *md, int type, int val) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int load_stats(struct mdhim_t *md) {
-	char *key;
-	int *val;
-	int val_len;
+	void **val;
+	int *val_len;
 	struct mdhim_store_opts_t opts;
 	int i;
+	long double default_val;
 
 	set_store_opts(md, &opts);
-
 	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
-		//Get the key for the stat
+		//Get the default for the stat
 		if (i == MDHIM_MAX_STAT) {
-			key = MDHIM_MAX_STAT_NAME;
+			default_val = 0.0f;
 		} else if (i == MDHIM_MIN_STAT) {
-			key = MDHIM_MIN_STAT_NAME;
+			default_val = 1.0f;
 		} else {
-			key = MDHIM_NUM_STAT_NAME;
+			default_val = 0.0f;
 		}
 
 		//Check the db for the key/value
+		val = malloc(sizeof(void *));
+		*val = NULL;
+		val_len = malloc(sizeof(long double));
+		*val_len = 0;
 		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_stats, 
-					       key, strlen(key) + 1, (void **) &val, &val_len, &opts);	
+					       &i, sizeof(int), (void **) val, val_len, &opts);	
 
 		//Add the stat to the hash table - the value is 0 if the key was not in the db
-		if (val) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Loaded stat: %s with val: %d", 
-			     md->mdhim_rank, key, *val);
-			update_stat(md, i, *val);
+		if (*val && *val_len) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Loaded stat: %i with val: %.20Lf", 
+			     md->mdhim_rank, i, **(long double **)val);
+			update_stat(md, i, **(long double **)val);
+			free(*val);
 		} else {
-			update_stat(md, i, 0);
+			update_stat(md, i, default_val);
 		}
+
+		free(val);
+		free(val_len);
 	}
 
 	return MDHIM_SUCCESS;
@@ -167,43 +194,35 @@ int load_stats(struct mdhim_t *md) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int write_stats(struct mdhim_t *md) {
-	char *key;
 	int val_len;
 	struct mdhim_store_opts_t opts;
 	struct mdhim_stat *stat;
 	int i;
+	long double *val;
 
 	set_store_opts(md, &opts);
-	val_len = sizeof(int);
-	stat = NULL;
-
-	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
-		if (i == MDHIM_MAX_STAT) {
-			key = MDHIM_MAX_STAT_NAME;
-		} else if (i == MDHIM_MIN_STAT) {
-			key = MDHIM_MIN_STAT_NAME;
-		} else {
-			key = MDHIM_NUM_STAT_NAME;
-		}
-
+	val_len = sizeof(long double);
+	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {	
 		//Get the hash entry
-		HASH_FIND_STR(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);
+		stat = NULL;
+		HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &i, stat);
 		if (!stat) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Can't find max key to save for stats", 
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Can't find key to save for stats", 
 			     md->mdhim_rank);
 			return MDHIM_ERROR;
 		}
 
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat: %s with val: %d", 
-		     md->mdhim_rank, key, stat->val);
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat: %i with val: %.20Lf", 
+		     md->mdhim_rank, i, stat->val);
 		//Write the key to the database		
+		val = malloc(sizeof(long double));
+		*val = stat->val;
 		md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_stats, 
-					       key, strlen(key) + 1, &stat->val, val_len, &opts);	
-
+					       &i, sizeof(int), val, val_len, &opts);	
+		free(val);
 		//Delete and free hash entry
 		HASH_DEL(md->mdhim_rs->mdhim_store->mdhim_store_stats, stat); 
 		free(stat);
-		stat = NULL;
 	}
 
 	return MDHIM_SUCCESS;
@@ -354,9 +373,28 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	struct mdhim_rm_t *rm;
 	int error = 0;
 	struct mdhim_store_opts_t opts;
+	void **value;
+	int32_t *value_len;
+	int exists = 0;
 
-        //Put the record in the database
 	set_store_opts(md, &opts);
+	value = malloc(sizeof(void *));
+	*value = NULL;
+	value_len = malloc(sizeof(int32_t));
+	*value_len = 0;
+	//Check for the key's existence
+	md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+				       im->key, im->key_len, value, 
+				       value_len, &opts);
+	//The key already exists
+	if (*value && *value_len) {
+		exists = 1;
+		free(*value);
+	}
+
+	free(value);
+	free(value_len);
+        //Put the record in the database
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
 					im->key, im->key_len, im->value, 
@@ -364,6 +402,10 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	
 		error = ret;
+	}
+
+	if (!exists && error == MDHIM_SUCCESS) {
+		update_all_stats(md, im->key, im->key_len);
 	}
 
 	//Create the response message
@@ -398,10 +440,27 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	int error = 0;
 	struct mdhim_rm_t *brm;
 	struct mdhim_store_opts_t opts;
+	void **value;
+	int32_t *value_len;
+	int exists = 0;
 
 	set_store_opts(md, &opts);
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
+		value = malloc(sizeof(void *));
+		*value = NULL;
+		value_len = malloc(sizeof(int32_t));
+		*value_len = 0;
+		//Check for the key's existence
+		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+					       bim->keys[i], bim->key_lens[i], value, 
+					       value_len, &opts);
+		//The key already exists
+		if (*value && *value_len) {
+			exists = 1;
+			free(*value);
+		}
+
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
@@ -410,6 +469,10 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 			     md->mdhim_rank);
 			error = ret;
+		}
+
+		if (!exists && error == MDHIM_SUCCESS) {
+			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
 		}
 	}
 
@@ -574,9 +637,9 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	//Initialize pointers and lengths
 	value = malloc(sizeof(void *));
 	value_len = malloc(sizeof(int32_t));
-	*(char **) value = NULL;
+	*value = NULL;
 	key = malloc(sizeof(void *));
-	*(char **) key = NULL;
+	*key = NULL;
 	key_len = 0;
 	*value_len = 0;
 

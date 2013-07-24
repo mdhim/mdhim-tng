@@ -43,10 +43,6 @@ struct mdhim_t {
 	rangesrv_info *rangesrvs;
 	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 
-	//The max key served
-	int64_t max_key;
-	//The min key served
-	int64_t min_key;
 	//The mutex used if receiving from ourselves
 	pthread_mutex_t *receive_msg_mutex;
 	//The condition variable used if receiving from ourselves
