@@ -59,6 +59,9 @@ char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 static FILE * logfile;
 static FILE * infile;
 int verbose = 1;   // By default generate lost of feedback status lines
+// MDHIM_INT_KEY=1, MDHIM_LONG_INT_KEY=2, MDHIM_FLOAT_KEY=3, MDHIM_DOUBLE_KEY=4
+// MDHIM_LONG_DOUBLE_KEY=5, MDHIM_STRING_KEY=6, MDHIM_BYTE_KEY=7 
+int key_type = 1;  // Default "int"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -299,28 +302,56 @@ void usage(void)
 //======================================PUT============================
 static void execPut(char *command, struct mdhim_t *md, int charIdx)
 {
-    int key, value;
+    int key;
+    long l_key;
     struct mdhim_rm_t *rm;
     char buffer1 [ TEST_BUFLEN ];
     char buffer2 [ TEST_BUFLEN ];
+    char key_string [ TEST_BUFLEN ];
+    char value [ TEST_BUFLEN ];
     
     if (verbose) tst_say( "# put key data\n" );
-
     charIdx = getWordFromString( command, buffer1, charIdx);
-    key = atoi(buffer1) + (md->mdhim_rank + 1);
-
     charIdx = getWordFromString( command, buffer2, charIdx);
-    value = atoi(buffer2) + (md->mdhim_rank + 1);  
+    sprintf(value, "%s_%d", buffer2, (md->mdhim_rank + 1));
+        
+    switch (key_type)
+    {
+        case MDHIM_INT_KEY:
+             key = atoi(buffer1) + (md->mdhim_rank + 1);
+             tst_say( "# mdhimPut( %d, %s)\n", key, value );
+             rm = mdhimPut(md, &key, sizeof(key), value, sizeof(value));
+             break;
+             
+        case MDHIM_LONG_INT_KEY:
+             l_key = atol(buffer1) + (md->mdhim_rank + 1);
+             tst_say( "# mdhimPut( %ld, %s)\n", l_key, value );
+             rm = mdhimPut(md, &l_key, sizeof(l_key), value, sizeof(value));
+             break;
+             
+        case MDHIM_STRING_KEY:
+             sprintf(key_string, "%s%d", buffer1, ( md->mdhim_rank + 1) );
+             tst_say( "# mdhimPut( %s, %s)\n", key_string, value );
+             rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, sizeof(value));
+             break;
+            
+        case MDHIM_BYTE_KEY:
+             sprintf(key_string, "%s%d", buffer1, ( md->mdhim_rank + 1) );
+             tst_say( "# mdhimPut( %s, %s)\n", key_string, value );
+             rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, sizeof(value));
+             break;
+             
+        default:
+            tst_say("Error, unrecognized Key_type in execPut\n");
+    }
 
-    tst_say( "# mdhimPut( %d, %d)\n", key, value );
-    rm = mdhimPut(md, &key, sizeof(key), &value, sizeof(value));
     if (!rm || rm->error)
     {
-            tst_say("Error putting key/value into MDHIM\n");
+        tst_say("Error putting key/value into MDHIM\n");
     }
     else
     {
-            tst_say("Successfully put key/value into MDHIM\n");
+        tst_say("Successfully put key/value into MDHIM\n");
     }
 
 }
@@ -329,25 +360,54 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 static void execGet(char *command, struct mdhim_t *md, int charIdx)
 {
     int key;
+    long l_key;
     struct mdhim_getrm_t *grm;
     char buffer1 [ TEST_BUFLEN ];
+    char key_string [ TEST_BUFLEN ];
     
     if (verbose) tst_say( "# get key\n" );
 
     charIdx = getWordFromString( command, buffer1, charIdx);
-    key = atoi( buffer1 ) + (md->mdhim_rank + 1);
-
-    tst_say( "# mdhimGet( %d )\n", key);
-
-    grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
+    
+    switch (key_type)
+    {
+       case MDHIM_INT_KEY:
+            key = atoi( buffer1 ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%d", key);
+            tst_say( "# mdhimGet( %d )\n", key);
+            grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
+            break;
+            
+       case MDHIM_LONG_INT_KEY:
+            l_key = atol( buffer1 ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%ld", l_key);
+            tst_say( "# mdhimGet( %ld )\n", l_key);
+            grm = mdhimGet(md, &l_key, sizeof(l_key), MDHIM_GET_EQ);
+            break;
+            
+       case MDHIM_STRING_KEY:
+            sprintf(key_string, "%s%d", buffer1, (md->mdhim_rank + 1));
+            tst_say( "# mdhimGet( %s )\n", key_string);
+            grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_EQ);
+            break;
+                        
+       case MDHIM_BYTE_KEY:
+            sprintf(key_string, "%s%d", buffer1, (md->mdhim_rank + 1));
+            tst_say( "# mdhimGet( %s )\n", key_string);
+            grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_EQ);
+            break;
+ 
+       default:
+            tst_say("Error, unrecognized Key_type in execGet\n");
+    }
+    
     if (!grm || grm->error)
     {
-            tst_say("Error getting value for key: %d from MDHIM\n", key);
+        tst_say("Error getting value for key: %s from MDHIM\n", key_string);
     }
     else 
     {
-            tst_say("Successfully got value: %d from MDHIM\n", 
-                    *((int *) grm->value));
+        tst_say("Successfully got value: %s from MDHIM\n", (char *) grm->value);
     }
 
 }
@@ -488,7 +548,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
     }
 }
         
-        //======================================DEL============================
+//======================================DEL============================
 static void execDel(char *command, struct mdhim_t *md, int charIdx)
 {
     int key;
@@ -514,7 +574,7 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
 
 }
 
-        //======================================NDEL============================
+//======================================NDEL============================
 static void execBdel(char *command, struct mdhim_t *md, int charIdx)
 {
     int nkeys = 100;
@@ -631,53 +691,49 @@ int main( int argc, char * argv[] )
     int provided = 0;
     struct mdhim_t *md;
     
-    // MDHIM_INT_KEY=1, MDHIM_LONG_INT_KEY=2, MDHIM_FLOAT_KEY=3, MDHIM_DOUBLE_KEY=4
-    // MDHIM_LONG_DOUBLE_KEY=5, MDHIM_STRING_KEY=6, MDHIM_BYTE_KEY=7 
-    int key_type = 1;  // Default "int"
     int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
 
-    /*
-     * if an argument is given it is treated as a command file
-     */
+    // Process arguments
     infile = stdin;
     while ((argc > 1) && (argv[1][0] == '-'))
     {
-            switch (argv[1][1])
-            {
-                    case 'f':
-                            printf("Input file: %s\n", &argv[1][3]);
-                            infile = fopen( &argv[1][3], "r" );
-                            if( !infile )
-                            {
-                                fprintf( stderr, "Failed to open %s, %s\n", 
-                                         &argv[1][3], strerror( errno ));
-                                exit( -1 );
-                            }
-                            break;
+        switch (argv[1][1])
+        {
+            case 'f':
+                printf("Input file: %s\n", &argv[1][2]);
+                infile = fopen( &argv[1][2], "r" );
+                if( !infile )
+                {
+                    fprintf( stderr, "Failed to open %s, %s\n", 
+                             &argv[1][2], strerror( errno ));
+                    exit( -1 );
+                }
+                break;
 
-                    case 'd': // DataBase type (1, unQlite, levelDB)
-                            printf("Data Base type: %s\n", &argv[1][3]);
-                            db_type = atoi( &argv[1][3] );
-                            // Should be passed to range_server_init in range_server.c
-                            break;
+            case 'd': // DataBase type (1, unQlite, levelDB)
+                printf("Data Base type: %s\n", &argv[1][2]);
+                db_type = atoi( &argv[1][2] );
+                // Should be passed to range_server_init in range_server.c
+                break;
 
-                    case 't':
-                            printf("Key type: %s\n", &argv[1][3]);
-                            key_type = atoi( &argv[1][3] );
-                            break;
+            case 't':
+                printf("Key type: %s\n", &argv[1][2]);
+                key_type = atoi( &argv[1][2] );
+                break;
 
-                    case 'q':
-                            printf("Quiet mode: %s\n", &argv[1][3]);
-                            verbose = 0;
-                            break;
 
-                    default:
-                            printf("Wrong Argument (it will be ignored): %s\n", argv[1]);
-                            usage();
-            }
+            case 'b':
+                printf("Debug mode: %s\n", &argv[1][2]);
+                // needs to be passed to mdhimInit to set mlog parameters
+                break;
 
-            ++argv;
-            --argc;
+            default:
+                printf("Wrong Argument (it will be ignored): %s\n", argv[1]);
+                usage();
+        }
+
+        ++argv;
+        --argc;
     }
         
     // calls to init MPI for mdhim
@@ -723,18 +779,14 @@ int main( int argc, char * argv[] )
     
     while( dowork && cmdIdx < 1000)
     {
-        /*
-         * read the next command
-         */
+        // read the next command
         memset( commands[cmdIdx], 0, sizeof( command ));
         errno = 0;
         getLine( commands[cmdIdx]);
         
         if (verbose) tst_say( "\n##command %d: %s\n", cmdIdx, commands[cmdIdx]);
         
-        /*
-         * Is this the last/quit command?
-         */
+        // Is this the last/quit command?
         if( commands[cmdIdx][0] == 'q' || commands[cmdIdx][0] == 'Q' )
         {
             dowork = 0;
@@ -743,9 +795,7 @@ int main( int argc, char * argv[] )
     }
     cmdTot = cmdIdx -1;
 
-    /*
-     * main command execute loop
-     */
+    // main command execute loop
     for(cmdIdx=0; cmdIdx < cmdTot; cmdIdx++)
     {
         memset( command, 0, sizeof( command ));
@@ -756,9 +806,7 @@ int main( int argc, char * argv[] )
         if (verbose) tst_say( "\n##exec command: %s\n", command );
         begin = clock();
         
-        /*
-         * execute the command given
-         */
+        // execute the command given
         if( !strcmp( command, "put" ))
         {
             execPut(commands[cmdIdx], md, charIdx);
