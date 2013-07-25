@@ -66,15 +66,14 @@ long double get_str_num(void *key, uint32_t key_len) {
 }
 
 long double get_byte_num(void *key, uint32_t key_len) {
-	int i;
-	unsigned char val;
+	int i, val;
 	long double byte_num;
 
 	byte_num = 0;
 	//Iterate through each character to perform the algorithm mentioned above
 	for (i = 0; i < key_len; i++) {
 		val = ((char *) key)[i];		       
-		byte_num += ((uint32_t)val) * pow(2, 8 * -(i + 1));			
+		byte_num += val * pow(2, 8 * -(i + 1));			
 	}
 
 	return byte_num;
@@ -293,6 +292,11 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	uint64_t key_num;
 	//The range server number that we return
 	rangesrv_info *rp, *ret_rp;
+	uint32_t ikey;
+	uint64_t likey;
+	float fkey;
+	double dkey;
+	long double ldkey;
 	int ret;
 	long double map_num;
 	uint64_t total_keys;
@@ -311,10 +315,11 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	//Perform key dependent algorithm to get the key in terms of the ranges served
 	switch(key_type) {
 	case MDHIM_INT_KEY:
-	case MDHIM_LONG_INT_KEY:
-	case MDHIM_FLOAT_KEY:
-	case MDHIM_DOUBLE_KEY:
-	case MDHIM_LONG_DOUBLE_KEY:
+		//Convert the key to a signed 32 bit integer
+		ikey = *((uint32_t *) key);	
+		key_num = ikey;
+
+		break;
 	case MDHIM_BYTE_KEY:
 		/* Algorithm used		   
 		   1. Iterate through each byte
@@ -334,6 +339,34 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 		map_num = 0;
 		map_num = get_byte_num(key, key_len);	
 		key_num = floorl(map_num * total_keys);
+
+		break;
+	case MDHIM_LONG_INT_KEY:
+		//Convert the key to a signed 64 bit integer
+		likey = *((uint64_t *) key);
+		key_num = likey;
+
+		break;
+	case MDHIM_FLOAT_KEY:
+		//Convert the key to a float
+		fkey = *((float *) key);
+		fkey = floor(fabsf(fkey));
+		key_num = fkey;
+
+		break;
+	case MDHIM_DOUBLE_KEY:
+		//Convert the key to a double
+		dkey = *((double *) key);
+		dkey = floor(fabs(dkey));
+		key_num = dkey;
+
+		break;
+	case MDHIM_LONG_DOUBLE_KEY:
+		//Convert the key to a long double
+		ldkey = *((long double *) key);
+		ldkey = floor(fabsl(ldkey));
+		key_num = ldkey;
+
 		break;
 	case MDHIM_STRING_KEY:
 		/* Algorithm used
@@ -361,6 +394,7 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 		break;
 	}
 
+
 	/* If we only have one range server, 
 	   the range sever to return is the one with range server number 1 */
 	if (md->num_rangesrvs == 1) {
@@ -368,7 +402,7 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	} else {
 		/* Convert the key to a range server number, which is a number 1 - N, 
 		   where N is the number of range servers */
-		key_num = ((uint64_t) ceil((long double) (key_num/MDHIM_MAX_RECS_PER_SLICE))) % 
+		key_num = ((uint32_t) ceil((long double) (key_num/MDHIM_MAX_RECS_PER_SLICE))) % 
 			(md->num_rangesrvs - 1);
 		key_num++;
 	}
@@ -388,5 +422,6 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	//Return the rank
 	return ret_rp;
 }
+
 
 
