@@ -12,6 +12,7 @@
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
+#include "db_options.h"
 
 /**
  * is_range_server
@@ -984,9 +985,10 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->num_reqs = 0;
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
-	sprintf(filename, "%s%d", "mdhim_db", md->mdhim_rank);
+        sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
+        
 	//Initialize data store
-	md->mdhim_rs->mdhim_store = mdhim_db_init(LEVELDB);
+	md->mdhim_rs->mdhim_store = mdhim_db_init(md->db_opts->db_type);
 	if (!md->mdhim_rs->mdhim_store) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while initializing data store with file: %s",

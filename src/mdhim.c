@@ -10,6 +10,7 @@
 #include "client.h"
 #include "local_client.h"
 #include "partitioner.h"
+#include "db_options.h"
 
 /*! \mainpage MDHIM TNG
  *
@@ -25,9 +26,10 @@
  * Initializes MDHIM - Collective call
  *
  * @param appComm  the communicator that was passed in from the application (e.g., MPI_COMM_WORLD)
+ * @param opts Options structure for DB creation, such as name, and primary key type
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
  */
-struct mdhim_t *mdhimInit(MPI_Comm appComm, int key_type) {
+struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts) {
 	int ret;
 	struct mdhim_t *md;
 	struct rangesrv_info *rangesrvs;
@@ -44,9 +46,10 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, int key_type) {
 		return NULL;
 	}
 
-	//Set the key type for this database
-	md->key_type = key_type;
-	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
+	//Set the key type for this database from the options passed
+        md->db_opts = opts;
+	md->key_type = opts->db_key_type;
+	if (md->key_type < MDHIM_INT_KEY || md->key_type > MDHIM_BYTE_KEY) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Invalid key type specified");
 		return NULL;
 	}

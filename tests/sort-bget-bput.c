@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "mpi.h"
 #include "mdhim.h"
+#include "db_options.h"
 
 #define KEYS 100
 #define KEY_SIZE 100
@@ -26,6 +27,7 @@ int main(int argc, char **argv) {
 	char filename[255];
 	unsigned readtime = 0;
 	unsigned writetime = 0;
+        db_options_t *db_opts;
 
 	//Initialize MPI with multiple thread support
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -40,9 +42,14 @@ int main(int argc, char **argv) {
                 exit(1);
         }       
 
-
+        db_opts = malloc(sizeof(struct db_options_t));
+        db_options_set_path(db_opts, "./");
+        db_options_set_name(db_opts, "mdhim_tstDB");
+        db_options_set_type(db_opts, LEVELDB); // type = 2 (LevelDB)
+        db_options_set_key_type(db_opts, MDHIM_BYTE_KEY); //Key_type = 1 (int)
+        
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, MDHIM_BYTE_KEY);
+	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	sprintf(filename, "%s%d", "input/input", md->mdhim_rank);
 	if ((fd = open(filename, O_RDONLY)) < 0) {
 		printf("Error opening input file");

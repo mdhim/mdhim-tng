@@ -41,6 +41,7 @@ char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 
 #include "mpi.h"
 #include "mdhim.h"
+#include "db_options.h"
 
 // From partitioner.h:
 /*
@@ -687,6 +688,8 @@ int main( int argc, char * argv[] )
     clock_t  begin, end;
     double   time_spent;
     
+    db_options_t *db_opts; // Local variable for db create options to be passed
+    
     int ret;
     int provided = 0;
     struct mdhim_t *md;
@@ -735,7 +738,7 @@ int main( int argc, char * argv[] )
         ++argv;
         --argc;
     }
-        
+    
     // calls to init MPI for mdhim
     argc = 1;  // Ignore other parameters passed to program
     ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -751,7 +754,14 @@ int main( int argc, char * argv[] )
             exit(1);
     }
 
-    md = mdhimInit(MPI_COMM_WORLD, key_type);
+    // Create options for DB initialization
+    db_opts = malloc(sizeof(struct db_options_t));
+    db_options_set_path(db_opts, "./");
+    db_options_set_name(db_opts, "mdhim_tstDB");
+    db_options_set_type(db_opts, db_type);
+    db_options_set_key_type(db_opts, key_type);
+    
+    md = mdhimInit(MPI_COMM_WORLD, db_opts);
     if (!md)
     {
             printf("Error initializing MDHIM\n");
