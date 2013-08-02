@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
                 exit(1);
         }
         
-        db_opts = malloc(sizeof(struct db_options_t));
+        db_opts = db_options_init();
         db_options_set_path(db_opts, "./");
-        db_options_set_name(db_opts, "mdhim_tstDB");
+        db_options_set_name(db_opts, "mdhimTstDB");
         db_options_set_type(db_opts, 2); // type = 2 (LevelDB)
         db_options_set_key_type(db_opts, MDHIM_INT_KEY); //Key_type = 1 (int)
 

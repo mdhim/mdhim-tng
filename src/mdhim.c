@@ -36,7 +36,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts) {
 
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
-			MLOG_CRIT, MLOG_CRIT, NULL, 0, MLOG_LOGPID, 0);
+			opts->debug_level, opts->debug_level, NULL, 0, MLOG_LOGPID, 0);
 
 	//Allocate memory for the main MDHIM structure
 	md = malloc(sizeof(struct mdhim_t));
@@ -248,9 +248,8 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,
 		return NULL;
 	}
 	
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - " 
-	     "Sending put request for key: %d to rank: %d", 
-	     md->mdhim_rank, *(int *)key, ri->rank);
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Sending put request to rank: %d", 
+	     md->mdhim_rank, ri->rank);
 	pm = malloc(sizeof(struct mdhim_putm_t));
 	if (!pm) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
@@ -424,9 +423,8 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	gm->key_len = key_len;
 	gm->server_rank = ri->rank;
 	
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - " 
-	     "Sending get request for key: %d to rank: %d", 
-	     md->mdhim_rank, *(int *)key, ri->rank);
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Sending get request to rank: %d", 
+	     md->mdhim_rank, ri->rank);
 	//Test if I'm a range server
 	ret = im_range_server(md);
 

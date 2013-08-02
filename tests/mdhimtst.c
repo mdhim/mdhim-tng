@@ -292,10 +292,13 @@ static int commastrlen( char * s )
 void usage(void)
 {
 	printf("Usage:\n");
-	printf(" -f <BatchInputFileName> (file with batch commands)\n");
-	printf(" -d <DataBaseType> (Type of DB to use: unqLite=1, levelDB=2)\n");
-        printf(" -t <IndexKeyType> (Type of keys: int=1, longInt=2, float=3, "
+	printf(" -f<BatchInputFileName> (file with batch commands)\n");
+	printf(" -d<DataBaseType> (Type of DB to use: unqLite=1, levelDB=2)\n");
+        printf(" -t<IndexKeyType> (Type of keys: int=1, longInt=2, float=3, "
                "double=4, longDouble=5, string=6, byte=7)\n");
+        printf(" -p<pathForDataBase> (path where DB will be created)\n");
+        printf(" -n<DataBaseName> (Name of DataBase file or directory)\n");
+        printf(" -b<DebugLevel> (MLOG_CRIT=1, MLOG_DBG=2)\n");
         printf(" -q (Quiet mode, default is verbose)\n");
 	exit (8);
 }
@@ -310,6 +313,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
     char buffer2 [ TEST_BUFLEN ];
     char key_string [ TEST_BUFLEN ];
     char value [ TEST_BUFLEN ];
+    int ret;
     
     if (verbose) tst_say( "# put key data\n" );
     charIdx = getWordFromString( command, buffer1, charIdx);
@@ -331,7 +335,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
              break;
              
         case MDHIM_STRING_KEY:
-             sprintf(key_string, "%s%d", buffer1, ( md->mdhim_rank + 1) );
+             sprintf(key_string, "%d%s", ( md->mdhim_rank + 1), buffer1);
              tst_say( "# mdhimPut( %s, %s)\n", key_string, value );
              rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, sizeof(value));
              break;
@@ -353,6 +357,17 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
     else
     {
         tst_say("Successfully put key/value into MDHIM\n");
+    }
+    
+    //Commit the database
+    ret = mdhimCommit(md);
+    if (ret != MDHIM_SUCCESS)
+    {
+        printf("Error committing put to MDHIM database\n");
+    }
+    else
+    {
+        printf("Committed put to MDHIM database\n");
     }
 
 }
@@ -387,7 +402,7 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
             break;
             
        case MDHIM_STRING_KEY:
-            sprintf(key_string, "%s%d", buffer1, (md->mdhim_rank + 1));
+            sprintf(key_string, "%d%s", ( md->mdhim_rank + 1), buffer1);
             tst_say( "# mdhimGet( %s )\n", key_string);
             grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_EQ);
             break;
@@ -484,11 +499,11 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     ret = mdhimCommit(md);
     if (ret != MDHIM_SUCCESS)
     {
-            tst_say("Error committing MDHIM database\n");
+        printf("Error committing bput to MDHIM database\n");
     }
     else
     {
-            tst_say("Committed MDHIM database\n");
+        printf("Committed bput to MDHIM database\n");
     }
 }
         
@@ -683,7 +698,10 @@ int main( int argc, char * argv[] )
     int      charIdx; // Index to last processed character of a command line
     char     command  [ TEST_BUFLEN ];
     char     filename [ TEST_BUFLEN ];
+    char     *db_path = "./";
+    char     *db_name = "mdhimTstDB-";
     int      dowork = 1;
+    int      dbug = 1; //MLOG_CRIT=1, MLOG_DBG=2
 
     clock_t  begin, end;
     double   time_spent;
@@ -716,7 +734,6 @@ int main( int argc, char * argv[] )
             case 'd': // DataBase type (1, unQlite, levelDB)
                 printf("Data Base type: %s\n", &argv[1][2]);
                 db_type = atoi( &argv[1][2] );
-                // Should be passed to range_server_init in range_server.c
                 break;
 
             case 't':
@@ -724,10 +741,19 @@ int main( int argc, char * argv[] )
                 key_type = atoi( &argv[1][2] );
                 break;
 
-
             case 'b':
                 printf("Debug mode: %s\n", &argv[1][2]);
-                // needs to be passed to mdhimInit to set mlog parameters
+                dbug = atoi( &argv[1][2] );
+                break;
+                
+            case 'p':
+                printf("DB Path: %s\n", &argv[1][2]);
+                db_path = &argv[1][2];
+                break;
+                
+            case 'n':
+                printf("DB name: %s\n", &argv[1][2]);
+                db_name = &argv[1][2];
                 break;
 
             default:
@@ -737,6 +763,17 @@ int main( int argc, char * argv[] )
 
         ++argv;
         --argc;
+    }
+    
+    // Set the debug flag to the appropriate Mlog mask
+    switch (dbug)
+    {
+        case 2:
+            dbug = MLOG_DBG;
+            break;
+            
+        default:
+            dbug = MLOG_CRIT;
     }
     
     // calls to init MPI for mdhim
@@ -755,11 +792,12 @@ int main( int argc, char * argv[] )
     }
 
     // Create options for DB initialization
-    db_opts = malloc(sizeof(struct db_options_t));
-    db_options_set_path(db_opts, "./");
-    db_options_set_name(db_opts, "mdhim_tstDB");
+    db_opts = db_options_init();
+    db_options_set_path(db_opts, db_path);
+    db_options_set_name(db_opts, db_name);
     db_options_set_type(db_opts, db_type);
     db_options_set_key_type(db_opts, key_type);
+    db_options_set_debug_level(db_opts, dbug);
     
     md = mdhimInit(MPI_COMM_WORLD, db_opts);
     if (!md)
@@ -874,7 +912,7 @@ int main( int argc, char * argv[] )
     ret = mdhimClose(md);
     if (ret != MDHIM_SUCCESS)
     {
-            tst_say("Error closing MDHIM\n");
+        tst_say("Error closing MDHIM\n");
     }
 
     MPI_Barrier(MPI_COMM_WORLD);

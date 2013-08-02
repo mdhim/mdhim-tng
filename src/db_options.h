@@ -28,13 +28,18 @@ typedef struct db_options_t {
 
     //Force the creation of a new DB (deleting any previous versions if present)
     int db_create_new;
+    
+    //DEBUG level
+    int debug_level;
 
 } db_options_t;
 
+struct db_options_t* db_options_init();
 void db_options_set_path(struct db_options_t* opts, char *path);
 void db_options_set_name(struct db_options_t* opts, char *name);
 void db_options_set_type(struct db_options_t* opts, int type);
 void db_options_set_key_type(struct db_options_t* opts, int key_type);
 void db_options_set_create_new(struct db_options_t* opts, int create_new);
+void db_options_set_debug_level(struct db_options_t* opts, int dbug);
 
 #endif
