@@ -27,6 +27,9 @@ void partitioner_init(struct mdhim_t *md) {
 	if (num_rangesrvs > max_servers) {
 		num_rangesrvs = max_servers;
 	}
+        
+        // Create the alphabet for string keys
+        build_alphabet();
 	
 	md->num_rangesrvs = num_rangesrvs;
 	return;

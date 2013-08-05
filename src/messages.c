@@ -563,9 +563,8 @@ int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf
 
         // Add to size the length of the key and data fields
         m_size += pm->key_len + pm->value_len;	
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Packing put message with key: %d with len: %d," 
-	     " value: %d with len: %d.", md->mdhim_rank, *((int *) pm->key), pm->key_len, 
-	     *((int *) pm->value), pm->value_len);
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Packing put message with key len: %d," 
+	     " with value len: %d.", md->mdhim_rank, pm->key_len, pm->value_len);
 
         if (m_size > MDHIM_MAX_MSG_SIZE) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: put message too large."

@@ -16,6 +16,7 @@
 #include "partitioner.h"
 #include "Mlog/mlog.h"
 #include "Mlog/mlogfacs.h"
+#include "db_options.h"
 
 #define MDHIM_SUCCESS 0
 #define MDHIM_ERROR -1
@@ -50,9 +51,11 @@ struct mdhim_t {
 	/* The receive msg, which is sent to the client by the 
 	   range server running in the same process */
 	void *receive_msg;
+        //Options for DB creation
+        db_options_t *db_opts;
 };
 
-struct mdhim_t *mdhimInit(MPI_Comm appComm, int key_type);
+struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts);
 int mdhimClose(struct mdhim_t *md);
 int mdhimCommit(struct mdhim_t *md);
 struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,  
