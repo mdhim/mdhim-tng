@@ -17,9 +17,9 @@
 #define MDHIM_MAX_SERVERS 500
 #define MDHIM_MAX_KEYS 9007199254740991LL
 #define MDHIM_MAX_RECS_PER_SLICE 100
-//32 bit signed integer
+//32 bit unsigned integer
 #define MDHIM_INT_KEY 1
-//64 bit signed integer
+//64 bit unsigned integer
 #define MDHIM_LONG_INT_KEY 2
 #define MDHIM_FLOAT_KEY 3
 #define MDHIM_DOUBLE_KEY 4

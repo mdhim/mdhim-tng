@@ -78,20 +78,28 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
  *
  * @param md    pointer to the main MDHIM structure
  * @param type  int that represents the type of stat
- * @param value int for the value of the stat
+ * @param fval  double value for key types that are represented in a float type
+ * @param ival  uint64_t for key types that are represented in an int type
+ * @param init  int flag to indicate whether this stat is just being initialized, 
+ *              but there is not value for it yet
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int update_stat(struct mdhim_t *md, int type, long double val) {
+int update_stat(struct mdhim_t *md, int type, long double fval, uint64_t ival, int init) {
 	struct mdhim_stat *stat, *os;
 
 	stat = malloc(sizeof(struct mdhim_stat));
-	stat->val = val;
+	stat->ival = ival;
+	stat->fval = fval;
 	stat->key = type;
+	if (init) {
+		stat->init = 1;
+	}
 	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &type, os);
 	if (!os) {
 		//Add the stat to the hash table
 		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    
 	} else {
+		stat->init = 0;
 		//Replace the existing stat
 		HASH_REPLACE_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
 		free(os);
@@ -103,13 +111,39 @@ int update_stat(struct mdhim_t *md, int type, long double val) {
 int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	int i;
 	struct mdhim_stat *os;
-	long double val, nval;
+	long double fval, nfval;
+	uint64_t ival, nival;
+	int float_type = 0;
 
 	if (md->key_type == MDHIM_STRING_KEY) {
-		val = get_str_num(key, key_len);
-	} else {
-		val = get_byte_num(key, key_len);
-	}
+		fval = get_str_num(key, key_len);
+		ival = 0;
+		float_type = 1;
+	} else if (md->key_type == MDHIM_FLOAT_KEY) {
+		fval = *(float *) key;
+		ival = 0;
+		float_type = 1;
+	} else if (md->key_type == MDHIM_DOUBLE_KEY) {
+		fval = *(double *) key;
+		ival = 0;
+		float_type = 1;
+	} else if (md->key_type == MDHIM_LONG_DOUBLE_KEY) {
+		fval = *(long double *) key;
+		ival = 0;
+		float_type = 1;
+	} else if (md->key_type == MDHIM_INT_KEY) {
+		ival = *(uint32_t *) key;
+		fval = 0;
+		float_type = 0;
+	} else if (md->key_type == MDHIM_LONG_INT_KEY) {
+		ival = *(uint64_t *) key;
+		fval = 0;
+		float_type = 0;
+	} else if (md->key_type == MDHIM_BYTE_KEY) {
+		fval = get_byte_num(key, key_len);
+		ival = 0;
+		float_type = 1;
+	} 
 
 	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
 		HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &i, os);
@@ -119,19 +153,32 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 			continue;
 		}
 
-		if (i == MDHIM_MAX_STAT && val < os->val) {
-			continue;
-		} else if (i == MDHIM_MIN_STAT && val > os->val) {
-			continue;
-		} 
+		if (float_type && !os->init) {
+			if (i == MDHIM_MAX_STAT && fval < os->fval) {
+				continue;
+			} else if (i == MDHIM_MIN_STAT && fval > os->fval) {
+				continue;
+			} 
+		} else if (!os->init) {
+			if (i == MDHIM_MAX_STAT && ival < os->ival) {
+				continue;
+			} else if (i == MDHIM_MIN_STAT && ival > os->ival) {
+				continue;
+			} 
+		}
 
 		if (i == MDHIM_NUM_STAT) {
-			nval = os->val + 1;
+			nival = os->ival + 1;
+			nfval = 0;
+		} else if (float_type) {
+			nfval = fval;
+			nival = 0;
 		} else {
-			nval = val;
+			nfval = 0;
+			nival = ival;
 		}
 			
-		update_stat(md, i, nval);
+		update_stat(md, i, nfval, nival, 0);
 	}
 
 	return MDHIM_SUCCESS;
@@ -149,37 +196,29 @@ int load_stats(struct mdhim_t *md) {
 	int *val_len;
 	struct mdhim_store_opts_t opts;
 	int i;
-	long double default_val;
 
 	set_store_opts(md, &opts);
 	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
-		//Get the default for the stat
-		if (i == MDHIM_MAX_STAT) {
-			default_val = 0.0f;
-		} else if (i == MDHIM_MIN_STAT) {
-			default_val = 1.0f;
-		} else {
-			default_val = 0.0f;
-		}
-
 		//Check the db for the key/value
-		val = malloc(sizeof(void *));
+		val = malloc(sizeof(struct mdhim_stat *));
 		*val = NULL;
-		val_len = malloc(sizeof(long double));
+		val_len = malloc(sizeof(int));
 		*val_len = 0;
 		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_stats, 
 					       &i, sizeof(int), (void **) val, val_len, &opts);	
 
 		//Add the stat to the hash table - the value is 0 if the key was not in the db
 		if (*val && *val_len) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Loaded stat: %i with val: %.20Lf", 
-			     md->mdhim_rank, i, **(long double **)val);
-			update_stat(md, i, **(long double **)val);
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Loaded stat: %i with ival: %ld and fval: %.20Lf", 
+			     md->mdhim_rank, i, (*(struct mdhim_stat **)val)->ival, 
+			     (*(struct mdhim_stat **)val)->fval);
+			update_stat(md, i, (*(struct mdhim_stat **)val)->fval,  
+				    (*(struct mdhim_stat **)val)->ival, 0);
 			free(*val);
 		} else {
-			update_stat(md, i, default_val);
+			update_stat(md, i, 0, 0, 1);
 		}
-
+		     
 		free(val);
 		free(val_len);
 	}
@@ -199,7 +238,6 @@ int write_stats(struct mdhim_t *md) {
 	struct mdhim_store_opts_t opts;
 	struct mdhim_stat *stat;
 	int i;
-	long double *val;
 
 	set_store_opts(md, &opts);
 	val_len = sizeof(long double);
@@ -213,14 +251,11 @@ int write_stats(struct mdhim_t *md) {
 			return MDHIM_ERROR;
 		}
 
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat: %i with val: %.20Lf", 
-		     md->mdhim_rank, i, stat->val);
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat: %i with ival: %ld and fval: %.20Lf", 
+		     md->mdhim_rank, i, stat->ival, stat->fval);	
 		//Write the key to the database		
-		val = malloc(sizeof(long double));
-		*val = stat->val;
 		md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_stats, 
-					       &i, sizeof(int), val, val_len, &opts);	
-		free(val);
+					       &i, sizeof(int), stat, sizeof(struct mdhim_stat), &opts);	
 		//Delete and free hash entry
 		HASH_DEL(md->mdhim_rs->mdhim_store->mdhim_store_stats, stat); 
 		free(stat);

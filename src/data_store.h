@@ -52,8 +52,10 @@ typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 
 //Used for storing stats in a hash table
 struct mdhim_stat {
-	int key;                  //Key
-	long double val;          //Value
+	int key;                   //Key
+	int init;                  //1 if first initialized
+	long double fval;          //Float Value
+	uint64_t ival;             //Integer value
 	UT_hash_handle hh;        /* makes this structure hashable */
 };
 

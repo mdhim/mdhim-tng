@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	int keys_per_rank = 5;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = 2; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_DBG;
 	db_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
 
