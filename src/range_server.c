@@ -384,27 +384,9 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	value_len = malloc(sizeof(int32_t));
 	*value_len = 0;
         
-        long double map_num;
-        void *local_key;
-        int local_key_len;
-        
-        // For strings use the mapped number as the key (this is hash value for the string)
-        if (md->key_type == MDHIM_STRING_KEY)
-        {
-            map_num = 0;
-            map_num = get_str_num(im->key, im->key_len);
-            local_key = map_num;
-            local_key_len = sizeof(map_num);
-        }
-        else
-        {
-            local_key = im->key;
-            local_key_len = im->key_len;
-        }
-        
 	//Check for the key's existence
 	md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-				       local_key, local_key_len, value, 
+				       im->key, im->key_len, value, 
 				       value_len, &opts);
 	//The key already exists
 	if (*value && *value_len) {
@@ -417,7 +399,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
         //Put the record in the database
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
-					local_key, local_key_len, im->value, 
+					im->key, im->key_len, im->value, 
 					im->value_len, &opts)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	

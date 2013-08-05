@@ -11,7 +11,19 @@ int main(int argc, char **argv) {
 	int value;
 	struct mdhim_rm_t *rm;
 	struct mdhim_getrm_t *grm;
+	char     *db_path = "./";
+	char     *db_name = "mdhimTstDB-";
+	int      dbug = 2; //MLOG_CRIT=1, MLOG_DBG=2
+	db_options_t *db_opts; // Local variable for db create options to be passed
+	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
 
+	// Create options for DB initialization
+	db_opts = db_options_init();
+	db_options_set_path(db_opts, db_path);
+	db_options_set_name(db_opts, db_name);
+	db_options_set_type(db_opts, db_type);
+	db_options_set_key_type(db_opts, MDHIM_INT_KEY);
+	db_options_set_debug_level(db_opts, dbug);
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");
@@ -23,7 +35,7 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
-	md = mdhimInit(MPI_COMM_WORLD, MDHIM_INT_KEY);
+	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);

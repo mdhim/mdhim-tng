@@ -19,6 +19,19 @@ int main(int argc, char **argv) {
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 	struct timeval start_tv, end_tv;
+	char     *db_path = "./";
+	char     *db_name = "mdhimTstDB-";
+	int      dbug = 2; //MLOG_CRIT=1, MLOG_DBG=2
+	db_options_t *db_opts; // Local variable for db create options to be passed
+	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
+
+	// Create options for DB initialization
+	db_opts = db_options_init();
+	db_options_set_path(db_opts, db_path);
+	db_options_set_name(db_opts, db_name);
+	db_options_set_type(db_opts, db_type);
+	db_options_set_key_type(db_opts, MDHIM_INT_KEY);
+	db_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -35,7 +48,7 @@ int main(int argc, char **argv) {
 
 	gettimeofday(&start_tv, NULL);
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, MDHIM_INT_KEY);
+	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);
