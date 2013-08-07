@@ -192,6 +192,28 @@ int verify_key(void *key, int key_len, int key_type) {
 	return MDHIM_SUCCESS;
 }
 
+int is_float_key(int type) {
+	int ret = 0;
+
+	if (type == MDHIM_STRING_KEY) {
+		ret = 1;
+	} else if (type == MDHIM_FLOAT_KEY) {
+		ret = 1;
+	} else if (type == MDHIM_DOUBLE_KEY) {
+		ret = 1;
+	} else if (type == MDHIM_LONG_DOUBLE_KEY) {
+		ret = 1;
+	} else if (type == MDHIM_INT_KEY) {
+		ret = 0;
+	} else if (type == MDHIM_LONG_INT_KEY) {
+		ret = 0;
+	} else if (type == MDHIM_BYTE_KEY) {
+		ret = 1;
+	} 
+
+	return ret;
+}
+
 /**
  * get_num_range_servers
  * Gets the number of range servers
@@ -281,20 +303,21 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 }
 
 /**
- * get_range_server
+ * get_slice_num_server
  *
- * gets the range server that handles the key given
+ * gets the slice number from a key
+ * slice is a portion of the range served by MDHIM
+ * each range server servers many slices of the range
  * @param md        main MDHIM struct
  * @param key       pointer to the key to find the range server of
  * @param key_len   length of the key
  * @param key_type  type of the key
- * @return the rank of the range server or MDHIM_ERROR on error
+ * @return the slice number or 0 on error
  */
-rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
+uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	//The number that maps a key to range server (dependent on key type)
-	uint64_t key_num;
+	uint64_t slice_num;
 	//The range server number that we return
-	rangesrv_info *rp, *ret_rp;
 	uint32_t ikey;
 	uint64_t likey;
 	float fkey;
@@ -312,7 +335,7 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given to get_range_server()", 
 		     md->mdhim_rank);
-		return NULL;
+		return 0;
 	}
 
 	//Perform key dependent algorithm to get the key in terms of the ranges served
@@ -320,7 +343,7 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	case MDHIM_INT_KEY:
 		//Convert the key to a signed 32 bit integer
 		ikey = *((uint32_t *) key);	
-		key_num = ikey;
+		slice_num = ikey;
 
 		break;
 	case MDHIM_BYTE_KEY:
@@ -341,34 +364,34 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
                 //Used for calculating the range server to use for this string
 		map_num = 0;
 		map_num = get_byte_num(key, key_len);	
-		key_num = floorl(map_num * total_keys);
+		slice_num = floorl(map_num * total_keys);
 
 		break;
 	case MDHIM_LONG_INT_KEY:
 		//Convert the key to a signed 64 bit integer
 		likey = *((uint64_t *) key);
-		key_num = likey;
+		slice_num = likey;
 
 		break;
 	case MDHIM_FLOAT_KEY:
 		//Convert the key to a float
 		fkey = *((float *) key);
 		fkey = floor(fabsf(fkey));
-		key_num = fkey;
+		slice_num = fkey;
 
 		break;
 	case MDHIM_DOUBLE_KEY:
 		//Convert the key to a double
 		dkey = *((double *) key);
 		dkey = floor(fabs(dkey));
-		key_num = dkey;
+		slice_num = dkey;
 
 		break;
 	case MDHIM_LONG_DOUBLE_KEY:
 		//Convert the key to a long double
 		ldkey = *((long double *) key);
 		ldkey = floor(fabsl(ldkey));
-		key_num = ldkey;
+		slice_num = ldkey;
 
 		break;
 	case MDHIM_STRING_KEY:
@@ -390,31 +413,57 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
                 //Used for calculating the range server to use for this string
 		map_num = 0;
 		map_num = get_str_num(key, key_len);	
-		key_num = floorl(map_num * total_keys);
+		slice_num = floorl(map_num * total_keys);
 		break;
 	default:
-		return NULL;
+		return 0;
 		break;
 	}
 
 
-	/* If we only have one range server, 
-	   the range sever to return is the one with range server number 1 */
-	if (md->num_rangesrvs == 1) {
-		key_num = 1;
-	} else {
-		/* Convert the key to a range server number, which is a number 1 - N, 
-		   where N is the number of range servers */
-		key_num = ((uint32_t) ceil((long double) (key_num/MDHIM_MAX_RECS_PER_SLICE))) % 
-			(md->num_rangesrvs - 1);
-		key_num++;
+	/* Convert the key to a slice number  */
+	slice_num = ((uint32_t) ceil((long double) (slice_num/MDHIM_MAX_RECS_PER_SLICE)));
+	if (slice_num == 0) {
+		slice_num = 1;
+	}
+	mlog(MDHIM_CLIENT_INFO, "Rank: %d - Got slice #: %lu", 
+	     md->mdhim_rank, slice_num);
+	//Return the slice number
+	return slice_num;
+}
+
+/**
+ * get_range_server_by_slice
+ *
+ * gets the range server that handles the key given
+ * @param md        main MDHIM struct
+ * @param slice     the slice number
+ * @return the rank of the range server or NULL on error
+ */
+rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, uint64_t slice) {
+	//The number that maps a key to range server (dependent on key type)
+	uint64_t rangesrv_num;
+	//The range server number that we return
+	rangesrv_info *rp, *ret_rp;
+	uint64_t total_keys;
+
+	//The total number of keys we can hold in all range servers combined
+	total_keys = (uint64_t)MDHIM_MAX_KEYS;
+	if (!slice) {
+		return NULL;
 	}
 
+	if (md->num_rangesrvs == 1) {
+		rangesrv_num = 1;
+	} else {
+		rangesrv_num = slice % (md->num_rangesrvs - 1);
+		rangesrv_num++;
+	}
 	//Match the range server number of the key with the range server we have in our list
 	ret_rp = NULL;
 	rp = md->rangesrvs;
 	while (rp) {
-		if (key_num == rp->rangesrv_num) {
+		if (rangesrv_num == rp->rangesrv_num) {
 			ret_rp = rp;
 			break;
 		}
@@ -426,5 +475,48 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	return ret_rp;
 }
 
+/**
+ * get_range_server
+ *
+ * gets the range server that handles the key given
+ * @param md        main MDHIM struct
+ * @param key       pointer to the key to find the range server of
+ * @param key_len   length of the key
+ * @param key_type  type of the key
+ * @return the rank of the range server or NULL on error
+ */
+rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
+	//The number that maps a key to range server (dependent on key type)
+	uint64_t slice_num;
+	//The range server number that we return
+	rangesrv_info *ret_rp;
+
+	slice_num = get_slice_num(md, key, key_len);
+	if (!slice_num) {
+		return NULL;
+	}
+
+	ret_rp = get_range_server_by_slice(md, slice_num);
+       
+	//Return the rank
+	return ret_rp;
+}
+
+uint64_t get_next_slice(struct mdhim_t *md, uint64_t cur_slice) {
+	uint64_t ret = 0;
+
+	if (!cur_slice) {
+		ret = 1;
+	} else {
+		ret = cur_slice + 1;
+	}
+
+	if ((ret * MDHIM_MAX_RECS_PER_SLICE < cur_slice * MDHIM_MAX_RECS_PER_SLICE) || 
+	    (ret * MDHIM_MAX_RECS_PER_SLICE > (uint64_t)MDHIM_MAX_KEYS)) {
+		ret = 0;
+	}
+
+	return ret;
+}
 
 

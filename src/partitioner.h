@@ -55,5 +55,8 @@ void build_alphabet();
 int verify_key(void *key, int key_len, int key_type);
 long double get_str_num(void *key, uint32_t key_len);
 long double get_byte_num(void *key, uint32_t key_len);
+uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len);
+int is_float_key(int type);
+uint64_t get_next_slice(struct mdhim_t *md, uint64_t cur_slice);
 
 #endif

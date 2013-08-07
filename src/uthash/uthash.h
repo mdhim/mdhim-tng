@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>   /* memcmp,strlen */
 #include <stddef.h>   /* ptrdiff_t */
 #include <stdlib.h>   /* exit() */
+#include <stdint.h>   /* int64_t */
 
 /* These macros use decltype or the earlier __typeof GNU extension.
    As decltype is only available in newer compilers (VS2010 or gcc 4.3+
@@ -261,6 +262,12 @@ do {                                                                            
     HASH_ADD(hh,head,intfield,sizeof(int),add)
 #define HASH_REPLACE_INT(head,intfield,add,replaced)                             \
     HASH_REPLACE(hh,head,intfield,sizeof(int),add,replaced)
+#define HASH_FIND_ULINT(head,findint,out)                                          \
+    HASH_FIND(hh,head,findint,sizeof(uint64_t),out)
+#define HASH_ADD_ULINT(head,intfield,add)                                          \
+    HASH_ADD(hh,head,intfield,sizeof(uint64_t),add)
+#define HASH_REPLACE_ULINT(head,intfield,add,replaced)                             \
+    HASH_REPLACE(hh,head,intfield,sizeof(uint64_t),add,replaced)
 #define HASH_FIND_PTR(head,findptr,out)                                          \
     HASH_FIND(hh,head,findptr,sizeof(void *),out)
 #define HASH_ADD_PTR(head,ptrfield,add)                                          \

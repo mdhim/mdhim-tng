@@ -52,11 +52,22 @@ typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 
 //Used for storing stats in a hash table
 struct mdhim_stat {
-	int key;                   //Key
-	int init;                  //1 if first initialized
-	long double fval;          //Float Value
-	uint64_t ival;             //Integer value
+	uint64_t key;                   //Key (slice number)
+	void *max;                 //Max key
+	void *min;                //Min key
+	uint64_t num;             //Number of keys in this slice
 	UT_hash_handle hh;        /* makes this structure hashable */
+};
+
+
+//Used for storing stats in the database
+struct mdhim_db_stat {
+	uint64_t slice;                   
+	uint64_t imax;
+	uint64_t imin;
+	long double dmax;
+	long double dmin;
+	uint64_t num;
 };
 
 /* Generic mdhim storage object */

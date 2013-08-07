@@ -30,6 +30,23 @@ int im_range_server(struct mdhim_t *md) {
 	return 0;
 }
 
+uint64_t my_next_slice(struct mdhim_t *md, uint64_t cur_slice) {
+	uint64_t ret = 0;
+
+	if (!cur_slice) {
+		ret = md->mdhim_rs->info.rangesrv_num;
+	} else {
+		ret = md->num_rangesrvs + cur_slice;
+	}
+
+	if ((ret * MDHIM_MAX_RECS_PER_SLICE < cur_slice * MDHIM_MAX_RECS_PER_SLICE) || 
+	    (ret * MDHIM_MAX_RECS_PER_SLICE > (uint64_t)MDHIM_MAX_KEYS)) {
+		ret = 0;
+	}
+
+	return ret;
+}
+
 /**
  * send_locally_or_remote
  * Sends the message remotely or locally
@@ -41,7 +58,6 @@ int im_range_server(struct mdhim_t *md) {
  */
 int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	int ret = MDHIM_SUCCESS;
-
 
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending response to: %d", 
 	     md->mdhim_rank, dest);
@@ -73,7 +89,7 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
 }
 
 /**
- * update_stat
+ * update_all_stats
  * Adds or updates the given stat to the hash table
  *
  * @param md    pointer to the main MDHIM structure
@@ -84,101 +100,96 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
  *              but there is not value for it yet
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int update_stat(struct mdhim_t *md, int type, long double fval, uint64_t ival, int init) {
-	struct mdhim_stat *stat, *os;
-
-	stat = malloc(sizeof(struct mdhim_stat));
-	stat->ival = ival;
-	stat->fval = fval;
-	stat->key = type;
-	if (init) {
-		stat->init = 1;
-	}
-	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &type, os);
-	if (!os) {
-		//Add the stat to the hash table
-		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    
-	} else {
-		stat->init = 0;
-		//Replace the existing stat
-		HASH_REPLACE_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
-		free(os);
-	}
-
-	return MDHIM_SUCCESS;
-}
-
 int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
-	int i;
-	struct mdhim_stat *os;
-	long double fval, nfval;
-	uint64_t ival, nival;
+	uint64_t slice_num;
+	void *val1, *val2;
 	int float_type = 0;
+	struct mdhim_stat *os, *stat;
+
+	if ((float_type = is_float_key(md->key_type)) == 1) {
+		val1 = (void *) malloc(sizeof(long double));
+		val2 = (void *) malloc(sizeof(long double));
+	} else {
+		val1 = (void *) malloc(sizeof(uint64_t));
+		val2 = (void *) malloc(sizeof(uint64_t));
+	}
 
 	if (md->key_type == MDHIM_STRING_KEY) {
-		fval = get_str_num(key, key_len);
-		ival = 0;
-		float_type = 1;
+		*(long double *)val1 = get_str_num(key, key_len);
+		*(long double *)val2 = *(long double *)val1;
 	} else if (md->key_type == MDHIM_FLOAT_KEY) {
-		fval = *(float *) key;
-		ival = 0;
-		float_type = 1;
+		*(long double *)val1 = *(float *) key;
+		*(long double *)val2 = *(float *)val1;
 	} else if (md->key_type == MDHIM_DOUBLE_KEY) {
-		fval = *(double *) key;
-		ival = 0;
-		float_type = 1;
+		*(long double *)val1 = *(double *) key;
+		*(long double *)val2 = *(double *)val1;
 	} else if (md->key_type == MDHIM_LONG_DOUBLE_KEY) {
-		fval = *(long double *) key;
-		ival = 0;
-		float_type = 1;
+		*(long double *)val1 = *(long double *) key;
+		*(long double *)val2 = *(long double *)val1;
 	} else if (md->key_type == MDHIM_INT_KEY) {
-		ival = *(uint32_t *) key;
-		fval = 0;
-		float_type = 0;
+		*(uint64_t *)val1 = *(uint32_t *) key;
+		*(uint64_t *)val2 = *(uint32_t *) key;
 	} else if (md->key_type == MDHIM_LONG_INT_KEY) {
-		ival = *(uint64_t *) key;
-		fval = 0;
-		float_type = 0;
+		*(uint64_t *)val1 = *(uint64_t *) key;
+		*(uint64_t *)val2 = *(uint64_t *) val1;
 	} else if (md->key_type == MDHIM_BYTE_KEY) {
-		fval = get_byte_num(key, key_len);
-		ival = 0;
-		float_type = 1;
+		*(long double *)val1 = get_byte_num(key, key_len);
+		*(long double *)val2 = *(long double *)val1;
 	} 
 
-	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
-		HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &i, os);
-		if (!os) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error while retrieving stats", 
-			     md->mdhim_rank);
-			continue;
-		}
+	slice_num = get_slice_num(md, key, key_len);
+	HASH_FIND_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
 
-		if (float_type && !os->init) {
-			if (i == MDHIM_MAX_STAT && fval < os->fval) {
-				continue;
-			} else if (i == MDHIM_MIN_STAT && fval > os->fval) {
-				continue;
-			} 
-		} else if (!os->init) {
-			if (i == MDHIM_MAX_STAT && ival < os->ival) {
-				continue;
-			} else if (i == MDHIM_MIN_STAT && ival > os->ival) {
-				continue;
-			} 
-		}
+	stat = malloc(sizeof(struct mdhim_stat));
+	stat->min = val1;
+	stat->max = val2;
+	stat->num = 1;
+	stat->key = slice_num;
 
-		if (i == MDHIM_NUM_STAT) {
-			nival = os->ival + 1;
-			nfval = 0;
-		} else if (float_type) {
-			nfval = fval;
-			nival = 0;
+	if (float_type && os) {
+		if (*(long double *)os->min > *(long double *)val1) {
+			free(os->min);
+			stat->min = val1;
 		} else {
-			nfval = 0;
-			nival = ival;
+			free(val1);
+			stat->min = os->min;
 		}
-			
-		update_stat(md, i, nfval, nival, 0);
+
+		if (*(long double *)os->max < *(long double *)val2) {
+			free(os->max);
+			stat->max = val2;
+		} else {
+			free(val2);
+			stat->max = os->max;
+		}
+	}
+	if (!float_type && os) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - new key: %u",  
+		     md->mdhim_rank, *(uint32_t *) key);
+		if (*(uint64_t *)os->min > *(uint64_t *)val1) {
+			free(os->min);
+			stat->min = val1;
+		} else {
+			free(val1);
+			stat->min = os->min;
+		}
+
+		if (*(uint64_t *)os->max < *(uint64_t *)val2) {
+			free(os->max);
+			stat->max = val2;
+		} else {
+			free(val2);
+			stat->max = os->max;
+		}		
+	}
+
+	if (!os) {
+		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    		
+	} else {
+		stat->num = os->num + 1;
+		//Replace the existing stat
+		HASH_REPLACE_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
+		free(os);
 	}
 
 	return MDHIM_SUCCESS;
@@ -193,36 +204,67 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
  */
 int load_stats(struct mdhim_t *md) {
 	void **val;
-	int *val_len;
+	int *val_len, *key_len;
 	struct mdhim_store_opts_t opts;
-	int i;
+	uint64_t **slice;
+	struct mdhim_stat *stat;
+	int float_type = 0;
+	void *min, *max;
+	int done = 0;
 
+	float_type = is_float_key(md->key_type);
+	slice = malloc(sizeof(uint64_t *));
+	*slice = NULL;
+	key_len = malloc(sizeof(int));
+	*key_len = sizeof(uint64_t);
+	val = malloc(sizeof(struct mdhim_db_stat *));	
+	val_len = malloc(sizeof(int));
 	set_store_opts(md, &opts);
-	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {
+	while (!done) {
 		//Check the db for the key/value
-		val = malloc(sizeof(struct mdhim_stat *));
 		*val = NULL;
-		val_len = malloc(sizeof(int));
-		*val_len = 0;
-		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_stats, 
-					       &i, sizeof(int), (void **) val, val_len, &opts);	
+		*val_len = 0;		
+		md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_stats, 
+						    (void **) slice, key_len, (void **) val, 
+						    val_len, &opts);	
 
 		//Add the stat to the hash table - the value is 0 if the key was not in the db
-		if (*val && *val_len) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Loaded stat: %i with ival: %ld and fval: %.20Lf", 
-			     md->mdhim_rank, i, (*(struct mdhim_stat **)val)->ival, 
-			     (*(struct mdhim_stat **)val)->fval);
-			update_stat(md, i, (*(struct mdhim_stat **)val)->fval,  
-				    (*(struct mdhim_stat **)val)->ival, 0);
-			free(*val);
-		} else {
-			update_stat(md, i, 0, 0, 1);
+		if (!*val || !*val_len) {
+			done = 1;
+			continue;
 		}
-		     
-		free(val);
-		free(val_len);
+
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Loaded stat for slice: %lu with " 
+		     "imin: %lu and imax: %lu, dmin: %Lf, dmax: %Lf, and num: %lu", 
+		     md->mdhim_rank, **slice, (*(struct mdhim_db_stat **)val)->imin, 
+		     (*(struct mdhim_db_stat **)val)->imax, (*(struct mdhim_db_stat **)val)->dmin, 
+		     (*(struct mdhim_db_stat **)val)->dmax, (*(struct mdhim_db_stat **)val)->num);
+	
+		stat = malloc(sizeof(struct mdhim_stat));
+		if (float_type) {
+			min = (void *) malloc(sizeof(long double));
+			max = (void *) malloc(sizeof(long double));
+			*(long double *)min = (*(struct mdhim_db_stat **)val)->dmin;
+			*(long double *)max = (*(struct mdhim_db_stat **)val)->dmax;
+		} else {
+			min = (void *) malloc(sizeof(uint64_t));
+			max = (void *) malloc(sizeof(uint64_t));
+			*(uint64_t *)min = (*(struct mdhim_db_stat **)val)->imin;
+			*(uint64_t *)max = (*(struct mdhim_db_stat **)val)->imax;
+		}
+
+		stat->min = min;
+		stat->max = max;
+		stat->num = (*(struct mdhim_db_stat **)val)->num;
+		stat->key = **slice;
+		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
+		free(*val);
 	}
 
+	free(val);
+	free(val_len);
+	free(*slice);
+	free(slice);
 	return MDHIM_SUCCESS;
 }
 
@@ -234,28 +276,46 @@ int load_stats(struct mdhim_t *md) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int write_stats(struct mdhim_t *md) {
-	int val_len;
 	struct mdhim_store_opts_t opts;
-	struct mdhim_stat *stat;
-	int i;
+	struct mdhim_stat *stat, *tmp;
+	struct mdhim_db_stat *dbstat;
+	int val_len;
+	int float_type = 0;
 
+	float_type = is_float_key(md->key_type);
 	set_store_opts(md, &opts);
-	val_len = sizeof(long double);
-	for (i = MDHIM_MAX_STAT; i <= MDHIM_NUM_STAT; i++) {	
-		//Get the hash entry
-		stat = NULL;
-		HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &i, stat);
+	val_len = sizeof(struct mdhim_db_stat);
+
+	//Iterate through the stat hash entries
+	HASH_ITER(hh, md->mdhim_rs->mdhim_store->mdhim_store_stats, stat, tmp) {	
 		if (!stat) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Can't find key to save for stats", 
-			     md->mdhim_rank);
-			return MDHIM_ERROR;
+			continue;
 		}
 
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat: %i with ival: %ld and fval: %.20Lf", 
-		     md->mdhim_rank, i, stat->ival, stat->fval);	
+		dbstat = malloc(sizeof(struct mdhim_db_stat));
+		if (float_type) {
+			dbstat->dmax = *(long double *)stat->max;
+			dbstat->dmin = *(long double *)stat->min;
+			dbstat->imax = 0;
+			dbstat->imin = 0;
+		} else {
+			dbstat->imax = *(uint64_t *)stat->max;
+			dbstat->imin = *(uint64_t *)stat->min;
+			dbstat->dmax = 0;
+			dbstat->dmin = 0;
+		}
+
+		dbstat->slice = stat->key;
+		dbstat->num = stat->num;
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat for slice: %lu with " 
+		     "imin: %lu and imax: %lu, dmin: %Lf, dmax: %Lf, and num: %lu", 
+		     md->mdhim_rank, dbstat->slice, dbstat->imin, 
+		     dbstat->imax, dbstat->dmin, dbstat->dmax, 
+		     dbstat->num);
 		//Write the key to the database		
 		md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_stats, 
-					       &i, sizeof(int), stat, sizeof(struct mdhim_stat), &opts);	
+					       &dbstat->slice, sizeof(uint64_t), dbstat, 
+					       sizeof(struct mdhim_db_stat), &opts);	
 		//Delete and free hash entry
 		HASH_DEL(md->mdhim_rs->mdhim_store->mdhim_store_stats, stat); 
 		free(stat);
