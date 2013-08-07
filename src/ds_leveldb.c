@@ -122,17 +122,40 @@ static int cmp_ldouble_compare(void* arg, const char* a, size_t alen,
 	return ret;
 }
 
+// For string, first compare for null pointers, then for order
+// up to a null character or the given lengths.
 static int cmp_string_compare(void* arg, const char* a, size_t alen,
 			   const char* b, size_t blen) {
-	int ret;
+    int idx;
 
-	ret = cmp_empty(a, alen, b, blen);
-	if (ret != 2) {
-		return ret;
-	}
-	ret = strcmp(a, b);
+    if (a && !b) {
+            return 1;
+    } else if (!a && b) {
+            return -1;
+    } else if (!a && !b) {
+            return 0;
+    }
 
-	return ret;
+    // Do this wile they are equal and we have not reached the end of one of them
+    for(idx=0; *a == *b && *a != '\0' && *b != '\0' && idx<alen && idx<blen; ) {
+        idx++;
+        a++;
+        b++;
+    }
+
+    // If we are at the end and no difference is found, then they are equal
+    if( (*a == '\0' && *b == '\0') || (alen == blen && idx == alen)) {
+       return 0;
+    } else if ((alen == idx || *a == '\0') && alen < blen) { // end of a?
+        return -1;
+    } else if ((blen == idx || *b == '\0') && blen < alen) { // end of b?
+        return 1;
+    } else if ( *a > *b ) { // else compare the two different characters to decide
+       return 1;
+    }
+
+    // If none of the above, then b is greater
+    return -1;
 }
 
 static int cmp_byte_compare(void* arg, const char* a, size_t alen,
