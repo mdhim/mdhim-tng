@@ -125,13 +125,18 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts) {
 		return NULL;
 	}
 
-	//Set the range server list in the md struct
-	md->rangesrvs = rangesrvs;
+	//Set up the range server communicator if I'm a range server
+	if ((ret = range_server_init_comm(md)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error initializing" 
+		     " MDHIM range server communicator", 
+		     md->mdhim_rank);
+		return NULL;
+	}
 
-	//Set the receive queue to NULL 
+	//Set the local receive queue to NULL - used for sending and receiving to/from ourselves
 	md->receive_msg = NULL;
-
 	MPI_Barrier(md->mdhim_comm);
+
 	return md;
 }
 
@@ -675,4 +680,22 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 
 	//Return the head of the list
 	return brm_head;
+}
+
+/**
+ * Retrieves statistics from all the range servers - collective call
+ *
+ * @param md main MDHIM struct
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int mdhimStatFlush(struct mdhim_t *md) {
+	int ret;
+
+	if ((ret = get_stat_flush(md)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Error while getting MDHIM stat data in mdhimStatFlush", 
+		     md->mdhim_rank);
+	}
+
+	return ret;
 }

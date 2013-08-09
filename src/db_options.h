@@ -21,8 +21,8 @@ typedef struct db_options_t {
     int db_type;
     
     //Primary key type
-    //MDHIM_INT_KEY=1, MDHIM_LONG_INT_KEY=2, MDHIM_FLOAT_KEY=3, MDHIM_DOUBLE_KEY=4
-    //MDHIM_LONG_DOUBLE_KEY=5, MDHIM_STRING_KEY=6, MDHIM_BYTE_KEY=7
+    //MDHIM_INT_KEY, MDHIM_LONG_INT_KEY, MDHIM_FLOAT_KEY, MDHIM_DOUBLE_KEY
+    //MDHIM_STRING_KEY, MDHIM_BYTE_KEY
     //(from partitioner.h)
     int db_key_type;
 

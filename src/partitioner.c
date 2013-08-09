@@ -201,8 +201,6 @@ int is_float_key(int type) {
 		ret = 1;
 	} else if (type == MDHIM_DOUBLE_KEY) {
 		ret = 1;
-	} else if (type == MDHIM_LONG_DOUBLE_KEY) {
-		ret = 1;
 	} else if (type == MDHIM_INT_KEY) {
 		ret = 0;
 	} else if (type == MDHIM_LONG_INT_KEY) {
@@ -318,18 +316,15 @@ uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	//The number that maps a key to range server (dependent on key type)
 	uint64_t slice_num;
 	//The range server number that we return
-	uint32_t ikey;
-	uint64_t likey;
 	float fkey;
 	double dkey;
-	long double ldkey;
 	int ret;
 	long double map_num;
 	uint64_t total_keys;
 	int key_type = md->key_type;
 
-	//The total number of keys we can hold in all range servers combined
-	total_keys = (uint64_t)MDHIM_MAX_KEYS;
+	//The last key in the range we are representing by the range servers
+	total_keys = MDHIM_MAX_RANGE_KEY;
 
 	//Make sure this key is valid
 	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
@@ -341,11 +336,7 @@ uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	//Perform key dependent algorithm to get the key in terms of the ranges served
 	switch(key_type) {
 	case MDHIM_INT_KEY:
-		//Convert the key to a signed 32 bit integer
-		ikey = *((uint32_t *) key);	
-		slice_num = ikey;
-
-		break;
+	case MDHIM_LONG_INT_KEY:
 	case MDHIM_BYTE_KEY:
 		/* Algorithm used		   
 		   1. Iterate through each byte
@@ -367,12 +358,6 @@ uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 		slice_num = floorl(map_num * total_keys);
 
 		break;
-	case MDHIM_LONG_INT_KEY:
-		//Convert the key to a signed 64 bit integer
-		likey = *((uint64_t *) key);
-		slice_num = likey;
-
-		break;
 	case MDHIM_FLOAT_KEY:
 		//Convert the key to a float
 		fkey = *((float *) key);
@@ -385,13 +370,6 @@ uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 		dkey = *((double *) key);
 		dkey = floor(fabs(dkey));
 		slice_num = dkey;
-
-		break;
-	case MDHIM_LONG_DOUBLE_KEY:
-		//Convert the key to a long double
-		ldkey = *((long double *) key);
-		ldkey = floor(fabsl(ldkey));
-		slice_num = ldkey;
 
 		break;
 	case MDHIM_STRING_KEY:
@@ -448,7 +426,7 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, uint64_t slice) {
 	uint64_t total_keys;
 
 	//The total number of keys we can hold in all range servers combined
-	total_keys = (uint64_t)MDHIM_MAX_KEYS;
+	total_keys = (uint64_t)MDHIM_MAX_RANGE_KEY;
 	if (!slice) {
 		return NULL;
 	}
@@ -512,7 +490,7 @@ uint64_t get_next_slice(struct mdhim_t *md, uint64_t cur_slice) {
 	}
 
 	if ((ret * MDHIM_MAX_RECS_PER_SLICE < cur_slice * MDHIM_MAX_RECS_PER_SLICE) || 
-	    (ret * MDHIM_MAX_RECS_PER_SLICE > (uint64_t)MDHIM_MAX_KEYS)) {
+	    (ret * MDHIM_MAX_RECS_PER_SLICE > (uint64_t)MDHIM_MAX_RANGE_KEY)) {
 		ret = 0;
 	}
 

@@ -250,5 +250,3 @@ struct mdhim_rm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t
 	return brm;
 }
 
-
-

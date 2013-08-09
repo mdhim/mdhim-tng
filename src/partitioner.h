@@ -15,18 +15,16 @@
 
 #define RANGE_SERVER_FACTOR 4
 #define MDHIM_MAX_SERVERS 500
-#define MDHIM_MAX_KEYS 9007199254740991LL
+#define MDHIM_MAX_RANGE_KEY 2147483647
 #define MDHIM_MAX_RECS_PER_SLICE 100
 //32 bit unsigned integer
 #define MDHIM_INT_KEY 1
-//64 bit unsigned integer
 #define MDHIM_LONG_INT_KEY 2
 #define MDHIM_FLOAT_KEY 3
 #define MDHIM_DOUBLE_KEY 4
-#define MDHIM_LONG_DOUBLE_KEY 5
-#define MDHIM_STRING_KEY 6
+#define MDHIM_STRING_KEY 5
 //An arbitrary sized key
-#define MDHIM_BYTE_KEY 7
+#define MDHIM_BYTE_KEY 6
 
 //Maximum length of a key
 #define MAX_KEY_LEN 262144

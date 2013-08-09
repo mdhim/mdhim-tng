@@ -42,6 +42,9 @@ struct mdhim_t {
 	uint32_t num_rangesrvs;
 	//A linked list of range servers
 	rangesrv_info *rangesrvs;
+	//The rank of the range server master that will broadcast stat data to all clients
+	//This rank is the rank in mdhim_comm not in the range server communicator
+	int rangesrv_master;
 	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 
 	//The mutex used if receiving from ourselves
@@ -53,11 +56,14 @@ struct mdhim_t {
 	void *receive_msg;
         //Options for DB creation
         db_options_t *db_opts;
+	//Statistics retrieved from the mdhimStatFlush operation
+	struct mdhim_stat *stats;
 };
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts);
 int mdhimClose(struct mdhim_t *md);
 int mdhimCommit(struct mdhim_t *md);
+int mdhimStatFlush(struct mdhim_t *md);
 struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,  
 			    void *value, int value_len);
 struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,

@@ -40,7 +40,7 @@ uint64_t my_next_slice(struct mdhim_t *md, uint64_t cur_slice) {
 	}
 
 	if ((ret * MDHIM_MAX_RECS_PER_SLICE < cur_slice * MDHIM_MAX_RECS_PER_SLICE) || 
-	    (ret * MDHIM_MAX_RECS_PER_SLICE > (uint64_t)MDHIM_MAX_KEYS)) {
+	    (ret * MDHIM_MAX_RECS_PER_SLICE > MDHIM_MAX_RANGE_KEY)) {
 		ret = 0;
 	}
 
@@ -123,15 +123,12 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	} else if (md->key_type == MDHIM_DOUBLE_KEY) {
 		*(long double *)val1 = *(double *) key;
 		*(long double *)val2 = *(double *)val1;
-	} else if (md->key_type == MDHIM_LONG_DOUBLE_KEY) {
-		*(long double *)val1 = *(long double *) key;
-		*(long double *)val2 = *(long double *)val1;
 	} else if (md->key_type == MDHIM_INT_KEY) {
 		*(uint64_t *)val1 = *(uint32_t *) key;
 		*(uint64_t *)val2 = *(uint32_t *) key;
 	} else if (md->key_type == MDHIM_LONG_INT_KEY) {
-		*(uint64_t *)val1 = *(uint64_t *) key;
-		*(uint64_t *)val2 = *(uint64_t *) val1;
+		*(long double *)val1 = get_byte_num(key, key_len);
+		*(long double *)val2 = *(long double *)val1;
 	} else if (md->key_type == MDHIM_BYTE_KEY) {
 		*(long double *)val1 = get_byte_num(key, key_len);
 		*(long double *)val2 = *(long double *)val1;
@@ -318,6 +315,8 @@ int write_stats(struct mdhim_t *md) {
 					       sizeof(struct mdhim_db_stat), &opts);	
 		//Delete and free hash entry
 		HASH_DEL(md->mdhim_rs->mdhim_store->mdhim_store_stats, stat); 
+		free(stat->max);
+		free(stat->min);
 		free(stat);
 	}
 
@@ -1172,3 +1171,87 @@ int range_server_init(struct mdhim_t *md) {
 	return MDHIM_SUCCESS;
 }
 
+/**
+ * range_server_init_comm
+ * Initializes the range server communicator that is used for range server to range 
+ * server collectives
+ * The stat flush function will use this communicator
+ *
+ * @param md  Pointer to the main MDHIM structure
+ * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int range_server_init_comm(struct mdhim_t *md) {
+	MPI_Group orig, new_group;
+	int *ranks;
+	rangesrv_info *rp;
+	int i = 0, j = 0;
+	int ret;
+	int size;
+	MPI_Comm new_comm;
+
+	//Populate the ranks array that will be in our new comm
+	if ((ret = im_range_server(md)) == 1) {
+		ranks = malloc(sizeof(int) * md->num_rangesrvs);
+		rp = md->rangesrvs;
+		size = 0;
+		while (rp) {
+			ranks[i] = rp->rank;
+			mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - " 
+			     "Adding rank: %d to range server comm", 
+			     md->mdhim_rank, rp->rank);
+			i++;
+			size++;
+			rp = rp->next;
+		}
+	} else {
+		MPI_Comm_size(md->mdhim_comm, &size);
+		ranks = malloc(sizeof(int) * (size - md->num_rangesrvs));
+		rp = md->rangesrvs;
+		size = 0;
+		j = i = 0;
+		while (rp) {
+			if (i == rp->rank) {
+				rp = rp->next;
+				i++;
+				continue;
+			}
+
+			ranks[j] = i;
+			mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - " 
+			     "Adding rank: %d to clients only comm", 
+			     md->mdhim_rank, i);
+			i++;
+			j++;
+			size++;
+		}
+	}
+
+	//Create a new group with the range servers only
+	if ((ret = MPI_Comm_group(md->mdhim_comm, &orig)) != MPI_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while creating a new group in range_server_init_comm", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	if ((ret = MPI_Group_incl(orig, size, ranks, &new_group)) != MPI_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while creating adding ranks to the new group in range_server_init_comm", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	if ((ret = MPI_Comm_create(md->mdhim_comm, new_group, &new_comm)) 
+	    != MPI_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while creating the new communicator in range_server_init_comm", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+	if ((ret = im_range_server(md)) == 1) {
+		memcpy(&md->mdhim_rs->rs_comm, &new_comm, sizeof(MPI_Comm));
+	}
+
+	free(ranks);
+	return MDHIM_SUCCESS;
+}

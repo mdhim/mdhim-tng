@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <math.h>
 #include "mdhim.h"
 #include "messages.h"
 
@@ -1973,15 +1974,13 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 
 	//Unpack the receive buffer and construct a linked list of range servers
 	for (i = 0; i < md->mdhim_comm_size; i++) {
-		if ((ret = MPI_Unpack(recvbuf, sendsize, &recvidx, &rsi, sizeof(struct mdhim_rsi_t), 
+		if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, &rsi, sizeof(struct mdhim_rsi_t), 
 				      MPI_CHAR, md->mdhim_comm)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
 			     "Error while unpacking range server info", 
 			     md->mdhim_rank);
 			return NULL;
-		}
-
-	
+		}	
 
 		if (rsi.rangesrv_num != 0) {
 			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
@@ -2003,7 +2002,15 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 			rs_info->prev = rs_tail;
 			rs_tail = rs_info;
 		}
+
+		//Set the master range server to be the server with the largest rank
+		if (rs_info->rank > md->rangesrv_master) {
+			md->rangesrv_master = rs_info->rank;
+		}
 	}
+
+	//Set the range server list in the md struct
+	md->rangesrvs = rs_head;
 
 	return rs_head;
 }
@@ -2151,4 +2158,157 @@ void mdhim_partial_release_msg(void *msg) {
 	default:
 		break;
 	}
+}
+
+/**
+ * get_stat_flush
+ * Receives stat data from all the range servers and populates md->stats
+ *
+ * @param md      in   main MDHIM struct
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int get_stat_flush(struct mdhim_t *md) {
+	char *sendbuf;
+	int sendsize;
+	int sendidx = 0;
+	int recvidx = 0;
+	char *recvbuf;
+	int recvsize;
+	int ret = 0;
+	int i = 0;
+	int float_type = 0;
+	struct mdhim_stat *stat, *tmp;
+	void *tstat;
+	int stat_size;
+	struct mdhim_db_istat istat;
+	struct mdhim_db_fstat fstat;
+	int master;
+	uint64_t num_items;
+
+	//Get the sizes for the buffers and allocate them
+	num_items = ceil(((double) MDHIM_MAX_RANGE_KEY/MDHIM_MAX_RECS_PER_SLICE)/md->num_rangesrvs);
+	if ((ret = is_float_key(md->key_type)) == 1) {
+		float_type = 1;
+		sendsize = num_items * sizeof(struct mdhim_db_fstat);
+	} else {
+		float_type = 0;
+		sendsize = num_items * sizeof(struct mdhim_db_istat);
+	}
+	recvsize = md->num_rangesrvs * sendsize;
+	recvbuf = malloc(recvsize);
+	memset(recvbuf, 0, recvsize);
+	if (md->mdhim_rs) {
+		//Acquire the work mutex to make sure the stats are not updated
+		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
+	
+		//Get the master range server rank according the range server comm
+		if ((ret = MPI_Comm_size(md->mdhim_rs->rs_comm, &master)) != MPI_SUCCESS) {
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Error packing buffer when sending stat info to master range server", 
+			     md->mdhim_rank);
+		}		
+		//The master rank is the last rank in range server comm
+		master--;
+
+		//Allocate send buffer
+		sendbuf = malloc(sendsize);		  
+		//Pack the stat data I have by iterating through the stats hash
+		HASH_ITER(hh, md->mdhim_rs->mdhim_store->mdhim_store_stats, stat, tmp) {
+			//Get the appropriate struct to send
+			if (float_type) {
+				fstat.slice = stat->key;
+				fstat.num = stat->num;
+				fstat.dmin = *(long double *) stat->min;
+				fstat.dmax = *(long double *) stat->max;
+				tstat = &fstat;
+				stat_size = sizeof(struct mdhim_db_fstat);
+			} else {
+				istat.slice = stat->key;
+				istat.num = stat->num;
+				istat.imin = *(uint64_t  *) stat->min;
+				istat.imax = *(uint64_t  *) stat->max;
+				tstat = &istat;
+				stat_size = sizeof(struct mdhim_db_istat);
+			}
+		  
+			//Pack the struct
+			if ((ret = MPI_Pack(&tstat, stat_size, MPI_CHAR, sendbuf, sendsize, &sendidx, 
+					    md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
+				mlog(MPI_CRIT, "Rank: %d - " 
+				     "Error packing buffer when sending stat info to master range server", 
+				     md->mdhim_rank);
+				return MDHIM_ERROR;
+			}
+		}
+
+		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+
+		//The master server will receive the stat info from each rank in the range server comm
+		if ((ret = MPI_Gather(sendbuf, sendsize, MPI_PACKED, recvbuf, sendsize,
+				      MPI_PACKED, master, md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Error while receiving range server info", 
+			     md->mdhim_rank);
+			return MDHIM_ERROR;
+		}
+	}
+
+	//The master range server broadcasts the receive buffer to the mdhim_comm
+	if ((ret = MPI_Bcast(recvbuf, recvsize, MPI_PACKED, md->rangesrv_master,
+			     md->mdhim_comm)) != MPI_SUCCESS) {
+		mlog(MPI_CRIT, "Rank: %d - " 
+		     "Error while receiving range server info", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	//Unpack the receive buffer and populate our md->stats hash table
+	for (i = 0; i < recvsize; i+=stat_size) {
+		tstat = malloc(stat_size);
+		if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, tstat, stat_size, 
+				      MPI_CHAR, md->mdhim_comm)) != MPI_SUCCESS) {
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Error while unpacking stat data", 
+			     md->mdhim_rank);
+			return MDHIM_ERROR;
+		}
+
+		//Skip empty slices
+		if (!((struct mdhim_db_fstat *)tstat)->slice) {
+			continue;
+		}
+
+		stat = malloc(sizeof(struct mdhim_stat));
+		if (float_type) {
+			stat->min = (void *) malloc(sizeof(long double));
+			stat->max = (void *) malloc(sizeof(long double));
+			*(long double *)stat->min = ((struct mdhim_db_fstat *)tstat)->dmin;
+			*(long double *)stat->max = ((struct mdhim_db_fstat *)tstat)->dmax;
+			stat->key = ((struct mdhim_db_fstat *)tstat)->slice;
+			stat->num = ((struct mdhim_db_fstat *)tstat)->num;
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Retrieved stat for slice: %lu, min: %Lf, max: %Lf, num: %lu", 
+			     md->mdhim_rank, stat->key, ((struct mdhim_db_fstat *)tstat)->dmin, 
+			     ((struct mdhim_db_fstat *)tstat)->dmax, stat->num);
+		} else {
+			stat->min = (void *) malloc(sizeof(uint64_t));
+			stat->max = (void *) malloc(sizeof(uint64_t));
+			*(uint64_t *)stat->min = ((struct mdhim_db_istat *)tstat)->imin;
+			*(uint64_t *)stat->max = ((struct mdhim_db_istat *)tstat)->imax;
+			stat->key = ((struct mdhim_db_istat *)tstat)->slice;
+			stat->num = ((struct mdhim_db_istat *)tstat)->num;
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Retrieved stat for slice: %lu, min: %lu, max: %lu, num: %lu", 
+			     md->mdhim_rank, stat->key, ((struct mdhim_db_istat *)tstat)->imin, 
+			     ((struct mdhim_db_istat *)tstat)->imax, stat->num);
+		}
+		  
+		//Add the stat to our hash table
+		HASH_ADD_ULINT(md->stats, key, stat); 
+		free(tstat);
+	}
+	
+	free(sendbuf);
+	free(recvbuf);
+	return MDHIM_SUCCESS;
 }

@@ -35,9 +35,9 @@ static int cmp_int_compare(void* arg, const char* a, size_t alen,
 	if (ret != 2) {
 		return ret;
 	}
-	if (*(int32_t *) a < *(int32_t *) b) {
+	if (*(uint32_t *) a < *(uint32_t *) b) {
 		ret = -1;
-	} else if (*(int32_t *) a == *(int32_t *) b) {
+	} else if (*(uint32_t *) a == *(uint32_t *) b) {
 		ret = 0;
 	} else {
 		ret = 1;
@@ -54,9 +54,9 @@ static int cmp_lint_compare(void* arg, const char* a, size_t alen,
 	if (ret != 2) {
 		return ret;
 	}
-	if (*(int64_t *) a < *(int64_t *) b) {
+	if (*(uint64_t *) a < *(uint64_t *) b) {
 		ret = -1;
-	} else if (*(int64_t *) a == *(int64_t *) b) {
+	} else if (*(uint64_t *) a == *(uint64_t *) b) {
 		ret = 0;
 	} else {
 		ret = 1;
@@ -103,24 +103,6 @@ static int cmp_float_compare(void* arg, const char* a, size_t alen,
 	return ret;
 }
 
-static int cmp_ldouble_compare(void* arg, const char* a, size_t alen,
-			       const char* b, size_t blen) {
-	int ret;
-
-	ret = cmp_empty(a, alen, b, blen);
-	if (ret != 2) {
-		return ret;
-	}
-	if (*(long double *) a < *(long double *) b) {
-		ret = -1;
-	} else if (*(long double *) a == *(long double *) b) {
-		ret = 0;
-	} else {
-		ret = 1;
-	}
-	
-	return ret;
-}
 
 // For string, first compare for null pointers, then for order
 // up to a null character or the given lengths.
@@ -187,15 +169,6 @@ static const char* cmp_name(void* arg) {
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 
-#define MDHIM_INT_KEY 1
-//64 bit signed integer
-#define MDHIM_LONG_INT_KEY 2
-#define MDHIM_FLOAT_KEY 3
-#define MDHIM_DOUBLE_KEY 4
-#define MDHIM_LONG_DOUBLE_KEY 5
-#define MDHIM_STRING_KEY 6
-//An arbitrary sized key
-#define MDHIM_BYTE_KEY 7
 int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db;
@@ -220,9 +193,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 		break;
 	case MDHIM_DOUBLE_KEY:
 		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_double_compare, cmp_name);
-		break;
-	case MDHIM_LONG_DOUBLE_KEY:
-		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_ldouble_compare, cmp_name);
 		break;
 	case MDHIM_STRING_KEY:
 		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_string_compare, cmp_name);
