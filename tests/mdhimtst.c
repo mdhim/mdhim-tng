@@ -64,6 +64,9 @@ int verbose = 1;   // By default generate lost of feedback status lines
 // MDHIM_LONG_DOUBLE_KEY=5, MDHIM_STRING_KEY=6, MDHIM_BYTE_KEY=7 
 int key_type = 1;  // Default "int"
 
+static char *getOpLabel[] = { "MDHIM_GET_EQ", "MDHIM_GET_NEXT", "MDHIM_GET_PREV",
+                              "MDHIM_GET_FIRST", "MDHIM_GET_LAST"};
+
 #ifdef _WIN32
 #include <direct.h>
 #endif
@@ -206,6 +209,13 @@ static int getWordFromString (char *aLine,  char *buffer, int charIdx )
     int c;
     int i;
 
+    // Check to see if past the end
+    if (charIdx >= strlen(aLine))
+    {
+        *buffer = '\0';
+        return charIdx;
+    }
+    
     /*
      * skip preceeding blanks
      */
@@ -306,8 +316,11 @@ void usage(void)
 //======================================PUT============================
 static void execPut(char *command, struct mdhim_t *md, int charIdx)
 {
-    int key;
+    int i_key;
     long l_key;
+    float f_key;
+    double d_key;
+    long double ld_key;
     struct mdhim_rm_t *rm;
     char buffer1 [ TEST_BUFLEN ];
     char buffer2 [ TEST_BUFLEN ];
@@ -323,17 +336,40 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
     switch (key_type)
     {
         case MDHIM_INT_KEY:
-             key = atoi(buffer1) + (md->mdhim_rank + 1);
-             tst_say( "# mdhimPut( %d, %s)\n", key, value );
-             rm = mdhimPut(md, &key, sizeof(key), value, sizeof(value));
+             i_key = atoi(buffer1) + (md->mdhim_rank + 1);
+             sprintf(key_string, "%d", i_key);
+             tst_say( "# mdhimPut( %s, %s)\n", key_string, value );
+             rm = mdhimPut(md, &i_key, sizeof(i_key), value, sizeof(value));
              break;
              
         case MDHIM_LONG_INT_KEY:
              l_key = atol(buffer1) + (md->mdhim_rank + 1);
-             tst_say( "# mdhimPut( %ld, %s)\n", l_key, value );
+             sprintf(key_string, "%ld", l_key);
+             tst_say( "# mdhimPut( %s, %s)\n", key_string, value );
              rm = mdhimPut(md, &l_key, sizeof(l_key), value, sizeof(value));
              break;
-             
+
+        case MDHIM_FLOAT_KEY:
+            f_key = atof( buffer1 ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%f", f_key);
+            tst_say( "# mdhimPut( %s, %s )\n", key_string, value );
+            rm = mdhimPut(md, &f_key, sizeof(f_key), value, sizeof(value));
+            break;
+            
+       case MDHIM_DOUBLE_KEY:
+            d_key = atof( buffer1 ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%e", d_key);
+            tst_say( "# mdhimPut( %s, %s )\n", key_string, value );
+            rm = mdhimPut(md, &d_key, sizeof(d_key), value, sizeof(value));
+            break;
+            
+       case MDHIM_LONG_DOUBLE_KEY:
+            ld_key = strtold( buffer1, NULL ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%Le", ld_key);
+            tst_say( "# mdhimPut( %s, %s )\n", key_string, value );
+            rm = mdhimPut(md, &ld_key, sizeof(ld_key), value, sizeof(value));
+            break;
+                                     
         case MDHIM_STRING_KEY:
              sprintf(key_string, "%d%s", ( md->mdhim_rank + 1), buffer1);
              tst_say( "# mdhimPut( %s, %s)\n", key_string, value );
@@ -352,7 +388,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 
     if (!rm || rm->error)
     {
-        tst_say("Error putting key/value into MDHIM\n");
+        tst_say("Error putting key: %s with value: %s into MDHIM\n", key_string, value);
     }
     else
     {
@@ -363,54 +399,95 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
     ret = mdhimCommit(md);
     if (ret != MDHIM_SUCCESS)
     {
-        printf("Error committing put to MDHIM database\n");
+        tst_say("Error committing put key: %s to MDHIM database\n", key_string);
     }
     else
     {
-        printf("Committed put to MDHIM database\n");
+        tst_say("Committed put to MDHIM database\n");
     }
 
 }
 
 //======================================GET============================
+// Operations for getting a key/value from messages.h
+// MDHIM_GET_EQ=0, MDHIM_GET_NEXT=1, MDHIM_GET_PREV=2
+// MDHIM_GET_FIRST=3, MDHIM_GET_LAST=4
+
 static void execGet(char *command, struct mdhim_t *md, int charIdx)
 {
-    int key;
+    int i_key;
     long l_key;
+    float f_key;
+    double d_key;
+    long double ld_key;
     struct mdhim_getrm_t *grm;
     char buffer1 [ TEST_BUFLEN ];
+    char buffer2 [ TEST_BUFLEN ];
     char key_string [ TEST_BUFLEN ];
+    int getOp, newIdx;
     
     if (verbose) tst_say( "# get key\n" );
 
     charIdx = getWordFromString( command, buffer1, charIdx);
+    newIdx = getWordFromString( command, buffer2, charIdx);
+    
+    if (newIdx != charIdx)
+    {
+        getOp = atoi(buffer2); // Get operation type
+        charIdx = newIdx;
+    }
+    else
+    {
+        getOp = MDHIM_GET_EQ;  //Default a get with an equal
+    }
     
     switch (key_type)
     {
        case MDHIM_INT_KEY:
-            key = atoi( buffer1 ) + (md->mdhim_rank + 1);
-            sprintf(key_string, "%d", key);
-            tst_say( "# mdhimGet( %d )\n", key);
-            grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
+            i_key = atoi( buffer1 ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%d", i_key);
+            tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
+            grm = mdhimGet(md, &i_key, sizeof(i_key), getOp);
             break;
             
        case MDHIM_LONG_INT_KEY:
             l_key = atol( buffer1 ) + (md->mdhim_rank + 1);
             sprintf(key_string, "%ld", l_key);
-            tst_say( "# mdhimGet( %ld )\n", l_key);
-            grm = mdhimGet(md, &l_key, sizeof(l_key), MDHIM_GET_EQ);
+            tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
+            grm = mdhimGet(md, &l_key, sizeof(l_key), getOp);
             break;
             
+       case MDHIM_FLOAT_KEY:
+            f_key = atof( buffer1 ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%f", f_key);
+            tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
+            grm = mdhimGet(md, &f_key, sizeof(f_key), getOp);
+            break;
+            
+       case MDHIM_DOUBLE_KEY:
+            d_key = atof( buffer1 ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%e", d_key);
+            tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
+            grm = mdhimGet(md, &d_key, sizeof(d_key), getOp);
+            break;
+            
+       case MDHIM_LONG_DOUBLE_KEY:
+            ld_key = strtold( buffer1, NULL ) + (md->mdhim_rank + 1);
+            sprintf(key_string, "%Le", ld_key);
+            tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
+            grm = mdhimGet(md, &ld_key, sizeof(ld_key), getOp);
+            break;
+                        
        case MDHIM_STRING_KEY:
             sprintf(key_string, "%d%s", ( md->mdhim_rank + 1), buffer1);
-            tst_say( "# mdhimGet( %s )\n", key_string);
-            grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_EQ);
+            tst_say( "# mdhimGet( %s,%s )\n", key_string, getOpLabel[getOp]);
+            grm = mdhimGet(md, (void *)key_string, strlen(key_string), getOp);
             break;
                         
        case MDHIM_BYTE_KEY:
             sprintf(key_string, "%s%d", buffer1, (md->mdhim_rank + 1));
-            tst_say( "# mdhimGet( %s )\n", key_string);
-            grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_EQ);
+            tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
+            grm = mdhimGet(md, (void *)key_string, strlen(key_string), getOp);
             break;
  
        default:
@@ -419,11 +496,12 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
     
     if (!grm || grm->error)
     {
-        tst_say("Error getting value for key: %s from MDHIM\n", key_string);
+        tst_say("Error getting value for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
     }
     else 
     {
-        tst_say("Successfully got value: %s from MDHIM\n", (char *) grm->value);
+        tst_say("Successfully got value: %s for key (%s): %s from MDHIM\n", 
+                (char *) grm->value, getOpLabel[getOp], key_string);
     }
 
 }
@@ -699,7 +777,7 @@ int main( int argc, char * argv[] )
     char     command  [ TEST_BUFLEN ];
     char     filename [ TEST_BUFLEN ];
     char     *db_path = "./";
-    char     *db_name = "mdhimTstDB-";
+    char     *db_name = "mdhimTst-";
     int      dowork = 1;
     int      dbug = 1; //MLOG_CRIT=1, MLOG_DBG=2
 
@@ -756,6 +834,11 @@ int main( int argc, char * argv[] )
                 db_name = &argv[1][2];
                 break;
 
+            case 'q':
+                printf("Quiet mode\n");
+                verbose = 0;
+                break;
+                
             default:
                 printf("Wrong Argument (it will be ignored): %s\n", argv[1]);
                 usage();
@@ -811,7 +894,7 @@ int main( int argc, char * argv[] )
      */
     if (verbose)
     {
-        sprintf(filename, "./mdhimTst-%d.log", md->mdhim_rank);
+        sprintf(filename, "./%s%d.log", db_name, md->mdhim_rank);
         logfile = fopen( filename, "wb" );
         if( !logfile )
         {
