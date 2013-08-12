@@ -1196,7 +1196,7 @@ int range_server_init_comm(struct mdhim_t *md) {
 		size = 0;
 		while (rp) {
 			ranks[i] = rp->rank;
-			mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - " 
+			mlog(MDHIM_SERVER_DBG2, "MDHIM Rank: %d - " 
 			     "Adding rank: %d to range server comm", 
 			     md->mdhim_rank, rp->rank);
 			i++;

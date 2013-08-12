@@ -2180,8 +2180,8 @@ int get_stat_flush(struct mdhim_t *md) {
 	struct mdhim_stat *stat, *tmp;
 	void *tstat;
 	int stat_size;
-	struct mdhim_db_istat istat;
-	struct mdhim_db_fstat fstat;
+	struct mdhim_db_istat *istat;
+	struct mdhim_db_fstat *fstat;
 	int master;
 	uint64_t num_items;
 
@@ -2190,9 +2190,11 @@ int get_stat_flush(struct mdhim_t *md) {
 	if ((ret = is_float_key(md->key_type)) == 1) {
 		float_type = 1;
 		sendsize = num_items * sizeof(struct mdhim_db_fstat);
+		stat_size = sizeof(struct mdhim_db_fstat);
 	} else {
 		float_type = 0;
 		sendsize = num_items * sizeof(struct mdhim_db_istat);
+		stat_size = sizeof(struct mdhim_db_istat);
 	}
 	recvsize = md->num_rangesrvs * sendsize;
 	recvbuf = malloc(recvsize);
@@ -2216,29 +2218,39 @@ int get_stat_flush(struct mdhim_t *md) {
 		HASH_ITER(hh, md->mdhim_rs->mdhim_store->mdhim_store_stats, stat, tmp) {
 			//Get the appropriate struct to send
 			if (float_type) {
-				fstat.slice = stat->key;
-				fstat.num = stat->num;
-				fstat.dmin = *(long double *) stat->min;
-				fstat.dmax = *(long double *) stat->max;
-				tstat = &fstat;
-				stat_size = sizeof(struct mdhim_db_fstat);
+				fstat = malloc(sizeof(struct mdhim_db_fstat));
+				fstat->slice = stat->key;
+				fstat->num = stat->num;
+				fstat->dmin = *(long double *) stat->min;
+				fstat->dmax = *(long double *) stat->max;
+				tstat = fstat;
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
+				     "Going to send stat slice: %lu, min: %Lf, max: %Lf, num: %lu", 
+				     md->mdhim_rank, fstat->slice, fstat->dmin, 
+				     fstat->dmax, fstat->num);
 			} else {
-				istat.slice = stat->key;
-				istat.num = stat->num;
-				istat.imin = *(uint64_t  *) stat->min;
-				istat.imax = *(uint64_t  *) stat->max;
-				tstat = &istat;
-				stat_size = sizeof(struct mdhim_db_istat);
+				istat = malloc(sizeof(struct mdhim_db_istat));
+				istat->slice = stat->key;
+				istat->num = stat->num;
+				istat->imin = *(uint64_t *) stat->min;
+				istat->imax = *(uint64_t *) stat->max;
+				tstat = istat;
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
+				     "Going to send stat slice: %lu, min: %lu, max: %lu, num: %lu", 
+				     md->mdhim_rank, istat->slice, istat->imin, 
+				     istat->imax, istat->num);
 			}
 		  
 			//Pack the struct
-			if ((ret = MPI_Pack(&tstat, stat_size, MPI_CHAR, sendbuf, sendsize, &sendidx, 
+			if ((ret = MPI_Pack(tstat, stat_size, MPI_CHAR, sendbuf, sendsize, &sendidx, 
 					    md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
 				mlog(MPI_CRIT, "Rank: %d - " 
 				     "Error packing buffer when sending stat info to master range server", 
 				     md->mdhim_rank);
 				return MDHIM_ERROR;
 			}
+
+			free(tstat);
 		}
 
 		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
@@ -2251,8 +2263,14 @@ int get_stat_flush(struct mdhim_t *md) {
 			     md->mdhim_rank);
 			return MDHIM_ERROR;
 		}
+
+		free(sendbuf);
 	}
 
+	if (md->mdhim_rank != md->rangesrv_master) {
+		memset(recvbuf, 0, recvsize);
+	}
+	MPI_Barrier(md->mdhim_comm);
 	//The master range server broadcasts the receive buffer to the mdhim_comm
 	if ((ret = MPI_Bcast(recvbuf, recvsize, MPI_PACKED, md->rangesrv_master,
 			     md->mdhim_comm)) != MPI_SUCCESS) {
@@ -2265,17 +2283,20 @@ int get_stat_flush(struct mdhim_t *md) {
 	//Unpack the receive buffer and populate our md->stats hash table
 	for (i = 0; i < recvsize; i+=stat_size) {
 		tstat = malloc(stat_size);
+		memset(tstat, 0, stat_size);
 		if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, tstat, stat_size, 
 				      MPI_CHAR, md->mdhim_comm)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
 			     "Error while unpacking stat data", 
 			     md->mdhim_rank);
+			free(tstat);
 			return MDHIM_ERROR;
 		}
 
 		//Skip empty slices
 		if (!((struct mdhim_db_fstat *)tstat)->slice) {
-			continue;
+			free(tstat);
+			break;
 		}
 
 		stat = malloc(sizeof(struct mdhim_stat));
@@ -2286,7 +2307,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			*(long double *)stat->max = ((struct mdhim_db_fstat *)tstat)->dmax;
 			stat->key = ((struct mdhim_db_fstat *)tstat)->slice;
 			stat->num = ((struct mdhim_db_fstat *)tstat)->num;
-			mlog(MPI_CRIT, "Rank: %d - " 
+			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
 			     "Retrieved stat for slice: %lu, min: %Lf, max: %Lf, num: %lu", 
 			     md->mdhim_rank, stat->key, ((struct mdhim_db_fstat *)tstat)->dmin, 
 			     ((struct mdhim_db_fstat *)tstat)->dmax, stat->num);
@@ -2297,7 +2318,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			*(uint64_t *)stat->max = ((struct mdhim_db_istat *)tstat)->imax;
 			stat->key = ((struct mdhim_db_istat *)tstat)->slice;
 			stat->num = ((struct mdhim_db_istat *)tstat)->num;
-			mlog(MPI_CRIT, "Rank: %d - " 
+			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
 			     "Retrieved stat for slice: %lu, min: %lu, max: %lu, num: %lu", 
 			     md->mdhim_rank, stat->key, ((struct mdhim_db_istat *)tstat)->imin, 
 			     ((struct mdhim_db_istat *)tstat)->imax, stat->num);
@@ -2308,7 +2329,6 @@ int get_stat_flush(struct mdhim_t *md) {
 		free(tstat);
 	}
 	
-	free(sendbuf);
 	free(recvbuf);
 	return MDHIM_SUCCESS;
 }

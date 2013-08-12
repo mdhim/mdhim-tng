@@ -404,8 +404,7 @@ uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	if (slice_num == 0) {
 		slice_num = 1;
 	}
-	mlog(MDHIM_CLIENT_INFO, "Rank: %d - Got slice #: %lu", 
-	     md->mdhim_rank, slice_num);
+
 	//Return the slice number
 	return slice_num;
 }
