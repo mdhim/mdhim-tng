@@ -362,13 +362,6 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
             tst_say( "# mdhimPut( %s, %s )\n", key_string, value );
             rm = mdhimPut(md, &d_key, sizeof(d_key), value, sizeof(value));
             break;
-            
-       case MDHIM_LONG_DOUBLE_KEY:
-            ld_key = strtold( buffer1, NULL ) + (md->mdhim_rank + 1);
-            sprintf(key_string, "%Le", ld_key);
-            tst_say( "# mdhimPut( %s, %s )\n", key_string, value );
-            rm = mdhimPut(md, &ld_key, sizeof(ld_key), value, sizeof(value));
-            break;
                                      
         case MDHIM_STRING_KEY:
              sprintf(key_string, "%d%s", ( md->mdhim_rank + 1), buffer1);
@@ -469,13 +462,6 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
             sprintf(key_string, "%e", d_key);
             tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
             grm = mdhimGet(md, &d_key, sizeof(d_key), getOp);
-            break;
-            
-       case MDHIM_LONG_DOUBLE_KEY:
-            ld_key = strtold( buffer1, NULL ) + (md->mdhim_rank + 1);
-            sprintf(key_string, "%Le", ld_key);
-            tst_say( "# mdhimGet( %s, %s )\n", key_string, getOpLabel[getOp]);
-            grm = mdhimGet(md, &ld_key, sizeof(ld_key), getOp);
             break;
                         
        case MDHIM_STRING_KEY:
