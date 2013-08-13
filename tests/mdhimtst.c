@@ -313,6 +313,20 @@ void usage(void)
 	exit (8);
 }
 
+//======================================FLUSH============================
+static void execFlush(char *command, struct mdhim_t *md, int charIdx)
+{
+        //Get the stats
+	int ret = mdhimStatFlush(md);
+
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error executing flush.\n");
+	} else {
+		printf("FLush executed successfully.\n");
+	}
+        
+}
+
 //======================================PUT============================
 static void execPut(char *command, struct mdhim_t *md, int charIdx)
 {
@@ -320,7 +334,6 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
     long l_key;
     float f_key;
     double d_key;
-    long double ld_key;
     struct mdhim_rm_t *rm;
     char buffer1 [ TEST_BUFLEN ];
     char buffer2 [ TEST_BUFLEN ];
@@ -412,7 +425,6 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
     long l_key;
     float f_key;
     double d_key;
-    long double ld_key;
     struct mdhim_getrm_t *grm;
     char buffer1 [ TEST_BUFLEN ];
     char buffer2 [ TEST_BUFLEN ];
@@ -948,18 +960,22 @@ int main( int argc, char * argv[] )
         {
             execBdel(commands[cmdIdx], md, charIdx);
         }
+        else if( !strcmp( command, "flush" ))
+        {
+            execFlush(commands[cmdIdx], md, charIdx);
+        }
         else
         {
             printf( "# q       FOR QUIT\n" );
             //printf( "# open filename keyfile1,dkeyfile2,... update\n" );
             //printf( "# transaction < START | COMMIT | ROLLBACK >\n" );
             //printf( "# close\n" );
-            //printf( "# flush\n" );
+            printf( "# flush\n" );
             printf( "# put key data\n" );
             printf( "# bput n key data\n" );
             //printf( "# find index key < LT | LE | FI | EQ | LA | GE | GT >\n" );
             //printf( "# nfind n index key < LT | LE | FI | EQ | LA | GE | GT >\n" );
-            printf( "# get key\n" );
+            printf( "# get key getOp \n           <getOp: EQ=0 | NEXT=2 | PREV=3 | FIRST=4 | LAST=5> >\n" );
             printf( "# bget n key\n" );
             //printf( "# datalen\n" );
             //printf( "# readdata\n" );
