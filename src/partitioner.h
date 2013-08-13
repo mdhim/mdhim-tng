@@ -15,8 +15,8 @@
 
 #define RANGE_SERVER_FACTOR 4
 #define MDHIM_MAX_SERVERS 500
-#define MDHIM_MAX_RANGE_KEY 2147483647
-#define MDHIM_MAX_RECS_PER_SLICE 100
+#define MDHIM_MAX_RANGE_KEY 1000000000
+#define MDHIM_MAX_RECS_PER_SLICE 100000
 //32 bit unsigned integer
 #define MDHIM_INT_KEY 1
 #define MDHIM_LONG_INT_KEY 2
@@ -49,12 +49,12 @@ void partitioner_release();
 uint32_t get_num_range_servers(struct mdhim_t *md);
 uint32_t is_range_server(struct mdhim_t *md, int rank);
 rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len);
+rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, int slice);
 void build_alphabet();
 int verify_key(void *key, int key_len, int key_type);
 long double get_str_num(void *key, uint32_t key_len);
 long double get_byte_num(void *key, uint32_t key_len);
-uint64_t get_slice_num(struct mdhim_t *md, void *key, int key_len);
+int get_slice_num(struct mdhim_t *md, void *key, int key_len);
 int is_float_key(int type);
-uint64_t get_next_slice(struct mdhim_t *md, uint64_t cur_slice);
 
 #endif

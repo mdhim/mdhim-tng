@@ -8,7 +8,7 @@ CINC	= -I${MPI_ROOT}/include -I${LEVEL_DB_ROOT}/include -IMlog/ -Iuthash -I../sr
 CFLAGS	= -lmpi -lmdhim -lm -lpthread -lstdc++ ${LEVEL_DB_ROOT}/libleveldb.a
 
 all:	get-put bget-bput put-del bput-bdel sort-bget-bput mdhimtst put-getn \
-	put-flush-get put-getp gets-puts
+	put-flush-get put-getp gets-puts bput-flush-bget
 
 get-put: get-put.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
@@ -31,6 +31,9 @@ put-del: put-del.c
 bget-bput: bget-bput.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
+bput-flush-bget: bput-flush-bget.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
 bput-bdel: bput-bdel.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
@@ -42,4 +45,4 @@ mdhimtst: mdhimtst.c
 
 clean:
 	rm -rf get-put bget-bput put-del bput-bdel sort-bget-bput mdhimtst put-getn \
-	put-flush-get put-getp gets-puts
+	put-flush-get put-getp gets-puts bput-flush-bget

@@ -2173,6 +2173,8 @@ int get_stat_flush(struct mdhim_t *md) {
 	int sendidx = 0;
 	int recvidx = 0;
 	char *recvbuf;
+	int *recvcounts;
+	int *displs;
 	int recvsize;
 	int ret = 0;
 	int i = 0;
@@ -2183,26 +2185,35 @@ int get_stat_flush(struct mdhim_t *md) {
 	struct mdhim_db_istat *istat;
 	struct mdhim_db_fstat *fstat;
 	int master;
-	uint64_t num_items;
+	int num_items;
 
-	//Get the sizes for the buffers and allocate them
-	num_items = ceil(((double) MDHIM_MAX_RANGE_KEY/MDHIM_MAX_RECS_PER_SLICE)/md->num_rangesrvs);
+	
+	num_items = 0;
+	//Determine the size of the buffers to send based on the number and type of stats
 	if ((ret = is_float_key(md->key_type)) == 1) {
 		float_type = 1;
-		sendsize = num_items * sizeof(struct mdhim_db_fstat);
 		stat_size = sizeof(struct mdhim_db_fstat);
 	} else {
 		float_type = 0;
-		sendsize = num_items * sizeof(struct mdhim_db_istat);
 		stat_size = sizeof(struct mdhim_db_istat);
 	}
-	recvsize = md->num_rangesrvs * sendsize;
-	recvbuf = malloc(recvsize);
-	memset(recvbuf, 0, recvsize);
+
 	if (md->mdhim_rs) {
 		//Acquire the work mutex to make sure the stats are not updated
 		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
 	
+		//Get the number stats in our hash table
+		if (md->mdhim_rs->mdhim_store->mdhim_store_stats) {
+			num_items = HASH_COUNT(md->mdhim_rs->mdhim_store->mdhim_store_stats);
+		} else {
+			num_items = 0;
+		}
+		if ((ret = is_float_key(md->key_type)) == 1) {
+			sendsize = num_items * sizeof(struct mdhim_db_fstat);
+		} else {
+			sendsize = num_items * sizeof(struct mdhim_db_istat);
+		}
+
 		//Get the master range server rank according the range server comm
 		if ((ret = MPI_Comm_size(md->mdhim_rs->rs_comm, &master)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
@@ -2212,6 +2223,36 @@ int get_stat_flush(struct mdhim_t *md) {
 		//The master rank is the last rank in range server comm
 		master--;
 
+		//First we send the number of items that we are going to send
+		//Allocate the receive buffer size
+		recvsize = md->num_rangesrvs * sizeof(int);
+		recvbuf = malloc(recvsize);
+		memset(recvbuf, 0, recvsize);
+
+		//The master server will receive the number of stats each server has
+		if ((ret = MPI_Gather(&num_items, 1, MPI_UNSIGNED, recvbuf, 1,
+				      MPI_INT, master, md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - " 
+			     "Error while receiving the number of statistics from each range server", 
+			     md->mdhim_rank);
+			free(recvbuf);
+			return MDHIM_ERROR;
+		}
+		
+		num_items = 0;
+		displs = malloc(sizeof(int) * md->num_rangesrvs);
+		recvcounts = malloc(sizeof(int) * md->num_rangesrvs);
+		for (i = 0; i < md->num_rangesrvs; i++) {
+			displs[i] = num_items * stat_size;
+			num_items += ((int *)recvbuf)[i];
+			recvcounts[i] = ((int *)recvbuf)[i] * stat_size;
+		}
+		
+		free(recvbuf);
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
+		     "Going to receive a total of stat items: %d", 
+		     md->mdhim_rank, num_items);
+	
 		//Allocate send buffer
 		sendbuf = malloc(sendsize);		  
 		//Pack the stat data I have by iterating through the stats hash
@@ -2247,40 +2288,73 @@ int get_stat_flush(struct mdhim_t *md) {
 				mlog(MPI_CRIT, "Rank: %d - " 
 				     "Error packing buffer when sending stat info to master range server", 
 				     md->mdhim_rank);
+				free(sendbuf);
+				free(tstat);
 				return MDHIM_ERROR;
 			}
 
 			free(tstat);
 		}
 
-		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+		//Allocate the recv buffer for the master range server
+		if (md->mdhim_rank == md->rangesrv_master) {
+			recvsize = num_items * stat_size;
+			recvbuf = malloc(recvsize);
+			memset(recvbuf, 0, recvsize);
+		} else {
+			recvbuf = NULL;
+			recvsize = 0;
+		}
 
 		//The master server will receive the stat info from each rank in the range server comm
-		if ((ret = MPI_Gather(sendbuf, sendsize, MPI_PACKED, recvbuf, sendsize,
+		if ((ret = MPI_Gatherv(sendbuf, sendsize, MPI_PACKED, recvbuf, recvcounts, displs,
 				      MPI_PACKED, master, md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
-			mlog(MPI_CRIT, "Rank: %d - " 
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - " 
 			     "Error while receiving range server info", 
 			     md->mdhim_rank);
 			return MDHIM_ERROR;
 		}
-
-		free(sendbuf);
+	
+		free(recvcounts);
+		free(displs);
+		free(sendbuf);		
+		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 	}
 
+	//The master range server broadcasts the number of status it is going to send
+	if ((ret = MPI_Bcast(&num_items, 1, MPI_UNSIGNED, md->rangesrv_master,
+			     md->mdhim_comm)) != MPI_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - " 
+		     "Error while receiving the number of stats to receive", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	MPI_Barrier(md->mdhim_comm);
+
+	recvsize = num_items * stat_size;
+	//Allocate the receive buffer size for clients
 	if (md->mdhim_rank != md->rangesrv_master) {
+		recvbuf = malloc(recvsize);
 		memset(recvbuf, 0, recvsize);
 	}
-	MPI_Barrier(md->mdhim_comm);
+	
+	mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
+	     "Going to receive a total of stat items: %d from master: %d of size: %d", 
+	     md->mdhim_rank, num_items, md->rangesrv_master, recvsize);
+
 	//The master range server broadcasts the receive buffer to the mdhim_comm
 	if ((ret = MPI_Bcast(recvbuf, recvsize, MPI_PACKED, md->rangesrv_master,
 			     md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error while receiving range server info", 
 		     md->mdhim_rank);
+		free(recvbuf);
 		return MDHIM_ERROR;
 	}
 
 	//Unpack the receive buffer and populate our md->stats hash table
+	recvidx = 0;
 	for (i = 0; i < recvsize; i+=stat_size) {
 		tstat = malloc(stat_size);
 		memset(tstat, 0, stat_size);

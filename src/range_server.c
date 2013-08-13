@@ -127,8 +127,8 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 		*(uint64_t *)val1 = *(uint32_t *) key;
 		*(uint64_t *)val2 = *(uint32_t *) key;
 	} else if (md->key_type == MDHIM_LONG_INT_KEY) {
-		*(long double *)val1 = get_byte_num(key, key_len);
-		*(long double *)val2 = *(long double *)val1;
+		*(uint64_t *)val1 = *(uint64_t *) key;
+		*(uint64_t *)val2 = *(uint64_t *) key;
 	} else if (md->key_type == MDHIM_BYTE_KEY) {
 		*(long double *)val1 = get_byte_num(key, key_len);
 		*(long double *)val2 = *(long double *)val1;
