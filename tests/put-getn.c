@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include "mpi.h"
 #include "mdhim.h"
 
@@ -12,12 +13,14 @@ int main(int argc, char **argv) {
 	struct mdhim_rm_t *rm;
 	struct mdhim_getrm_t *grm;
 	int i;
-	int keys_per_rank = 5;
+	int keys_per_rank = 2084;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_DBG;
+	int      dbug = MLOG_CRIT;
 	db_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
+	struct timeval start_tv, end_tv;
+	unsigned totaltime;
 
 	// Create options for DB initialization
 	db_opts = db_options_init();
@@ -27,6 +30,7 @@ int main(int argc, char **argv) {
 	db_options_set_key_type(db_opts, MDHIM_INT_KEY);
 	db_options_set_debug_level(db_opts, dbug);
 
+	gettimeofday(&start_tv, NULL);
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");
@@ -53,7 +57,7 @@ int main(int argc, char **argv) {
 		if (!rm || rm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
-			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
+			//printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
 		}
 	}
 
@@ -62,7 +66,15 @@ int main(int argc, char **argv) {
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
-		printf("Committed MDHIM database\n");
+		//printf("Committed MDHIM database\n");
+	}
+
+	//Get the stats
+	ret = mdhimStatFlush(md);
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error getting stats\n");
+	} else {
+		//printf("Got stats\n");
 	}
 
 	//Get the values using get_next
@@ -70,17 +82,19 @@ int main(int argc, char **argv) {
 		value = 0;
 		key = keys_per_rank * md->mdhim_rank + i - 1;
 		if (key < 0) {
-			grm = mdhimGet(md, &key, 0, MDHIM_GET_NEXT);				
+			key = 0;
+			grm = mdhimGet(md, &key, sizeof(int), MDHIM_GET_EQ);				
 		} else {
 			grm = mdhimGet(md, &key, sizeof(int), MDHIM_GET_NEXT);				
 		}
 		if (!grm || grm->error) {
-			printf("Error getting value for key: %d from MDHIM\n", key);
+			printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
+			       md->mdhim_rank, key);
 		} else if (grm->key && grm->value) {
-			printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
+			/*	printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
 			       md->mdhim_rank,
 			       *((int *) grm->key),
-			       *((int *) grm->value));
+			       *((int *) grm->value));*/
 		}
 	}
 
@@ -89,8 +103,12 @@ int main(int argc, char **argv) {
 		printf("Error closing MDHIM\n");
 	}
 
+	gettimeofday(&end_tv, NULL);
+	totaltime = end_tv.tv_sec - start_tv.tv_sec;
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
+	printf("Took %u seconds to insert and retrieve %d keys/values\n", totaltime, 
+	       keys_per_rank);
 
 	return 0;
 }

@@ -403,10 +403,16 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	int ret;
 	struct mdhim_getm_t *gm;
 	struct mdhim_getrm_t *grm;
-	rangesrv_info *ri;
+	rangesrv_info *ri = NULL;
 
 	//Get the range server this key will be sent to
-	if ((ri = get_range_server(md, key, key_len)) == NULL) {
+	if (op == MDHIM_GET_EQ) {
+		ri = get_range_server(md, key, key_len);
+	} else {
+		ri = get_range_server_from_stats(md, key, key_len, op);
+	}
+
+	if (!ri) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimGet", 
 		     md->mdhim_rank);

@@ -135,7 +135,7 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	} 
 
 	slice_num = get_slice_num(md, key, key_len);
-	HASH_FIND_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
+	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
 
 	stat = malloc(sizeof(struct mdhim_stat));
 	stat->min = val1;
@@ -161,8 +161,6 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 		}
 	}
 	if (!float_type && os) {
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - new key: %u",  
-		     md->mdhim_rank, *(uint32_t *) key);
 		if (*(uint64_t *)os->min > *(uint64_t *)val1) {
 			free(os->min);
 			stat->min = val1;
@@ -181,11 +179,11 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	}
 
 	if (!os) {
-		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    		
+		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    		
 	} else {
 		stat->num = os->num + 1;
 		//Replace the existing stat
-		HASH_REPLACE_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
+		HASH_REPLACE_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
 		free(os);
 	}
 
@@ -254,7 +252,7 @@ int load_stats(struct mdhim_t *md) {
 		stat->max = max;
 		stat->num = (*(struct mdhim_db_stat **)val)->num;
 		stat->key = **slice;
-		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
+		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
 		free(*val);
 	}
 
@@ -304,11 +302,6 @@ int write_stats(struct mdhim_t *md) {
 
 		dbstat->slice = stat->key;
 		dbstat->num = stat->num;
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Writing stat for slice: %lu with " 
-		     "imin: %lu and imax: %lu, dmin: %Lf, dmax: %Lf, and num: %lu", 
-		     md->mdhim_rank, dbstat->slice, dbstat->imin, 
-		     dbstat->imax, dbstat->dmin, dbstat->dmax, 
-		     dbstat->num);
 		//Write the key to the database		
 		md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_stats, 
 					       &dbstat->slice, sizeof(uint64_t), dbstat, 

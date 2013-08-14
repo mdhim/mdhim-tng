@@ -2398,8 +2398,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			     ((struct mdhim_db_istat *)tstat)->imax, stat->num);
 		}
 		  
-		//Add the stat to our hash table
-		HASH_ADD_ULINT(md->stats, key, stat); 
+		HASH_ADD_INT(md->stats, key, stat); 
 		free(tstat);
 	}
 	

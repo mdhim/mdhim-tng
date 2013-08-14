@@ -16,7 +16,7 @@
 #define RANGE_SERVER_FACTOR 4
 #define MDHIM_MAX_SERVERS 500
 #define MDHIM_MAX_RANGE_KEY 1000000000
-#define MDHIM_MAX_RECS_PER_SLICE 100000
+#define MDHIM_MAX_RECS_PER_SLICE 10000
 //32 bit unsigned integer
 #define MDHIM_INT_KEY 1
 #define MDHIM_LONG_INT_KEY 2
@@ -56,5 +56,6 @@ long double get_str_num(void *key, uint32_t key_len);
 long double get_byte_num(void *key, uint32_t key_len);
 int get_slice_num(struct mdhim_t *md, void *key, int key_len);
 int is_float_key(int type);
+rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int key_len, int op);
 
 #endif
