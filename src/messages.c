@@ -2198,10 +2198,8 @@ int get_stat_flush(struct mdhim_t *md) {
 		stat_size = sizeof(struct mdhim_db_istat);
 	}
 
+	recvbuf = NULL;
 	if (md->mdhim_rs) {
-		//Acquire the work mutex to make sure the stats are not updated
-		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
-	
 		//Get the number stats in our hash table
 		if (md->mdhim_rs->mdhim_store->mdhim_store_stats) {
 			num_items = HASH_COUNT(md->mdhim_rs->mdhim_store->mdhim_store_stats);
@@ -2236,7 +2234,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			     "Error while receiving the number of statistics from each range server", 
 			     md->mdhim_rank);
 			free(recvbuf);
-			return MDHIM_ERROR;
+			goto error;
 		}
 		
 		num_items = 0;
@@ -2249,10 +2247,8 @@ int get_stat_flush(struct mdhim_t *md) {
 		}
 		
 		free(recvbuf);
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
-		     "Going to receive a total of stat items: %d", 
-		     md->mdhim_rank, num_items);
-	
+		recvbuf = NULL;
+
 		//Allocate send buffer
 		sendbuf = malloc(sendsize);		  
 		//Pack the stat data I have by iterating through the stats hash
@@ -2290,7 +2286,7 @@ int get_stat_flush(struct mdhim_t *md) {
 				     md->mdhim_rank);
 				free(sendbuf);
 				free(tstat);
-				return MDHIM_ERROR;
+				goto error;
 			}
 
 			free(tstat);
@@ -2301,6 +2297,9 @@ int get_stat_flush(struct mdhim_t *md) {
 			recvsize = num_items * stat_size;
 			recvbuf = malloc(recvsize);
 			memset(recvbuf, 0, recvsize);
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
+			     "Going to receive a total of stat items: %d", 
+			     md->mdhim_rank, num_items);
 		} else {
 			recvbuf = NULL;
 			recvsize = 0;
@@ -2311,14 +2310,13 @@ int get_stat_flush(struct mdhim_t *md) {
 				      MPI_PACKED, master, md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - " 
 			     "Error while receiving range server info", 
-			     md->mdhim_rank);
-			return MDHIM_ERROR;
+			     md->mdhim_rank);			
+			goto error;
 		}
-	
+
 		free(recvcounts);
 		free(displs);
 		free(sendbuf);		
-		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 	}
 
 	//The master range server broadcasts the number of status it is going to send
@@ -2327,7 +2325,7 @@ int get_stat_flush(struct mdhim_t *md) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - " 
 		     "Error while receiving the number of stats to receive", 
 		     md->mdhim_rank);
-		return MDHIM_ERROR;
+		goto error;
 	}
 
 	MPI_Barrier(md->mdhim_comm);
@@ -2349,8 +2347,7 @@ int get_stat_flush(struct mdhim_t *md) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error while receiving range server info", 
 		     md->mdhim_rank);
-		free(recvbuf);
-		return MDHIM_ERROR;
+		goto error;
 	}
 
 	//Unpack the receive buffer and populate our md->stats hash table
@@ -2364,7 +2361,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			     "Error while unpacking stat data", 
 			     md->mdhim_rank);
 			free(tstat);
-			return MDHIM_ERROR;
+			goto error;
 		}
 
 		//Skip empty slices
@@ -2401,7 +2398,14 @@ int get_stat_flush(struct mdhim_t *md) {
 		HASH_ADD_INT(md->stats, key, stat); 
 		free(tstat);
 	}
-	
+
 	free(recvbuf);
 	return MDHIM_SUCCESS;
+
+error:
+	if (recvbuf) {
+		free(recvbuf);
+	}
+
+	return MDHIM_ERROR;
 }

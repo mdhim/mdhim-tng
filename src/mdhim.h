@@ -71,7 +71,9 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len, 
 			       int op);
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, 
-				 int num_keys);
+				 int num_records);
+struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len, 
+				   int num_records, int op);
 struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len);
 struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 				 int num_keys);

@@ -322,15 +322,15 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	int old_key_len;
 
 	//Init the data to return
-	*((char **) data) = NULL;
+	*data = NULL;
 	*data_len = 0;
 
 	//Create the options and iterator
 	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
 	iter = leveldb_create_iterator(db, options);
-	old_key = (void *) *((char **) key);
+	old_key = (void *) *key;
 	old_key_len = *key_len;
-	*((char **) key) = NULL;
+	*key = NULL;
 	*key_len = 0;
 
 	//If the user didn't supply a key, then seek to the first
@@ -354,17 +354,17 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 
 	res = leveldb_iter_value(iter, (size_t *) &len);
 	if (res) {
-		*((char **) data) = malloc(len);
-		memcpy(*((char **) data), res, len);
+		*data = malloc(len);
+		memcpy(*data, res, len);
 		*data_len = len;
 	}
 	res = leveldb_iter_key(iter, (size_t *) key_len);
 	if (res) {
-		*((char **) key) = malloc(*key_len);
-		memcpy(*((char **) key), res, *key_len);
+		*key = malloc(*key_len);
+		memcpy(*key, res, *key_len);
 	}
 
-	if (!*((char **) data)) {
+	if (!*data) {
 		ret = MDHIM_DB_ERROR;
 	}
 

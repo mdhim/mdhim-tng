@@ -103,7 +103,8 @@ struct mdhim_bgetm_t {
 	int mtype;  
 	int server_rank;
 	int size;
-	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
+	//Operation type i.e, MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
+	int op;
 	void **keys;
 	int *key_lens;
         //Number of records to retrieve

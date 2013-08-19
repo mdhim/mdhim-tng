@@ -401,7 +401,7 @@ int range_server_stop(struct mdhim_t *md) {
 	pthread_join(md->mdhim_rs->listener, NULL);
 	pthread_join(md->mdhim_rs->worker, NULL);
 
-	//Destroy the condition variable
+	//Destroy the condition variables
 	if ((ret = pthread_cond_destroy(md->mdhim_rs->work_ready_cv)) != 0) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work cond variable", 
 		     md->mdhim_rank);
@@ -751,8 +751,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 			error = ret;
 		}
 		break;
-	/* Gets the next key and value that is in order after the passed in key
-	   or the first key if no key was passed in */
+	/* Gets the next key and value that is in order after the passed in key */
 	case MDHIM_GET_NEXT:	
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
@@ -771,6 +770,30 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 							 key, &key_len, value, 
 							 value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
+			     md->mdhim_rank);
+			error = ret;
+		}
+		break;
+	/* Gets the first key/value */
+	case MDHIM_GET_FIRST:
+		key_len = 0;
+		if ((ret = 
+		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
+							 key, &key_len, value, 
+							 value_len, &opts)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
+			     md->mdhim_rank);
+			error = ret;
+		}
+		break;
+	/* Gets the last key/value */
+	case MDHIM_GET_LAST:
+		key_len = 0;
+		if ((ret = 
+		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
+							 key, &key_len, value, 
+							 value_len, &opts)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
@@ -795,11 +818,11 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	if (source == md->mdhim_rank && gm->key_len && op == MDHIM_GET_EQ) {
 		//If this message is coming from myself and a key was sent, copy the key
 		grm->key = malloc(key_len);
-		memcpy(grm->key, *((char **) key), key_len);
+		memcpy(grm->key, *key, key_len);
 	}  else {
 		/* Otherwise, just set the pointer to be the key passed in or found 
 		   (depends on the op) */
-		grm->key = *((char **) key);
+		grm->key = *key;
 	}
 
 	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
@@ -810,7 +833,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	}
 
 	grm->key_len = key_len;
-	grm->value = *((char **)value);
+	grm->value = *value;
 	grm->value_len = *value_len;
 
 	//Send response
@@ -843,11 +866,11 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	struct mdhim_store_opts_t opts;
 
 	set_store_opts(md, &opts);
-	values = malloc(sizeof(void *) * MAX_BULK_OPS);
-	memset(values, 0, sizeof(void *) * MAX_BULK_OPS);
-	value_lens = malloc(sizeof(int) * MAX_BULK_OPS);
-	memset(value_lens, 0, sizeof(int) * MAX_BULK_OPS);
-	//Iterate through the arrays and delete each record
+	values = malloc(sizeof(void *) * bgm->num_records);
+	memset(values, 0, sizeof(void *) * bgm->num_records);
+	value_lens = malloc(sizeof(int) * bgm->num_records);
+	memset(value_lens, 0, sizeof(int) * bgm->num_records);
+	//Iterate through the arrays and get each record
 	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
 		//Get records from the database
 		if ((ret = 
@@ -887,6 +910,118 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_records = bgm->num_records;
+	//Send response
+	ret = send_locally_or_remote(md, source, bgrm);
+
+	return MDHIM_SUCCESS;
+}
+
+/**
+ * range_server_bget_op
+ * Handles the get message given an op and number of records greater than 1
+ * 
+ * @param md        Pointer to the main MDHIM struct
+ * @param gm        pointer to the get message to handle
+ * @param source    source of the message
+ * @param op        operation to perform
+ * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, int op) {
+	int error = 0;
+	void **values;
+	void **keys;
+	int32_t *key_lens;
+	int32_t *value_lens;
+	void **last_key;
+	int32_t key_len, last_key_len;
+	struct mdhim_bgetrm_t *bgrm;
+	int ret;
+	struct mdhim_store_opts_t opts;
+	int i;
+
+	set_store_opts(md, &opts);
+
+	//Initialize pointers and lengths
+	values = malloc(sizeof(void *) * gm->num_records);
+	memset(values, 0, sizeof(void *) * gm->num_records);
+	value_lens = malloc(sizeof(int) * gm->num_records);
+	memset(value_lens, 0, sizeof(int) * gm->num_records);
+	keys = malloc(sizeof(void *) * gm->num_records);
+	memset(keys, 0, sizeof(void *) * gm->num_records);
+	key_lens = malloc(sizeof(int) * gm->num_records);
+	memset(key_lens, 0, sizeof(int) * gm->num_records);
+	last_key = NULL;
+	last_key_len = 0;
+
+	//Iterate through the arrays and get each record
+	for (i = 0; i < gm->num_records && i < MAX_BULK_OPS; i++) {
+		keys[i] = NULL;
+		key_lens[i] = 0;
+
+		//Set our local pointer to the key and length
+		if (!i && gm->key_len && gm->key) {
+			keys[i] = gm->key;
+			key_lens[i] = gm->key_len;			
+		} else {
+			keys[i] = last_key;
+			key_lens[i] = last_key_len;
+		}
+
+		switch(op) {
+		//Get a record from the database
+		case MDHIM_GET_NEXT:	
+			if ((ret = 
+			     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
+								 keys[i], &key_lens[i], 
+								 (void **) (values + i), 
+								 (int32_t *) (value_lens + i), &opts)) 
+			    != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
+				     md->mdhim_rank);
+				error = ret;
+				key_len = 0;
+			}
+			break;
+		case MDHIM_GET_PREV:
+			if ((ret = 
+			     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
+								 keys[i], &key_lens[i], 
+								 (void **) (values + i), 
+								 (int32_t *) (value_lens + i), &opts)) 
+			    != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
+				     md->mdhim_rank);
+				error = ret;
+				key_len = 0;
+			}
+			break;
+		default:
+			break;
+		}
+	
+		last_key = keys[i];
+		last_key_len = key_lens[i];
+	}
+
+       //Create the response message
+	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
+	//Set the type
+	bgrm->mtype = MDHIM_RECV_BULK_GET;
+	//Set the operation return code as the error
+	bgrm->error = error;
+	//Set the server's rank
+	bgrm->server_rank = md->mdhim_rank;
+	bgrm->keys = keys;
+	bgrm->key_lens = key_lens;
+	//Set the key and value
+	if (source != md->mdhim_rank) {
+		//If this message is not coming from myself, free the key in the gm message
+		free(gm->key);
+	}
+
+	bgrm->values = values;
+	bgrm->value_lens = value_lens;
+	bgrm->num_records = gm->num_records;
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
 
@@ -953,6 +1088,7 @@ void *worker_thread(void *data) {
 	work_item *item;
 	int mtype;
 	int op;
+	int num_records;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -997,9 +1133,16 @@ void *worker_thread(void *data) {
 			case MDHIM_GET:
 				//Determine the operation passed and call the appropriate function
 				op = ((struct mdhim_getm_t *) item->message)->op;
-				range_server_get(md, 
-						 item->message, 
-						 item->source, op);
+				num_records = ((struct mdhim_getm_t *) item->message)->num_records;
+				if (num_records > 1 && (op == MDHIM_GET_NEXT || op == MDHIM_GET_PREV)) {
+					range_server_bget_op(md, 
+							 item->message, 
+							 item->source, op);
+				} else {
+					range_server_get(md, 
+							 item->message, 
+							 item->source, op);
+				}
 				break;
 			case MDHIM_BULK_GET:
 				//Determine the operation passed and call the appropriate function
@@ -1131,7 +1274,7 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 
-	//Initialize the condition variable
+	//Initialize the condition variables
 	md->mdhim_rs->work_ready_cv = malloc(sizeof(pthread_cond_t));
 	if (!md->mdhim_rs->work_ready_cv) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 

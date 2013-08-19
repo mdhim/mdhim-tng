@@ -222,6 +222,37 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t **bg
 	return bgrm_head;
 }
 
+/** Send get to range server with an op and number of records greater than one
+ *
+ * @param md main MDHIM struct
+ * @param gm pointer to get message to be sent or inserted into the range server's work queue
+ * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
+ */
+struct mdhim_bgetrm_t *client_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm) {
+
+	int return_code;
+	struct mdhim_bgetrm_t *brm;
+	
+	return_code = send_rangesrv_work(md, gm->server_rank, gm);
+	// If the send did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
+		     "get record request",  md->mdhim_rank, return_code);
+		return NULL;
+	}
+
+	return_code = receive_client_response(md, gm->server_rank, (void **) &brm);
+	// If the receive did not succeed then log the error code and return MDHIM_ERROR
+	if (return_code != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
+		     "get record request",  md->mdhim_rank, return_code);
+		brm->error = MDHIM_ERROR;
+	}
+
+	// Return response message
+	return brm;
+}
+
 /**
  * Send delete to range server
  *

@@ -65,7 +65,15 @@ int main(int argc, char **argv) {
 		printf("Committed MDHIM database\n");
 	}
 
-	//Get the values using get_next
+	//Get the stats
+	ret = mdhimStatFlush(md);
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error getting stats\n");
+	} else {
+		printf("Got stats\n");
+	}
+
+	//Get the values using get_prev
 	for (i = keys_per_rank; i > 0; i--) {
 		value = 0;
 		key = keys_per_rank * md->mdhim_rank + i;

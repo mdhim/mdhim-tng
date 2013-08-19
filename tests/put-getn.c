@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 	int keys_per_rank = 2084;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_CRIT;
+	int      dbug = MLOG_DBG;
 	db_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
 	struct timeval start_tv, end_tv;
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 		if (!rm || rm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
-			//printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
+			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
 		}
 	}
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
-		//printf("Committed MDHIM database\n");
+		printf("Committed MDHIM database\n");
 	}
 
 	//Get the stats
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error getting stats\n");
 	} else {
-		//printf("Got stats\n");
+		printf("Got stats\n");
 	}
 
 	//Get the values using get_next
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 		key = keys_per_rank * md->mdhim_rank + i - 1;
 		if (key < 0) {
 			key = 0;
-			grm = mdhimGet(md, &key, sizeof(int), MDHIM_GET_EQ);				
+			grm = mdhimGet(md, &key, sizeof(int), MDHIM_GET_FIRST);				
 		} else {
 			grm = mdhimGet(md, &key, sizeof(int), MDHIM_GET_NEXT);				
 		}
@@ -91,10 +91,10 @@ int main(int argc, char **argv) {
 			printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
 			       md->mdhim_rank, key);
 		} else if (grm->key && grm->value) {
-			/*	printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
+			printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
 			       md->mdhim_rank,
 			       *((int *) grm->key),
-			       *((int *) grm->value));*/
+			       *((int *) grm->value));
 		}
 	}
 

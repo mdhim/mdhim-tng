@@ -151,7 +151,6 @@ int mdhimClose(struct mdhim_t *md) {
 	struct rangesrv_info *rsrv, *trsrv;
 	struct mdhim_basem_t *cm;
 
-	MPI_Barrier(md->mdhim_comm);
 	//If I'm rank 0, send a close message to every range server to it can stop its thread
 	if (!md->mdhim_rank) {
 		cm = malloc(sizeof(struct mdhim_basem_t));
@@ -160,6 +159,7 @@ int mdhimClose(struct mdhim_t *md) {
 		free(cm);
 	}
 
+	MPI_Barrier(md->mdhim_comm);
 	//Stop range server if I'm a range server	
 	if (im_range_server(md) && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
@@ -306,6 +306,14 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 	int i;
 	rangesrv_info *ri;
 
+	//Check to see that we were given a sane amount of records
+	if (num_records > MAX_BULK_OPS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "To many bulk operations requested in mdhimBGetOp", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
 	//The message to be sent to ourselves if necessary
 	lbpm = NULL;
 	//Create an array of bulk put messages that holds one bulk message per range server
@@ -433,7 +441,8 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	gm->key = key;
 	gm->key_len = key_len;
 	gm->server_rank = ri->rank;
-	
+	gm->num_records = 1;
+
 	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Sending get request to rank: %d", 
 	     md->mdhim_rank, ri->rank);
 	//Test if I'm a range server
@@ -467,6 +476,14 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 	struct mdhim_bgetrm_t *bgrm_head, *lbgrm;
 	int i;
 	rangesrv_info *ri;
+
+	//Check to see that we were given a sane amount of records
+	if (num_records > MAX_BULK_OPS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Too many bulk operations requested in mdhimBGet", 
+		     md->mdhim_rank);
+		return NULL;
+	}
 
 	//The message to be sent to ourselves if necessary
 	lbgm = NULL;
@@ -506,6 +523,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm->num_records = 0;
 			bgm->server_rank = ri->rank;
 			bgm->mtype = MDHIM_BULK_GET;
+			bgm->op = MDHIM_GET_EQ;
 			if (ri->rank != md->mdhim_rank) {
 				bgm_list[ri->rangesrv_num - 1] = bgm;
 			} else {
@@ -539,6 +557,79 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 
 	//Return the head of the list
 	return bgrm_head;
+}
+
+/**
+ * Retrieves multiple sequential records from a single range server if they exist
+ *
+ * @param md           main MDHIM struct
+ * @param key          pointer to the key to start getting next entries from
+ * @param key_len      the length of the key
+ * @param num_records  the number of successive keys to get
+ * @param op           the operation to perform (i.e., MDHIM_GET_NEXT or MDHIM_GET_PREV)
+ * @return mdhim_bgetrm_t * or NULL on error
+ */
+struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len, 
+				   int num_records, int op) {
+  int ret;
+	struct mdhim_getm_t *gm;
+	struct mdhim_bgetrm_t *bgrm;
+	rangesrv_info *ri = NULL;
+
+	if (op != MDHIM_GET_NEXT && op != MDHIM_GET_PREV) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Error while determining range server in mdhimGet", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	if (num_records > MAX_BULK_OPS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "To many bulk operations requested in mdhimBGetOp", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	//Get the range server this key will be sent to
+	ri = get_range_server_from_stats(md, key, key_len, op);
+	if (!ri) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Error while determining range server in mdhimBGetNext", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	gm = malloc(sizeof(struct mdhim_getm_t));
+	if (!gm) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Error while allocating memory in mdhimGet", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	//Initialize the get message
+	gm->mtype = MDHIM_GET;
+	gm->op = op;
+	gm->key = key;
+	gm->key_len = key_len;
+	gm->server_rank = ri->rank;
+	gm->num_records = num_records;
+
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Sending get request to rank: %d", 
+	     md->mdhim_rank, ri->rank);
+	//Test if I'm a range server
+	ret = im_range_server(md);
+
+	//If I'm a range server and I'm the one this key goes to, send the message locally
+	if (ret && md->mdhim_rank == gm->server_rank) {
+		bgrm = local_client_bget_op(md, gm);
+	} else {
+		//Send the message through the network as this message is for another rank
+		bgrm = client_bget_op(md, gm);
+		free(gm);
+	}
+
+	return bgrm;
 }
 
 /**
@@ -609,6 +700,14 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 	struct mdhim_rm_t *rm;
 	int i;
 	rangesrv_info *ri;
+
+	//Check to see that we were given a sane amount of records
+	if (num_records > MAX_BULK_OPS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "To many bulk operations requested in mdhimBGetOp", 
+		     md->mdhim_rank);
+		return NULL;
+	}
 
 	//The message to be sent to ourselves if necessary
 	lbdm = NULL;
@@ -697,6 +796,7 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 int mdhimStatFlush(struct mdhim_t *md) {
 	int ret;
 
+	MPI_Barrier(md->mdhim_comm);	
 	if ((ret = get_stat_flush(md)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while getting MDHIM stat data in mdhimStatFlush", 
