@@ -151,6 +151,7 @@ int mdhimClose(struct mdhim_t *md) {
 	struct rangesrv_info *rsrv, *trsrv;
 	struct mdhim_basem_t *cm;
 
+	MPI_Barrier(md->mdhim_comm);
 	//If I'm rank 0, send a close message to every range server to it can stop its thread
 	if (!md->mdhim_rank) {
 		cm = malloc(sizeof(struct mdhim_basem_t));
@@ -159,7 +160,6 @@ int mdhimClose(struct mdhim_t *md) {
 		free(cm);
 	}
 
-	MPI_Barrier(md->mdhim_comm);
 	//Stop range server if I'm a range server	
 	if (im_range_server(md) && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;

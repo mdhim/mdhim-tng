@@ -867,19 +867,19 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 
 	set_store_opts(md, &opts);
 	values = malloc(sizeof(void *) * bgm->num_records);
-	memset(values, 0, sizeof(void *) * bgm->num_records);
-	value_lens = malloc(sizeof(int) * bgm->num_records);
-	memset(value_lens, 0, sizeof(int) * bgm->num_records);
+	value_lens = malloc(sizeof(int32_t) * bgm->num_records);
+	memset(value_lens, 0, sizeof(int32_t) * bgm->num_records);
 	//Iterate through the arrays and get each record
 	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
-		//Get records from the database
+	  //Get records from the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-						    bgm->keys[i], bgm->key_lens[i], (void **) (values + i), 
-						    (int32_t *) (value_lens + i), &opts)) != MDHIM_SUCCESS) {
+						    bgm->keys[i], bgm->key_lens[i], &values[i], 
+						    &value_lens[i], &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
 			error = ret;
 			value_lens[i] = 0;
+			values[i] = NULL;
 			continue;
 		}	
 	}

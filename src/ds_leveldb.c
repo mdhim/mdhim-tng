@@ -291,17 +291,26 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	char *err = NULL;
 	leveldb_t *db = (leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
+	void *ldb_data;
+	size_t ldb_data_len = 0;
 
 	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
-	*((char **) data) = NULL;
-	*((char **) data) = leveldb_get(db, options, key, key_len, (size_t *) data_len, &err);
+	*data = NULL;
+	ldb_data = leveldb_get(db, options, key, key_len, &ldb_data_len, &err);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
 		return MDHIM_DB_ERROR;
 	}
-	if (!*((char **) data)) {
-		ret = MDHIM_DB_ERROR;
+
+	if (!ldb_data_len) {
+	  ret = MDHIM_DB_ERROR;
+	  leveldb_free(err);        
+	  return ret;
 	}
+
+	*data_len = ldb_data_len;
+	*data = malloc(*data_len);
+	memcpy(*data, ldb_data, *data_len);
 
 	//Reset error variable
 	leveldb_free(err);        
