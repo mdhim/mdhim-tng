@@ -173,6 +173,10 @@ int verify_key(void *key, int key_len, int key_type) {
 	struct mdhim_char *mc;
 	uint64_t ikey = 0;
 
+	if (!key) {
+	  return MDHIM_ERROR;
+	}
+
 	if (key_len > MAX_KEY_LEN) {
 		return MDHIM_ERROR;
 	}

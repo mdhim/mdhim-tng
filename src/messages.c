@@ -2226,7 +2226,7 @@ int get_stat_flush(struct mdhim_t *md) {
 		recvsize = md->num_rangesrvs * sizeof(int);
 		recvbuf = malloc(recvsize);
 		memset(recvbuf, 0, recvsize);
-
+		MPI_Barrier(md->mdhim_rs->rs_comm);
 		//The master server will receive the number of stats each server has
 		if ((ret = MPI_Gather(&num_items, 1, MPI_UNSIGNED, recvbuf, 1,
 				      MPI_INT, master, md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
@@ -2261,10 +2261,10 @@ int get_stat_flush(struct mdhim_t *md) {
 				fstat->dmin = *(long double *) stat->min;
 				fstat->dmax = *(long double *) stat->max;
 				tstat = fstat;
-				mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
+/*				mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
 				     "Going to send stat slice: %lu, min: %Lf, max: %Lf, num: %lu", 
 				     md->mdhim_rank, fstat->slice, fstat->dmin, 
-				     fstat->dmax, fstat->num);
+				     fstat->dmax, fstat->num);*/
 			} else {
 				istat = malloc(sizeof(struct mdhim_db_istat));
 				istat->slice = stat->key;
@@ -2272,10 +2272,10 @@ int get_stat_flush(struct mdhim_t *md) {
 				istat->imin = *(uint64_t *) stat->min;
 				istat->imax = *(uint64_t *) stat->max;
 				tstat = istat;
-				mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
+/*				mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
 				     "Going to send stat slice: %lu, min: %lu, max: %lu, num: %lu", 
 				     md->mdhim_rank, istat->slice, istat->imin, 
-				     istat->imax, istat->num);
+				     istat->imax, istat->num);*/
 			}
 		  
 			//Pack the struct
@@ -2305,6 +2305,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			recvsize = 0;
 		}
 
+		MPI_Barrier(md->mdhim_rs->rs_comm);
 		//The master server will receive the stat info from each rank in the range server comm
 		if ((ret = MPI_Gatherv(sendbuf, sendsize, MPI_PACKED, recvbuf, recvcounts, displs,
 				      MPI_PACKED, master, md->mdhim_rs->rs_comm)) != MPI_SUCCESS) {
@@ -2316,9 +2317,11 @@ int get_stat_flush(struct mdhim_t *md) {
 
 		free(recvcounts);
 		free(displs);
-		free(sendbuf);		
+		free(sendbuf);	
+		MPI_Barrier(md->mdhim_rs->rs_comm);	
 	}
 
+	MPI_Barrier(md->mdhim_comm);
 	//The master range server broadcasts the number of status it is going to send
 	if ((ret = MPI_Bcast(&num_items, 1, MPI_UNSIGNED, md->rangesrv_master,
 			     md->mdhim_comm)) != MPI_SUCCESS) {
@@ -2349,6 +2352,8 @@ int get_stat_flush(struct mdhim_t *md) {
 		     md->mdhim_rank);
 		goto error;
 	}
+
+	MPI_Barrier(md->mdhim_comm);
 
 	//Unpack the receive buffer and populate our md->stats hash table
 	recvidx = 0;

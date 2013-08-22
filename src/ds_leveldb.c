@@ -337,7 +337,7 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	//Create the options and iterator
 	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
 	iter = leveldb_create_iterator(db, options);
-	old_key = (void *) *key;
+	old_key = *key;
 	old_key_len = *key_len;
 	*key = NULL;
 	*key_len = 0;
@@ -358,6 +358,10 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 
 	if (!leveldb_iter_valid(iter)) {
 		mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
+		*key = NULL;
+		*key_len = 0;
+		*data = NULL;
+		*data_len = 0;
 		return MDHIM_DB_ERROR;
 	}
 
@@ -366,11 +370,18 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 		*data = malloc(len);
 		memcpy(*data, res, len);
 		*data_len = len;
+	} else {
+		*data = NULL;
+		*data_len = 0;
 	}
+
 	res = leveldb_iter_key(iter, (size_t *) key_len);
 	if (res) {
 		*key = malloc(*key_len);
 		memcpy(*key, res, *key_len);
+	} else {
+		*key = NULL;
+		*key_len = 0;
 	}
 
 	if (!*data) {

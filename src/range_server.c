@@ -930,10 +930,10 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	int error = 0;
 	void **values;
 	void **keys;
-	int32_t *key_lens;
-	int32_t *value_lens;
-	void **last_key;
-	int32_t key_len, last_key_len;
+	int *key_lens;
+	int *value_lens;
+	void *last_key;
+	int last_key_len;
 	struct mdhim_bgetrm_t *bgrm;
 	int ret;
 	struct mdhim_store_opts_t opts;
@@ -943,11 +943,9 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 
 	//Initialize pointers and lengths
 	values = malloc(sizeof(void *) * gm->num_records);
-	memset(values, 0, sizeof(void *) * gm->num_records);
 	value_lens = malloc(sizeof(int) * gm->num_records);
 	memset(value_lens, 0, sizeof(int) * gm->num_records);
 	keys = malloc(sizeof(void *) * gm->num_records);
-	memset(keys, 0, sizeof(void *) * gm->num_records);
 	key_lens = malloc(sizeof(int) * gm->num_records);
 	memset(key_lens, 0, sizeof(int) * gm->num_records);
 	last_key = NULL;
@@ -969,33 +967,50 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 
 		switch(op) {
 		//Get a record from the database
+		case MDHIM_GET_FIRST:	
+			if (i == 0) {
+				keys[i] = NULL;
+				key_lens[i] = sizeof(int);
+			}
 		case MDHIM_GET_NEXT:	
 			if ((ret = 
 			     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
-								 keys[i], &key_lens[i], 
+								 (void **) (keys + i), (int *) (key_lens + i), 
 								 (void **) (values + i), 
-								 (int32_t *) (value_lens + i), &opts)) 
+								 (int *) (value_lens + i), &opts)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
 				error = ret;
-				key_len = 0;
+				key_lens[i] = 0;
+				value_lens[i] = 0;
+				goto respond;
 			}
 			break;
+		case MDHIM_GET_LAST:	
+			if (i == 0) {
+				keys[i] = NULL;
+				key_lens[i] = sizeof(int);
+			}
 		case MDHIM_GET_PREV:
 			if ((ret = 
 			     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
-								 keys[i], &key_lens[i], 
+								 (void **) (keys + i), (int *) (key_lens + i), 
 								 (void **) (values + i), 
-								 (int32_t *) (value_lens + i), &opts)) 
+								 (int *) (value_lens + i), &opts)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
 				error = ret;
-				key_len = 0;
+				key_lens[i] = 0;
+				value_lens[i] = 0;
+				goto respond;
 			}
 			break;
 		default:
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Invalid operation for bulk get op", 
+			     md->mdhim_rank);
+			goto respond;
 			break;
 		}
 	
@@ -1003,6 +1018,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 		last_key_len = key_lens[i];
 	}
 
+respond:
        //Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
@@ -1134,7 +1150,7 @@ void *worker_thread(void *data) {
 				//Determine the operation passed and call the appropriate function
 				op = ((struct mdhim_getm_t *) item->message)->op;
 				num_records = ((struct mdhim_getm_t *) item->message)->num_records;
-				if (num_records > 1 && (op == MDHIM_GET_NEXT || op == MDHIM_GET_PREV)) {
+				if (num_records > 1) {
 					range_server_bget_op(md, 
 							 item->message, 
 							 item->source, op);

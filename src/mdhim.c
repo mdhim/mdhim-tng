@@ -576,9 +576,9 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
 	struct mdhim_bgetrm_t *bgrm;
 	rangesrv_info *ri = NULL;
 
-	if (op != MDHIM_GET_NEXT && op != MDHIM_GET_PREV) {
+	if (op == MDHIM_GET_EQ) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Error while determining range server in mdhimGet", 
+		     "Invalid operation for mdhimBGetOp", 
 		     md->mdhim_rank);
 		return NULL;
 	}
@@ -802,6 +802,7 @@ int mdhimStatFlush(struct mdhim_t *md) {
 		     "Error while getting MDHIM stat data in mdhimStatFlush", 
 		     md->mdhim_rank);
 	}
+	MPI_Barrier(md->mdhim_comm);	
 
 	return ret;
 }
