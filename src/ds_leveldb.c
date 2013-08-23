@@ -258,8 +258,29 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
     leveldb_writeoptions_t *options;
     char *err = NULL;
     leveldb_t *db = (leveldb_t *) dbh;
+    void *old_data;
+    int32_t old_data_len;
+    void *new_data;
+    int ret;
 
+    old_data_len = 0;
+    old_data = NULL;
+    new_data = NULL;
     options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;
+
+    //If the option to append was specified, see if there is old data and concat the old and new
+    if (mstore_opts->append) {
+	    ret = mdhim_leveldb_get(dbh, key, key_len, &old_data, &old_data_len, 
+				    mstore_opts);
+	    if (ret == MDHIM_SUCCESS && old_data_len > 0) {
+		    new_data = malloc(old_data_len + data_len);
+		    memcpy(new_data, old_data, old_data_len);
+		    memcpy(new_data + old_data_len, data, data_len);
+		    data_len += old_data_len;
+		    data = new_data;
+	    }
+    }
+	    
     leveldb_put(db, options, key, key_len, data, data_len, &err);
     if (err != NULL) {
 	    mlog(MDHIM_SERVER_CRIT, "Error putting key/value in leveldb");
@@ -268,6 +289,9 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
 
     //Reset error variable
     leveldb_free(err);      
+    if (new_data) {
+	    free(new_data);
+    }
 
     return MDHIM_SUCCESS;
 }

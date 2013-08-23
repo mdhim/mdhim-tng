@@ -18,7 +18,7 @@ struct db_options_t *db_options_init()
     opts->db_key_type = 1;
     opts->debug_level = 1;
     opts->db_create_new = 1;
-    
+    opts->db_append = MDHIM_DB_OVERWRITE;
     return opts;
 }
 
@@ -52,3 +52,7 @@ void db_options_set_debug_level(db_options_t* opts, int dbug)
     opts->debug_level = dbug;
 };
 
+void db_options_set_append(db_options_t* opts, int append)
+{
+    opts->db_append = append;
+};

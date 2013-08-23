@@ -420,7 +420,14 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 		ri = get_range_server_from_stats(md, key, key_len, op);
 	}
 
-	if (!ri) {
+	if (!ri && op != MDHIM_GET_EQ) {
+		mlog(MDHIM_CLIENT_INFO, "MDHIM Rank: %d - " 
+		     "Key not available based on current stats information.", 
+		     md->mdhim_rank);
+		grm = malloc(sizeof(struct mdhim_getrm_t));
+		memset(grm, 0, sizeof(struct mdhim_getrm_t));
+		return grm;
+	} else if (!ri) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while determining range server in mdhimGet", 
 		     md->mdhim_rank);
@@ -593,10 +600,12 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
 	//Get the range server this key will be sent to
 	ri = get_range_server_from_stats(md, key, key_len, op);
 	if (!ri) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Error while determining range server in mdhimBGetNext", 
+		mlog(MDHIM_CLIENT_INFO, "MDHIM Rank: %d - " 
+		     "Key not available based on current stats information.", 
 		     md->mdhim_rank);
-		return NULL;
+		bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
+		memset(bgrm, 0, sizeof(struct mdhim_bgetrm_t));
+		return bgrm;
 	}
 
 	gm = malloc(sizeof(struct mdhim_getm_t));

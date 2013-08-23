@@ -86,6 +86,11 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
 	opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr2;
 	opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr3;
 	opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr4;
+	if (md->db_opts->db_append == MDHIM_DB_APPEND) {
+		opts->append = 1;
+	} else {
+		opts->append = 0;
+	}
 }
 
 /**
@@ -930,10 +935,10 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	int error = 0;
 	void **values;
 	void **keys;
-	int *key_lens;
-	int *value_lens;
+	int32_t *key_lens;
+	int32_t *value_lens;
 	void *last_key;
-	int last_key_len;
+	int32_t last_key_len;
 	struct mdhim_bgetrm_t *bgrm;
 	int ret;
 	struct mdhim_store_opts_t opts;
@@ -943,11 +948,11 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 
 	//Initialize pointers and lengths
 	values = malloc(sizeof(void *) * gm->num_records);
-	value_lens = malloc(sizeof(int) * gm->num_records);
-	memset(value_lens, 0, sizeof(int) * gm->num_records);
+	value_lens = malloc(sizeof(int32_t) * gm->num_records);
+	memset(value_lens, 0, sizeof(int32_t) * gm->num_records);
 	keys = malloc(sizeof(void *) * gm->num_records);
-	key_lens = malloc(sizeof(int) * gm->num_records);
-	memset(key_lens, 0, sizeof(int) * gm->num_records);
+	key_lens = malloc(sizeof(int32_t) * gm->num_records);
+	memset(key_lens, 0, sizeof(int32_t) * gm->num_records);
 	last_key = NULL;
 	last_key_len = 0;
 
@@ -970,14 +975,14 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 		case MDHIM_GET_FIRST:	
 			if (i == 0) {
 				keys[i] = NULL;
-				key_lens[i] = sizeof(int);
+				key_lens[i] = sizeof(int32_t);
 			}
 		case MDHIM_GET_NEXT:	
 			if ((ret = 
 			     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
-								 (void **) (keys + i), (int *) (key_lens + i), 
+								 (void **) (keys + i), (int32_t *) (key_lens + i), 
 								 (void **) (values + i), 
-								 (int *) (value_lens + i), &opts)) 
+								 (int32_t *) (value_lens + i), &opts)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
@@ -990,14 +995,14 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 		case MDHIM_GET_LAST:	
 			if (i == 0) {
 				keys[i] = NULL;
-				key_lens[i] = sizeof(int);
+				key_lens[i] = sizeof(int32_t);
 			}
 		case MDHIM_GET_PREV:
 			if ((ret = 
 			     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
-								 (void **) (keys + i), (int *) (key_lens + i), 
+								 (void **) (keys + i), (int32_t *) (key_lens + i), 
 								 (void **) (values + i), 
-								 (int *) (value_lens + i), &opts)) 
+								 (int32_t *) (value_lens + i), &opts)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
