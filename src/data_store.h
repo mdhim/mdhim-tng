@@ -118,7 +118,6 @@ struct mdhim_store_opts_t {
 	void *db_ptr2;
 	void *db_ptr3;
 	void *db_ptr4;
-	int append;
 };
 
 //Initializes the data store based on the type given (i.e., UNQLITE, LEVELDB, etc...)

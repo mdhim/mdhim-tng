@@ -45,7 +45,7 @@
 #define RANGESRV_INFO        2
 #define CLIENT_RESPONSE_MSG  3
 
-#define MAX_BULK_OPS 100
+#define MAX_BULK_OPS 100000
 
 //Maximum size of messages allowed
 #define MDHIM_MAX_MSG_SIZE 1048576 //At most send/receive 1MB per message

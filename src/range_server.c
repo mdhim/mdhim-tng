@@ -86,11 +86,6 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
 	opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr2;
 	opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr3;
 	opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr4;
-	if (md->db_opts->db_append == MDHIM_DB_APPEND) {
-		opts->append = 1;
-	} else {
-		opts->append = 0;
-	}
 }
 
 /**
@@ -469,6 +464,10 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	void **value;
 	int32_t *value_len;
 	int exists = 0;
+	void *new_value;
+	int32_t new_value_len;
+	void *old_value;
+	int32_t old_value_len;
 
 	set_store_opts(md, &opts);
 	value = malloc(sizeof(void *));
@@ -483,16 +482,28 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	//The key already exists
 	if (*value && *value_len) {
 		exists = 1;
-		free(*value);
 	}
 
+        //If the option to append was specified and there is old data, concat the old and new
+	if (exists &&  md->db_opts->db_append == MDHIM_DB_APPEND) {
+		old_value = *value;
+		old_value_len = *value_len;
+		new_value_len = old_value_len + im->value_len;
+		new_value = malloc(new_value_len);
+		memcpy(new_value, old_value, old_value_len);
+		memcpy(new_value + old_value_len, im->value, im->value_len);
+	} else {
+		new_value = im->value;
+		new_value_len = im->value_len;
+	}
+    
 	free(value);
 	free(value_len);
         //Put the record in the database
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
-					im->key, im->key_len, im->value, 
-					im->value_len, &opts)) != MDHIM_SUCCESS) {
+					    im->key, im->key_len, new_value, 
+					    new_value_len, &opts)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	
 		error = ret;
@@ -516,6 +527,10 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
 
+	if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
+		free(new_value);
+	}
+
 	return MDHIM_SUCCESS;
 }
 
@@ -537,6 +552,10 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	void **value;
 	int32_t *value_len;
 	int exists = 0;
+	void *new_value;
+	int32_t new_value_len;
+	void *old_value;
+	int32_t old_value_len;
 
 	set_store_opts(md, &opts);
 	//Iterate through the arrays and insert each record
@@ -552,14 +571,26 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		//The key already exists
 		if (*value && *value_len) {
 			exists = 1;
-			free(*value);
+		}
+
+		//If the option to append was specified and there is old data, concat the old and new
+		if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
+			old_value = *value;
+			old_value_len = *value_len;
+			new_value_len = old_value_len + bim->value_lens[i];
+			new_value = malloc(new_value_len);
+			memcpy(new_value, old_value, old_value_len);
+			memcpy(new_value + old_value_len, bim->values[i], bim->value_lens[i]);
+		} else {
+			new_value = bim->values[i];
+			new_value_len = bim->value_lens[i];
 		}
 
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
-						bim->keys[i], bim->key_lens[i], bim->values[i], 
-						bim->value_lens[i], &opts)) != MDHIM_SUCCESS) {
+						bim->keys[i], bim->key_lens[i], new_value, 
+						new_value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -567,6 +598,10 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 
 		if (!exists && error == MDHIM_SUCCESS) {
 			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
+		}
+
+		if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
+			free(new_value);
 		}
 	}
 
