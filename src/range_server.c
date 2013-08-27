@@ -114,15 +114,16 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 		val2 = (void *) malloc(sizeof(uint64_t));
 	}
 
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - updating all stats with float key: %d ", md->mdhim_rank, float_type);
 	if (md->key_type == MDHIM_STRING_KEY) {
 		*(long double *)val1 = get_str_num(key, key_len);
 		*(long double *)val2 = *(long double *)val1;
 	} else if (md->key_type == MDHIM_FLOAT_KEY) {
 		*(long double *)val1 = *(float *) key;
-		*(long double *)val2 = *(float *)val1;
+		*(long double *)val2 = *(float *) key;
 	} else if (md->key_type == MDHIM_DOUBLE_KEY) {
 		*(long double *)val1 = *(double *) key;
-		*(long double *)val2 = *(double *)val1;
+		*(long double *)val2 = *(double *) key;
 	} else if (md->key_type == MDHIM_INT_KEY) {
 		*(uint64_t *)val1 = *(uint32_t *) key;
 		*(uint64_t *)val2 = *(uint32_t *) key;
@@ -135,7 +136,7 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	} 
 
 	slice_num = get_slice_num(md, key, key_len);
-	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
+	HASH_FIND_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
 
 	stat = malloc(sizeof(struct mdhim_stat));
 	stat->min = val1;
@@ -179,11 +180,11 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	}
 
 	if (!os) {
-		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    		
-	} else {
+		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    
+	} else {	
 		stat->num = os->num + 1;
 		//Replace the existing stat
-		HASH_REPLACE_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
+		HASH_REPLACE_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
 		free(os);
 	}
 
@@ -229,7 +230,7 @@ int load_stats(struct mdhim_t *md) {
 			continue;
 		}
 
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Loaded stat for slice: %lu with " 
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Loaded stat for slice: %lu with " 
 		     "imin: %lu and imax: %lu, dmin: %Lf, dmax: %Lf, and num: %lu", 
 		     md->mdhim_rank, **slice, (*(struct mdhim_db_stat **)val)->imin, 
 		     (*(struct mdhim_db_stat **)val)->imax, (*(struct mdhim_db_stat **)val)->dmin, 
@@ -252,7 +253,7 @@ int load_stats(struct mdhim_t *md) {
 		stat->max = max;
 		stat->num = (*(struct mdhim_db_stat **)val)->num;
 		stat->key = **slice;
-		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
+		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
 		free(*val);
 	}
 
@@ -511,6 +512,8 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 
 	if (!exists && error == MDHIM_SUCCESS) {
 		update_all_stats(md, im->key, im->key_len);
+	}else {
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - not updating all stats", md->mdhim_rank);
 	}
 
 	//Create the response message
@@ -800,7 +803,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
-		}
+		}	
 		break;
 	/* Gets the previous key and value that is in order before the passed in key
 	   or the last key if no key was passed in */

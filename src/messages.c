@@ -64,6 +64,16 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
 		return MDHIM_ERROR;
 	}
 
+	//Send the size of the message
+	return_code = MPI_Send(&sendsize, 1, MPI_INT, dest, RANGESRV_WORK_SIZE_MSG, 
+			       md->mdhim_comm);
+	if (return_code != MPI_SUCCESS) {
+		mlog(MPI_CRIT, "Rank: %d - " 
+		     "Error sending work size message in send_rangesrv_work", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
 	//Send the message
 	return_code = MPI_Send(sendbuf, sendsize, MPI_PACKED, dest, RANGESRV_WORK_MSG, 
 			       md->mdhim_comm);
@@ -94,29 +104,31 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 	void **sendbufs;
 	int sendsize = 0;
 	int mtype;
-	MPI_Request **reqs;
+	MPI_Request **reqs, **size_reqs;
 	MPI_Request *req;
 	int num_msgs;
-	int i, ret, flag, done, num_sent;
+	int i, ret, flag, done;
 	void *mesg;
 	MPI_Status status;
 	int dest;
 
 	ret = MDHIM_SUCCESS;
-	num_msgs = md->num_rangesrvs;
-	reqs = malloc(sizeof(MPI_Request *) * num_msgs);
-	memset(reqs, 0, sizeof(MPI_Request *) * num_msgs);
-	sendbufs = malloc(sizeof(void *) * num_msgs);
-	memset(sendbufs, 0, sizeof(void *) * num_msgs);
-	num_sent = 0;
+	num_msgs = 0;
+	reqs = malloc(sizeof(MPI_Request *) * md->num_rangesrvs);
+	size_reqs = malloc(sizeof(MPI_Request *) * md->num_rangesrvs);
+	memset(reqs, 0, sizeof(MPI_Request *) * md->num_rangesrvs);
+	memset(size_reqs, 0, sizeof(MPI_Request *) * md->num_rangesrvs);
+	sendbufs = malloc(sizeof(void *) * md->num_rangesrvs);
+	memset(sendbufs, 0, sizeof(void *) * md->num_rangesrvs);
 	done = 0;
 
 	//Send all messages at once
-	for (i = 0; i < num_msgs; i++) {
+	for (i = 0; i < md->num_rangesrvs; i++) {
 		mesg = *(messages + i);
 		if (!mesg) {
 			continue;
 		}
+
 		mtype = ((struct mdhim_basem_t *) mesg)->mtype;
 		dest = ((struct mdhim_basem_t *) mesg)->server_rank;
 		//Pack the work message in into sendbuf and set sendsize
@@ -143,25 +155,47 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 			ret = MDHIM_ERROR;
 		}
 				
-		sendbufs[i] = sendbuf;
+		sendbufs[num_msgs] = sendbuf;
 		req = malloc(sizeof(MPI_Request));
-		return_code = MPI_Isend(sendbuf, sendsize, MPI_PACKED, dest, RANGESRV_WORK_MSG, 
+		size_reqs[num_msgs] = req;
+		return_code = MPI_Isend(&sendsize, 1, MPI_INT, dest, RANGESRV_WORK_SIZE_MSG, 
 					md->mdhim_comm, req);
 		if (return_code != MPI_SUCCESS) {
-			free(req);
-			reqs[i] = NULL;
 			mlog(MPI_CRIT, "Rank: %d - " 
 			     "Error sending work message in send_rangesrv_work", 
 			     md->mdhim_rank);
 			ret = MDHIM_ERROR;
-		} else {
-			reqs[i] = req;
-			num_sent++;
+		} 
+
+		req = malloc(sizeof(MPI_Request));
+		reqs[num_msgs] = req;
+		return_code = MPI_Isend(sendbuf, sendsize, MPI_PACKED, dest, RANGESRV_WORK_MSG, 
+					md->mdhim_comm, req);
+		if (return_code != MPI_SUCCESS) {
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Error sending work message in send_rangesrv_work", 
+			     md->mdhim_rank);
+			ret = MDHIM_ERROR;
 		}
+
+		num_msgs++;
 	}
 	
 	//Wait for messages to complete
-	while (done != num_sent) {
+	while (done != num_msgs * 2) {
+		for (i = 0; i < num_msgs; i++) {
+			req = size_reqs[i];
+			if (!req) {
+				continue;
+			}
+			
+			MPI_Test(req, &flag, &status);
+			if (flag) {
+				free(req);
+				size_reqs[i] = NULL;
+				done++;
+			}		
+		}
 		for (i = 0; i < num_msgs; i++) {
 			req = reqs[i];
 			if (!req) {
@@ -176,7 +210,9 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 			}		
 		}
 		
-		usleep(200);
+		if (done != num_msgs * 2) {
+			usleep(200);
+		}
 	}
 
 	for (i = 0; i < num_msgs; i++) {
@@ -187,6 +223,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 	}
 
 	free(sendbufs);
+	free(size_reqs);
 	free(reqs);
 
 	return ret;
@@ -207,6 +244,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	int msg_size;
 	int msg_source;
 	void *recvbuf;
+	int recvsize;
 	int mtype;
 	struct mdhim_basem_t *bm;
 	int mesg_idx = 0;
@@ -215,10 +253,30 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	int ret = MDHIM_SUCCESS;
 
 	// Receive a message from any client
-	recvbuf = (void *) malloc(MDHIM_MAX_MSG_SIZE);	
 	flag = 0;
-	return_code = MPI_Irecv(recvbuf, MDHIM_MAX_MSG_SIZE, MPI_PACKED, MPI_ANY_SOURCE, RANGESRV_WORK_MSG, 
+	return_code = MPI_Irecv(&recvsize,1, MPI_INT, MPI_ANY_SOURCE, RANGESRV_WORK_SIZE_MSG, 
 			       md->mdhim_comm, &req);
+	// If the receive did not succeed then return the error code back
+	if ( return_code != MPI_SUCCESS ) {
+             	mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: %d "
+                     "receive size message failed.", md->mdhim_rank, return_code);
+		return MDHIM_ERROR;
+	}
+
+	while (!flag) {
+		return_code = MPI_Test(&req, &flag, &status);	
+		usleep(100);
+	}
+	if (return_code == MPI_ERR_IN_STATUS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
+                     " while receiving work message size", md->mdhim_rank, status.MPI_ERROR);
+	}
+
+	recvbuf = (void *) malloc(recvsize);	
+	flag = 0;
+	return_code = MPI_Irecv(recvbuf, recvsize, MPI_PACKED, status.MPI_SOURCE, 
+				RANGESRV_WORK_MSG, md->mdhim_comm, &req);
+
 	// If the receive did not succeed then return the error code back
 	if ( return_code != MPI_SUCCESS ) {
              	mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: %d "
@@ -227,10 +285,13 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 		return MDHIM_ERROR;
 	}
 	while (!flag) {
-		MPI_Test(&req, &flag, &status);	
+		return_code = MPI_Test(&req, &flag, &status);	
 		usleep(100);
 	}
-
+	if (return_code == MPI_ERR_IN_STATUS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
+                     " while receiving work message size", md->mdhim_rank, status.MPI_ERROR);
+	}
 	if (!recvbuf) {
 		return MDHIM_ERROR;
 	}
@@ -240,7 +301,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	*message = NULL;
 	//Unpack buffer to get the message type
 	bm = malloc(sizeof(struct mdhim_basem_t));
-	return_code = MPI_Unpack(recvbuf, MDHIM_MAX_MSG_SIZE, &mesg_idx, bm, 
+	return_code = MPI_Unpack(recvbuf, recvsize, &mesg_idx, bm, 
 				 sizeof(struct mdhim_basem_t), MPI_CHAR, 
 				 md->mdhim_comm);
 	mtype = bm->mtype;
@@ -335,12 +396,21 @@ int send_client_response(struct mdhim_t *md, int dest, void *message) {
 	mlog(MPI_DBG, "Rank: %d - " 
 	     "Sending response message to: %d", 
 	     md->mdhim_rank, dest);
+	//Send the size message
+	return_code = MPI_Send(&sendsize, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE_MSG, 
+			       md->mdhim_comm);
+	if (return_code != MPI_SUCCESS) {
+		mlog(MPI_CRIT, "Rank: %d - " 
+		     "Error sending client response message size in send_client_response", 
+		     md->mdhim_rank);
+		ret = MDHIM_ERROR;
+	}
 	//Send the actual message
 	return_code = MPI_Send(sendbuf, sendsize, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
 				md->mdhim_comm);
 	if (return_code != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
-		     "Error sending work message in send_client_response", 
+		     "Error sending client response message in send_client_response", 
 		     md->mdhim_rank);
 		ret = MDHIM_ERROR;
 	}
@@ -368,8 +438,17 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	void *recvbuf;
 	struct mdhim_basem_t *bm;
 
-	recvbuf = malloc(MDHIM_MAX_MSG_SIZE);
-	return_code = MPI_Recv(recvbuf, MDHIM_MAX_MSG_SIZE, MPI_PACKED, src, CLIENT_RESPONSE_MSG, 
+	return_code = MPI_Recv(&msg_size, 1, MPI_INT, src, CLIENT_RESPONSE_SIZE_MSG, 
+			       md->mdhim_comm, &status);
+	// If the receive did not succeed then return the error code back
+	if ( return_code != MPI_SUCCESS ) {
+		mlog(MPI_CRIT, "Rank: %d - " 
+		     "Error receiving message in receive_client_response", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+	recvbuf = malloc(msg_size);
+	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, src, CLIENT_RESPONSE_MSG, 
 			       md->mdhim_comm, &status);
 
 	// If the receive did not succeed then return the error code back
@@ -388,7 +467,7 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	*message = NULL;
 	bm = malloc(sizeof(struct mdhim_basem_t));
 	//Unpack buffer to get the message type
-	return_code = MPI_Unpack(recvbuf, MDHIM_MAX_MSG_SIZE, &mesg_idx, bm, 
+	return_code = MPI_Unpack(recvbuf, msg_size, &mesg_idx, bm, 
 				 sizeof(struct mdhim_basem_t), MPI_CHAR, 
 				 md->mdhim_comm);
 	mtype = bm->mtype;
@@ -436,27 +515,74 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 	int mtype;
 	int mesg_idx = 0;
 	void *recvbuf, **recvbufs;
+	int *sizebuf;
 	struct mdhim_basem_t *bm;
 	int i;
 	int ret = MDHIM_SUCCESS;
 	MPI_Request **reqs, *req;
-	int num_sent = 0;
 	int done = 0;
 	int flag = 0;
 	int msg_size;
 
+	sizebuf = malloc(sizeof(int) * nsrcs);
+	memset(sizebuf, 0, sizeof(int));
 	reqs = malloc(nsrcs * sizeof(MPI_Request *));
 	memset(reqs, 0, nsrcs * sizeof(MPI_Request *));
 	recvbufs = malloc(nsrcs * sizeof(void *));
 	memset(recvbufs, 0, nsrcs * sizeof(void *));
-	done = num_sent = 0;
+	done =  0;
+	for (i = 0; i < nsrcs; i++) {
+	// Receive a size message from the servers in the list	
+		req = malloc(sizeof(MPI_Request));
+		reqs[i] = req;
+		return_code = MPI_Irecv(&sizebuf[i], 1, MPI_INT, 
+					srcs[i], CLIENT_RESPONSE_SIZE_MSG, 
+				       md->mdhim_comm, req);
+		
+		// If the receive did not succeed then return the error code back
+		if ( return_code != MPI_SUCCESS ) {
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Error receiving message in receive_client_response", 
+			     md->mdhim_rank);
+			ret = MDHIM_ERROR;
+		}
+	}
+
+	//Wait for size messages to complete
+	while (done != nsrcs) {
+		for (i = 0; i < nsrcs; i++) {
+			req = reqs[i];
+			if (!req) {
+				continue;
+			}
+			
+			return_code = MPI_Test(req, &flag, &status); 
+			if (return_code == MPI_ERR_IN_STATUS) {
+				mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
+				     " while receiving client response message size", 
+				     md->mdhim_rank, status.MPI_ERROR);
+			}
+			if (!flag) {
+			  continue;
+			}
+			free(req);
+			reqs[i] = NULL;
+			done++;		
+		}
+
+		if (done != nsrcs) {
+			usleep(200);
+		}
+	}
+
+	done = 0;
 	for (i = 0; i < nsrcs; i++) {
 	// Receive a message from the servers in the list	
-		recvbuf = malloc(MDHIM_MAX_MSG_SIZE);
+		recvbuf = malloc(sizebuf[i]);
 		recvbufs[i] = recvbuf;
 		req = malloc(sizeof(MPI_Request));
 		reqs[i] = req;
-		return_code = MPI_Irecv(recvbuf, MDHIM_MAX_MSG_SIZE, MPI_PACKED, 
+		return_code = MPI_Irecv(recvbuf, sizebuf[i], MPI_PACKED, 
 					srcs[i], CLIENT_RESPONSE_MSG, 
 				       md->mdhim_comm, req);
 		
@@ -467,19 +593,21 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 			     md->mdhim_rank);
 			ret = MDHIM_ERROR;
 		}
-
-		num_sent++;				
 	}
 
 	//Wait for messages to complete
-	while (done != num_sent) {
+	while (done != nsrcs) {
 		for (i = 0; i < nsrcs; i++) {
 			req = reqs[i];
 			if (!req) {
 				continue;
 			}
 			
-			MPI_Test(req, &flag, &status);				
+			return_code = MPI_Test(req, &flag, &status);				
+			if (return_code == MPI_ERR_IN_STATUS) {
+				mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
+				     " while receiving work message size", md->mdhim_rank, status.MPI_ERROR);
+			}
 			if (!flag) {
 			  continue;
 			}
@@ -488,7 +616,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 			done++;		
 		}
 
-		if (done != num_sent) {
+		if (done != nsrcs) {
 			usleep(200);
 		}
 	}
@@ -501,7 +629,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		bm = malloc(sizeof(struct mdhim_basem_t));
 		//Unpack buffer to get the message type
 		mesg_idx = 0;
-		return_code = MPI_Unpack(recvbuf, MDHIM_MAX_MSG_SIZE, &mesg_idx, bm, 
+		return_code = MPI_Unpack(recvbuf, sizebuf[i], &mesg_idx, bm, 
 					 sizeof(struct mdhim_basem_t), MPI_CHAR, 
 					 md->mdhim_comm);
 		mtype = bm->mtype;
@@ -534,6 +662,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 	}
 
 	free(recvbufs);
+	free(sizebuf);
 
 	return ret;
 }

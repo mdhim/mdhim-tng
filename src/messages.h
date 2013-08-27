@@ -41,9 +41,11 @@
 #define MDHIM_GET_LAST   4
 
 //Message Types
-#define RANGESRV_WORK_MSG    1
-#define RANGESRV_INFO        2
-#define CLIENT_RESPONSE_MSG  3
+#define RANGESRV_WORK_MSG         1
+#define RANGESRV_WORK_SIZE_MSG    2
+#define RANGESRV_INFO             3
+#define CLIENT_RESPONSE_MSG       4
+#define CLIENT_RESPONSE_SIZE_MSG  5
 
 #define MAX_BULK_OPS 100000
 

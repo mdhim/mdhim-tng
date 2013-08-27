@@ -67,6 +67,11 @@ struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t **bpm_l
 		num_srvs++;
 	}
 
+	if (!num_srvs) {
+	  free(srvs);
+	  return NULL;
+	}
+
 	return_code = send_all_rangesrv_work(md, (void **) bpm_list);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
@@ -174,6 +179,11 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t **bg
 
 		srvs[num_srvs] = bgm_list[i]->server_rank;
 		num_srvs++;
+	}
+
+	if (!num_srvs) {
+	  free(srvs);
+	  return NULL;
 	}
 
 	return_code = send_all_rangesrv_work(md, (void **) bgm_list);

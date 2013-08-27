@@ -523,7 +523,7 @@ struct mdhim_stat *get_next_slice_stat(struct mdhim_t *md, int slice_num) {
 		
 		if (stat->key > slice_num && !next_slice) {
 			next_slice = stat;
-		} else if (stat->key > slice_num && stat->key < next_slice->key) {
+		} else if (next_slice && stat->key > slice_num && stat->key < next_slice->key) {
 			next_slice = stat;
 		}
 	}
@@ -545,7 +545,7 @@ struct mdhim_stat *get_prev_slice_stat(struct mdhim_t *md, int slice_num) {
 		
 		if (stat->key < slice_num && !prev_slice) {
 			prev_slice = stat;
-		} else if (stat->key < slice_num && stat->key > prev_slice->key) {
+		} else if (prev_slice && stat->key < slice_num && stat->key > prev_slice->key) {
 			prev_slice = stat;
 		}
 	}
@@ -606,7 +606,7 @@ int get_slice_from_fstat(struct mdhim_t *md, int cur_slice, long double fstat, i
 	}
 
 	//Get the stat struct for our current slice
-	HASH_FIND_INT(md->stats, &cur_slice, cur_stat);
+	HASH_FIND_ULINT(md->stats, &cur_slice, cur_stat);
 
 	switch(op) {
 	case MDHIM_GET_NEXT:
@@ -663,16 +663,11 @@ int get_slice_from_istat(struct mdhim_t *md, int cur_slice, uint64_t istat, int 
 
 	new_stat = cur_stat = NULL;
 	//Get the stat struct for our current slice
-	HASH_FIND_INT(md->stats, &cur_slice, cur_stat);
+	HASH_FIND_ULINT(md->stats, &cur_slice, cur_stat);
 
 	switch(op) {
 	case MDHIM_GET_NEXT:
-		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Get next slice istat with curslice: %d and istat: %lu", 
-		     md->mdhim_rank, cur_slice, istat);
 		if (cur_stat && *(uint64_t *)cur_stat->max > istat) {
-			mlog(MDHIM_CLIENT_INFO, "Rank: %d - Have cur stat and max: %lu is greater than: %lu" 
-			     " slice is still: %d", 
-			     md->mdhim_rank, *(uint64_t *)cur_stat->max , istat, cur_slice);
 			slice_num = cur_slice;
 			goto done;
 		} else {
