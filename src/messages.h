@@ -47,10 +47,10 @@
 #define CLIENT_RESPONSE_MSG       4
 #define CLIENT_RESPONSE_SIZE_MSG  5
 
-#define MAX_BULK_OPS 100000
+#define MAX_BULK_OPS 1000
 
 //Maximum size of messages allowed
-#define MDHIM_MAX_MSG_SIZE 1048576 //At most send/receive 1MB per message
+#define MDHIM_MAX_MSG_SIZE 104857600 //At most send/receive 1MB per message
 struct mdhim_t;
 
 /* Base message */
