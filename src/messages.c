@@ -2499,7 +2499,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			stat->key = ((struct mdhim_db_fstat *)tstat)->slice;
 			stat->num = ((struct mdhim_db_fstat *)tstat)->num;
 			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
-			     "Retrieved stat for slice: %lu, min: %Lf, max: %Lf, num: %lu", 
+			     "Retrieved stat for slice: %d, min: %Lf, max: %Lf, num: %lu", 
 			     md->mdhim_rank, stat->key, ((struct mdhim_db_fstat *)tstat)->dmin, 
 			     ((struct mdhim_db_fstat *)tstat)->dmax, stat->num);
 		} else {
@@ -2510,7 +2510,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			stat->key = ((struct mdhim_db_istat *)tstat)->slice;
 			stat->num = ((struct mdhim_db_istat *)tstat)->num;
 			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
-			     "Retrieved stat for slice: %lu, min: %lu, max: %lu, num: %lu", 
+			     "Retrieved stat for slice: %d, min: %lu, max: %lu, num: %lu", 
 			     md->mdhim_rank, stat->key, ((struct mdhim_db_istat *)tstat)->imin, 
 			     ((struct mdhim_db_istat *)tstat)->imax, stat->num);
 		}

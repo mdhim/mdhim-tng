@@ -335,7 +335,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
  */
 int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	//The number that maps a key to range server (dependent on key type)
-	uint64_t slice_num;
+	int slice_num;
 	//The range server number that we return
 	float fkey;
 	double dkey;
@@ -606,7 +606,7 @@ int get_slice_from_fstat(struct mdhim_t *md, int cur_slice, long double fstat, i
 	}
 
 	//Get the stat struct for our current slice
-	HASH_FIND_ULINT(md->stats, &cur_slice, cur_stat);
+	HASH_FIND_INT(md->stats, &cur_slice, cur_stat);
 
 	switch(op) {
 	case MDHIM_GET_NEXT:
@@ -663,7 +663,7 @@ int get_slice_from_istat(struct mdhim_t *md, int cur_slice, uint64_t istat, int 
 
 	new_stat = cur_stat = NULL;
 	//Get the stat struct for our current slice
-	HASH_FIND_ULINT(md->stats, &cur_slice, cur_stat);
+	HASH_FIND_INT(md->stats, &cur_slice, cur_stat);
 
 	switch(op) {
 	case MDHIM_GET_NEXT:
@@ -767,7 +767,11 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int ke
 	if (float_type) {
 		slice_num = get_slice_from_fstat(md, cur_slice, fstat, op);
 	} else {
+		mlog(MDHIM_CLIENT_INFO, "Rank: %d - istat is: %lu", 
+		     md->mdhim_rank, istat);
 		slice_num = get_slice_from_istat(md, cur_slice, istat, op);
+		mlog(MDHIM_CLIENT_INFO, "Rank: %d - got slice %d", 
+		     md->mdhim_rank, slice_num);
 	}
 
        	if (!slice_num) {	

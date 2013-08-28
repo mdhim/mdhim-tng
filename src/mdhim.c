@@ -422,8 +422,8 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 
 	if (!ri && op != MDHIM_GET_EQ) {
 		mlog(MDHIM_CLIENT_INFO, "MDHIM Rank: %d - " 
-		     "Key not available based on current stats information.", 
-		     md->mdhim_rank);
+		     "Key: %lu not available based on current stats information.", 
+		     md->mdhim_rank, *(uint64_t *) key);
 		grm = malloc(sizeof(struct mdhim_getrm_t));
 		memset(grm, 0, sizeof(struct mdhim_getrm_t));
 		return grm;

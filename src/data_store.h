@@ -51,7 +51,7 @@ typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 
 //Used for storing stats in a hash table
 struct mdhim_stat {
-	uint64_t key;              //Key (slice number)
+	int key;              //Key (slice number)
 	void *max;                 //Max key
 	void *min;                 //Min key
 	uint64_t num;              //Number of keys in this slice
@@ -61,7 +61,7 @@ struct mdhim_stat {
 
 //Used for storing stats in the database
 struct mdhim_db_stat {
-	uint64_t slice;                   
+	int slice;                   
 	uint64_t imax;
 	uint64_t imin;
 	long double dmax;
@@ -71,7 +71,7 @@ struct mdhim_db_stat {
 
 //Used for transmitting integer stats to all nodes
 struct mdhim_db_istat {
-	uint64_t slice;                   
+	int slice;                   
 	uint64_t num;
 	uint64_t imax;
 	uint64_t imin;
@@ -79,7 +79,7 @@ struct mdhim_db_istat {
 
 //Used for transmitting float stats to all nodes
 struct mdhim_db_fstat {
-	uint64_t slice;                   
+	int slice;                   
 	uint64_t num;
 	long double dmax;
 	long double dmin;

@@ -29,24 +29,6 @@ int im_range_server(struct mdhim_t *md) {
 	
 	return 0;
 }
-
-uint64_t my_next_slice(struct mdhim_t *md, uint64_t cur_slice) {
-	uint64_t ret = 0;
-
-	if (!cur_slice) {
-		ret = md->mdhim_rs->info.rangesrv_num;
-	} else {
-		ret = md->num_rangesrvs + cur_slice;
-	}
-
-	if ((ret * MDHIM_MAX_RECS_PER_SLICE < cur_slice * MDHIM_MAX_RECS_PER_SLICE) || 
-	    (ret * MDHIM_MAX_RECS_PER_SLICE > MDHIM_MAX_RANGE_KEY)) {
-		ret = 0;
-	}
-
-	return ret;
-}
-
 /**
  * send_locally_or_remote
  * Sends the message remotely or locally
@@ -101,7 +83,7 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
-	uint64_t slice_num;
+	int slice_num;
 	void *val1, *val2;
 	int float_type = 0;
 	struct mdhim_stat *os, *stat;
@@ -136,7 +118,7 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	} 
 
 	slice_num = get_slice_num(md, key, key_len);
-	HASH_FIND_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
+	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
 
 	stat = malloc(sizeof(struct mdhim_stat));
 	stat->min = val1;
@@ -180,11 +162,11 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	}
 
 	if (!os) {
-		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    
+		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat);    
 	} else {	
 		stat->num = os->num + 1;
 		//Replace the existing stat
-		HASH_REPLACE_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
+		HASH_REPLACE_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat, os);  
 		free(os);
 	}
 
@@ -202,17 +184,17 @@ int load_stats(struct mdhim_t *md) {
 	void **val;
 	int *val_len, *key_len;
 	struct mdhim_store_opts_t opts;
-	uint64_t **slice;
+	int **slice;
 	struct mdhim_stat *stat;
 	int float_type = 0;
 	void *min, *max;
 	int done = 0;
 
 	float_type = is_float_key(md->key_type);
-	slice = malloc(sizeof(uint64_t *));
+	slice = malloc(sizeof(int *));
 	*slice = NULL;
 	key_len = malloc(sizeof(int));
-	*key_len = sizeof(uint64_t);
+	*key_len = sizeof(int);
 	val = malloc(sizeof(struct mdhim_db_stat *));	
 	val_len = malloc(sizeof(int));
 	set_store_opts(md, &opts);
@@ -230,7 +212,7 @@ int load_stats(struct mdhim_t *md) {
 			continue;
 		}
 
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Loaded stat for slice: %lu with " 
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Loaded stat for slice: %d with " 
 		     "imin: %lu and imax: %lu, dmin: %Lf, dmax: %Lf, and num: %lu", 
 		     md->mdhim_rank, **slice, (*(struct mdhim_db_stat **)val)->imin, 
 		     (*(struct mdhim_db_stat **)val)->imax, (*(struct mdhim_db_stat **)val)->dmin, 
@@ -253,7 +235,7 @@ int load_stats(struct mdhim_t *md) {
 		stat->max = max;
 		stat->num = (*(struct mdhim_db_stat **)val)->num;
 		stat->key = **slice;
-		HASH_ADD_ULINT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
+		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
 		free(*val);
 	}
 
@@ -305,7 +287,7 @@ int write_stats(struct mdhim_t *md) {
 		dbstat->num = stat->num;
 		//Write the key to the database		
 		md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_stats, 
-					       &dbstat->slice, sizeof(uint64_t), dbstat, 
+					       &dbstat->slice, sizeof(int), dbstat, 
 					       sizeof(struct mdhim_db_stat), &opts);	
 		//Delete and free hash entry
 		HASH_DEL(md->mdhim_rs->mdhim_store->mdhim_store_stats, stat); 
