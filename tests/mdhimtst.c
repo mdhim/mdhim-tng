@@ -55,7 +55,7 @@ char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 //An arbitrary sized key
 #define MDHIM_BYTE_KEY 7  */
 
-#define TEST_BUFLEN              2048
+#define TEST_BUFLEN              4096
 
 static FILE * logfile;
 static FILE * infile;
@@ -64,6 +64,10 @@ int to_log = 0;
 // MDHIM_INT_KEY=1, MDHIM_LONG_INT_KEY=2, MDHIM_FLOAT_KEY=3, MDHIM_DOUBLE_KEY=4
 // MDHIM_LONG_DOUBLE_KEY=5, MDHIM_STRING_KEY=6, MDHIM_BYTE_KEY=7 
 int key_type = 1;  // Default "int"
+
+#define MAX_ERR_REPORT 50
+static char *errMsgs[MAX_ERR_REPORT];
+static int errMsgIdx = 0;
 
 static char *getOpLabel[] = { "MDHIM_GET_EQ", "MDHIM_GET_NEXT", "MDHIM_GET_PREV",
                               "MDHIM_GET_FIRST", "MDHIM_GET_LAST"};
@@ -74,12 +78,31 @@ static char *getOpLabel[] = { "MDHIM_GET_EQ", "MDHIM_GET_NEXT", "MDHIM_GET_PREV"
 
 #include <stdarg.h>
 
+// Add to error message list
+static void addErrorMessage(char *msg)
+{
+    // Max number of error messages reached ignore the rest, but still increment count
+    if (errMsgIdx > MAX_ERR_REPORT)
+        errMsgIdx++;
+    else
+        errMsgs[errMsgIdx++] = msg;
+}
+
 static void tst_say(
-char * format,
+int err, char * format,
 ...
 )
 {
     va_list ap;
+    
+    if (err)
+    {
+        char *errMsg = (char *)malloc(sizeof(char)* TEST_BUFLEN);
+        va_start( ap, format );
+        vsnprintf(errMsg, TEST_BUFLEN, format, ap);
+        addErrorMessage(errMsg);
+        va_end(ap);
+    }
     
     /*
      * use fprintf to give out the text
@@ -256,17 +279,32 @@ void usage(void)
 	exit (8);
 }
 
+// Release the memory used in a Bulk request. If values/value_lens not present just use NULL
+void freeKeyValueMem(int nkeys, void **keys, int *key_lens, char **values, int *value_lens)
+{
+    int i;
+    for (i = 0; i < nkeys; i++)
+    {
+        if (keys[i]) free(keys[i]);
+        if (values && value_lens && value_lens[i] && values[i]) free(values[i]);
+    }
+    if (key_lens) free(key_lens);	
+    if (keys) free(keys);
+    if (value_lens) free(value_lens);
+    if (values) free(values);
+}
+
 //======================================FLUSH============================
 static void execFlush(char *command, struct mdhim_t *md, int charIdx)
 {
-        //Get the stats
-	int ret = mdhimStatFlush(md);
+    //Get the stats
+    int ret = mdhimStatFlush(md);
 
-	if (ret != MDHIM_SUCCESS) {
-		tst_say("Error executing flush.\n");
-	} else {
-		tst_say("FLush executed successfully.\n");
-	}
+    if (ret != MDHIM_SUCCESS) {
+        tst_say(1, "Error executing flush.\n");
+    } else {
+        tst_say(0, "Flush executed successfully.\n");
+    }
         
 }
 
@@ -284,7 +322,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
     char value [ TEST_BUFLEN ];
     int ret;
     
-    if (verbose) tst_say( "# put key data\n" );
+    if (verbose) tst_say(0, "# put key data\n" );
     charIdx = getWordFromString( command, str_key, charIdx);
     // Get value to store
     charIdx = getWordFromString( command, buffer2, charIdx);
@@ -296,61 +334,61 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
         case MDHIM_INT_KEY:
              i_key = atoi(str_key) * (md->mdhim_rank + 1);
              sprintf(key_string, "%d", i_key);
-             if (verbose) tst_say( "# mdhimPut( %s, %s) [int]\n", key_string, value );
+             if (verbose) tst_say(0, "# mdhimPut( %s, %s) [int]\n", key_string, value );
              rm = mdhimPut(md, &i_key, sizeof(i_key), value, strlen(value)+1);
              break;
              
         case MDHIM_LONG_INT_KEY:
              l_key = atol(str_key) * (md->mdhim_rank + 1);
              sprintf(key_string, "%ld", l_key);
-             if (verbose) tst_say( "# mdhimPut( %s, %s) [long]\n", key_string, value );
+             if (verbose) tst_say(0, "# mdhimPut( %s, %s) [long]\n", key_string, value );
              rm = mdhimPut(md, &l_key, sizeof(l_key), value, strlen(value)+1);
              break;
 
         case MDHIM_FLOAT_KEY:
             f_key = atof( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%f", f_key);
-            if (verbose) tst_say( "# mdhimPut( %s, %s ) [float]\n", key_string, value );
+            if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", key_string, value );
             rm = mdhimPut(md, &f_key, sizeof(f_key), value, strlen(value)+1);
             break;
             
        case MDHIM_DOUBLE_KEY:
             d_key = atof( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%e", d_key);
-            if (verbose) tst_say( "# mdhimPut( %s, %s ) [double]\n", key_string, value );
+            if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", key_string, value );
             rm = mdhimPut(md, &d_key, sizeof(d_key), value, strlen(value)+1);
             break;
                                      
         case MDHIM_STRING_KEY:
         case MDHIM_BYTE_KEY:
              sprintf(key_string, "%s0%d", str_key, (md->mdhim_rank + 1));
-             if (verbose) tst_say( "# mdhimPut( %s, %s) [string|byte]\n", key_string, value );
+             if (verbose) tst_say(0, "# mdhimPut( %s, %s) [string|byte]\n", key_string, value );
              rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, strlen(value)+1);
              break;
              
         default:
-            tst_say("Error, unrecognized Key_type in execPut\n");
+            tst_say(1, "Error, unrecognized Key_type in execPut\n");
     }
 
     // Report any error(s)
     if (!rm || rm->error)
     {
-        tst_say("Error putting key: %s with value: %s into MDHIM\n", key_string, value);
+        tst_say(1, "Error putting key: %s with value: %s into MDHIM\n", key_string, value);
     }
     else
     {
-        tst_say("Successfully put key/value into MDHIM\n");
+        tst_say(0, "Successfully put key/value into MDHIM\n");
     }
     
     //Commit the database
     ret = mdhimCommit(md);
     if (ret != MDHIM_SUCCESS)
     {
-        tst_say("Error committing put key: %s to MDHIM database\n", key_string);
+        tst_say(1, "Error committing put key: %s to MDHIM database\n", key_string);
     }
     else
     {
-        tst_say("Committed put to MDHIM database\n");
+        if (verbose) tst_say(0, "Committed put to MDHIM database\n");
     }
 
 }
@@ -371,7 +409,7 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
     char key_string [ TEST_BUFLEN ];
     int getOp, newIdx;
     
-    if (verbose) tst_say( "# get key getOperator\n" );
+    if (verbose) tst_say(0, "# get key getOperator\n" );
 
     charIdx = getWordFromString( command, str_key, charIdx);
     newIdx = getWordFromString( command, buffer2, charIdx);
@@ -392,53 +430,111 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
        case MDHIM_INT_KEY:
             i_key = atoi( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%d", i_key);
-            if (verbose) tst_say( "# mdhimGet( %s, %s ) [int]\n", key_string, getOpLabel[getOp]);
+            if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [int]\n", key_string, getOpLabel[getOp]);
             grm = mdhimGet(md, &i_key, sizeof(i_key), getOp);
+            
+            if (!grm || grm->error)
+            {
+                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
+            else if (grm->key && grm->value)
+            {
+                tst_say(0, "Successfully got value: %s for key [int](%s): %d from MDHIM\n", 
+                        (char *) grm->value, getOpLabel[getOp], *((int *) grm->key));
+            }
+            else
+            {
+                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
             break;
             
        case MDHIM_LONG_INT_KEY:
             l_key = atol( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%ld", l_key);
-            if (verbose) tst_say( "# mdhimGet( %s, %s ) [long]\n", key_string, getOpLabel[getOp]);
+            if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [long]\n", key_string, getOpLabel[getOp]);
             grm = mdhimGet(md, &l_key, sizeof(l_key), getOp);
+            
+            if (!grm || grm->error)
+            {
+                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
+            else if (grm->key && grm->value)
+            {
+                tst_say(0, "Successfully got value: %s for key [long](%s): %ld from MDHIM\n", 
+                        (char *) grm->value, getOpLabel[getOp], *((long *) grm->key));
+            }
+            else
+            {
+                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
             break;
             
        case MDHIM_FLOAT_KEY:
             f_key = atof( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%f", f_key);
-            if (verbose) tst_say( "# mdhimGet( %s, %s ) [float]\n", key_string, getOpLabel[getOp]);
+            if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [float]\n", key_string, getOpLabel[getOp]);
             grm = mdhimGet(md, &f_key, sizeof(f_key), getOp);
+            
+            if (!grm || grm->error)
+            {
+                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
+            else if (grm->key && grm->value)
+            {
+                tst_say(0, "Successfully got value: %s for key [float](%s): %f from MDHIM\n", 
+                        (char *) grm->value, getOpLabel[getOp], *((float *) grm->key));
+            }
+            else
+            {
+                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
             break;
             
        case MDHIM_DOUBLE_KEY:
             d_key = atof( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%e", d_key);
-            if (verbose) tst_say( "# mdhimGet( %s, %s ) [double]\n", key_string, getOpLabel[getOp]);
+            if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [double]\n", key_string, getOpLabel[getOp]);
             grm = mdhimGet(md, &d_key, sizeof(d_key), getOp);
+            
+            if (!grm || grm->error)
+            {
+                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
+            else if (grm->key && grm->value)
+            {
+                tst_say(0, "Successfully got value: %s for key [double](%s): %e from MDHIM\n", 
+                        (char *) grm->value, getOpLabel[getOp], *((double *) grm->key));
+            }
+            else
+            {
+                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
             break;
                         
        case MDHIM_STRING_KEY:
        case MDHIM_BYTE_KEY:
             sprintf(key_string, "%s0%d", str_key, (md->mdhim_rank + 1));
-            if (verbose) tst_say( "# mdhimGet( %s, %s ) [string|byte]\n", key_string, getOpLabel[getOp]);
+            if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [string|byte]\n", key_string, getOpLabel[getOp]);
             grm = mdhimGet(md, (void *)key_string, strlen(key_string), getOp);
+            
+            if (!grm || grm->error)
+            {
+                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
+            else if (grm->key && grm->value)
+            {
+                tst_say(0, "Successfully got value: %s for key [string|byte](%s): %s from MDHIM\n", 
+                        (char *) grm->value, getOpLabel[getOp], grm->key);
+            }
+            else
+            {
+                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
+            }
             break;
  
        default:
-            tst_say("Error, unrecognized Key_type in execGet\n");
+            tst_say(1, "Error, unrecognized Key_type in execGet\n");
     }
-    
-    // Report any error(s)
-    if (!grm || grm->error)
-    {
-        tst_say("Error getting value for key (%s): %s from MDHIM\n", getOpLabel[getOp], key_string);
-    }
-    else 
-    {
-        tst_say("Successfully got value: %s for key (%s): %s from MDHIM\n", 
-                (char *) grm->value, getOpLabel[getOp], key_string);
-    }
-
 }
 
 //======================================BPUT============================
@@ -455,7 +551,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     int *key_lens;
     char **values;
     int *value_lens;    
-    if (verbose) tst_say( "# bput n key data\n" );
+    if (verbose) tst_say(0, "# bput n key data\n" );
 
     // Number of keys to generate
     charIdx = getWordFromString( command, buffer1, charIdx);
@@ -470,7 +566,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     // starting data value
     charIdx = getWordFromString( command, value, charIdx);
 
-    if (verbose) tst_say( "# mdhimBPut(%d, %s, %s )\n", nkeys, str_key, value );
+    if (verbose) tst_say(0, "# mdhimBPut(%d, %s, %s )\n", nkeys, str_key, value );
 
     // Allocate memory and size of key (size of string|byte key will be modified
     // when the key is constructed.)
@@ -520,7 +616,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
                 {
                     int **i_keys = (int **)keys;
                     *i_keys[i] = (atoi( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating int key (to insert): "
+                    if (verbose) tst_say(0, "Rank: %d - Creating int key (to insert): "
                             "%d with value: %s\n", 
                             md->mdhim_rank, *i_keys[i], values[i]);
                 }
@@ -530,7 +626,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
                 {
                     long **l_keys = (long **)keys;
                     *l_keys[i] = (atol( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating long key (to insert): "
+                    if (verbose) tst_say(0, "Rank: %d - Creating long key (to insert): "
                             "%ld with value: %s\n", 
                             md->mdhim_rank, *l_keys[i], values[i]);
                 }
@@ -540,7 +636,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
                 {
                     float **f_keys = (float **)keys;
                     *f_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating float key (to insert): "
+                    if (verbose) tst_say(0, "Rank: %d - Creating float key (to insert): "
                             "%f with value: %s\n", 
                             md->mdhim_rank, *f_keys[i], values[i]);
                  }
@@ -550,7 +646,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
                 {
                    double **d_keys = (double **)keys;
                    *d_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                   if (verbose) tst_say("Rank: %d - Creating double key (to insert): "
+                   if (verbose) tst_say(0, "Rank: %d - Creating double key (to insert): "
                            "%e with value: %s\n", 
                             md->mdhim_rank, *d_keys[i], values[i]);
                 }
@@ -563,7 +659,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
                     s_keys[i] = malloc(size_of * TEST_BUFLEN);
                     sprintf(s_keys[i], "%s0%d0%d", str_key, (md->mdhim_rank + 1), (i + 1));
                     key_lens[i] = strlen(s_keys[i]);
-                    if (verbose) tst_say("Rank: %d - Creating string|byte key "
+                    if (verbose) tst_say(0, "Rank: %d - Creating string|byte key "
                             "(to insert): %s with value: %s\n", 
                             md->mdhim_rank, (char *)s_keys[i], values[i]);
                 }
@@ -574,18 +670,19 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     //Insert the keys into MDHIM
     brm = mdhimBPut(md, keys, key_lens, (void **) values, value_lens, nkeys);
     brmp = brm;
+    ret = 0;
     if (!brm || brm->error)
     {
-        tst_say("Rank - %d: Error bulk inserting keys/values into MDHIM\n", 
+        tst_say(1, "Rank - %d: Error bulk inserting keys/values into MDHIM\n", 
                     md->mdhim_rank);
+        ret = 1;
     }
     
-    ret = 0;
     while (brmp)
     {
         if (brmp->error < 0)
         {
-            tst_say("Rank: %d - Error bulk inserting key/values info MDHIM\n", 
+            tst_say(1, "Rank: %d - Error bulk inserting key/values info MDHIM\n", 
                         md->mdhim_rank);
             ret = 1;
         }
@@ -599,7 +696,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     // if NO errors report success
     if (!ret)
     {
-        tst_say("Rank: %d - Successfully bulk inserted key/values into MDHIM\n", 
+        tst_say(0, "Rank: %d - Successfully bulk inserted key/values into MDHIM\n", 
                         md->mdhim_rank);
     }
 
@@ -607,12 +704,15 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     ret = mdhimCommit(md);
     if (ret != MDHIM_SUCCESS)
     {
-        tst_say("Error committing bput to MDHIM database\n");
+        tst_say(1, "Error committing bput to MDHIM database\n");
     }
     else
     {
-        tst_say("Committed bput to MDHIM database\n");
+        if (verbose) tst_say(0, "Committed bput to MDHIM database\n");
     }
+    
+    // Release memory
+    freeKeyValueMem(nkeys, keys, key_lens, values, value_lens);
 }
         
 //======================================BGET============================
@@ -621,11 +721,12 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
     int nkeys = 100;
     char buffer1 [ TEST_BUFLEN ];
     char str_key [ TEST_BUFLEN ];
-    if (verbose) tst_say( "# bget n key\n" );
+    if (verbose) tst_say(0, "# bget n key\n" );
     struct mdhim_bgetrm_t *bgrm, *bgrmp;
     int i, size_of, ret;
     void **keys;
     int *key_lens;
+    int totRecds;
     
     // Get the number of records to create for bget
     charIdx = getWordFromString( command, buffer1, charIdx);
@@ -636,7 +737,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
     // Get the key to use as starting point
     charIdx = getWordFromString( command, str_key, charIdx);
 
-    if (verbose) tst_say( "# mdhimBGet(%d, %s)\n", nkeys, str_key );
+    if (verbose) tst_say(0, "# mdhimBGet(%d, %s)\n", nkeys, str_key );
 
     // Allocate memory and size of key (size of string|byte key will be modified
     // when the key is constructed.)
@@ -682,7 +783,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
                 {
                     int **i_keys = (int **)keys;
                     *i_keys[i] = (atoi( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating int key (to get): %d\n", 
+                    if (verbose) tst_say(0, "Rank: %d - Creating int key (to get): %d\n", 
                                          md->mdhim_rank, *i_keys[i]);
                 }
                 break;
@@ -691,7 +792,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
                 {
                     long **l_keys = (long **)keys;
                     *l_keys[i] = (atol( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating long key (to get): %ld\n", 
+                    if (verbose) tst_say(0, "Rank: %d - Creating long key (to get): %ld\n", 
                                          md->mdhim_rank, *l_keys[i]);
                 }
                 break;
@@ -700,7 +801,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
                 {
                     float **f_keys = (float **)keys;
                     *f_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating float key (to get): %f\n", 
+                    if (verbose) tst_say(0, "Rank: %d - Creating float key (to get): %f\n", 
                                          md->mdhim_rank, *f_keys[i]);
                 }
                 break;
@@ -709,7 +810,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
                 {
                     double **d_keys = (double **)keys;
                     *d_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating double key (to get): "
+                    if (verbose) tst_say(0, "Rank: %d - Creating double key (to get): "
                                          " %e\n", md->mdhim_rank, *d_keys[i]);
                 }
                 break; 
@@ -721,13 +822,13 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
                     s_keys[i] = malloc(size_of * TEST_BUFLEN);
                     sprintf(s_keys[i], "%s0%d0%d", str_key, (md->mdhim_rank + 1), (i + 1));
                     key_lens[i] = strlen(s_keys[i]);
-                    if (verbose) tst_say("Rank: %d - Creating string|byte key (to get):"
+                    if (verbose) tst_say(0, "Rank: %d - Creating string|byte key (to get):"
                                          " %s\n", md->mdhim_rank, s_keys[i]);
                 }
                 break;
   
            default:
-                tst_say("Error, unrecognized Key_type in execBGet\n");
+                tst_say(1, "Error, unrecognized Key_type in execBGet\n");
                 return;
         }
             		
@@ -736,32 +837,43 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
     //Get the values back for each key retrieved
     bgrm = mdhimBGet(md, keys, key_lens, nkeys);
     ret = 0; // Used to determine if any errors are encountered
+    
+    totRecds = 0;
     bgrmp = bgrm;
     while (bgrmp) {
-            if (bgrmp->error < 0)
-            {
-                tst_say("Rank: %d - Error retrieving values\n", 
-                        md->mdhim_rank);
-            }
+        if (bgrmp->error < 0)
+        {
+            tst_say(1, "Rank: %d - Error retrieving values\n", 
+                    md->mdhim_rank);
+            ret = 1;
+        }
 
-            for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++)
-            {
-                if (verbose) tst_say("Rank: %d - got value[%d]: %s\n", 
-                             md->mdhim_rank, i, (char *)bgrmp->values[i]);
-            }
+        totRecds += bgrmp->num_records;
+        for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++)
+        {
+            if (verbose) tst_say(0, "Rank: %d - got value[%d]: %s\n", 
+                         md->mdhim_rank, i, (char *)bgrmp->values[i]);
+        }
 
-            bgrmp = bgrmp->next;
-            //Free the message received
-            mdhim_full_release_msg(bgrm);
-            bgrm = bgrmp;
+        bgrmp = bgrmp->next;
+        //Free the message received
+        mdhim_full_release_msg(bgrm);
+        bgrm = bgrmp;
     }
     
     // if NO errors report success
     if (!ret)
     {
-        tst_say("Rank: %d - Successfully bulk retrieved key/values from MDHIM\n", 
+        if (totRecds)
+            tst_say(0, "Rank: %d - Successfully bulk retrieved %d key/values from MDHIM\n", 
+                        md->mdhim_rank, totRecds);
+        else
+            tst_say(1, "Rank: %d - got no records for bulk retrieved from MDHIM\n", 
                         md->mdhim_rank);
     }
+    
+    // Release memory
+    freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
 }
         
 //======================================DEL============================
@@ -775,7 +887,7 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
     char key_string [ TEST_BUFLEN ];
     struct mdhim_rm_t *rm;
 
-    if (verbose) tst_say( "# del key\n" );
+    if (verbose) tst_say(0, "# del key\n" );
 
     charIdx = getWordFromString( command, str_key, charIdx);
     
@@ -784,49 +896,49 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
        case MDHIM_INT_KEY:
             i_key = atoi( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%d", i_key);
-            if (verbose) tst_say( "# mdhimDelete( %s ) [int]\n", key_string);
+            if (verbose) tst_say(0, "# mdhimDelete( %s ) [int]\n", key_string);
             rm = mdhimDelete(md, &i_key, sizeof(i_key));
             break;
             
        case MDHIM_LONG_INT_KEY:
             l_key = atol( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%ld", l_key);
-            if (verbose) tst_say( "# mdhimDelete( %s ) [long]\n", key_string);
+            if (verbose) tst_say(0, "# mdhimDelete( %s ) [long]\n", key_string);
             rm = mdhimDelete(md, &l_key, sizeof(l_key));
             break;
             
        case MDHIM_FLOAT_KEY:
             f_key = atof( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%f", f_key);
-            if (verbose) tst_say( "# mdhimDelete( %s ) [float]\n", key_string);
+            if (verbose) tst_say(0, "# mdhimDelete( %s ) [float]\n", key_string);
             rm = mdhimDelete(md, &f_key, sizeof(f_key));
             break;
             
        case MDHIM_DOUBLE_KEY:
             d_key = atof( str_key ) * (md->mdhim_rank + 1);
             sprintf(key_string, "%e", d_key);
-            if (verbose) tst_say( "# mdhimDelete( %s ) [double]\n", key_string);
+            if (verbose) tst_say(0, "# mdhimDelete( %s ) [double]\n", key_string);
             rm = mdhimDelete(md, &d_key, sizeof(d_key));
             break;
                         
        case MDHIM_STRING_KEY:
        case MDHIM_BYTE_KEY:
             sprintf(key_string, "%s0%d", str_key, (md->mdhim_rank + 1));
-            if (verbose) tst_say( "# mdhimDelete( %s ) [string|byte]\n", key_string);
+            if (verbose) tst_say(0, "# mdhimDelete( %s ) [string|byte]\n", key_string);
             rm = mdhimDelete(md, (void *)key_string, strlen(key_string));
             break;
  
        default:
-            tst_say("Error, unrecognized Key_type in execDelete\n");
+            tst_say(1, "Error, unrecognized Key_type in execDelete\n");
     }
 
     if (!rm || rm->error)
     {
-        tst_say("Error deleting key/value from MDHIM. key: %s\n", key_string);
+        tst_say(1, "Error deleting key/value from MDHIM. key: %s\n", key_string);
     }
     else
     {
-        tst_say("Successfully deleted key/value from MDHIM. key: %s\n", key_string);
+        tst_say(0, "Successfully deleted key/value from MDHIM. key: %s\n", key_string);
     }
 
 }
@@ -842,7 +954,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     struct mdhim_brm_t *brm, *brmp;
     int i, size_of, ret;
     
-    if (verbose) tst_say( "# bdel n key\n" );
+    if (verbose) tst_say(0, "# bdel n key\n" );
     
     // Number of records to delete
     charIdx = getWordFromString( command, buffer1, charIdx);
@@ -852,7 +964,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     // Starting key value
     charIdx = getWordFromString( command, str_key, charIdx);
 
-    if (verbose) tst_say( "# mdhimBDelete(%d, %s )\n", nkeys, str_key );
+    if (verbose) tst_say(0, "# mdhimBDelete(%d, %s )\n", nkeys, str_key );
     
     // Allocate memory and size of key (size of string|byte key will be modified
     // when the key is constructed.)
@@ -897,7 +1009,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
                 {
                     int **i_keys = (int **)keys;
                     *i_keys[i] = (atoi( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating int key (to delete): %d\n", 
+                    if (verbose) tst_say(0, "Rank: %d - Creating int key (to delete): %d\n", 
                                          md->mdhim_rank, *i_keys[i]);
                 }
                 break;
@@ -906,7 +1018,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
                 {
                     long **l_keys = (long **)keys;
                     *l_keys[i] = (atol( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating long key (to delete): %ld\n", 
+                    if (verbose) tst_say(0, "Rank: %d - Creating long key (to delete): %ld\n", 
                                          md->mdhim_rank, *l_keys[i]);
                 }
                 break;
@@ -915,7 +1027,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
                 {
                     float **f_keys = (float **)keys;
                     *f_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating float key (to delete): %f\n", 
+                    if (verbose) tst_say(0, "Rank: %d - Creating float key (to delete): %f\n", 
                                          md->mdhim_rank, *f_keys[i]);
                 }
                 break;
@@ -924,7 +1036,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
                 {
                     double **d_keys = (double **)keys;
                     *d_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
-                    if (verbose) tst_say("Rank: %d - Creating double key (to delete): "
+                    if (verbose) tst_say(0, "Rank: %d - Creating double key (to delete): "
                                          " %e\n", md->mdhim_rank, *d_keys[i]);
                 }
                 break; 
@@ -936,13 +1048,13 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
                     s_keys[i] = malloc(size_of * TEST_BUFLEN);
                     sprintf(s_keys[i], "%s0%d0%d", str_key, (md->mdhim_rank + 1), (i + 1));
                     key_lens[i] = strlen(s_keys[i]); 
-                    if (verbose) tst_say("Rank: %d - Creating string|byte key (to delete):"
+                    if (verbose) tst_say(0, "Rank: %d - Creating string|byte key (to delete):"
                                          " %s\n", md->mdhim_rank, s_keys[i]);
                 }
                 break;
   
            default:
-                tst_say("Error, unrecognized Key_type in execBDel\n");
+                tst_say(1, "Error, unrecognized Key_type in execBDel\n");
                 return;
         }
             
@@ -952,7 +1064,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     brm = mdhimBDelete(md, (void **) keys, key_lens, nkeys);
     brmp = brm;
     if (!brm || brm->error) {
-            tst_say("Rank - %d: Error deleting keys/values from MDHIM\n", 
+            tst_say(1, "Rank - %d: Error deleting keys/values from MDHIM\n", 
                     md->mdhim_rank);
     } 
     
@@ -961,7 +1073,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     {
             if (brmp->error < 0)
             {
-                    tst_say("Rank: %d - Error deleting keys\n", md->mdhim_rank);
+                    tst_say(1, "Rank: %d - Error deleting keys\n", md->mdhim_rank);
                     ret = 1;
             }
 
@@ -974,10 +1086,12 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     // if NO errors report success
     if (!ret)
     {
-        tst_say("Rank: %d - Successfully bulk deleted key/values from MDHIM\n", 
+        tst_say(0, "Rank: %d - Successfully bulk deleted key/values from MDHIM\n", 
                         md->mdhim_rank);
     }
 
+    // Release memory
+    freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
 }
 
 /**
@@ -1183,7 +1297,7 @@ int main( int argc, char * argv[] )
         errno = 0;
         getLine( commands[cmdIdx]);
         
-        if (verbose) tst_say( "\n##command %d: %s\n", cmdIdx, commands[cmdIdx]);
+        if (verbose) tst_say(0, "\n##command %d: %s\n", cmdIdx, commands[cmdIdx]);
         
         // Is this the last/quit command?
         if( commands[cmdIdx][0] == 'q' || commands[cmdIdx][0] == 'Q' )
@@ -1202,7 +1316,7 @@ int main( int argc, char * argv[] )
         
         charIdx = getWordFromString( commands[cmdIdx], command, 0);
 
-        if (verbose) tst_say( "\n##exec command: %s\n", command );
+        if (verbose) tst_say(0, "\n##exec command: %s\n", command );
         begin = clock();
         
         // execute the command given
@@ -1258,18 +1372,31 @@ int main( int argc, char * argv[] )
         
         end = clock();
         time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-        tst_say("Seconds to %s : %f\n\n", commands[cmdIdx], time_spent);
+        tst_say(0, "Seconds to %s : %f\n\n", commands[cmdIdx], time_spent);
     }
-    
-    fclose(logfile);
     
     // Calls to finalize mdhim session and close MPI-communication
     ret = mdhimClose(md);
     if (ret != MDHIM_SUCCESS)
     {
-        tst_say("Error closing MDHIM\n");
+        tst_say(1, "Error closing MDHIM\n");
     }
-
+    
+    if (errMsgIdx)
+    {
+        int i;
+        for (i=0; i<MAX_ERR_REPORT && i<errMsgIdx; i++)
+            tst_say(0, "==ERROR for rank: %d, %s", md->mdhim_rank, errMsgs[i]);
+        tst_say(0, "==TOTAL ERRORS for rank: %d => %d (first %d shown)\n", 
+               md->mdhim_rank, errMsgIdx, i);
+    }
+    else
+    {
+        tst_say(0, "\n==No errors for rank: %d\n", md->mdhim_rank);
+    }
+    
+    fclose(logfile);
+    
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
 
