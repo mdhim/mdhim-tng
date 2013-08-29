@@ -2515,7 +2515,14 @@ int get_stat_flush(struct mdhim_t *md) {
 			     ((struct mdhim_db_istat *)tstat)->imax, stat->num);
 		}
 		  
-		HASH_ADD_INT(md->stats, key, stat); 
+		HASH_FIND_INT(md->stats, &stat->key, tmp);
+		if (!tmp) {
+			HASH_ADD_INT(md->stats, key, stat); 
+		} else {	
+			//Replace the existing stat
+			HASH_REPLACE_INT(md->stats, key, stat, tmp);  
+			free(tmp);
+		}
 		free(tstat);
 	}
 

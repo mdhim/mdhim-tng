@@ -4,7 +4,23 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 10000
+#define KEYS 100
+//#define TOTAL_KEYS 2083334
+#define TOTAL_KEYS 100000
+
+void start_record(struct timeval *start) {
+	gettimeofday(start, NULL);
+
+}
+
+void end_record(struct timeval *end) {
+	gettimeofday(end, NULL);
+}
+
+void add_time(struct timeval *start, struct timeval *end, long *time) {
+	*time += end->tv_sec - start->tv_sec;
+}
+
 int main(int argc, char **argv) {
 	int ret;
 	int provided;
@@ -19,11 +35,15 @@ int main(int argc, char **argv) {
 	struct timeval start_tv, end_tv;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_DBG; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	db_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
 	int size;
-
+	long flush_time = 0;
+	long put_time = 0;
+	long get_time = 0;
+	int total_keys = 0;
+	int round = 0;
 	// Create options for DB initialization
 	db_opts = db_options_init();
 	db_options_set_path(db_opts, db_path);
@@ -45,7 +65,6 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
-	gettimeofday(&start_tv, NULL);
 	//Initialize MDHIM
 	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	if (!md) {
@@ -54,78 +73,97 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 	
-	MPI_Comm_size(md->mdhim_comm, &size);	
-	//Populate the keys and values to insert
-	keys = malloc(sizeof(int *) * KEYS);
-	values = malloc(sizeof(int *) * KEYS);
-	for (i = 0; i < KEYS; i++) {
-		keys[i] = malloc(sizeof(int));
-		*keys[i] = size * i + md->mdhim_rank + 1;
-		printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
-		key_lens[i] = sizeof(int);
-		values[i] = malloc(sizeof(int));
-		*values[i] = md->mdhim_rank;
-		value_lens[i] = sizeof(int);		
-	}
+	while (total_keys != TOTAL_KEYS) {
+		MPI_Comm_size(md->mdhim_comm, &size);	
+		//Populate the keys and values to insert
+		keys = malloc(sizeof(int *) * KEYS);
+		values = malloc(sizeof(int *) * KEYS);
+		for (i = 0; i < KEYS; i++) {
+			keys[i] = malloc(sizeof(int));
+			*keys[i] = size * i + md->mdhim_rank + 1 + size * round;
+			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
+			key_lens[i] = sizeof(int);
+			values[i] = malloc(sizeof(int));
+			*values[i] = md->mdhim_rank;
+			value_lens[i] = sizeof(int);		
+		}
+		
+		start_record(&start_tv);
+		//Insert the keys into MDHIM
+		brm = mdhimBPut(md, (void **) keys, key_lens,  
+				(void **) values, value_lens, KEYS);
+		end_record(&end_tv);
+		add_time(&start_tv, &end_tv, &put_time);
 
-	//Insert the keys into MDHIM
-	brm = mdhimBPut(md, (void **) keys, key_lens,  
-			(void **) values, value_lens, KEYS);
-	brmp = brm;
-	while (brmp) {
-		if (brmp->error < 0) {
-			printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
+		brmp = brm;
+		while (brmp) {
+			if (brmp->error < 0) {
+				printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
+			}
+			
+			brmp = brmp->next;
+			//Free the message
+			mdhim_full_release_msg(brm);
+			brm = brmp;
+		}
+		
+		
+		//Commit the database
+		ret = mdhimCommit(md);
+		if (ret != MDHIM_SUCCESS) {
+			printf("Error committing MDHIM database\n");
+		} else {
+			printf("Committed MDHIM database\n");
+		}
+		//Get the stats
+		start_record(&start_tv);
+		ret = mdhimStatFlush(md);
+		MPI_Barrier(md->mdhim_comm);
+		end_record(&end_tv);
+		add_time(&start_tv, &end_tv, &flush_time);
+
+		if (ret != MDHIM_SUCCESS) {
+			printf("Error getting stats from MDHIM database\n");
+		} else {
+			printf("Got stats\n");
+		}
+		
+		//Get the values back for each key inserted
+		start_record(&start_tv);
+
+		//start at the first key
+		if (*keys[0] == 1) {
+			bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
+					   KEYS, MDHIM_GET_FIRST);
+		} else {
+			bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
+					   KEYS, MDHIM_GET_NEXT);
+		}
+		end_record(&end_tv);
+		add_time(&start_tv, &end_tv, &get_time);
+
+		if (!bgrm || bgrm->error) {
+			printf("Rank: %d - Error retrieving values", md->mdhim_rank);
+			goto done;
 		}
 	
-		brmp = brmp->next;
-		//Free the message
-		mdhim_full_release_msg(brm);
-		brm = brmp;
-	}
+		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {			
+			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
+			       *(int *)bgrm->keys[i], *(int *)bgrm->values[i]);
+		}
 	
+		//Free the message received
+		mdhim_full_release_msg(bgrm);
+		for (i = 0; i < KEYS; i++) {
+			free(keys[i]);
+			free(values[i]);
+		}
 
-	//Commit the database
-	ret = mdhimCommit(md);
-	if (ret != MDHIM_SUCCESS) {
-		printf("Error committing MDHIM database\n");
-	} else {
-		printf("Committed MDHIM database\n");
+		free(keys);
+		free(values);
+		total_keys += KEYS;
+		round++;
 	}
-	//Get the stats
-	ret = mdhimStatFlush(md);
-	if (ret != MDHIM_SUCCESS) {
-		printf("Error getting stats from MDHIM database\n");
-	} else {
-		printf("Got stats\n");
-	}
-
-	//Get the values back for each key inserted
-
-	//start at the first key
-	if (*keys[0] == 1) {
-		bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
-				   KEYS, MDHIM_GET_FIRST);
-	} else {
-		bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
-				   KEYS, MDHIM_GET_NEXT);
-	}
-	if (!bgrm || bgrm->error) {
-		printf("Rank: %d - Error retrieving values", md->mdhim_rank);
-		goto done;
-	}
-	
-	for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {
-		
-		printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
-		       *(int *)bgrm->keys[i], *(int *)bgrm->values[i]);
-	}
-	
-	//Free the message received
-	mdhim_full_release_msg(bgrm);
-
-
-	
-
 done:
 	//Quit MDHIM
 	ret = mdhimClose(md);
@@ -136,16 +174,14 @@ done:
 	
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
-	for (i = 0; i < KEYS; i++) {
-		free(keys[i]);
-		free(values[i]);
-	}
 
-	free(keys);
-	free(values);
+	printf("Took: %ld seconds to put %d keys\n", 
+	       put_time, TOTAL_KEYS);
+	printf("Took: %ld seconds to get %d keys/values\n", 
+	       get_time, TOTAL_KEYS);
+	printf("Took: %ld seconds to stat flush\n", 
+	       flush_time);
 
-	printf("Took: %u seconds to insert and get %u keys/values\n", 
-	       (unsigned int) (end_tv.tv_sec - start_tv.tv_sec), KEYS);
 
 	return 0;
 }

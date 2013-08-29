@@ -434,7 +434,7 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	}
 
 	//Return the slice number
-	return (int) slice_num;
+	return slice_num;
 }
 
 /**
@@ -766,12 +766,8 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int ke
 
 	if (float_type) {
 		slice_num = get_slice_from_fstat(md, cur_slice, fstat, op);
-	} else {
-		mlog(MDHIM_CLIENT_INFO, "Rank: %d - istat is: %lu", 
-		     md->mdhim_rank, istat);
+	} else {	
 		slice_num = get_slice_from_istat(md, cur_slice, istat, op);
-		mlog(MDHIM_CLIENT_INFO, "Rank: %d - got slice %d", 
-		     md->mdhim_rank, slice_num);
 	}
 
        	if (!slice_num) {	

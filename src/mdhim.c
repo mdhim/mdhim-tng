@@ -601,8 +601,8 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
 	ri = get_range_server_from_stats(md, key, key_len, op);
 	if (!ri) {
 		mlog(MDHIM_CLIENT_INFO, "MDHIM Rank: %d - " 
-		     "Key not available based on current stats information.", 
-		     md->mdhim_rank);
+		     "Key: %d not available based on current stats information.", 
+		     md->mdhim_rank, *(int *) key);
 		bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 		memset(bgrm, 0, sizeof(struct mdhim_bgetrm_t));
 		return bgrm;

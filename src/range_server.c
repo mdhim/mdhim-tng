@@ -96,7 +96,6 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 		val2 = (void *) malloc(sizeof(uint64_t));
 	}
 
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - updating all stats with float key: %d ", md->mdhim_rank, float_type);
 	if (md->key_type == MDHIM_STRING_KEY) {
 		*(long double *)val1 = get_str_num(key, key_len);
 		*(long double *)val2 = *(long double *)val1;
@@ -118,6 +117,7 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	} 
 
 	slice_num = get_slice_num(md, key, key_len);
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - updating all stats for slice num: %d and key: %d", md->mdhim_rank, slice_num, *(int *)key);
 	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
 
 	stat = malloc(sizeof(struct mdhim_stat));
@@ -144,6 +144,10 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 		}
 	}
 	if (!float_type && os) {
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - stat exists for slice: %d with " 
+		     "min: %lu and max: %lu and val1: %lu and val2: %lu", 
+		     md->mdhim_rank, slice_num, *(uint64_t *)os->min, *(uint64_t *)os->max, 
+		     *(uint64_t *)val1, *(uint64_t *)val2);
 		if (*(uint64_t *)os->min > *(uint64_t *)val1) {
 			free(os->min);
 			stat->min = val1;
@@ -531,7 +535,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source) {
 	int i;
 	int ret;
-	int error = 0;
+	int error = MDHIM_SUCCESS;
 	struct mdhim_rm_t *brm;
 	struct mdhim_store_opts_t opts;
 	void **value;
@@ -549,6 +553,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		*value = NULL;
 		value_len = malloc(sizeof(int32_t));
 		*value_len = 0;
+		exists = 0;
 		//Check for the key's existence
 		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 					       bim->keys[i], bim->key_lens[i], value, 
@@ -571,6 +576,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			new_value_len = bim->value_lens[i];
 		}
 
+		error = MDHIM_SUCCESS;
 		//Put the record in the database
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
