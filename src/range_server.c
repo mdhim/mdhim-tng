@@ -117,7 +117,6 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 	} 
 
 	slice_num = get_slice_num(md, key, key_len);
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - updating all stats for slice num: %d and key: %d", md->mdhim_rank, slice_num, *(int *)key);
 	HASH_FIND_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, &slice_num, os);
 
 	stat = malloc(sizeof(struct mdhim_stat));
