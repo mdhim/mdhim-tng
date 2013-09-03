@@ -6,7 +6,7 @@
 
 #define KEYS 100
 //#define TOTAL_KEYS 2083334
-#define TOTAL_KEYS 100000
+#define TOTAL_KEYS 1000
 
 void start_record(struct timeval *start) {
 	gettimeofday(start, NULL);
@@ -73,8 +73,8 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 	
+	MPI_Comm_size(md->mdhim_comm, &size);	
 	while (total_keys != TOTAL_KEYS) {
-		MPI_Comm_size(md->mdhim_comm, &size);	
 		//Populate the keys and values to insert
 		keys = malloc(sizeof(int *) * KEYS);
 		values = malloc(sizeof(int *) * KEYS);
@@ -118,7 +118,6 @@ int main(int argc, char **argv) {
 		//Get the stats
 		start_record(&start_tv);
 		ret = mdhimStatFlush(md);
-		MPI_Barrier(md->mdhim_comm);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &flush_time);
 

@@ -348,6 +348,7 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	} else {
 		//Otherwise, seek to the key given and then get the next key
 		leveldb_iter_seek(iter, old_key, old_key_len);
+		free(old_key);
 		if (!leveldb_iter_valid(iter)) { 
 			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb after seeking");
 			leveldb_iter_destroy(iter);      

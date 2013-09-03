@@ -30,8 +30,12 @@
  * Contains a pointer to mdhim_rs_t if rank is a range server
  */
 struct mdhim_t {
-	//This communicator will include every process in the application, but is separate from the app
+	//This communicator will include every process in the application, but is separate from main the app
+        //It is used for sending and receiving to and from the range servers
 	MPI_Comm mdhim_comm;   
+	//This communicator will include every process in the application, but is separate from the app
+        //It is used for barriers for clients
+	MPI_Comm mdhim_client_comm;
 	//The rank in the mdhim_comm
 	int mdhim_rank;
 	//The size of mdhim_comm

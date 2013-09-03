@@ -5,7 +5,6 @@
 #include "data_store.h"
 #include "messages.h"
 
-#define MAX_OUT_REQS 1000
 struct mdhim_t;
 
 typedef struct work_item work_item;
@@ -43,8 +42,6 @@ typedef struct mdhim_rs_t {
 	MPI_Comm rs_comm;   
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
-	MPI_Request *reqs[MAX_OUT_REQS];
-	int num_reqs;
 	work_queue *work_queue;
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;

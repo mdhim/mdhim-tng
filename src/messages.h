@@ -50,7 +50,7 @@
 #define MAX_BULK_OPS 100
 
 //Maximum size of messages allowed
-#define MDHIM_MAX_MSG_SIZE 104857600 //At most send/receive 1MB per message
+#define MDHIM_MAX_MSG_SIZE 10485760 //At most send/receive 10MB per message
 struct mdhim_t;
 
 /* Base message */

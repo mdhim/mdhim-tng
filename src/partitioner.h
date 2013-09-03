@@ -13,10 +13,10 @@
    then the last rank will be the range server
 */
 
-#define RANGE_SERVER_FACTOR 4
+#define RANGE_SERVER_FACTOR 40
 #define MDHIM_MAX_SERVERS 500
 #define MDHIM_MAX_RANGE_KEY 1000000000
-#define MDHIM_MAX_RECS_PER_SLICE 100
+#define MDHIM_MAX_RECS_PER_SLICE 1000
 //32 bit unsigned integer
 #define MDHIM_INT_KEY 1
 #define MDHIM_LONG_INT_KEY 2

@@ -54,12 +54,18 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts) {
 		return NULL;
 	}
 
-	//Dup the communicator passed in 
+	//Dup the communicator passed in for the communicator used for communication 
+	//to and from the range servers
 	if ((ret = MPI_Comm_dup(appComm, &md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}
-  
+  	//Dup the communicator passed in for barriers between clients
+	if ((ret = MPI_Comm_dup(appComm, &md->mdhim_client_comm)) != MPI_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
+		return NULL;
+	}
+
 	//Get our rank in the main MDHIM communicator
 	if ((ret = MPI_Comm_rank(md->mdhim_comm, &md->mdhim_rank)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error getting our rank while initializing MDHIM");
@@ -135,7 +141,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts) {
 
 	//Set the local receive queue to NULL - used for sending and receiving to/from ourselves
 	md->receive_msg = NULL;
-	MPI_Barrier(md->mdhim_comm);
+	MPI_Barrier(md->mdhim_client_comm);
 
 	return md;
 }
@@ -151,7 +157,7 @@ int mdhimClose(struct mdhim_t *md) {
 	struct rangesrv_info *rsrv, *trsrv;
 	struct mdhim_basem_t *cm;
 
-	MPI_Barrier(md->mdhim_comm);
+	MPI_Barrier(md->mdhim_client_comm);
 	//If I'm rank 0, send a close message to every range server to it can stop its thread
 	if (!md->mdhim_rank) {
 		cm = malloc(sizeof(struct mdhim_basem_t));
@@ -187,7 +193,7 @@ int mdhimClose(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 	free(md->receive_msg_mutex);
-       	MPI_Barrier(md->mdhim_comm);
+       	MPI_Barrier(md->mdhim_client_comm);
 
 	return MDHIM_SUCCESS;
 }
@@ -204,7 +210,7 @@ int mdhimCommit(struct mdhim_t *md) {
 	struct mdhim_rm_t *rm = NULL;
 	int rs = 0;
 
-	MPI_Barrier(md->mdhim_comm);      
+	MPI_Barrier(md->mdhim_client_comm);      
 	//If I'm a range server, send a commit message to myself
 	if ((rs = im_range_server(md)) == 1) {       
 		cm = malloc(sizeof(struct mdhim_basem_t));
@@ -223,7 +229,7 @@ int mdhimCommit(struct mdhim_t *md) {
 		free(cm);
 	}
 
-	MPI_Barrier(md->mdhim_comm);      
+	MPI_Barrier(md->mdhim_client_comm);      
 
 	return ret;
 }
@@ -805,13 +811,13 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 int mdhimStatFlush(struct mdhim_t *md) {
 	int ret;
 
-	MPI_Barrier(md->mdhim_comm);	
+	MPI_Barrier(md->mdhim_client_comm);	
 	if ((ret = get_stat_flush(md)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while getting MDHIM stat data in mdhimStatFlush", 
 		     md->mdhim_rank);
 	}
-	MPI_Barrier(md->mdhim_comm);	
+	MPI_Barrier(md->mdhim_client_comm);	
 
 	return ret;
 }

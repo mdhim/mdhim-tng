@@ -102,6 +102,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 	int return_code = MDHIM_ERROR;
 	void *sendbuf = NULL;
 	void **sendbufs;
+	int *sizes;
 	int sendsize = 0;
 	int mtype;
 	MPI_Request **reqs, **size_reqs;
@@ -120,6 +121,8 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 	memset(size_reqs, 0, sizeof(MPI_Request *) * md->num_rangesrvs);
 	sendbufs = malloc(sizeof(void *) * md->num_rangesrvs);
 	memset(sendbufs, 0, sizeof(void *) * md->num_rangesrvs);
+	sizes = malloc(sizeof(int) * md->num_rangesrvs);
+	memset(sizes, 0, sizeof(int) * md->num_rangesrvs);
 	done = 0;
 
 	//Send all messages at once
@@ -156,9 +159,10 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 		}
 				
 		sendbufs[num_msgs] = sendbuf;
+		sizes[num_msgs] = sendsize;
 		req = malloc(sizeof(MPI_Request));
 		size_reqs[num_msgs] = req;
-		return_code = MPI_Isend(&sendsize, 1, MPI_INT, dest, RANGESRV_WORK_SIZE_MSG, 
+		return_code = MPI_Isend(&sizes[num_msgs], 1, MPI_INT, dest, RANGESRV_WORK_SIZE_MSG, 
 					md->mdhim_comm, req);
 		if (return_code != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
@@ -169,7 +173,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 
 		req = malloc(sizeof(MPI_Request));
 		reqs[num_msgs] = req;
-		return_code = MPI_Isend(sendbuf, sendsize, MPI_PACKED, dest, RANGESRV_WORK_MSG, 
+		return_code = MPI_Isend(sendbuf, sizes[num_msgs], MPI_PACKED, dest, RANGESRV_WORK_MSG, 
 					md->mdhim_comm, req);
 		if (return_code != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
@@ -211,7 +215,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 		}
 		
 		if (done != num_msgs * 2) {
-			usleep(200);
+			usleep(50);
 		}
 	}
 
@@ -224,6 +228,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 
 	free(sendbufs);
 	free(size_reqs);
+	free(sizes);
 	free(reqs);
 
 	return ret;
@@ -265,7 +270,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 
 	while (!flag) {
 		return_code = MPI_Test(&req, &flag, &status);	
-		usleep(100);
+		usleep(10);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
@@ -273,6 +278,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	}
 
 	recvbuf = (void *) malloc(recvsize);	
+	memset(recvbuf, 0, recvsize);
 	flag = 0;
 	return_code = MPI_Irecv(recvbuf, recvsize, MPI_PACKED, status.MPI_SOURCE, 
 				RANGESRV_WORK_MSG, md->mdhim_comm, &req);
@@ -286,7 +292,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	}
 	while (!flag) {
 		return_code = MPI_Test(&req, &flag, &status);	
-		usleep(100);
+		usleep(10);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
@@ -448,6 +454,7 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 		return MDHIM_ERROR;
 	}
 	recvbuf = malloc(msg_size);
+	memset(recvbuf, 0, msg_size);
 	return_code = MPI_Recv(recvbuf, msg_size, MPI_PACKED, src, CLIENT_RESPONSE_MSG, 
 			       md->mdhim_comm, &status);
 
@@ -571,7 +578,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		}
 
 		if (done != nsrcs) {
-			usleep(200);
+			usleep(50);
 		}
 	}
 
@@ -617,7 +624,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		}
 
 		if (done != nsrcs) {
-			usleep(200);
+			usleep(50);
 		}
 	}
 
@@ -2442,7 +2449,7 @@ int get_stat_flush(struct mdhim_t *md) {
 		free(sendbuf);	
 	}
 
-	MPI_Barrier(md->mdhim_comm);
+	MPI_Barrier(md->mdhim_client_comm);
 	//The master range server broadcasts the number of status it is going to send
 	if ((ret = MPI_Bcast(&num_items, 1, MPI_UNSIGNED, md->rangesrv_master,
 			     md->mdhim_comm)) != MPI_SUCCESS) {
@@ -2452,7 +2459,7 @@ int get_stat_flush(struct mdhim_t *md) {
 		goto error;
 	}
 
-	MPI_Barrier(md->mdhim_comm);
+	MPI_Barrier(md->mdhim_client_comm);
 
 	recvsize = num_items * stat_size;
 	//Allocate the receive buffer size for clients

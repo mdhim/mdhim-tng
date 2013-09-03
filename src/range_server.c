@@ -857,7 +857,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 
 	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
 	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
-		free(gm->key);
+	  	free(gm->key);
 		gm->key = NULL;
 		gm->key_len = 0;
 	}
@@ -1257,9 +1257,6 @@ int range_server_init(struct mdhim_t *md) {
 	//Populate md->mdhim_rs
 	md->mdhim_rs->info.rank = md->mdhim_rank;
 	md->mdhim_rs->info.rangesrv_num = rangesrv_num;
-	//Set the outstanding requests to null
-	memset(md->mdhim_rs->reqs, 0, sizeof(MPI_Request *) * MAX_OUT_REQS);
-	md->mdhim_rs->num_reqs = 0;
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
         sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
