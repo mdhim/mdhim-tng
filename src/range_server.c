@@ -188,6 +188,7 @@ int load_stats(struct mdhim_t *md) {
 	int *val_len, *key_len;
 	struct mdhim_store_opts_t opts;
 	int **slice;
+	int *old_slice;
 	struct mdhim_stat *stat;
 	int float_type = 0;
 	void *min, *max;
@@ -201,6 +202,7 @@ int load_stats(struct mdhim_t *md) {
 	val = malloc(sizeof(struct mdhim_db_stat *));	
 	val_len = malloc(sizeof(int));
 	set_store_opts(md, &opts);
+	old_slice = NULL;
 	while (!done) {
 		//Check the db for the key/value
 		*val = NULL;
@@ -208,6 +210,10 @@ int load_stats(struct mdhim_t *md) {
 		md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_stats, 
 						    (void **) slice, key_len, (void **) val, 
 						    val_len, &opts);	
+		if (old_slice) {
+			free(old_slice);
+			old_slice = NULL;
+		}
 
 		//Add the stat to the hash table - the value is 0 if the key was not in the db
 		if (!*val || !*val_len) {
@@ -238,6 +244,7 @@ int load_stats(struct mdhim_t *md) {
 		stat->max = max;
 		stat->num = (*(struct mdhim_db_stat **)val)->num;
 		stat->key = **slice;
+		old_slice = *slice;
 		HASH_ADD_INT(md->mdhim_rs->mdhim_store->mdhim_store_stats, key, stat); 
 		free(*val);
 	}
