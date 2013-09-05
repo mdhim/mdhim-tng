@@ -69,6 +69,9 @@ int key_type = 1;  // Default "int"
 static char *errMsgs[MAX_ERR_REPORT];
 static int errMsgIdx = 0;
 
+static int sc_len;  // Source Character string length for Random String generation
+static char *sourceChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ124567890"; 
+
 static char *getOpLabel[] = { "MDHIM_GET_EQ", "MDHIM_GET_NEXT", "MDHIM_GET_PREV",
                               "MDHIM_GET_FIRST", "MDHIM_GET_LAST"};
 
@@ -1094,6 +1097,139 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
 }
 
+// Generate a random string of up to max_len
+char *random_string( int max_len, int exact_size)
+{
+    int len;
+    char *retVal;
+    int i;
+
+    if (exact_size)
+        len = max_len;
+    else
+        len = rand() % max_len + 1;
+    retVal = (char *) malloc( len + 1 );
+
+    for (i=0; i<len; ++i)
+        retVal[i] = sourceChars[ rand() % sc_len ];
+
+    retVal[len] = '\0';
+    return retVal;
+} 
+
+//======================================PUT============================
+static void execNput(char *command, struct mdhim_t *md, int charIdx)
+{
+    int i_key;
+    long l_key;
+    float f_key;
+    double d_key;
+    struct mdhim_rm_t *rm;
+    char buffer [ TEST_BUFLEN ];
+    char *key_string; 
+    char *value;
+    int n_iter, key_len, value_len, rand_str_size;
+    int ret, i;
+    
+    key_string = malloc(sizeof(char) * TEST_BUFLEN);
+    ret = 0;
+    
+    if (verbose) tst_say(0, "# nput n key_length data_length exact_size\n" );
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    n_iter = atoi( buffer ); // Get number of iterations
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    key_len = atoi( buffer ); // For string/byte key types otherwise ignored (but required)
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    value_len = atoi( buffer ); // Get maximum length of value string
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    // If zero strings are of the exact length stated above, otherwise they are
+    // of variable length up to data_len or key_len.
+    rand_str_size = atoi( buffer );  
+    
+    for (i=0; i<n_iter; i++)
+    {
+        if (i > 0) free(value);
+        value = random_string(value_len, rand_str_size);
+    
+        // Based on key type generate a key using rank 
+        switch (key_type)
+        {
+            case MDHIM_INT_KEY:
+                 i_key = rand() / 5;
+                 sprintf(key_string, "%d", i_key);
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [int]\n", key_string, value );
+                 rm = mdhimPut(md, &i_key, sizeof(i_key), value, strlen(value)+1);
+                 break;
+
+            case MDHIM_LONG_INT_KEY:
+                 l_key = rand() / 3;
+                 sprintf(key_string, "%ld", l_key);
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [long]\n", key_string, value );
+                 rm = mdhimPut(md, &l_key, sizeof(l_key), value, strlen(value)+1);
+                 break;
+
+            case MDHIM_FLOAT_KEY:
+                f_key = rand() / 5.0;
+                sprintf(key_string, "%f", f_key);
+                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", key_string, value );
+                rm = mdhimPut(md, &f_key, sizeof(f_key), value, strlen(value)+1);
+                break;
+
+           case MDHIM_DOUBLE_KEY:
+                d_key = rand() / 3.0;
+                sprintf(key_string, "%e", d_key);
+                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", key_string, value );
+                rm = mdhimPut(md, &d_key, sizeof(d_key), value, strlen(value)+1);
+                break;
+
+            case MDHIM_STRING_KEY:
+            case MDHIM_BYTE_KEY:
+                 if (i > 0) free(key_string);
+                 key_string = random_string(key_len, rand_str_size);
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [string|byte]\n", key_string, value );
+                 rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, strlen(value)+1);
+                 break;
+
+            default:
+                tst_say(1, "Error, unrecognized Key_type in execPut\n");
+        }
+        
+        // Record any error(s)
+        if (!rm || rm->error)
+        {
+            if (verbose) tst_say(1, "Error putting key: %s with value: %s into MDHIM\n", key_string, value);
+            ret ++;
+        }
+  
+    }
+
+    // Report any error(s)
+    if (ret)
+    {
+        tst_say(1, "%d error(s) putting key/value into MDHIM\n", ret);
+    }
+    else
+    {
+        tst_say(0, "Successfully put %d key/values into MDHIM\n", n_iter);
+    }
+    
+    //Commit the database
+    ret = mdhimCommit(md);
+    if (ret != MDHIM_SUCCESS)
+    {
+        tst_say(1, "Error committing put key/value(s) to MDHIM database\n");
+    }
+    else
+    {
+        if (verbose) tst_say(0, "Committed put to MDHIM database\n");
+    }
+
+}
+
 /**
  * test frame for the MDHIM
  *
@@ -1241,6 +1377,10 @@ int main( int argc, char * argv[] )
             dbug = MLOG_CRIT;
     }
     
+    /* initialization for random string generation */
+    srand( time( NULL ) );
+    sc_len = strlen( sourceChars );
+    
     // calls to init MPI for mdhim
     argc = 1;  // Ignore other parameters passed to program
     ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -1290,6 +1430,7 @@ int main( int argc, char * argv[] )
         logfile = stderr;
     }
     
+    // Read all command(s) to execute
     while( dowork && cmdIdx < 1000)
     {
         // read the next command
@@ -1308,7 +1449,7 @@ int main( int argc, char * argv[] )
     }
     cmdTot = cmdIdx -1;
 
-    // main command execute loop
+    // Main command execute loop
     for(cmdIdx=0; cmdIdx < cmdTot; cmdIdx++)
     {
         memset( command, 0, sizeof( command ));
@@ -1347,6 +1488,10 @@ int main( int argc, char * argv[] )
         else if( !strcmp( command, "flush" ))
         {
             execFlush(commands[cmdIdx], md, charIdx);
+        }
+        else if( !strcmp( command, "nput" ))
+        {
+            execNput(commands[cmdIdx], md, charIdx);
         }
         else
         {
