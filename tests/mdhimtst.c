@@ -69,6 +69,9 @@ int key_type = 1;  // Default "int"
 static char *errMsgs[MAX_ERR_REPORT];
 static int errMsgIdx = 0;
 
+static int sc_len;  // Source Character string length for Random String generation
+static char *sourceChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ124567890"; 
+
 static char *getOpLabel[] = { "MDHIM_GET_EQ", "MDHIM_GET_NEXT", "MDHIM_GET_PREV",
                               "MDHIM_GET_FIRST", "MDHIM_GET_LAST"};
 
@@ -1094,6 +1097,281 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
 }
 
+// Generate a random string of up to max_len
+char *random_string( int max_len, int exact_size)
+{
+    int len;
+    char *retVal;
+    int i;
+
+    if (exact_size)
+        len = max_len;
+    else
+        len = rand() % max_len + 1;
+    retVal = (char *) malloc( len + 1 );
+
+    for (i=0; i<len; ++i)
+        retVal[i] = sourceChars[ rand() % sc_len ];
+
+    retVal[len] = '\0';
+    return retVal;
+} 
+
+//======================================NPUT============================
+static void execNput(char *command, struct mdhim_t *md, int charIdx)
+{
+    int i_key;
+    long l_key;
+    float f_key;
+    double d_key;
+    struct mdhim_rm_t *rm;
+    char buffer [ TEST_BUFLEN ];
+    char *key_string; 
+    char *value;
+    int n_iter, key_len, value_len, rand_str_size;
+    int ret, i;
+    
+    key_string = malloc(sizeof(char) * TEST_BUFLEN);
+    ret = 0;
+    
+    if (verbose) tst_say(0, "# nput n key_length data_length exact_size\n" );
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    n_iter = atoi( buffer ); // Get number of iterations
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    key_len = atoi( buffer ); // For string/byte key types otherwise ignored (but required)
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    value_len = atoi( buffer ); // Get maximum length of value string
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    // If zero strings are of the exact length stated above, otherwise they are
+    // of variable length up to data_len or key_len.
+    rand_str_size = atoi( buffer );  
+    
+    for (i=0; i<n_iter; i++)
+    {
+        if (i > 0) free(value);
+        value = random_string(value_len, rand_str_size);
+    
+        // Based on key type generate appropriate random key
+        switch (key_type)
+        {
+            case MDHIM_INT_KEY:
+                 i_key = rand() / 5;
+                 sprintf(key_string, "%d", i_key);
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [int]\n", key_string, value );
+                 rm = mdhimPut(md, &i_key, sizeof(i_key), value, strlen(value)+1);
+                 break;
+
+            case MDHIM_LONG_INT_KEY:
+                 l_key = rand() / 3;
+                 sprintf(key_string, "%ld", l_key);
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [long]\n", key_string, value );
+                 rm = mdhimPut(md, &l_key, sizeof(l_key), value, strlen(value)+1);
+                 break;
+
+            case MDHIM_FLOAT_KEY:
+                f_key = rand() / 5.0;
+                sprintf(key_string, "%f", f_key);
+                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", key_string, value );
+                rm = mdhimPut(md, &f_key, sizeof(f_key), value, strlen(value)+1);
+                break;
+
+           case MDHIM_DOUBLE_KEY:
+                d_key = rand() / 3.0;
+                sprintf(key_string, "%e", d_key);
+                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", key_string, value );
+                rm = mdhimPut(md, &d_key, sizeof(d_key), value, strlen(value)+1);
+                break;
+
+            case MDHIM_STRING_KEY:
+            case MDHIM_BYTE_KEY:
+                 if (i > 0) free(key_string);
+                 key_string = random_string(key_len, rand_str_size);
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [string|byte]\n", key_string, value );
+                 rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, strlen(value)+1);
+                 break;
+
+            default:
+                tst_say(1, "Error, unrecognized Key_type in execNput\n");
+        }
+        
+        // Record any error(s)
+        if (!rm || rm->error)
+        {
+            if (verbose) tst_say(1, "Error N putting key: %s with value: %s into MDHIM\n", key_string, value);
+            ret ++;
+        }
+  
+    }
+
+    // Report any error(s)
+    if (ret)
+    {
+        tst_say(1, "%d error(s) N putting key/value into MDHIM\n", ret);
+    }
+    else
+    {
+        tst_say(0, "Successfully N put %d key/values into MDHIM\n", n_iter);
+    }
+    
+    //Commit the database
+    ret = mdhimCommit(md);
+    if (ret != MDHIM_SUCCESS)
+    {
+        tst_say(1, "Error committing N put key/value(s) to MDHIM database\n");
+    }
+    else
+    {
+        if (verbose) tst_say(0, "Committed N put to MDHIM database\n");
+    }
+
+}
+
+//======================================NGETN============================
+static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
+{
+    int i_key;
+    long l_key;
+    float f_key;
+    double d_key;
+    struct mdhim_getrm_t *grm;
+    char buffer [ TEST_BUFLEN ];
+    char *key_string;
+    int n_iter, key_len, rand_str_size;
+    int ret, i;
+    
+    key_string = malloc(sizeof(char) * TEST_BUFLEN);
+    ret = 0;
+    
+    if (verbose) tst_say(0, "# ngetn n key_length exact_size\n" );
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    n_iter = atoi( buffer ); // Get number of iterations
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    key_len = atoi( buffer ); // For string/byte key types otherwise ignored (but required)
+    
+    charIdx = getWordFromString( command, buffer, charIdx);
+    // If zero strings are of the exact length stated above, otherwise they are
+    // of variable length up to key_len.
+    rand_str_size = atoi( buffer );
+    
+    // Based on key type generate a random first key or use zero if key_len = 0
+    switch (key_type)
+    {
+        case MDHIM_INT_KEY:
+             if ( key_len == 0)
+                 i_key = 0;
+             else
+                 i_key = rand() / 5;
+             sprintf(key_string, "%d", i_key);
+             if (verbose) tst_say(0, "# mdhimGet( %s ) [int]\n", key_string );
+             grm = mdhimGet(md, &i_key, sizeof(i_key), MDHIM_GET_NEXT);
+             break;
+
+        case MDHIM_LONG_INT_KEY:
+             if ( key_len == 0)
+                 l_key = 0;
+             else
+                 l_key = rand() / 3;
+             sprintf(key_string, "%ld", l_key);
+             if (verbose) tst_say(0, "# mdhimGet( %s ) [long]\n", key_string );
+             grm = mdhimGet(md, &l_key, sizeof(l_key), MDHIM_GET_NEXT);
+             break;
+
+        case MDHIM_FLOAT_KEY:
+            if ( key_len == 0)
+                f_key = 0.0;
+            else
+                f_key = rand() / 5.0;
+            sprintf(key_string, "%f", f_key);
+            if (verbose) tst_say(0, "# mdhimGet( %s ) [float]\n", key_string );
+            grm = mdhimGet(md, &f_key, sizeof(f_key), MDHIM_GET_NEXT);
+            break;
+
+       case MDHIM_DOUBLE_KEY:
+            if ( key_len == 0)
+                d_key = 0.0;
+            else
+                d_key = rand() / 3.0;
+            sprintf(key_string, "%e", d_key);
+            if (verbose) tst_say(0, "# mdhimGet( %s ) [double]\n", key_string );
+            grm = mdhimGet(md, &d_key, sizeof(d_key), MDHIM_GET_NEXT);
+            break;
+
+        case MDHIM_STRING_KEY:
+        case MDHIM_BYTE_KEY:
+             if ( key_len == 0 )
+             {
+                 key_string[0] = '0';
+                 key_string[1] = '\0';
+             }
+             else
+                 key_string = random_string(key_len, rand_str_size);
+             if (verbose) tst_say(0, "# mdhimGet( %s ) [string|byte]\n", key_string );
+             grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_NEXT);
+             break;
+
+        default:
+            tst_say(1, "Error, unrecognized Key_type in execNgetn\n");
+    }
+
+    // Record any error(s)
+    if (!grm || grm->error)
+    {
+        // For some reason could not get first record abort the request
+        tst_say(1, "Error N getting FIRST key: %s from MDHIM\n", key_string);
+        ret++;
+    }
+    else if (grm->key && grm->value)
+    {
+        if (verbose) tst_say(0, "Successfully got FIRST value: %s for key [string|byte](%s) from MDHIM\n", 
+                (char *) grm->value, getOpLabel[MDHIM_GET_NEXT]);
+        
+        for (i=1; i<n_iter; i++)
+        {
+            grm = mdhimGet(md, grm->key, grm->key_len, MDHIM_GET_NEXT);
+            // Record any error(s)
+            if (!grm || grm->error)
+            {
+                tst_say(1, "Error N getting key[%d] from MDHIM\n", i);
+                ret ++;
+                break;
+            }
+            else if (grm->key && grm->value)
+            {
+                if (verbose) tst_say(0, "Successfully got %dth value: %s for key [string|byte](%s) from MDHIM\n", 
+                        i, (char *) grm->value, getOpLabel[MDHIM_GET_NEXT]);
+            }
+            else
+            {
+                tst_say(1, "Got null value or key at N get key[%d] from MDHIM\n", i);
+                ret ++;
+                break;
+            }
+        }
+    }
+    else
+    {
+        tst_say(1, "Got null value or return  key for FIRST key (%s): %s from MDHIM\n", 
+                getOpLabel[MDHIM_GET_NEXT], key_string);
+        ret++;
+    }
+
+    // Report any error(s)
+    if (ret)
+    {
+        tst_say(1, "%d error(s) N getting key/value from MDHIM\n", ret);
+    }
+    else
+    {
+        tst_say(0, "Successfully N got %d out of %d key/values desired from MDHIM\n", i, n_iter);
+    }
+}
+
 /**
  * test frame for the MDHIM
  *
@@ -1269,8 +1547,12 @@ int main( int argc, char * argv[] )
     {
             printf("Error initializing MDHIM\n");
             exit(1);
-    }	
-
+    }
+    
+    /* initialization for random string generation */
+    srand( time( NULL ) + md->mdhim_rank);
+    sc_len = strlen( sourceChars );
+    
     /*
      * open the log file (one per rank if in verbose mode, otherwise write to stderr)
      */
@@ -1290,6 +1572,7 @@ int main( int argc, char * argv[] )
         logfile = stderr;
     }
     
+    // Read all command(s) to execute
     while( dowork && cmdIdx < 1000)
     {
         // read the next command
@@ -1308,7 +1591,7 @@ int main( int argc, char * argv[] )
     }
     cmdTot = cmdIdx -1;
 
-    // main command execute loop
+    // Main command execute loop
     for(cmdIdx=0; cmdIdx < cmdTot; cmdIdx++)
     {
         memset( command, 0, sizeof( command ));
@@ -1347,6 +1630,14 @@ int main( int argc, char * argv[] )
         else if( !strcmp( command, "flush" ))
         {
             execFlush(commands[cmdIdx], md, charIdx);
+        }
+        else if( !strcmp( command, "nput" ))
+        {
+            execNput(commands[cmdIdx], md, charIdx);
+        }
+        else if( !strcmp( command, "ngetn" ))
+        {
+            execNgetn(commands[cmdIdx], md, charIdx);
         }
         else
         {
