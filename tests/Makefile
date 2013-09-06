@@ -5,7 +5,7 @@ CC	= mpicc -g -O0 -Wall
 CLIBS	= -L${MPI_ROOT}/lib -L../src -L${LEVEL_DB_ROOT}
 CINC	= -I${MPI_ROOT}/include -I${LEVEL_DB_ROOT}/include -IMlog/ -Iuthash -I../src -I../src/uthash
 
-CFLAGS	= -lmpi -lmdhim -lm -lpthread -lstdc++ ${LEVEL_DB_ROOT}/libleveldb.a
+CFLAGS	= -lmpich -lmdhim -lm -lpthread -lstdc++ ${LEVEL_DB_ROOT}/libleveldb.a
 
 all:	get-put bget-bput put-del bput-bdel sort-bget-bput mdhimtst put-getn \
 	put-flush-get put-getp gets-puts bput-flush-bget bput-bgetn

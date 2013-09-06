@@ -173,6 +173,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 		       struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db;
 	leveldb_options_t *options;
+	leveldb_options_t *stat_options;
 	char *err = NULL;
 	leveldb_comparator_t* cmp = NULL;
 	char stats_path[PATH_MAX];
@@ -180,6 +181,9 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(options, 1);
 	leveldb_options_set_compression(options, 0);
+	stat_options = leveldb_options_create();
+	leveldb_options_set_create_if_missing(stat_options, 1);
+	leveldb_options_set_compression(stat_options, 0);
 
 	switch(mstore_opts->key_type) {
 	case MDHIM_INT_KEY:
@@ -236,7 +240,9 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	mstore_opts->db_ptr2 = options;
 	mstore_opts->db_ptr3 = leveldb_readoptions_create();
 	mstore_opts->db_ptr4 = leveldb_writeoptions_create();
-
+	mstore_opts->db_ptr5 = stat_options;
+	mstore_opts->db_ptr6 = leveldb_readoptions_create();
+	mstore_opts->db_ptr7 = leveldb_writeoptions_create();
 	return MDHIM_SUCCESS;
 }
 
@@ -490,6 +496,9 @@ int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_
 	leveldb_options_destroy((leveldb_options_t *) mstore_opts->db_ptr2);
 	leveldb_readoptions_destroy((leveldb_readoptions_t *) mstore_opts->db_ptr3);
 	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr4);
+	leveldb_options_destroy((leveldb_options_t *) mstore_opts->db_ptr5);
+	leveldb_readoptions_destroy((leveldb_readoptions_t *) mstore_opts->db_ptr6);
+	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr7);
 	leveldb_close(db);
 	
 	db = (leveldb_t *) dbs;

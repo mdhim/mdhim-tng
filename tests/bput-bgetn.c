@@ -4,9 +4,9 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 100
+#define KEYS 1000
 //#define TOTAL_KEYS 2083334
-#define TOTAL_KEYS 1000
+#define TOTAL_KEYS 10000
 
 void start_record(struct timeval *start) {
 	gettimeofday(start, NULL);
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 		for (i = 0; i < KEYS; i++) {
 			keys[i] = malloc(sizeof(int));
 			*keys[i] = size * i + md->mdhim_rank + 1 + size * round;
-			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
+//			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
 			key_lens[i] = sizeof(int);
 			values[i] = malloc(sizeof(int));
 			*values[i] = md->mdhim_rank;
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 		if (ret != MDHIM_SUCCESS) {
 			printf("Error committing MDHIM database\n");
 		} else {
-			printf("Committed MDHIM database\n");
+//			printf("Committed MDHIM database\n");
 		}
 		//Get the stats
 		start_record(&start_tv);
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
 		if (ret != MDHIM_SUCCESS) {
 			printf("Error getting stats from MDHIM database\n");
 		} else {
-			printf("Got stats\n");
+//			printf("Got stats\n");
 		}
 		
 		//Get the values back for each key inserted
@@ -146,11 +146,11 @@ int main(int argc, char **argv) {
 			goto done;
 		}
 	
-		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {			
+/*		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {			
 			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
 			       *(int *)bgrm->keys[i], *(int *)bgrm->values[i]);
 		}
-	
+*/	
 		//Free the message received
 		mdhim_full_release_msg(bgrm);
 		for (i = 0; i < KEYS; i++) {

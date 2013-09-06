@@ -63,11 +63,25 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	return ret;
 }
 
-void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts) {
-	opts->db_ptr1 = md->mdhim_rs->mdhim_store->db_ptr1;
-	opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr2;
-	opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr3;
-	opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr4;
+void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts, int stat) {
+	if (!stat) {
+		opts->db_ptr1 = md->mdhim_rs->mdhim_store->db_ptr1;
+		opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr2;
+		opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr3;
+		opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr4;
+		opts->db_ptr5 = md->mdhim_rs->mdhim_store->db_ptr5;
+		opts->db_ptr6 = md->mdhim_rs->mdhim_store->db_ptr6;
+		opts->db_ptr7 = md->mdhim_rs->mdhim_store->db_ptr7;
+	} else {
+		opts->db_ptr1 = NULL;	       
+		opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr5;
+		opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr6;
+		opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr7;
+		opts->db_ptr5 = NULL;	       
+		opts->db_ptr6 = NULL;	       
+		opts->db_ptr7 = NULL;	       
+		opts->db_ptr8 = NULL;	     
+	}  
 }
 
 /**
@@ -201,7 +215,7 @@ int load_stats(struct mdhim_t *md) {
 	*key_len = sizeof(int);
 	val = malloc(sizeof(struct mdhim_db_stat *));	
 	val_len = malloc(sizeof(int));
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 1);
 	old_slice = NULL;
 	while (!done) {
 		//Check the db for the key/value
@@ -271,7 +285,7 @@ int write_stats(struct mdhim_t *md) {
 	int float_type = 0;
 
 	float_type = is_float_key(md->key_type);
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 1);
 	val_len = sizeof(struct mdhim_db_stat);
 
 	//Iterate through the stat hash entries
@@ -383,6 +397,7 @@ int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
 	int ret;	
 	struct mdhim_store_opts_t opts;
+	int i;
 
 	//Cancel the worker thread
 	if ((ret = pthread_cancel(md->mdhim_rs->worker)) != 0) {
@@ -391,7 +406,11 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 
 	/* Wait for the threads to finish */
-	pthread_join(md->mdhim_rs->listener, NULL);
+	for (i = 0; i < LISTENER_THREADS; i++) {
+		pthread_join(md->mdhim_rs->listeners[i], NULL);
+	}
+	free(md->mdhim_rs->listeners);
+
 	pthread_join(md->mdhim_rs->worker, NULL);
 
 	//Destroy the condition variables
@@ -424,7 +443,7 @@ int range_server_stop(struct mdhim_t *md) {
 		     md->mdhim_rank);
 	}
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 	//Close the database
 	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, 
 						    md->mdhim_rs->mdhim_store->db_stats, &opts)) 
@@ -462,7 +481,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	void *old_value;
 	int32_t old_value_len;
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 	value = malloc(sizeof(void *));
 	*value = NULL;
 	value_len = malloc(sizeof(int32_t));
@@ -552,7 +571,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	void *old_value;
 	int32_t old_value_len;
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
 		value = malloc(sizeof(void *));
@@ -634,7 +653,7 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	struct mdhim_rm_t *rm;
 	struct mdhim_store_opts_t opts;
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 	//Put the record in the database
 	if ((ret = 
 	     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
@@ -674,7 +693,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	struct mdhim_rm_t *brm;
 	struct mdhim_store_opts_t opts;
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 	//Iterate through the arrays and delete each record
 	for (i = 0; i < bdm->num_records && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
@@ -759,7 +778,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	int ret;
 	struct mdhim_store_opts_t opts;
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 	//Initialize pointers and lengths
 	value = malloc(sizeof(void *));
 	value_len = malloc(sizeof(int32_t));
@@ -770,6 +789,8 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	*value_len = 0;
 
 	//Set our local pointer to the key and length
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - key pointer: %p and length: %d", 
+	     md->mdhim_rank, gm->key, gm->key_len);
 	if (gm->key_len) {
 		*key = gm->key;
 		key_len = gm->key_len;
@@ -863,12 +884,14 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	}
 
 	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
-	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - key pointer: %p and length: %d with source: %d", 
+	     md->mdhim_rank, gm->key, gm->key_len, source);
+/*	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
 	  	free(gm->key);
 		gm->key = NULL;
 		gm->key_len = 0;
 	}
-
+*/
 	grm->key_len = key_len;
 	grm->value = *value;
 	grm->value_len = *value_len;
@@ -902,7 +925,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	int error = 0;
 	struct mdhim_store_opts_t opts;
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 	values = malloc(sizeof(void *) * bgm->num_records);
 	value_lens = malloc(sizeof(int32_t) * bgm->num_records);
 	memset(value_lens, 0, sizeof(int32_t) * bgm->num_records);
@@ -976,7 +999,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	struct mdhim_store_opts_t opts;
 	int i;
 
-	set_store_opts(md, &opts);
+	set_store_opts(md, &opts, 0);
 
 	//Initialize pointers and lengths
 	values = malloc(sizeof(void *) * gm->num_records);
@@ -1196,6 +1219,13 @@ void *worker_thread(void *data) {
 							 item->message, 
 							 item->source, op);
 				}
+
+				if (((struct mdhim_getm_t *) item->message)->key && 
+				    ((struct mdhim_getm_t *) item->message)->key_len &&
+				    item->source != md->mdhim_rank) {
+					free(((struct mdhim_getm_t *) item->message)->key);
+				}
+
 				break;
 			case MDHIM_BULK_GET:
 				//Determine the operation passed and call the appropriate function
@@ -1241,6 +1271,7 @@ int range_server_init(struct mdhim_t *md) {
 	int rangesrv_num;
 	int flags = MDHIM_CREATE;
 	struct mdhim_store_opts_t opts;
+	int i;
 
 	//There was an error figuring out if I'm a range server
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {
@@ -1297,7 +1328,11 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->mdhim_store->db_ptr2 = opts.db_ptr2;
 	md->mdhim_rs->mdhim_store->db_ptr3 = opts.db_ptr3;
 	md->mdhim_rs->mdhim_store->db_ptr4 = opts.db_ptr4;
-	
+	md->mdhim_rs->mdhim_store->db_ptr5 = opts.db_ptr5;
+	md->mdhim_rs->mdhim_store->db_ptr6 = opts.db_ptr6;
+	md->mdhim_rs->mdhim_store->db_ptr7 = opts.db_ptr7;
+	md->mdhim_rs->mdhim_store->db_ptr8 = opts.db_ptr8;
+
 	//Load the stats from the database
 	if ((ret = load_stats(md)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
@@ -1346,12 +1381,17 @@ int range_server_init(struct mdhim_t *md) {
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
-	//Initialize listener thread
-	if ((ret = pthread_create(&md->mdhim_rs->listener, NULL, listener_thread, (void *) md)) != 0) {    
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while initializing listener thread", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
+
+	md->mdhim_rs->listeners = malloc(sizeof(pthread_t) * LISTENER_THREADS);
+	for (i = 0; i < LISTENER_THREADS; i++) {
+		//Initialize listener threads
+		if ((ret = pthread_create(&md->mdhim_rs->listeners[i], NULL, 
+					  listener_thread, (void *) md)) != 0) {
+			mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+			     "Error while initializing listener thread", 
+			     md->mdhim_rank);
+			return MDHIM_ERROR;
+		}
 	}
 
 	return MDHIM_SUCCESS;

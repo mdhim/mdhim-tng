@@ -172,6 +172,7 @@ int verify_key(void *key, int key_len, int key_type) {
 	int id;
 	struct mdhim_char *mc;
 	uint64_t ikey = 0;
+	long double size_check;
 
 	if (!key) {
 	  return MDHIM_ERROR;
@@ -205,7 +206,8 @@ int verify_key(void *key, int key_len, int key_type) {
 		ikey = *(double *)key;
 	}
 
-	if (((long double) (ikey/MDHIM_MAX_RANGE_KEY)) >= 1.0) {
+	size_check = (long double) (ikey/MDHIM_MAX_RANGE_KEY);
+	if (size_check >= 1.0f) {
 		mlog(MDHIM_CLIENT_CRIT, "Error - key is too large for the range specified");
 		return MDHIM_ERROR;
 	}

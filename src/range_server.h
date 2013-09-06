@@ -5,6 +5,8 @@
 #include "data_store.h"
 #include "messages.h"
 
+#define LISTENER_THREADS 10
+
 struct mdhim_t;
 
 typedef struct work_item work_item;
@@ -45,7 +47,7 @@ typedef struct mdhim_rs_t {
 	work_queue *work_queue;
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;
-	pthread_t listener;
+	pthread_t *listeners;
 	pthread_t worker;
 	rangesrv_info info;
 } mdhim_rs_t;

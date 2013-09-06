@@ -97,6 +97,10 @@ struct mdhim_store_t {
 	void *db_ptr2;
 	void *db_ptr3;
 	void *db_ptr4;
+	void *db_ptr5;
+	void *db_ptr6;
+	void *db_ptr7;
+	void *db_ptr8;
 	//Pointers to functions based on data store
 	mdhim_store_open_fn_t open;
 	mdhim_store_put_fn_t put;
@@ -118,6 +122,10 @@ struct mdhim_store_opts_t {
 	void *db_ptr2;
 	void *db_ptr3;
 	void *db_ptr4;
+	void *db_ptr5;
+	void *db_ptr6;
+	void *db_ptr7;
+	void *db_ptr8;
 };
 
 //Initializes the data store based on the type given (i.e., UNQLITE, LEVELDB, etc...)

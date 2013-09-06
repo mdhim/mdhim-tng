@@ -215,7 +215,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 		}
 		
 		if (done != num_msgs * 2) {
-			usleep(50);
+			usleep(1000);
 		}
 	}
 
@@ -270,7 +270,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 
 	while (!flag) {
 		return_code = MPI_Test(&req, &flag, &status);	
-		usleep(10);
+		usleep(200);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
@@ -292,7 +292,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	}
 	while (!flag) {
 		return_code = MPI_Test(&req, &flag, &status);	
-		usleep(10);
+		usleep(200);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
@@ -578,7 +578,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		}
 
 		if (done != nsrcs) {
-			usleep(50);
+			usleep(1000);
 		}
 	}
 
@@ -624,7 +624,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		}
 
 		if (done != nsrcs) {
-			usleep(50);
+			usleep(1000);
 		}
 	}
 
