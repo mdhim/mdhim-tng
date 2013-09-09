@@ -80,8 +80,15 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts, int sta
 		opts->db_ptr5 = NULL;	       
 		opts->db_ptr6 = NULL;	       
 		opts->db_ptr7 = NULL;	       
-		opts->db_ptr8 = NULL;	     
 	}  
+
+	opts->db_ptr8 = md->mdhim_rs->mdhim_store->db_ptr8;
+	opts->db_ptr9 = md->mdhim_rs->mdhim_store->db_ptr9;
+	opts->db_ptr10 = md->mdhim_rs->mdhim_store->db_ptr10;
+	opts->db_ptr11 = md->mdhim_rs->mdhim_store->db_ptr11;
+	opts->db_ptr12 = md->mdhim_rs->mdhim_store->db_ptr12;
+	opts->db_ptr13 = md->mdhim_rs->mdhim_store->db_ptr13;
+	opts->db_ptr14 = md->mdhim_rs->mdhim_store->db_ptr14;
 }
 
 /**
@@ -886,12 +893,12 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - key pointer: %p and length: %d with source: %d", 
 	     md->mdhim_rank, gm->key, gm->key_len, source);
-/*	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
+	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
 	  	free(gm->key);
 		gm->key = NULL;
 		gm->key_len = 0;
 	}
-*/
+
 	grm->key_len = key_len;
 	grm->value = *value;
 	grm->value_len = *value_len;
@@ -1219,13 +1226,7 @@ void *worker_thread(void *data) {
 							 item->message, 
 							 item->source, op);
 				}
-
-				if (((struct mdhim_getm_t *) item->message)->key && 
-				    ((struct mdhim_getm_t *) item->message)->key_len &&
-				    item->source != md->mdhim_rank) {
-					free(((struct mdhim_getm_t *) item->message)->key);
-				}
-
+			
 				break;
 			case MDHIM_BULK_GET:
 				//Determine the operation passed and call the appropriate function

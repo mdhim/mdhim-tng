@@ -27,6 +27,16 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	store->db_ptr2 = NULL;
 	store->db_ptr3 = NULL;
 	store->db_ptr4 = NULL;
+	store->db_ptr5 = NULL;
+	store->db_ptr6 = NULL;
+	store->db_ptr7 = NULL;
+	store->db_ptr8 = NULL;
+	store->db_ptr9 = NULL;
+	store->db_ptr10 = NULL;
+	store->db_ptr11 = NULL;
+	store->db_ptr12 = NULL;
+	store->db_ptr13 = NULL;
+	store->db_ptr14 = NULL;
 	store->mdhim_store_stats = NULL;
 	switch(type) {
 	case UNQLITE:
