@@ -5,7 +5,7 @@
 #include "data_store.h"
 #include "messages.h"
 
-#define LISTENER_THREADS 10
+#define LISTENER_THREADS 1
 
 struct mdhim_t;
 

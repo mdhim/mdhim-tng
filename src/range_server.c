@@ -1412,10 +1412,11 @@ int range_server_init_comm(struct mdhim_t *md) {
 	int *ranks;
 	rangesrv_info *rp;
 	int i = 0, j = 0;
-	int ret;
-	int size;
+	int ret, server;
+	int comm_size, size;
 	MPI_Comm new_comm;
 
+	ranks = NULL;
 	//Populate the ranks array that will be in our new comm
 	if ((ret = im_range_server(md)) == 1) {
 		ranks = malloc(sizeof(int) * md->num_rangesrvs);
@@ -1425,29 +1426,34 @@ int range_server_init_comm(struct mdhim_t *md) {
 			ranks[i] = rp->rank;
 			mlog(MDHIM_SERVER_DBG2, "MDHIM Rank: %d - " 
 			     "Adding rank: %d to range server comm", 
-			     md->mdhim_rank, rp->rank);
+			     md->mdhim_rank, rp->rank); 
 			i++;
 			size++;
 			rp = rp->next;
 		}
 	} else {
-		MPI_Comm_size(md->mdhim_comm, &size);
-		ranks = malloc(sizeof(int) * (size - md->num_rangesrvs));
-		rp = md->rangesrvs;
-		size = 0;
-		j = i = 0;
-		while (rp) {
-			if (i == rp->rank) {
+		MPI_Comm_size(md->mdhim_comm, &comm_size);
+		ranks = malloc(sizeof(int) * comm_size);
+		size = j = 0;
+		for (i = 0; i < comm_size; i++) {
+			server = 0;
+			rp = md->rangesrvs;
+			while (rp) {			
+				if (i == rp->rank) {
+					server = 1;
+					break;
+				}
+
 				rp = rp->next;
-				i++;
+			}		
+
+			if (server) {
 				continue;
 			}
-
 			ranks[j] = i;
 			mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - " 
 			     "Adding rank: %d to clients only comm", 
 			     md->mdhim_rank, i);
-			i++;
 			j++;
 			size++;
 		}
