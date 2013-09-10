@@ -516,7 +516,13 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
  */
 int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db = (leveldb_t *) dbh;
+	leveldb_t *db_s = (leveldb_t *) dbs;
 
+	//Force a compaction
+	mlog(MDHIM_SERVER_CRIT, "Compacting databases");
+	leveldb_compact_range(db, NULL, 0, NULL, 0);
+	leveldb_compact_range(db_s, NULL, 0, NULL, 0);
+	//Destroy the options
 	leveldb_comparator_destroy((leveldb_comparator_t *) mstore_opts->db_ptr1);
 	leveldb_options_destroy((leveldb_options_t *) mstore_opts->db_ptr2);
 	leveldb_readoptions_destroy((leveldb_readoptions_t *) mstore_opts->db_ptr3);
