@@ -37,14 +37,15 @@ typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, voi
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_next_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
-					 int32_t *data_len, 
+					 int32_t *data_len, void **iterator,
 					 struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
-					 int32_t *data_len, 
+					 int32_t *data_len, void **iterator,
 					 struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
 				    struct mdhim_store_opts_t *mstore_opts);
+typedef int (*mdhim_store_iter_free_fn_t)(void **iterator);
 typedef int (*mdhim_store_commit_fn_t)(void *db_handle);
 typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 				      struct mdhim_store_opts_t *mstore_opts);
@@ -114,6 +115,7 @@ struct mdhim_store_t {
 	mdhim_store_get_next_fn_t get_next;
 	mdhim_store_get_prev_fn_t get_prev;
 	mdhim_store_del_fn_t del;
+        mdhim_store_iter_free_fn_t iter_free;
 	mdhim_store_commit_fn_t commit;
 	mdhim_store_close_fn_t close;
        

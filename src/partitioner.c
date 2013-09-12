@@ -514,8 +514,6 @@ struct mdhim_stat *get_next_slice_stat(struct mdhim_t *md, int slice_num) {
 
 	next_slice = NULL;
 
-	mlog(MDHIM_CLIENT_INFO, "Rank: %d - cur slice is: %d", 
-	     md->mdhim_rank, slice_num);
 	//Iterate through the stat hash entries to find the slice 
 	//number next after the given slice number
 	HASH_ITER(hh, md->stats, stat, tmp) {	
@@ -672,9 +670,7 @@ int get_slice_from_istat(struct mdhim_t *md, int cur_slice, uint64_t istat, int 
 		if (cur_stat && *(uint64_t *)cur_stat->max > istat) {
 			slice_num = cur_slice;
 			goto done;
-		} else {
-			mlog(MDHIM_CLIENT_INFO, "Rank: %d - Getting new stat", 
-			     md->mdhim_rank);
+		} else {		
 			new_stat = get_next_slice_stat(md, cur_slice);
 			goto new_stat;
 		}
@@ -734,6 +730,7 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int ke
 	long double fstat = 0;
 	uint64_t istat = 0;
 
+	cur_slice = slice_num = 0;
 	//If we don't have any stats info, then return null
 	if (!md->stats) {
 		mlog(MDHIM_CLIENT_INFO, "Rank: %d - No statistics data available" 
@@ -745,13 +742,25 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int ke
 	float_type = is_float_key(md->key_type);
 
 	//Get the current slice number of our key
-	cur_slice = get_slice_num(md, key, key_len);
-	if (!cur_slice) {
-		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Error: could not determine a valid a slice number", 
-		     md->mdhim_rank);
+	if (key && key_len) {
+		cur_slice = get_slice_num(md, key, key_len);
+		if (!cur_slice) {
+			mlog(MDHIM_CLIENT_INFO, "Rank: %d - Error: could not determine a valid a slice number", 
+			     md->mdhim_rank);
+			return NULL;
+		}
+	} else if (op != MDHIM_GET_FIRST && op != MDHIM_GET_LAST) {
+		//If the op is not first or last, then we expect a key
 		return NULL;
 	}
-	
+		
+	//If we were passed in a key and the op is first or last, just return the current slice
+	if (key && key_len && (op == MDHIM_GET_FIRST || op == MDHIM_GET_LAST)) {
+		ret_rp = get_range_server_by_slice(md, cur_slice);
+		return ret_rp;
+	}
+
+	//Find the slice based on the operation and key value
 	if (md->key_type == MDHIM_STRING_KEY) {
 		fstat = get_str_num(key, key_len);
 	} else if (md->key_type == MDHIM_FLOAT_KEY) {

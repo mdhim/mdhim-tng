@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <sys/time.h>
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
@@ -230,7 +231,7 @@ int load_stats(struct mdhim_t *md) {
 		*val_len = 0;		
 		md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_stats, 
 						    (void **) slice, key_len, (void **) val, 
-						    val_len, &opts);	
+						    val_len, NULL, &opts);	
 		if (old_slice) {
 			free(old_slice);
 			old_slice = NULL;
@@ -821,7 +822,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+							 value_len, NULL, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -833,7 +834,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+							 value_len, NULL, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -845,7 +846,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+							 value_len, NULL,  &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -857,7 +858,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+							 value_len, NULL, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -1005,10 +1006,13 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	int ret;
 	struct mdhim_store_opts_t opts;
 	int i;
+	void **iterator;
 
 	set_store_opts(md, &opts, 0);
 
 	//Initialize pointers and lengths
+	iterator = malloc(sizeof(void *));
+	*iterator = NULL;
 	values = malloc(sizeof(void *) * gm->num_records);
 	value_lens = malloc(sizeof(int32_t) * gm->num_records);
 	memset(value_lens, 0, sizeof(int32_t) * gm->num_records);
@@ -1044,7 +1048,8 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 			     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
 								 (void **) (keys + i), (int32_t *) (key_lens + i), 
 								 (void **) (values + i), 
-								 (int32_t *) (value_lens + i), &opts)) 
+								 (int32_t *) (value_lens + i), iterator,
+								 &opts)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
@@ -1064,7 +1069,8 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 			     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
 								 (void **) (keys + i), (int32_t *) (key_lens + i), 
 								 (void **) (values + i), 
-								 (int32_t *) (value_lens + i), &opts)) 
+								 (int32_t *) (value_lens + i), iterator,
+								 &opts)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
@@ -1086,6 +1092,8 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	}
 
 respond:
+	md->mdhim_rs->mdhim_store->iter_free(iterator);
+	free(iterator);
        //Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
@@ -1122,19 +1130,27 @@ void *listener_thread(void *data) {
 	int mtype; //The message type
 	int ret;
 	work_item *item;
+	struct timeval start, end;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
 	while (1) {		
 		//Receive messages sent to this server
+		mlog(MPI_DBG, "Rank: %d - Received message from rank: %d of type: %d", 
+		     md->mdhim_rank, source, mtype);
+
+		gettimeofday(&start, NULL);
 		ret = receive_rangesrv_work(md, &source, &message);
 		if (ret < MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error receiving message in listener", 
 			     md->mdhim_rank);
 			continue;
 		}
-	
+
+		gettimeofday(&end, NULL);	
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Took: %d seconds to receive a range server message", 
+		     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
 		//We received a close message - so quit
 		if (ret == MDHIM_CLOSE) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Received close message", 
@@ -1172,6 +1188,7 @@ void *worker_thread(void *data) {
 	int mtype;
 	int op;
 	int num_records;
+	struct timeval start, end;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -1195,6 +1212,7 @@ void *worker_thread(void *data) {
 		}
 
 		while (item) {
+			gettimeofday(&start, NULL);
 			//Call the appropriate function depending on the message type			
 			//Get the message type
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
@@ -1250,6 +1268,9 @@ void *worker_thread(void *data) {
 			}
 				
 			free(item);
+			gettimeofday(&end, NULL);
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Took: %d seconds to process range server work", 
+			     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
 			item = get_work(md);
 		}		
 

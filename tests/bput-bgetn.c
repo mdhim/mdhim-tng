@@ -4,9 +4,9 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 1000
+#define KEYS 100000
 //#define TOTAL_KEYS 2083334
-#define TOTAL_KEYS 10000
+#define TOTAL_KEYS 100000
 
 void start_record(struct timeval *start) {
 	gettimeofday(start, NULL);
@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
 	long get_time = 0;
 	int total_keys = 0;
 	int round = 0;
+
 	// Create options for DB initialization
 	db_opts = db_options_init();
 	db_options_set_path(db_opts, db_path);
@@ -80,7 +81,9 @@ int main(int argc, char **argv) {
 		values = malloc(sizeof(int *) * KEYS);
 		for (i = 0; i < KEYS; i++) {
 			keys[i] = malloc(sizeof(int));
-			*keys[i] = size * i + md->mdhim_rank + 1 + size * round;
+			//			*keys[i] = size * i + md->mdhim_rank + 1 + size * round;
+			//Keys are chosen to fit in one slice
+			*keys[i] = (i + (md->mdhim_rank * KEYS)) + total_keys;
 //			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
 			key_lens[i] = sizeof(int);
 			values[i] = malloc(sizeof(int));
@@ -130,27 +133,22 @@ int main(int argc, char **argv) {
 		//Get the values back for each key inserted
 		start_record(&start_tv);
 
-		//start at the first key
-		if (*keys[0] == 1) {
-			bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
-					   KEYS, MDHIM_GET_FIRST);
-		} else {
-			bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
-					   KEYS, MDHIM_GET_NEXT);
-		}
+		//start at the first key on the range server determined by the key
+		bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
+				   KEYS, MDHIM_GET_FIRST);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
 
 		if (!bgrm || bgrm->error) {
-			printf("Rank: %d - Error retrieving values", md->mdhim_rank);
+			printf("Rank: %d - Error retrieving values starting at: %d", md->mdhim_rank, *keys[0]);
 			goto done;
 		}
 	
-/*		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {			
+		/*	for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {			
 			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
 			       *(int *)bgrm->keys[i], *(int *)bgrm->values[i]);
-		}
-*/	
+			       }*/
+	
 		//Free the message received
 		mdhim_full_release_msg(bgrm);
 		for (i = 0; i < KEYS; i++) {

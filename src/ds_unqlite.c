@@ -206,7 +206,7 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *d
  * 
  */
 int mdhim_unqlite_get_next(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len, 
+			   void **data, int32_t *data_len, void **iterator,
 			   struct mdhim_store_opts_t *mstore_opts) {
 /*	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
@@ -289,7 +289,7 @@ int mdhim_unqlite_get_next(void *dbh, void **key, int *key_len,
  * 
  */
 int mdhim_unqlite_get_prev(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len, 
+			   void **data, int32_t *data_len, void **iterator,
 			   struct mdhim_store_opts_t *mstore_opts) {
 /*	unqlite *dh = (unqlite *) dbh;
 	int ret = 0;
@@ -395,5 +395,9 @@ int mdhim_unqlite_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_
 		return MDHIM_DB_ERROR;
 	}
 
+	return MDHIM_SUCCESS;
+}
+
+int mdhim_unqlite_iter_free(void **iterator) {
 	return MDHIM_SUCCESS;
 }

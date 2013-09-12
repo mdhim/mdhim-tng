@@ -47,7 +47,7 @@
 #define CLIENT_RESPONSE_MSG       4
 #define CLIENT_RESPONSE_SIZE_MSG  5
 
-#define MAX_BULK_OPS 1000
+#define MAX_BULK_OPS 100000
 
 //Maximum size of messages allowed
 #define MDHIM_MAX_MSG_SIZE 2147483647

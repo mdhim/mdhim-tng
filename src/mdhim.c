@@ -574,6 +574,16 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 
 /**
  * Retrieves multiple sequential records from a single range server if they exist
+ * 
+ * If the operation passed in is MDHIM_GET_NEXT or MDHIM_GET_PREV, this return all the records
+ * starting from the key passed in in the direction specified
+ *
+ * If the operation passed in is MDHIM_GET_FIRST and MDHIM_GET_LAST and the key is NULL,
+ * then this operation will return the keys starting from the first or last key
+ *
+ * If the operation passed in is MDHIM_GET_FIRST and MDHIM_GET_LAST and the key is not NULL,
+ * then this operation will return the keys starting the first key on 
+ * the range server that the key resolves to
  *
  * @param md           main MDHIM struct
  * @param key          pointer to the key to start getting next entries from
