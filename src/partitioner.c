@@ -754,26 +754,22 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int ke
 		return NULL;
 	}
 		
-	//If we were passed in a key and the op is first or last, just return the current slice
-	if (key && key_len && (op == MDHIM_GET_FIRST || op == MDHIM_GET_LAST)) {
-		ret_rp = get_range_server_by_slice(md, cur_slice);
-		return ret_rp;
+	if (key && key_len) {
+		//Find the slice based on the operation and key value
+		if (md->key_type == MDHIM_STRING_KEY) {
+			fstat = get_str_num(key, key_len);
+		} else if (md->key_type == MDHIM_FLOAT_KEY) {
+			fstat = *(float *) key;
+		} else if (md->key_type == MDHIM_DOUBLE_KEY) {
+			fstat = *(double *) key;
+		} else if (md->key_type == MDHIM_INT_KEY) {
+			istat = *(uint32_t *) key;
+		} else if (md->key_type == MDHIM_LONG_INT_KEY) {
+			istat = *(uint64_t *) key;
+		} else if (md->key_type == MDHIM_BYTE_KEY) {
+			fstat = get_byte_num(key, key_len);
+		} 
 	}
-
-	//Find the slice based on the operation and key value
-	if (md->key_type == MDHIM_STRING_KEY) {
-		fstat = get_str_num(key, key_len);
-	} else if (md->key_type == MDHIM_FLOAT_KEY) {
-		fstat = *(float *) key;
-	} else if (md->key_type == MDHIM_DOUBLE_KEY) {
-		fstat = *(double *) key;
-	} else if (md->key_type == MDHIM_INT_KEY) {
-		istat = *(uint32_t *) key;
-	} else if (md->key_type == MDHIM_LONG_INT_KEY) {
-		istat = *(uint64_t *) key;
-	} else if (md->key_type == MDHIM_BYTE_KEY) {
-		fstat = get_byte_num(key, key_len);
-	} 
 
 	if (float_type) {
 		slice_num = get_slice_from_fstat(md, cur_slice, fstat, op);

@@ -401,8 +401,10 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
 			goto error;
 		}
-	
-		leveldb_iter_next(iter);
+
+		if (!iterator || *iterator) {
+			leveldb_iter_next(iter);
+		}
 	}
 
 	if (!leveldb_iter_valid(iter)) {
@@ -502,8 +504,10 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
 			goto error;
 		}
-	
-		leveldb_iter_prev(iter);
+		if (!iterator || *iterator) {
+			leveldb_iter_prev(iter);
+		}
+
 	}
 
 	if (!leveldb_iter_valid(iter)) {

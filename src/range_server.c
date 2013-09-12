@@ -1017,6 +1017,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	value_lens = malloc(sizeof(int32_t) * gm->num_records);
 	memset(value_lens, 0, sizeof(int32_t) * gm->num_records);
 	keys = malloc(sizeof(void *) * gm->num_records);
+	memset(keys, 0, sizeof(void *) * gm->num_records);
 	key_lens = malloc(sizeof(int32_t) * gm->num_records);
 	memset(key_lens, 0, sizeof(int32_t) * gm->num_records);
 	last_key = NULL;

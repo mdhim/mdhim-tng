@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <assert.h>
 #include "mpi.h"
 #include "mdhim.h"
 
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
 	struct timeval start_tv, end_tv;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_DBG; //MLOG_CRIT=1, MLOG_DBG=2
 	db_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
 	int size;
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
 	long get_time = 0;
 	int total_keys = 0;
 	int round = 0;
+	int last_key = 0;
 
 	// Create options for DB initialization
 	db_opts = db_options_init();
@@ -84,10 +86,10 @@ int main(int argc, char **argv) {
 			//			*keys[i] = size * i + md->mdhim_rank + 1 + size * round;
 			//Keys are chosen to fit in one slice
 			*keys[i] = (i + (md->mdhim_rank * KEYS)) + total_keys;
-//			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
+			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
 			key_lens[i] = sizeof(int);
 			values[i] = malloc(sizeof(int));
-			*values[i] = md->mdhim_rank;
+			*values[i] = *keys[i];
 			value_lens[i] = sizeof(int);		
 		}
 		
@@ -118,36 +120,46 @@ int main(int argc, char **argv) {
 		} else {
 //			printf("Committed MDHIM database\n");
 		}
-		//Get the stats
-		start_record(&start_tv);
-		ret = mdhimStatFlush(md);
-		end_record(&end_tv);
-		add_time(&start_tv, &end_tv, &flush_time);
-
-		if (ret != MDHIM_SUCCESS) {
-			printf("Error getting stats from MDHIM database\n");
-		} else {
+		total_keys += KEYS;
+		round++;
+	}
+	
+	//Get the stats
+	start_record(&start_tv);
+	ret = mdhimStatFlush(md);
+	end_record(&end_tv);
+	add_time(&start_tv, &end_tv, &flush_time);
+	
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error getting stats from MDHIM database\n");
+	} else {
 //			printf("Got stats\n");
-		}
-		
+	}
+	
+	total_keys = 0;
+	while (total_keys != TOTAL_KEYS) {	
 		//Get the values back for each key inserted
 		start_record(&start_tv);
 
 		//start at the first key on the range server determined by the key
-		bgrm = mdhimBGetOp(md, keys[0], key_lens[0], 
-				   KEYS, MDHIM_GET_FIRST);
+		last_key = (md->mdhim_rank * KEYS) + total_keys - 1;
+		bgrm = mdhimBGetOp(md, &last_key, key_lens[0], 
+				   KEYS, MDHIM_GET_NEXT);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
 
 		if (!bgrm || bgrm->error) {
-			printf("Rank: %d - Error retrieving values starting at: %d", md->mdhim_rank, *keys[0]);
+			printf("Rank: %d - Error retrieving values starting at: %d", md->mdhim_rank, last_key);
 			goto done;
 		}
 	
-		/*	for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {			
-			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
-			       *(int *)bgrm->keys[i], *(int *)bgrm->values[i]);
-			       }*/
+		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {	
+			
+			/*	printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
+			 *(int *)bgrm->keys[i], *(int *)bgrm->values[i]);*/
+			//assert(*(int *)bgrm->keys[i] == *keys[i]);
+			//assert(*(int *)bgrm->values[i] == *values[i]);
+		}
 	
 		//Free the message received
 		mdhim_full_release_msg(bgrm);
