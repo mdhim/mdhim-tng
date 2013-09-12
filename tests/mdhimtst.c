@@ -59,7 +59,8 @@ char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 
 static FILE * logfile;
 static FILE * infile;
-int verbose = 1;   // By default generate lost of feedback status lines
+int verbose = 1;   // By default generate lots of feedback status lines
+int dbOptionAppend = MDHIM_DB_OVERWRITE;
 int to_log = 0;
 // MDHIM_INT_KEY=1, MDHIM_LONG_INT_KEY=2, MDHIM_FLOAT_KEY=3, MDHIM_DOUBLE_KEY=4
 // MDHIM_LONG_DOUBLE_KEY=5, MDHIM_STRING_KEY=6, MDHIM_BYTE_KEY=7 
@@ -72,6 +73,7 @@ static int errMsgIdx = 0;
 static int sc_len;  // Source Character string length for Random String generation
 static char *sourceChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ124567890"; 
 
+// Labels for basic get operations
 static char *getOpLabel[] = { "MDHIM_GET_EQ", "MDHIM_GET_NEXT", "MDHIM_GET_PREV",
                               "MDHIM_GET_FIRST", "MDHIM_GET_LAST"};
 
@@ -278,6 +280,8 @@ void usage(void)
         printf(" -p<pathForDataBase> (path where DB will be created)\n");
         printf(" -n<DataBaseName> (Name of DataBase file or directory)\n");
         printf(" -b<DebugLevel> (MLOG_CRIT=1, MLOG_DBG=2)\n");
+        printf(" -a (DB store append mode. By default records with same key are "
+               "overwritten. This flag turns on the option to append to existing values.");
         printf(" -q<0|1> (Quiet mode, default is verbose) 1=write out to log file\n");
 	exit (8);
 }
@@ -878,6 +882,107 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
     // Release memory
     freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
 }
+
+//======================================BGETOP============================
+static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
+{
+    int nrecs = 100;
+    char buffer1 [ TEST_BUFLEN ];
+    char key_string [ TEST_BUFLEN ];
+    struct mdhim_bgetrm_t *bgrm;
+    int i, getOp;
+    int i_key;
+    long l_key;
+    float f_key;
+    double d_key;
+    
+    if (verbose) tst_say(0, "# bgetop n key op\n" );
+    
+    // Get the number of records to retrieve in bgetop
+    charIdx = getWordFromString( command, buffer1, charIdx);
+    nrecs = atoi( buffer1 );
+    
+    // Get the key to use as starting point
+    charIdx = getWordFromString( command, key_string, charIdx);
+    
+    // Get the operation type to use
+    charIdx = getWordFromString( command, buffer1, charIdx);
+    getOp = atoi( buffer1 );
+
+    if (verbose) tst_say(0, "# mdhimBGetOp(%d, %s, %s)\n", 
+                         nrecs, key_string, getOpLabel[getOp] );
+
+    // Based on key type generate a key using rank 
+    switch (key_type)
+    {
+       case MDHIM_INT_KEY:
+            i_key = atoi( key_string ) * (md->mdhim_rank + 1) + 1;
+            sprintf(key_string, "%d", i_key);
+            if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [int]\n", 
+                                 nrecs, key_string, getOpLabel[getOp]);
+            bgrm = mdhimBGetOp(md, &i_key, sizeof(i_key), nrecs, getOp);
+            break;
+            
+       case MDHIM_LONG_INT_KEY:
+            l_key = atol( key_string ) * (md->mdhim_rank + 1) + 1;
+            sprintf(key_string, "%ld", l_key);
+            if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [long]\n", 
+                                 nrecs, key_string, getOpLabel[getOp]);
+            bgrm = mdhimBGetOp(md, &l_key, sizeof(l_key), nrecs, getOp);
+            break;
+            
+       case MDHIM_FLOAT_KEY:
+            f_key = atof( key_string ) * (md->mdhim_rank + 1) + 1;
+            sprintf(key_string, "%f", f_key);
+            if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [float]\n", 
+                                 nrecs, key_string, getOpLabel[getOp]);
+            bgrm = mdhimBGetOp(md, &f_key, sizeof(f_key), nrecs, getOp);
+            
+            break;
+            
+       case MDHIM_DOUBLE_KEY:
+            d_key = atof( key_string ) * (md->mdhim_rank + 1) + 1;
+            sprintf(key_string, "%e", d_key);
+            if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [double]\n", 
+                                 nrecs, key_string, getOpLabel[getOp]);
+            bgrm = mdhimBGetOp(md, &d_key, sizeof(d_key), nrecs, getOp);
+            
+            break;
+                        
+       case MDHIM_STRING_KEY:
+       case MDHIM_BYTE_KEY:
+            sprintf(key_string, "%s0%d0%d", key_string, (md->mdhim_rank + 1), 1);
+            if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [string|byte]\n", 
+                                 nrecs, key_string, getOpLabel[getOp]);
+            bgrm = mdhimBGetOp(md, (void *)key_string, strlen(key_string), nrecs, getOp);
+            break;
+ 
+       default:
+            tst_say(1, "Error, unrecognized Key_type in execGet\n");
+    }
+    
+    if (!bgrm || bgrm->error)
+    {
+        tst_say(1, "Error getting %d values for start key (%s): %s from MDHIM\n", 
+                nrecs, getOpLabel[getOp], key_string);
+    }
+    else if (verbose)
+    {
+        for (i = 0; i < bgrm->num_records && !bgrm->error; i++)
+        {			
+            tst_say(0, "Rank: %d - Got value[%d]: %s for start key: %s from MDHIM\n", 
+                    md->mdhim_rank, i, (char *)bgrm->values[i], key_string);
+        }
+    }
+    else
+    {
+        tst_say(0, "Rank: %d - Successfully got %d values for start key: %s from MDHIM\n", 
+                    md->mdhim_rank, bgrm->num_records, key_string);
+    }
+    
+    //Free the message received
+    mdhim_full_release_msg(bgrm);
+}
         
 //======================================DEL============================
 static void execDel(char *command, struct mdhim_t *md, int charIdx)
@@ -1161,28 +1266,32 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
             case MDHIM_INT_KEY:
                  i_key = rand() / 5;
                  sprintf(key_string, "%d", i_key);
-                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [int]\n", key_string, value );
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [int]\n", 
+                                      key_string, value );
                  rm = mdhimPut(md, &i_key, sizeof(i_key), value, strlen(value)+1);
                  break;
 
             case MDHIM_LONG_INT_KEY:
                  l_key = rand() / 3;
                  sprintf(key_string, "%ld", l_key);
-                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [long]\n", key_string, value );
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [long]\n", 
+                                      key_string, value );
                  rm = mdhimPut(md, &l_key, sizeof(l_key), value, strlen(value)+1);
                  break;
 
             case MDHIM_FLOAT_KEY:
                 f_key = rand() / 5.0;
                 sprintf(key_string, "%f", f_key);
-                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", key_string, value );
+                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", 
+                                     key_string, value );
                 rm = mdhimPut(md, &f_key, sizeof(f_key), value, strlen(value)+1);
                 break;
 
            case MDHIM_DOUBLE_KEY:
                 d_key = rand() / 3.0;
                 sprintf(key_string, "%e", d_key);
-                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", key_string, value );
+                if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", 
+                                     key_string, value );
                 rm = mdhimPut(md, &d_key, sizeof(d_key), value, strlen(value)+1);
                 break;
 
@@ -1190,8 +1299,10 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
             case MDHIM_BYTE_KEY:
                  if (i > 0) free(key_string);
                  key_string = random_string(key_len, rand_str_size);
-                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [string|byte]\n", key_string, value );
-                 rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, strlen(value)+1);
+                 if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [string|byte]\n", 
+                                      key_string, value );
+                 rm = mdhimPut(md, (void *)key_string, strlen(key_string), 
+                               value, strlen(value)+1);
                  break;
 
             default:
@@ -1201,7 +1312,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
         // Record any error(s)
         if (!rm || rm->error)
         {
-            if (verbose) tst_say(1, "Error N putting key: %s with value: %s into MDHIM\n", key_string, value);
+            if (verbose) tst_say(1, "Error N putting key: %s with value: %s "
+                                    "into MDHIM\n", key_string, value);
             ret ++;
         }
   
@@ -1328,8 +1440,9 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
     }
     else if (grm->key && grm->value)
     {
-        if (verbose) tst_say(0, "Successfully got FIRST value: %s for key [string|byte](%s) from MDHIM\n", 
-                (char *) grm->value, getOpLabel[MDHIM_GET_NEXT]);
+        if (verbose) tst_say(0, "Successfully got FIRST value: %s for key "
+                                "[string|byte](%s) from MDHIM\n", 
+                             (char *) grm->value, getOpLabel[MDHIM_GET_NEXT]);
         
         for (i=1; i<n_iter; i++)
         {
@@ -1343,8 +1456,9 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
             }
             else if (grm->key && grm->value)
             {
-                if (verbose) tst_say(0, "Successfully got %dth value: %s for key [string|byte](%s) from MDHIM\n", 
-                        i, (char *) grm->value, getOpLabel[MDHIM_GET_NEXT]);
+                if (verbose) tst_say(0, "Successfully got %dth value: %s for key "
+                                        "[string|byte](%s) from MDHIM\n", i,
+                                     (char *) grm->value, getOpLabel[MDHIM_GET_NEXT]);
             }
             else
             {
@@ -1368,7 +1482,8 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
     }
     else
     {
-        tst_say(0, "Successfully N got %d out of %d key/values desired from MDHIM\n", i, n_iter);
+        tst_say(0, "Successfully N got %d out of %d key/values desired from MDHIM\n", 
+                i, n_iter);
     }
 }
 
@@ -1484,6 +1599,11 @@ int main( int argc, char * argv[] )
                 printf("DB name: %s || ", &argv[1][2]);
                 db_name = &argv[1][2];
                 break;
+                
+           case 'a':
+                printf("DB option append value is on || ");
+                dbOptionAppend = MDHIM_DB_APPEND;
+                break;
 
             case 'q':
                 to_log = atoi( &argv[1][2] );
@@ -1541,6 +1661,7 @@ int main( int argc, char * argv[] )
     db_options_set_type(db_opts, db_type);
     db_options_set_key_type(db_opts, key_type);
     db_options_set_debug_level(db_opts, dbug);
+    db_options_set_append(db_opts, dbOptionAppend);  // Default is overwrite
     
     md = mdhimInit(MPI_COMM_WORLD, db_opts);
     if (!md)
@@ -1639,26 +1760,26 @@ int main( int argc, char * argv[] )
         {
             execNgetn(commands[cmdIdx], md, charIdx);
         }
+        else if( !strcmp( command, "bgetop" ))
+        {
+            execBgetOp(commands[cmdIdx], md, charIdx);
+        }
         else
         {
             printf( "# q       FOR QUIT\n" );
             //printf( "# open filename keyfile1,dkeyfile2,... update\n" );
-            //printf( "# transaction < START | COMMIT | ROLLBACK >\n" );
             //printf( "# close\n" );
             printf( "# flush\n" );
-            printf( "# put key data\n" );
-            printf( "# bput n key data\n" );
-            //printf( "# find index key < LT | LE | FI | EQ | LA | GE | GT >\n" );
-            //printf( "# nfind n index key < LT | LE | FI | EQ | LA | GE | GT >\n" );
-            printf( "# get key getOp\n           <getOp: EQ=0 | NEXT=2 | PREV=3 | FIRST=4 | LAST=5> >\n" );
+            printf( "# put key value\n" );
+            printf( "# bput n key value\n" );
+            printf( "# nput n key_size value_size exact_size #(0=variable | 1=exact)\n");
+            printf( "# get key getOp #(EQ=0 | NEXT=1 | PREV=2 | FIRST=3 | LAST=4)\n" );
             printf( "# bget n key\n" );
-            //printf( "# datalen\n" );
-            //printf( "# readdata\n" );
-            //printf( "# readkey index\n" );
-            //printf( "# updatedata data\n" );
-            //printf( "# updatekey index key\n" );
+            printf( "# bgetop n key getOp #(NEXT=1 | FIRST=3)\n" );
+            printf( "# ngetn n key_length exact_size #(0=variable | 1=exact)\n" );
             printf( "# del key\n" );
             printf( "# bdel n key\n" );
+
         }
         
         end = clock();

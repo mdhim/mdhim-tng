@@ -156,6 +156,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: Packing message "
 			     "failed before sending.", md->mdhim_rank);
 			ret = MDHIM_ERROR;
+                        continue;
 		}
 				
 		sendbufs[num_msgs] = sendbuf;
