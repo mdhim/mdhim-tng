@@ -10,7 +10,6 @@
  * @param md      main MDHIM struct
  * @param dest    destination to send to 
  * @param message pointer to message struct to send
- * @param size    size of the message
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
@@ -92,10 +91,8 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
  * send_all_rangesrv_work
  * Sends multiple messages simultaneously and waits for them to all complete
  *
- * @param md      main MDHIM struct
- * @param dest    destination to send to 
- * @param message pointer to message struct to send
- * @param size    size of the message
+ * @param md       main MDHIM struct
+ * @param messages double pointer to array of messages to send
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
@@ -510,10 +507,10 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
  * receive_all_client_responses
  * Receives messages from multiple sources sources
  *
- * @param md       in  main MDHIM struct
- * @param srcs     in  sources to receive from 
- * @param srcs     in  number of sources to receive from 
- * @param message out  list of messages to receive
+ * @param md            in  main MDHIM struct
+ * @param srcs          in  sources to receive from 
+ * @param nsrcs         in  number of sources to receive from 
+ * @param messages out  array of messages to receive
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs, 
@@ -753,7 +750,7 @@ int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf
  *
  * @param md        in   main MDHIM struct
  * @param bpm       in   structure bput_message which will be packed into the sendbuf 
- * @param sendsize  out  double pointer for packed message to send
+ * @param sendbuf   out  double pointer for packed message to send
  * @param sendsize  out  pointer for packed message size
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
@@ -830,7 +827,7 @@ int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **send
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
- * @param pm         out  structure put_message which will be unpacked from the message 
+ * @param putm       out  put message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_putm_t {
@@ -897,7 +894,7 @@ int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size,  void *
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
- * @param bpm        out  structure bulk_put_message which will be unpacked from the message 
+ * @param bput       out  bulk put message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_bputm_t {
@@ -1158,7 +1155,7 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **send
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
- * @param pm         out  structure get_message which will be unpacked from the message 
+ * @param getm       out  get message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_getm_t {
@@ -1215,7 +1212,7 @@ int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, void **
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message we received
  * @param mesg_size  in   size of the incoming message
- * @param bgm        out  structure bulk_get_message which will be unpacked from the message 
+ * @param bgetm      out  bulk get message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_bgetm_t {
@@ -1531,7 +1528,7 @@ int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, void 
  * @param md         in   main MDHIM struct
  * @param message    in   pointer for packed message
  * @param mesg_size  in   size of the incoming message
- * @param bgtrm      out  structure bulk_get_return_message which will be unpacked from the message 
+ * @param bgetrm     out  bulk get return message which will be unpacked from the message 
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_bgetrm_t {
@@ -1974,7 +1971,7 @@ int unpack_bdel_message(struct mdhim_t *md, void *message, int mesg_size, void *
  * Packs a return message structure into contiguous memory for message passing
  *
  * @param md       in   main MDHIM struct
- * @param pm       in   structure which will be packed into the sendbuf 
+ * @param rm       in   structure which will be packed into the sendbuf 
  * @param sendbuf  out  double pointer for packed message to send
  * @param sendsize out  pointer for packed message size
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
@@ -2020,8 +2017,8 @@ int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbu
  * unpacks a return message structure into contiguous memory for message passing
  *
  * @param md      in   main MDHIM struct
- * @param pm      in   structure return_message which will be packed into the message 
- * @param message out  pointer for packed message
+ * @param message out  pointer for buffer to unpack message to
+ * @param retm    in   return message that will be unpacked into message
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  * 
  * struct mdhim_rm_t {

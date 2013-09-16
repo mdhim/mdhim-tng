@@ -4,48 +4,42 @@ LEVEL_DB_ROOT   = /users/hng/leveldb-1.12.0
 CC	= mpicc -g -O0 -Wall
 CLIBS	= -L${MPI_ROOT}/lib -L../src -L${LEVEL_DB_ROOT}
 CINC	= -I${MPI_ROOT}/include -I${LEVEL_DB_ROOT}/include -IMlog/ -Iuthash -I../src -I../src/uthash
-
+SINGLE = single_tests
+TESTER = tester
 CFLAGS	= -lmpich -lmdhim -lm -lpthread -lstdc++ ${LEVEL_DB_ROOT}/libleveldb.a
 
-all:	get-put bget-bput put-del bput-bdel sort-bget-bput mdhimtst put-getn \
-	put-flush-get put-getp gets-puts bput-flush-bget bput-bgetn
+all:	put-get bput-bget put-del bput-bdel mdhimtst put-getn \
+	put-getp puts-gets bput-bgetn
 
-get-put: get-put.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+put-get: $(SINGLE)/put-get.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-put-flush-get: put-flush-get.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+puts-gets: $(SINGLE)/puts-gets.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-gets-puts: gets-puts.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+put-getn: $(SINGLE)/put-getn.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-put-getn: put-getn.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+put-getp: $(SINGLE)/put-getp.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-put-getp: put-getp.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+put-del: $(SINGLE)/put-del.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-put-del: put-del.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+bput-bget: $(SINGLE)/bput-bget.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-bget-bput: bget-bput.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+bput-bgetn: $(SINGLE)/bput-bgetn.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-bput-bgetn: bput-bgetn.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+bput-bdel: $(SINGLE)/bput-bdel.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
-bput-flush-bget: bput-flush-bget.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
-
-bput-bdel: bput-bdel.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
-
-sort-bget-bput: sort-bget-bput.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
-
-mdhimtst: mdhimtst.c
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+mdhimtst: $(TESTER)/mdhimtst.c
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $(TESTER)/$@
 
 clean:
-	rm -rf get-put bget-bput put-del bput-bdel sort-bget-bput mdhimtst put-getn \
-	put-flush-get put-getp gets-puts bput-flush-bget bput-bgetn
+	rm -rf $(SINGLE)/put-get $(SINGLE)/bput-bget $(SINGLE)/put-del $(SINGLE)/bput-bdel\
+               $(TESTER)/mdhimtst $(SINGLE)/put-getn \
+	       $(SINGLE)/put-getp $(SINGLE)/puts-gets \
+               $(SINGLE)/bput-bgetn

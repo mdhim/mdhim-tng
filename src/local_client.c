@@ -236,7 +236,7 @@ struct mdhim_rm_t *local_client_commit(struct mdhim_t *md, struct mdhim_basem_t 
  * Send delete to range server
  *
  * @param md main MDHIM struct
- * @param bgm pointer to get message to be sent or inserted into the range server's work queue
+ * @param dm pointer to delete message to be inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
 struct mdhim_rm_t *local_client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
@@ -267,7 +267,7 @@ struct mdhim_rm_t *local_client_delete(struct mdhim_t *md, struct mdhim_delm_t *
  * Send bulk delete to MDHIM
  *
  * @param md main MDHIM struct
- * @param bgm pointer to get message to be sent or inserted into the range server's work queue
+ * @param bdm pointer to bulk delete message to be inserted into the range server's work queue
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
 struct mdhim_rm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t *bdm) {

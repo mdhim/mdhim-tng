@@ -162,7 +162,8 @@ static const char* cmp_name(void* arg) {
  * mdhim_leveldb_open
  * Opens the database
  *
- * @param dbh            in   ** to the leveldb handle
+ * @param dbh            in   double pointer to the leveldb handle
+ * @param dbs            in   double pointer to the leveldb statistics db handle 
  * @param path           in   path to the database file
  * @param flags          in   flags for opening the data store
  * @param mstore_opts    in   additional options for the data store layer 
@@ -356,6 +357,19 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	return ret;
 }
 
+/**
+ * mdhim_leveldb_get_next
+ * Gets the next key/value from the data store
+ *
+ * @param dbh             in   pointer to the unqlite db handle
+ * @param key             out  void ** to the key that we get
+ * @param key_len         out  int * to the length of the key 
+ * @param data            out  void ** to the value belonging to the key
+ * @param data_len        out  int * to the length of the value data 
+ * @param iterator        in   double pointer to an iterator to use
+ * @param mstore_opts in   additional cursor options for the data store layer 
+ * 
+ */
 int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, void **iterator,
 			   struct mdhim_store_opts_t *mstore_opts) {
@@ -567,6 +581,7 @@ error:
  * Closes the data store
  *
  * @param dbh         in   pointer to the leveldb db handle 
+ * @param dbs         in   pointer to the leveldb statistics db handle 
  * @param mstore_opts in   additional options for the data store layer 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure

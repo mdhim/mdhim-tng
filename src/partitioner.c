@@ -332,7 +332,6 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
  * @param md        main MDHIM struct
  * @param key       pointer to the key to find the range server of
  * @param key_len   length of the key
- * @param key_type  type of the key
  * @return the slice number or 0 on error
  */
 int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
@@ -489,7 +488,6 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, int slice) {
  * @param md        main MDHIM struct
  * @param key       pointer to the key to find the range server of
  * @param key_len   length of the key
- * @param key_type  type of the key
  * @return the rank of the range server or NULL on error
  */
 rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
@@ -717,7 +715,6 @@ new_stat:
  * @param md        main MDHIM struct
  * @param key       pointer to the key to find the range server of
  * @param key_len   length of the key
- * @param key_type  type of the key
  * @param op        operation type (
  * @return the rank of the range server or NULL on error
  */

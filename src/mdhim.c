@@ -481,7 +481,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
  * @param md main MDHIM struct
  * @param keys         pointer to array of keys to get values for
  * @param key_lens     array with lengths of each key in keys
- * @param num_keys     the number of keys to get (i.e., the number of keys in keys array)
+ * @param num_records  the number of keys to get (i.e., the number of keys in keys array)
  * @return mdhim_bgetrm_t * or NULL on error
  */
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, 
@@ -716,7 +716,7 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len) {
  * @param md main MDHIM struct
  * @param keys         pointer to array of keys to delete
  * @param key_lens     array with lengths of each key in keys
- * @param num_keys     the number of keys to delete (i.e., the number of keys in keys array)
+ * @param num_records  the number of keys to delete (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
 struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,

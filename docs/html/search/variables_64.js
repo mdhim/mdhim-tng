@@ -1,6 +1,30 @@
 var searchData=
 [
-  ['db_5fcursor',['db_cursor',['../d4/d50/structmdhim__store__cur__t.html#a27db7c8dc601c0036fd682b0a9cbb61b',1,'mdhim_store_cur_t']]],
+  ['db_5fappend',['db_append',['../d2/dbc/structdb__options__t.html#a8a45de9d1573c80092cc5c09205114bf',1,'db_options_t']]],
+  ['db_5fcreate_5fnew',['db_create_new',['../d2/dbc/structdb__options__t.html#a622ce8f8e8be4e88499e3f8d7b4ac35f',1,'db_options_t']]],
   ['db_5fhandle',['db_handle',['../d1/dab/structmdhim__store__t.html#ab9c004b5de88a17f058146ef0a91e696',1,'mdhim_store_t']]],
-  ['del',['del',['../d1/dab/structmdhim__store__t.html#a3cf5374069e55121b50e4567a1e5e2e1',1,'mdhim_store_t']]]
+  ['db_5fkey_5ftype',['db_key_type',['../d2/dbc/structdb__options__t.html#ad53f43828cf7ca2f7332d2ee3b8b08d9',1,'db_options_t']]],
+  ['db_5fname',['db_name',['../d2/dbc/structdb__options__t.html#ae6a771980c715a452215f1c558a64746',1,'db_options_t']]],
+  ['db_5fopts',['db_opts',['../d8/dbc/structmdhim__t.html#a16fd571ca5544d43d939fb75eb3b8800',1,'mdhim_t']]],
+  ['db_5fpath',['db_path',['../d2/dbc/structdb__options__t.html#a419cca85c72e1fcafb80864cfb3920eb',1,'db_options_t']]],
+  ['db_5fptr1',['db_ptr1',['../d1/dab/structmdhim__store__t.html#a88c99ce5295e88a8afaac3041bd73fbe',1,'mdhim_store_t::db_ptr1()'],['../da/d76/structmdhim__store__opts__t.html#afc0af3a6b21e4c706234a0ca237597c1',1,'mdhim_store_opts_t::db_ptr1()']]],
+  ['db_5fptr10',['db_ptr10',['../d1/dab/structmdhim__store__t.html#a01c12aa1c69a352aecd5c6732880b52b',1,'mdhim_store_t::db_ptr10()'],['../da/d76/structmdhim__store__opts__t.html#a790c5061808fc0aceae877deba282647',1,'mdhim_store_opts_t::db_ptr10()']]],
+  ['db_5fptr11',['db_ptr11',['../d1/dab/structmdhim__store__t.html#acd81da642998a348ac407f50524d4032',1,'mdhim_store_t::db_ptr11()'],['../da/d76/structmdhim__store__opts__t.html#aa0f5dc33f1d601e8993e00429c3a7682',1,'mdhim_store_opts_t::db_ptr11()']]],
+  ['db_5fptr12',['db_ptr12',['../d1/dab/structmdhim__store__t.html#a9c6398ca2b628620f016978c0da65a67',1,'mdhim_store_t::db_ptr12()'],['../da/d76/structmdhim__store__opts__t.html#a0dc18da5e24aab02d2420bdd1bb9c258',1,'mdhim_store_opts_t::db_ptr12()']]],
+  ['db_5fptr13',['db_ptr13',['../d1/dab/structmdhim__store__t.html#a74eff2c8440d426ba60ffcf037a11b4a',1,'mdhim_store_t::db_ptr13()'],['../da/d76/structmdhim__store__opts__t.html#a342c5e1e021ce230b2c374841ce04cb7',1,'mdhim_store_opts_t::db_ptr13()']]],
+  ['db_5fptr14',['db_ptr14',['../d1/dab/structmdhim__store__t.html#aac29ef96c83258441f7e697e2e87abdc',1,'mdhim_store_t::db_ptr14()'],['../da/d76/structmdhim__store__opts__t.html#ae933e626365836a21ff80dbdf4e74add',1,'mdhim_store_opts_t::db_ptr14()']]],
+  ['db_5fptr2',['db_ptr2',['../d1/dab/structmdhim__store__t.html#a026cd325c0842df093a5d097c975d06a',1,'mdhim_store_t::db_ptr2()'],['../da/d76/structmdhim__store__opts__t.html#a5c50e7a4c3f39a01d4d3f367b67912db',1,'mdhim_store_opts_t::db_ptr2()']]],
+  ['db_5fptr3',['db_ptr3',['../d1/dab/structmdhim__store__t.html#ab0ef24f26ceaefd6d7149b939afec79c',1,'mdhim_store_t::db_ptr3()'],['../da/d76/structmdhim__store__opts__t.html#ad0e7fef8e634a3f76a01541ce670bf77',1,'mdhim_store_opts_t::db_ptr3()']]],
+  ['db_5fptr4',['db_ptr4',['../d1/dab/structmdhim__store__t.html#a7c7bb30bc1e9a4474f36461a45add7dc',1,'mdhim_store_t::db_ptr4()'],['../da/d76/structmdhim__store__opts__t.html#aa5e8306974cbccdfbae67dff52ac2e2a',1,'mdhim_store_opts_t::db_ptr4()']]],
+  ['db_5fptr5',['db_ptr5',['../d1/dab/structmdhim__store__t.html#a16ef23e16acf5805e5aedbc083d58d21',1,'mdhim_store_t::db_ptr5()'],['../da/d76/structmdhim__store__opts__t.html#ae7148251b76b8a249bf8cb09df837605',1,'mdhim_store_opts_t::db_ptr5()']]],
+  ['db_5fptr6',['db_ptr6',['../d1/dab/structmdhim__store__t.html#a8735e088b5c11a1da361d809d827342c',1,'mdhim_store_t::db_ptr6()'],['../da/d76/structmdhim__store__opts__t.html#ae65c05225844f3729e110abddb94aeb9',1,'mdhim_store_opts_t::db_ptr6()']]],
+  ['db_5fptr7',['db_ptr7',['../d1/dab/structmdhim__store__t.html#ae0fb1705ae0666ee085aa08a050601b2',1,'mdhim_store_t::db_ptr7()'],['../da/d76/structmdhim__store__opts__t.html#a280ace85dd4bebfc827e13c1a4820c12',1,'mdhim_store_opts_t::db_ptr7()']]],
+  ['db_5fptr8',['db_ptr8',['../d1/dab/structmdhim__store__t.html#a985c64544d540911fa449727037894a6',1,'mdhim_store_t::db_ptr8()'],['../da/d76/structmdhim__store__opts__t.html#a0a7c997946a09e9ea2a0d62d59e9c2dc',1,'mdhim_store_opts_t::db_ptr8()']]],
+  ['db_5fptr9',['db_ptr9',['../d1/dab/structmdhim__store__t.html#a2c02c5ae650bd0315ff844bdfbf9846b',1,'mdhim_store_t::db_ptr9()'],['../da/d76/structmdhim__store__opts__t.html#aae91eaef3fcf5e7c81fd76cf9ace1a96',1,'mdhim_store_opts_t::db_ptr9()']]],
+  ['db_5fstats',['db_stats',['../d1/dab/structmdhim__store__t.html#a6313bc8d5b21fa995c067f256fff1f83',1,'mdhim_store_t']]],
+  ['db_5ftype',['db_type',['../d2/dbc/structdb__options__t.html#a456a3e579029a0b71e7bfc33daa38d08',1,'db_options_t']]],
+  ['debug_5flevel',['debug_level',['../d2/dbc/structdb__options__t.html#a35aba110fe5576aedd07c3260df94893',1,'db_options_t']]],
+  ['del',['del',['../d1/dab/structmdhim__store__t.html#a3cf5374069e55121b50e4567a1e5e2e1',1,'mdhim_store_t']]],
+  ['dmax',['dmax',['../db/d64/structmdhim__db__stat.html#a1ccd0e75db4b05ea4ef48b2e36c757f5',1,'mdhim_db_stat::dmax()'],['../d6/dca/structmdhim__db__fstat.html#a6a955791d2278a8f27816149f294b930',1,'mdhim_db_fstat::dmax()']]],
+  ['dmin',['dmin',['../db/d64/structmdhim__db__stat.html#ac1f4a8cb1a2a1c567245bc5b8ecfdc05',1,'mdhim_db_stat::dmin()'],['../d6/dca/structmdhim__db__fstat.html#a945705f2eeeb829955e11d21a9377b0f',1,'mdhim_db_fstat::dmin()']]]
 ];

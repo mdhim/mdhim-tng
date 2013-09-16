@@ -89,23 +89,24 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;stdlib.h&gt;</code><br/>
+<code>#include &lt;linux/limits.h&gt;</code><br/>
+<code>#include &lt;stdio.h&gt;</code><br/>
 <code>#include &quot;<a class="el" href="../../d1/daa/ds__unqlite_8h_source.html">ds_unqlite.h</a>&quot;</code><br/>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1049dd1f46425870ab9ea529349ad65c"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a1049dd1f46425870ab9ea529349ad65c">mdhim_unqlite_cursor_init</a> (void *dbh)</td></tr>
-<tr class="memitem:a996dbc0a52808a3e8b4d162be703d742"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a996dbc0a52808a3e8b4d162be703d742">mdhim_unqlite_cursor_release</a> (void *dbh, void *curh)</td></tr>
-<tr class="memitem:ab2c207f883919005db810ebd6073bdfb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#ab2c207f883919005db810ebd6073bdfb">mdhim_unqlite_open</a> (void **dbh, char *path, int flags, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:a5914da95634aee01ea8a935e37cc148c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a5914da95634aee01ea8a935e37cc148c">mdhim_unqlite_open</a> (void **dbh, void **dbs, char *path, int flags, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 <tr class="memitem:a88128d7b28239c1d49d4bcaeb2feb982"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a88128d7b28239c1d49d4bcaeb2feb982">mdhim_unqlite_put</a> (void *dbh, void *key, int key_len, void *data, int32_t data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 <tr class="memitem:a04a4d5a9499b550dc340fad5392ba0f0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a04a4d5a9499b550dc340fad5392ba0f0">mdhim_unqlite_del</a> (void *dbh, void *key, int key_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 <tr class="memitem:a6472eb1e29a42578e53e9960b5524da5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a6472eb1e29a42578e53e9960b5524da5">mdhim_unqlite_get</a> (void *dbh, void *key, int key_len, void **data, int32_t *data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
-<tr class="memitem:abf62a70cf8c221ea4686309e985667ef"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#abf62a70cf8c221ea4686309e985667ef">mdhim_unqlite_get_next</a> (void *dbh, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
-<tr class="memitem:a476a036ee8844f9113202631f489c011"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a476a036ee8844f9113202631f489c011">mdhim_unqlite_get_prev</a> (void *dbh, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
+<tr class="memitem:ac4aacd5b399ff2fd79687297e4141d20"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#ac4aacd5b399ff2fd79687297e4141d20">mdhim_unqlite_get_next</a> (void *dbh, void **key, int *key_len, void **data, int32_t *data_len, void **iterator, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:aade270a5f415013de5a546631b17b492"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#aade270a5f415013de5a546631b17b492">mdhim_unqlite_get_prev</a> (void *dbh, void **key, int *key_len, void **data, int32_t *data_len, void **iterator, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 <tr class="memitem:aabe695567e247fddc4272d21c7427a13"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#aabe695567e247fddc4272d21c7427a13">mdhim_unqlite_commit</a> (void *dbh)</td></tr>
-<tr class="memitem:a0cd701a2046ef4f401597846e547c948"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#a0cd701a2046ef4f401597846e547c948">mdhim_unqlite_close</a> (void *dbh, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:ae9c0c1e7e01a9a89cc5c6679b9cbde0e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#ae9c0c1e7e01a9a89cc5c6679b9cbde0e">mdhim_unqlite_close</a> (void *dbh, void *dbs, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:af20af977d14a8ad95922ccc1bece7c53"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/da4/ds__unqlite_8c.html#af20af977d14a8ad95922ccc1bece7c53">mdhim_unqlite_iter_free</a> (void **iterator)</td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
-<a class="anchor" id="a0cd701a2046ef4f401597846e547c948"></a>
+<a class="anchor" id="ae9c0c1e7e01a9a89cc5c6679b9cbde0e"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -114,6 +115,12 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">void *&#160;</td>
           <td class="paramname"><em>dbh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>dbs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -132,6 +139,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">dbh</td><td>in pointer to the unqlite db handle </td></tr>
+    <tr><td class="paramname">dbs</td><td>in pointer to the unqlite statistics db handle </td></tr>
     <tr><td class="paramname">mstore_opts</td><td>in additional options for the data store layer</td></tr>
   </table>
   </dd>
@@ -157,64 +165,6 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">dbh</td><td>in pointer to the unqlite db handle</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="a1049dd1f46425870ab9ea529349ad65c"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void* mdhim_unqlite_cursor_init </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>dbh</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>mdhim_unqlite_cursor_init Initializes a cursor</p>
-<dl class="params"><dt>Parameters:</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dbh</td><td>in * to the unqlite db handle </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns:</dt><dd>void * to cursor or NULL on failure </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="a996dbc0a52808a3e8b4d162be703d742"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int mdhim_unqlite_cursor_release </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>dbh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>curh</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>mdhim_unqlite_cursor_release Releases a cursor</p>
-<dl class="params"><dt>Parameters:</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dbh</td><td>in * to the unqlite db handle </td></tr>
   </table>
   </dd>
 </dl>
@@ -334,7 +284,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="abf62a70cf8c221ea4686309e985667ef"></a>
+<a class="anchor" id="ac4aacd5b399ff2fd79687297e4141d20"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -347,12 +297,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>curh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">void **&#160;</td>
           <td class="paramname"><em>key</em>, </td>
         </tr>
@@ -377,8 +321,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *&#160;</td>
-          <td class="paramname"><em>mstore_cur_opts</em>&#160;</td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>iterator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *&#160;</td>
+          <td class="paramname"><em>mstore_opts</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -391,19 +341,19 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">dbh</td><td>in pointer to the unqlite db handle </td></tr>
-    <tr><td class="paramname">curh</td><td>in pointer to the db cursor </td></tr>
     <tr><td class="paramname">key</td><td>out void ** to the key that we get </td></tr>
     <tr><td class="paramname">key_len</td><td>out int * to the length of the key </td></tr>
     <tr><td class="paramname">data</td><td>out void ** to the value belonging to the key </td></tr>
     <tr><td class="paramname">data_len</td><td>out int * to the length of the value data </td></tr>
-    <tr><td class="paramname">mstore_cur_opts</td><td>in additional cursor options for the data store layer </td></tr>
+    <tr><td class="paramname">iterator</td><td>in pointer to an iterator </td></tr>
+    <tr><td class="paramname">mstore_opts</td><td>in additional cursor options for the data store layer </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="a476a036ee8844f9113202631f489c011"></a>
+<a class="anchor" id="aade270a5f415013de5a546631b17b492"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -412,12 +362,6 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">void *&#160;</td>
           <td class="paramname"><em>dbh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>curh</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -446,8 +390,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *&#160;</td>
-          <td class="paramname"><em>mstore_cur_opts</em>&#160;</td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>iterator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *&#160;</td>
+          <td class="paramname"><em>mstore_opts</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -460,19 +410,35 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">dbh</td><td>in pointer to the unqlite db handle </td></tr>
-    <tr><td class="paramname">mcur</td><td>in pointer to the db cursor </td></tr>
-    <tr><td class="paramname">key</td><td>out void ** to the key that we get </td></tr>
-    <tr><td class="paramname">key_len</td><td>out int * to the length of the key </td></tr>
+    <tr><td class="paramname">key</td><td>in/out void ** to the last key to start from and void** to the key that we get back </td></tr>
+    <tr><td class="paramname">key_len</td><td>int/out int * to the length of the key to start from and to the key that we get back </td></tr>
     <tr><td class="paramname">data</td><td>out void ** to the value belonging to the key </td></tr>
     <tr><td class="paramname">data_len</td><td>out int * to the length of the value data </td></tr>
-    <tr><td class="paramname">mstore_cur_opts</td><td>in additional cursor options for the data store layer </td></tr>
+    <tr><td class="paramname">iterator</td><td>in double pointer to an iterator </td></tr>
+    <tr><td class="paramname">mstore_opts</td><td>in additional cursor options for the data store layer </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="ab2c207f883919005db810ebd6073bdfb"></a>
+<a class="anchor" id="af20af977d14a8ad95922ccc1bece7c53"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mdhim_unqlite_iter_free </td>
+          <td>(</td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>iterator</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a5914da95634aee01ea8a935e37cc148c"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -481,6 +447,12 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">void **&#160;</td>
           <td class="paramname"><em>dbh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>dbs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -511,6 +483,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">dbh</td><td>in ** to the unqlite db handle </td></tr>
+    <tr><td class="paramname">dbs</td><td>in pointer to the unqlite statistics db handle </td></tr>
     <tr><td class="paramname">path</td><td>in path to the database file </td></tr>
     <tr><td class="paramname">flags</td><td>in flags for opening the data store </td></tr>
     <tr><td class="paramname">mstore_opts</td><td>in additional options for the data store layer</td></tr>
@@ -587,7 +560,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jul 11 2013 10:08:11 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Sep 16 2013 15:51:31 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

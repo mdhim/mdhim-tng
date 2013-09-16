@@ -46,6 +46,7 @@ static void print_unqlite_err_msg(unqlite *dh) {
  * Opens the database
  *
  * @param dbh            in   ** to the unqlite db handle
+ * @param dbs            in   pointer to the unqlite statistics db handle 
  * @param path           in   path to the database file
  * @param flags          in   flags for opening the data store
  * @param mstore_opts    in   additional options for the data store layer 
@@ -83,7 +84,7 @@ int mdhim_unqlite_open(void **dbh, void **dbs, char *path, int flags,
 	dh = (unqlite **) dbs;
 	//Check to see if the given path + "_stat" and the null char will be more than the max
 	if (strlen(path) + 6 > PATH_MAX) {
-		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database - path provided is too long");
+		mlog(MDHIM_SERVER_CRIT, "Error opening unqlite database - path provided is too long");
 		return MDHIM_DB_ERROR;
 	}
 	sprintf(stats_path, "%s_stats", path);
@@ -197,11 +198,11 @@ int mdhim_unqlite_get(void *dbh, void *key, int key_len, void **data, int32_t *d
  * Gets the next key/value from the data store
  *
  * @param dbh             in   pointer to the unqlite db handle
- * @param curh            in   pointer to the db cursor
  * @param key             out  void ** to the key that we get
  * @param key_len         out  int * to the length of the key 
  * @param data            out  void ** to the value belonging to the key
  * @param data_len        out  int * to the length of the value data 
+ * @param iterator        in   pointer to an iterator
  * @param mstore_opts in   additional cursor options for the data store layer 
  * 
  */
@@ -285,6 +286,7 @@ int mdhim_unqlite_get_next(void *dbh, void **key, int *key_len,
                                   to the key that we get back
  * @param data            out     void ** to the value belonging to the key
  * @param data_len        out     int * to the length of the value data 
+ * @param iterator        in      double pointer to an iterator
  * @param mstore_opts in     additional cursor options for the data store layer 
  * 
  */
@@ -378,6 +380,7 @@ int mdhim_unqlite_commit(void *dbh) {
  * Closes the data store
  *
  * @param dbh         in   pointer to the unqlite db handle 
+ * @param dbs         in   pointer to the unqlite statistics db handle 
  * @param mstore_opts in   additional options for the data store layer 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure

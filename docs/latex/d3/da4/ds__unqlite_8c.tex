@@ -2,15 +2,13 @@
 \label{d3/da4/ds__unqlite_8c}\index{src/ds\-\_\-unqlite.\-c@{src/ds\-\_\-unqlite.\-c}}
 }
 {\ttfamily \#include $<$stdlib.\-h$>$}\\*
+{\ttfamily \#include $<$linux/limits.\-h$>$}\\*
+{\ttfamily \#include $<$stdio.\-h$>$}\\*
 {\ttfamily \#include \char`\"{}ds\-\_\-unqlite.\-h\char`\"{}}\\*
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-void $\ast$ \hyperlink{ds__unqlite_8c_a1049dd1f46425870ab9ea529349ad65c}{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init} (void $\ast$dbh)
-\item 
-int \hyperlink{ds__unqlite_8c_a996dbc0a52808a3e8b4d162be703d742}{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release} (void $\ast$dbh, void $\ast$curh)
-\item 
-int \hyperlink{ds__unqlite_8c_ab2c207f883919005db810ebd6073bdfb}{mdhim\-\_\-unqlite\-\_\-open} (void $\ast$$\ast$dbh, char $\ast$path, int flags, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+int \hyperlink{ds__unqlite_8c_a5914da95634aee01ea8a935e37cc148c}{mdhim\-\_\-unqlite\-\_\-open} (void $\ast$$\ast$dbh, void $\ast$$\ast$dbs, char $\ast$path, int flags, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
 int \hyperlink{ds__unqlite_8c_a88128d7b28239c1d49d4bcaeb2feb982}{mdhim\-\_\-unqlite\-\_\-put} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, void $\ast$data, int32\-\_\-t data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
@@ -18,30 +16,35 @@ int \hyperlink{ds__unqlite_8c_a04a4d5a9499b550dc340fad5392ba0f0}{mdhim\-\_\-unql
 \item 
 int \hyperlink{ds__unqlite_8c_a6472eb1e29a42578e53e9960b5524da5}{mdhim\-\_\-unqlite\-\_\-get} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-int \hyperlink{ds__unqlite_8c_abf62a70cf8c221ea4686309e985667ef}{mdhim\-\_\-unqlite\-\_\-get\-\_\-next} (void $\ast$dbh, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+int \hyperlink{ds__unqlite_8c_ac4aacd5b399ff2fd79687297e4141d20}{mdhim\-\_\-unqlite\-\_\-get\-\_\-next} (void $\ast$dbh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, void $\ast$$\ast$iterator, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-int \hyperlink{ds__unqlite_8c_a476a036ee8844f9113202631f489c011}{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev} (void $\ast$dbh, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+int \hyperlink{ds__unqlite_8c_aade270a5f415013de5a546631b17b492}{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev} (void $\ast$dbh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, void $\ast$$\ast$iterator, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
 int \hyperlink{ds__unqlite_8c_aabe695567e247fddc4272d21c7427a13}{mdhim\-\_\-unqlite\-\_\-commit} (void $\ast$dbh)
 \item 
-int \hyperlink{ds__unqlite_8c_a0cd701a2046ef4f401597846e547c948}{mdhim\-\_\-unqlite\-\_\-close} (void $\ast$dbh, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+int \hyperlink{ds__unqlite_8c_ae9c0c1e7e01a9a89cc5c6679b9cbde0e}{mdhim\-\_\-unqlite\-\_\-close} (void $\ast$dbh, void $\ast$dbs, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+\item 
+int \hyperlink{ds__unqlite_8c_af20af977d14a8ad95922ccc1bece7c53}{mdhim\-\_\-unqlite\-\_\-iter\-\_\-free} (void $\ast$$\ast$iterator)
 \end{DoxyCompactItemize}
 
 
 \subsection{Function Documentation}
-\hypertarget{ds__unqlite_8c_a0cd701a2046ef4f401597846e547c948}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-close@{mdhim\-\_\-unqlite\-\_\-close}}
+\hypertarget{ds__unqlite_8c_ae9c0c1e7e01a9a89cc5c6679b9cbde0e}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-close@{mdhim\-\_\-unqlite\-\_\-close}}
 \index{mdhim\-\_\-unqlite\-\_\-close@{mdhim\-\_\-unqlite\-\_\-close}!ds_unqlite.c@{ds\-\_\-unqlite.\-c}}
 \subsubsection[{mdhim\-\_\-unqlite\-\_\-close}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-close (
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{dbs, }
 \item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{d3/da4/ds__unqlite_8c_a0cd701a2046ef4f401597846e547c948}
+)}}\label{d3/da4/ds__unqlite_8c_ae9c0c1e7e01a9a89cc5c6679b9cbde0e}
 mdhim\-\_\-unqlite\-\_\-close Closes the data store
 
 
 \begin{DoxyParams}{Parameters}
 {\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em dbs} & in pointer to the unqlite statistics db handle \\
 \hline
 {\em mstore\-\_\-opts} & in additional options for the data store layer\\
 \hline
@@ -61,41 +64,6 @@ mdhim\-\_\-unqlite\-\_\-commit Commits outstanding writes the data store
 
 \begin{DoxyParams}{Parameters}
 {\em dbh} & in pointer to the unqlite db handle\\
-\hline
-\end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
-\end{DoxyReturn}
-\hypertarget{ds__unqlite_8c_a1049dd1f46425870ab9ea529349ad65c}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init}}
-\index{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init}!ds_unqlite.c@{ds\-\_\-unqlite.\-c}}
-\subsubsection[{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init (
-\begin{DoxyParamCaption}
-\item[{void $\ast$}]{dbh}
-\end{DoxyParamCaption}
-)}}\label{d3/da4/ds__unqlite_8c_a1049dd1f46425870ab9ea529349ad65c}
-mdhim\-\_\-unqlite\-\_\-cursor\-\_\-init Initializes a cursor
-
-
-\begin{DoxyParams}{Parameters}
-{\em dbh} & in $\ast$ to the unqlite db handle \\
-\hline
-\end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-void $\ast$ to cursor or N\-U\-L\-L on failure 
-\end{DoxyReturn}
-\hypertarget{ds__unqlite_8c_a996dbc0a52808a3e8b4d162be703d742}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release}}
-\index{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release@{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release}!ds_unqlite.c@{ds\-\_\-unqlite.\-c}}
-\subsubsection[{mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release (
-\begin{DoxyParamCaption}
-\item[{void $\ast$}]{dbh, }
-\item[{void $\ast$}]{curh}
-\end{DoxyParamCaption}
-)}}\label{d3/da4/ds__unqlite_8c_a996dbc0a52808a3e8b4d162be703d742}
-mdhim\-\_\-unqlite\-\_\-cursor\-\_\-release Releases a cursor
-
-
-\begin{DoxyParams}{Parameters}
-{\em dbh} & in $\ast$ to the unqlite db handle \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -159,27 +127,25 @@ mdhim\-\_\-unqlite\-\_\-get Gets a value, given a key, from the data store
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
 \end{DoxyReturn}
-\hypertarget{ds__unqlite_8c_abf62a70cf8c221ea4686309e985667ef}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-get\-\_\-next@{mdhim\-\_\-unqlite\-\_\-get\-\_\-next}}
+\hypertarget{ds__unqlite_8c_ac4aacd5b399ff2fd79687297e4141d20}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-get\-\_\-next@{mdhim\-\_\-unqlite\-\_\-get\-\_\-next}}
 \index{mdhim\-\_\-unqlite\-\_\-get\-\_\-next@{mdhim\-\_\-unqlite\-\_\-get\-\_\-next}!ds_unqlite.c@{ds\-\_\-unqlite.\-c}}
 \subsubsection[{mdhim\-\_\-unqlite\-\_\-get\-\_\-next}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-get\-\_\-next (
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{dbh, }
-\item[{void $\ast$}]{curh, }
 \item[{void $\ast$$\ast$}]{key, }
 \item[{int $\ast$}]{key\-\_\-len, }
 \item[{void $\ast$$\ast$}]{data, }
 \item[{int32\-\_\-t $\ast$}]{data\-\_\-len, }
-\item[{struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-cur\-\_\-opts}
+\item[{void $\ast$$\ast$}]{iterator, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{d3/da4/ds__unqlite_8c_abf62a70cf8c221ea4686309e985667ef}
+)}}\label{d3/da4/ds__unqlite_8c_ac4aacd5b399ff2fd79687297e4141d20}
 mdhim\-\_\-unqlite\-\_\-get\-\_\-next Gets the next key/value from the data store
 
 
 \begin{DoxyParams}{Parameters}
 {\em dbh} & in pointer to the unqlite db handle \\
 \hline
-{\em curh} & in pointer to the db cursor \\
-\hline
 {\em key} & out void $\ast$$\ast$ to the key that we get \\
 \hline
 {\em key\-\_\-len} & out int $\ast$ to the length of the key \\
@@ -188,56 +154,68 @@ mdhim\-\_\-unqlite\-\_\-get\-\_\-next Gets the next key/value from the data stor
 \hline
 {\em data\-\_\-len} & out int $\ast$ to the length of the value data \\
 \hline
-{\em mstore\-\_\-cur\-\_\-opts} & in additional cursor options for the data store layer \\
+{\em iterator} & in pointer to an iterator \\
+\hline
+{\em mstore\-\_\-opts} & in additional cursor options for the data store layer \\
 \hline
 \end{DoxyParams}
-\hypertarget{ds__unqlite_8c_a476a036ee8844f9113202631f489c011}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-get\-\_\-prev@{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev}}
+\hypertarget{ds__unqlite_8c_aade270a5f415013de5a546631b17b492}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-get\-\_\-prev@{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev}}
 \index{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev@{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev}!ds_unqlite.c@{ds\-\_\-unqlite.\-c}}
 \subsubsection[{mdhim\-\_\-unqlite\-\_\-get\-\_\-prev}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-get\-\_\-prev (
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{dbh, }
-\item[{void $\ast$}]{curh, }
 \item[{void $\ast$$\ast$}]{key, }
 \item[{int $\ast$}]{key\-\_\-len, }
 \item[{void $\ast$$\ast$}]{data, }
 \item[{int32\-\_\-t $\ast$}]{data\-\_\-len, }
-\item[{struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-cur\-\_\-opts}
+\item[{void $\ast$$\ast$}]{iterator, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{d3/da4/ds__unqlite_8c_a476a036ee8844f9113202631f489c011}
+)}}\label{d3/da4/ds__unqlite_8c_aade270a5f415013de5a546631b17b492}
 mdhim\-\_\-unqlite\-\_\-get\-\_\-prev Gets the next key/value from the data store
 
 
 \begin{DoxyParams}{Parameters}
 {\em dbh} & in pointer to the unqlite db handle \\
 \hline
-{\em mcur} & in pointer to the db cursor \\
+{\em key} & in/out void $\ast$$\ast$ to the last key to start from and void$\ast$$\ast$ to the key that we get back \\
 \hline
-{\em key} & out void $\ast$$\ast$ to the key that we get \\
-\hline
-{\em key\-\_\-len} & out int $\ast$ to the length of the key \\
+{\em key\-\_\-len} & int/out int $\ast$ to the length of the key to start from and to the key that we get back \\
 \hline
 {\em data} & out void $\ast$$\ast$ to the value belonging to the key \\
 \hline
 {\em data\-\_\-len} & out int $\ast$ to the length of the value data \\
 \hline
-{\em mstore\-\_\-cur\-\_\-opts} & in additional cursor options for the data store layer \\
+{\em iterator} & in double pointer to an iterator \\
+\hline
+{\em mstore\-\_\-opts} & in additional cursor options for the data store layer \\
 \hline
 \end{DoxyParams}
-\hypertarget{ds__unqlite_8c_ab2c207f883919005db810ebd6073bdfb}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-open@{mdhim\-\_\-unqlite\-\_\-open}}
+\hypertarget{ds__unqlite_8c_af20af977d14a8ad95922ccc1bece7c53}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-iter\-\_\-free@{mdhim\-\_\-unqlite\-\_\-iter\-\_\-free}}
+\index{mdhim\-\_\-unqlite\-\_\-iter\-\_\-free@{mdhim\-\_\-unqlite\-\_\-iter\-\_\-free}!ds_unqlite.c@{ds\-\_\-unqlite.\-c}}
+\subsubsection[{mdhim\-\_\-unqlite\-\_\-iter\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-iter\-\_\-free (
+\begin{DoxyParamCaption}
+\item[{void $\ast$$\ast$}]{iterator}
+\end{DoxyParamCaption}
+)}}\label{d3/da4/ds__unqlite_8c_af20af977d14a8ad95922ccc1bece7c53}
+\hypertarget{ds__unqlite_8c_a5914da95634aee01ea8a935e37cc148c}{\index{ds\-\_\-unqlite.\-c@{ds\-\_\-unqlite.\-c}!mdhim\-\_\-unqlite\-\_\-open@{mdhim\-\_\-unqlite\-\_\-open}}
 \index{mdhim\-\_\-unqlite\-\_\-open@{mdhim\-\_\-unqlite\-\_\-open}!ds_unqlite.c@{ds\-\_\-unqlite.\-c}}
 \subsubsection[{mdhim\-\_\-unqlite\-\_\-open}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-unqlite\-\_\-open (
 \begin{DoxyParamCaption}
 \item[{void $\ast$$\ast$}]{dbh, }
+\item[{void $\ast$$\ast$}]{dbs, }
 \item[{char $\ast$}]{path, }
 \item[{int}]{flags, }
 \item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{d3/da4/ds__unqlite_8c_ab2c207f883919005db810ebd6073bdfb}
+)}}\label{d3/da4/ds__unqlite_8c_a5914da95634aee01ea8a935e37cc148c}
 mdhim\-\_\-unqlite\-\_\-open Opens the database
 
 
 \begin{DoxyParams}{Parameters}
 {\em dbh} & in $\ast$$\ast$ to the unqlite db handle \\
+\hline
+{\em dbs} & in pointer to the unqlite statistics db handle \\
 \hline
 {\em path} & in path to the database file \\
 \hline

@@ -2,47 +2,52 @@
 \label{dc/d8c/ds__leveldb_8c}\index{src/ds\-\_\-leveldb.\-c@{src/ds\-\_\-leveldb.\-c}}
 }
 {\ttfamily \#include $<$stdlib.\-h$>$}\\*
+{\ttfamily \#include $<$string.\-h$>$}\\*
 {\ttfamily \#include $<$leveldb/c.\-h$>$}\\*
+{\ttfamily \#include $<$stdio.\-h$>$}\\*
+{\ttfamily \#include $<$linux/limits.\-h$>$}\\*
+{\ttfamily \#include $<$sys/time.\-h$>$}\\*
 {\ttfamily \#include \char`\"{}ds\-\_\-leveldb.\-h\char`\"{}}\\*
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-int \hyperlink{ds__leveldb_8c_a0c6d2f7294f999de80415a80a640d4e7}{mdhim\-\_\-leveldb\-\_\-open} (void $\ast$$\ast$dbh, char $\ast$path, int flags, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+int \hyperlink{ds__leveldb_8c_a9cd40005400af343f52a066f0f0797ad}{mdhim\-\_\-leveldb\-\_\-open} (void $\ast$$\ast$dbh, void $\ast$$\ast$dbs, char $\ast$path, int flags, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
 int \hyperlink{ds__leveldb_8c_a257ee6a72ac357c08a2b1db9bcb8b9ae}{mdhim\-\_\-leveldb\-\_\-put} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, void $\ast$data, int32\-\_\-t data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
 int \hyperlink{ds__leveldb_8c_ae458279fc281f11666df59ddda4015b4}{mdhim\-\_\-leveldb\-\_\-get} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-int \hyperlink{ds__leveldb_8c_afa1cb9e94edcae14a04fe27dd52c0fef}{mdhim\-\_\-leveldb\-\_\-get\-\_\-next} (void $\ast$dbh, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+int \hyperlink{ds__leveldb_8c_a8ce6669cc11af3e19bf50ce058d91fce}{mdhim\-\_\-leveldb\-\_\-get\-\_\-next} (void $\ast$dbh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, void $\ast$$\ast$iterator, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-int \hyperlink{ds__leveldb_8c_a8ced40f3a3a8059836722473e6cbdd92}{mdhim\-\_\-leveldb\-\_\-get\-\_\-prev} (void $\ast$dbh, void $\ast$curh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, struct \hyperlink{structmdhim__store__cur__opts__t}{mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-cur\-\_\-opts)
+int \hyperlink{ds__leveldb_8c_a2d4a71c69bd8eea79b0f623405e2ab1c}{mdhim\-\_\-leveldb\-\_\-get\-\_\-prev} (void $\ast$dbh, void $\ast$$\ast$key, int $\ast$key\-\_\-len, void $\ast$$\ast$data, int32\-\_\-t $\ast$data\-\_\-len, void $\ast$$\ast$iterator, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
-void $\ast$ \hyperlink{ds__leveldb_8c_a9a27ce671225070a1f77e8c1ab42bf51}{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-init} (void $\ast$dbh)
-\item 
-int \hyperlink{ds__leveldb_8c_aee8e4213a5bc50310e81bc7481519635}{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-release} (void $\ast$dbh, void $\ast$curh)
-\item 
-int \hyperlink{ds__leveldb_8c_aa3e3647623cde4d5fd2e43b0842cdcb0}{mdhim\-\_\-leveldb\-\_\-close} (void $\ast$dbh, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
+int \hyperlink{ds__leveldb_8c_a0d481fd968435ca7556e930ec9260ec0}{mdhim\-\_\-leveldb\-\_\-close} (void $\ast$dbh, void $\ast$dbs, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
 int \hyperlink{ds__leveldb_8c_a01f25e386f4cca9593ea8d29c362d5e7}{mdhim\-\_\-leveldb\-\_\-del} (void $\ast$dbh, void $\ast$key, int key\-\_\-len, struct \hyperlink{structmdhim__store__opts__t}{mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$mstore\-\_\-opts)
 \item 
 int \hyperlink{ds__leveldb_8c_a9e69089d8e78f91b3df7ae532a933e3f}{mdhim\-\_\-leveldb\-\_\-commit} (void $\ast$dbh)
+\item 
+int \hyperlink{ds__leveldb_8c_a3bfe3ab3f6b230e461a3e412f50e19fa}{mdhim\-\_\-leveldb\-\_\-iter\-\_\-free} (void $\ast$$\ast$iterator)
 \end{DoxyCompactItemize}
 
 
 \subsection{Function Documentation}
-\hypertarget{ds__leveldb_8c_aa3e3647623cde4d5fd2e43b0842cdcb0}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-close@{mdhim\-\_\-leveldb\-\_\-close}}
+\hypertarget{ds__leveldb_8c_a0d481fd968435ca7556e930ec9260ec0}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-close@{mdhim\-\_\-leveldb\-\_\-close}}
 \index{mdhim\-\_\-leveldb\-\_\-close@{mdhim\-\_\-leveldb\-\_\-close}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
 \subsubsection[{mdhim\-\_\-leveldb\-\_\-close}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-leveldb\-\_\-close (
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{dbh, }
+\item[{void $\ast$}]{dbs, }
 \item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{dc/d8c/ds__leveldb_8c_aa3e3647623cde4d5fd2e43b0842cdcb0}
+)}}\label{dc/d8c/ds__leveldb_8c_a0d481fd968435ca7556e930ec9260ec0}
 mdhim\-\_\-leveldb\-\_\-close Closes the data store
 
 
 \begin{DoxyParams}{Parameters}
 {\em dbh} & in pointer to the leveldb db handle \\
+\hline
+{\em dbs} & in pointer to the leveldb statistics db handle \\
 \hline
 {\em mstore\-\_\-opts} & in additional options for the data store layer\\
 \hline
@@ -67,21 +72,6 @@ mdhim\-\_\-leveldb\-\_\-commit Commits outstanding writes the data store
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
 \end{DoxyReturn}
-\hypertarget{ds__leveldb_8c_a9a27ce671225070a1f77e8c1ab42bf51}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-cursor\-\_\-init@{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-init}}
-\index{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-init@{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-init}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
-\subsubsection[{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ mdhim\-\_\-leveldb\-\_\-cursor\-\_\-init (
-\begin{DoxyParamCaption}
-\item[{void $\ast$}]{dbh}
-\end{DoxyParamCaption}
-)}}\label{dc/d8c/ds__leveldb_8c_a9a27ce671225070a1f77e8c1ab42bf51}
-\hypertarget{ds__leveldb_8c_aee8e4213a5bc50310e81bc7481519635}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-cursor\-\_\-release@{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-release}}
-\index{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-release@{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-release}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
-\subsubsection[{mdhim\-\_\-leveldb\-\_\-cursor\-\_\-release}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-leveldb\-\_\-cursor\-\_\-release (
-\begin{DoxyParamCaption}
-\item[{void $\ast$}]{dbh, }
-\item[{void $\ast$}]{curh}
-\end{DoxyParamCaption}
-)}}\label{dc/d8c/ds__leveldb_8c_aee8e4213a5bc50310e81bc7481519635}
 \hypertarget{ds__leveldb_8c_a01f25e386f4cca9593ea8d29c362d5e7}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-del@{mdhim\-\_\-leveldb\-\_\-del}}
 \index{mdhim\-\_\-leveldb\-\_\-del@{mdhim\-\_\-leveldb\-\_\-del}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
 \subsubsection[{mdhim\-\_\-leveldb\-\_\-del}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-leveldb\-\_\-del (
@@ -140,47 +130,76 @@ mdhim\-\_\-leveldb\-\_\-get Gets a value, given a key, from the data store
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S on success or M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-E\-R\-R\-O\-R on failure 
 \end{DoxyReturn}
-\hypertarget{ds__leveldb_8c_afa1cb9e94edcae14a04fe27dd52c0fef}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-get\-\_\-next@{mdhim\-\_\-leveldb\-\_\-get\-\_\-next}}
+\hypertarget{ds__leveldb_8c_a8ce6669cc11af3e19bf50ce058d91fce}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-get\-\_\-next@{mdhim\-\_\-leveldb\-\_\-get\-\_\-next}}
 \index{mdhim\-\_\-leveldb\-\_\-get\-\_\-next@{mdhim\-\_\-leveldb\-\_\-get\-\_\-next}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
 \subsubsection[{mdhim\-\_\-leveldb\-\_\-get\-\_\-next}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-leveldb\-\_\-get\-\_\-next (
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{dbh, }
-\item[{void $\ast$}]{curh, }
 \item[{void $\ast$$\ast$}]{key, }
 \item[{int $\ast$}]{key\-\_\-len, }
 \item[{void $\ast$$\ast$}]{data, }
 \item[{int32\-\_\-t $\ast$}]{data\-\_\-len, }
-\item[{struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-cur\-\_\-opts}
+\item[{void $\ast$$\ast$}]{iterator, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{dc/d8c/ds__leveldb_8c_afa1cb9e94edcae14a04fe27dd52c0fef}
-\hypertarget{ds__leveldb_8c_a8ced40f3a3a8059836722473e6cbdd92}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-get\-\_\-prev@{mdhim\-\_\-leveldb\-\_\-get\-\_\-prev}}
+)}}\label{dc/d8c/ds__leveldb_8c_a8ce6669cc11af3e19bf50ce058d91fce}
+mdhim\-\_\-leveldb\-\_\-get\-\_\-next Gets the next key/value from the data store
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbh} & in pointer to the unqlite db handle \\
+\hline
+{\em key} & out void $\ast$$\ast$ to the key that we get \\
+\hline
+{\em key\-\_\-len} & out int $\ast$ to the length of the key \\
+\hline
+{\em data} & out void $\ast$$\ast$ to the value belonging to the key \\
+\hline
+{\em data\-\_\-len} & out int $\ast$ to the length of the value data \\
+\hline
+{\em iterator} & in double pointer to an iterator to use \\
+\hline
+{\em mstore\-\_\-opts} & in additional cursor options for the data store layer \\
+\hline
+\end{DoxyParams}
+\hypertarget{ds__leveldb_8c_a2d4a71c69bd8eea79b0f623405e2ab1c}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-get\-\_\-prev@{mdhim\-\_\-leveldb\-\_\-get\-\_\-prev}}
 \index{mdhim\-\_\-leveldb\-\_\-get\-\_\-prev@{mdhim\-\_\-leveldb\-\_\-get\-\_\-prev}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
 \subsubsection[{mdhim\-\_\-leveldb\-\_\-get\-\_\-prev}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-leveldb\-\_\-get\-\_\-prev (
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{dbh, }
-\item[{void $\ast$}]{curh, }
 \item[{void $\ast$$\ast$}]{key, }
 \item[{int $\ast$}]{key\-\_\-len, }
 \item[{void $\ast$$\ast$}]{data, }
 \item[{int32\-\_\-t $\ast$}]{data\-\_\-len, }
-\item[{struct {\bf mdhim\-\_\-store\-\_\-cur\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-cur\-\_\-opts}
+\item[{void $\ast$$\ast$}]{iterator, }
+\item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{dc/d8c/ds__leveldb_8c_a8ced40f3a3a8059836722473e6cbdd92}
-\hypertarget{ds__leveldb_8c_a0c6d2f7294f999de80415a80a640d4e7}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-open@{mdhim\-\_\-leveldb\-\_\-open}}
+)}}\label{dc/d8c/ds__leveldb_8c_a2d4a71c69bd8eea79b0f623405e2ab1c}
+\hypertarget{ds__leveldb_8c_a3bfe3ab3f6b230e461a3e412f50e19fa}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-iter\-\_\-free@{mdhim\-\_\-leveldb\-\_\-iter\-\_\-free}}
+\index{mdhim\-\_\-leveldb\-\_\-iter\-\_\-free@{mdhim\-\_\-leveldb\-\_\-iter\-\_\-free}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
+\subsubsection[{mdhim\-\_\-leveldb\-\_\-iter\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-leveldb\-\_\-iter\-\_\-free (
+\begin{DoxyParamCaption}
+\item[{void $\ast$$\ast$}]{iterator}
+\end{DoxyParamCaption}
+)}}\label{dc/d8c/ds__leveldb_8c_a3bfe3ab3f6b230e461a3e412f50e19fa}
+\hypertarget{ds__leveldb_8c_a9cd40005400af343f52a066f0f0797ad}{\index{ds\-\_\-leveldb.\-c@{ds\-\_\-leveldb.\-c}!mdhim\-\_\-leveldb\-\_\-open@{mdhim\-\_\-leveldb\-\_\-open}}
 \index{mdhim\-\_\-leveldb\-\_\-open@{mdhim\-\_\-leveldb\-\_\-open}!ds_leveldb.c@{ds\-\_\-leveldb.\-c}}
 \subsubsection[{mdhim\-\_\-leveldb\-\_\-open}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-leveldb\-\_\-open (
 \begin{DoxyParamCaption}
 \item[{void $\ast$$\ast$}]{dbh, }
+\item[{void $\ast$$\ast$}]{dbs, }
 \item[{char $\ast$}]{path, }
 \item[{int}]{flags, }
 \item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{mstore\-\_\-opts}
 \end{DoxyParamCaption}
-)}}\label{dc/d8c/ds__leveldb_8c_a0c6d2f7294f999de80415a80a640d4e7}
+)}}\label{dc/d8c/ds__leveldb_8c_a9cd40005400af343f52a066f0f0797ad}
 mdhim\-\_\-leveldb\-\_\-open Opens the database
 
 
 \begin{DoxyParams}{Parameters}
-{\em dbh} & in $\ast$$\ast$ to the leveldb handle \\
+{\em dbh} & in double pointer to the leveldb handle \\
+\hline
+{\em dbs} & in double pointer to the leveldb statistics db handle \\
 \hline
 {\em path} & in path to the database file \\
 \hline

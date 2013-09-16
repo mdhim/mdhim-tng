@@ -11,6 +11,10 @@ void \hyperlink{partitioner_8c_acfcc532292ddfadad75f3a8a80a24f05}{partitioner\-\
 \item 
 void \hyperlink{partitioner_8c_ad03667c7124dbb949bba1126d0332abf}{delete\-\_\-alphabet} ()
 \item 
+long double \hyperlink{partitioner_8c_aa9dc63bce159c2a7e3b7ea5850fe5f32}{get\-\_\-str\-\_\-num} (void $\ast$key, uint32\-\_\-t key\-\_\-len)
+\item 
+long double \hyperlink{partitioner_8c_a907b3ed861ab0d25141f89f765d7c29d}{get\-\_\-byte\-\_\-num} (void $\ast$key, uint32\-\_\-t key\-\_\-len)
+\item 
 void \hyperlink{partitioner_8c_ae6dbb6c65178e0ca143fe8d10c55f98c}{partitioner\-\_\-release} ()
 \item 
 void \hyperlink{partitioner_8c_acd8dae558c8459c6e4a724d04c5928b4}{add\-\_\-char} (int id, int pos)
@@ -19,11 +23,31 @@ void \hyperlink{partitioner_8c_a0faa616c6ca379c72bba6468737b99c0}{build\-\_\-alp
 \item 
 int \hyperlink{partitioner_8c_ae6bce3dfa508cb7b92b2d4e9d991480a}{verify\-\_\-key} (void $\ast$key, int key\-\_\-len, int key\-\_\-type)
 \item 
+int \hyperlink{partitioner_8c_af88457f8ff9ff19e6f2af9f26bc9ac0c}{is\-\_\-float\-\_\-key} (int type)
+\item 
 uint32\-\_\-t \hyperlink{partitioner_8c_af78375fc65d2cfe6a01bf02bd8a17253}{get\-\_\-num\-\_\-range\-\_\-servers} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
 \item 
 uint32\-\_\-t \hyperlink{partitioner_8c_a7e8b2c01361a47a75957d29420d76a89}{is\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int rank)
 \item 
-\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{partitioner_8c_aaedfddad0f8cccefaf6c99e2a227663a}{get\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int key\-\_\-type)
+int \hyperlink{partitioner_8c_aeffd996c7f7120755282194fc3cbf0ed}{get\-\_\-slice\-\_\-num} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len)
+\item 
+\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{partitioner_8c_abe79a49addedc1c8befd8282d3f4080b}{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int slice)
+\item 
+\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{partitioner_8c_adb863fbd1c1f660fe2d15b0dbcb47c33}{get\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len)
+\item 
+struct \hyperlink{structmdhim__stat}{mdhim\-\_\-stat} $\ast$ \hyperlink{partitioner_8c_a38e2742b1d36355820a1b071f1935135}{get\-\_\-next\-\_\-slice\-\_\-stat} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int slice\-\_\-num)
+\item 
+struct \hyperlink{structmdhim__stat}{mdhim\-\_\-stat} $\ast$ \hyperlink{partitioner_8c_a8028becbce57b1eccea7f9d2b3f89c41}{get\-\_\-prev\-\_\-slice\-\_\-stat} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int slice\-\_\-num)
+\item 
+struct \hyperlink{structmdhim__stat}{mdhim\-\_\-stat} $\ast$ \hyperlink{partitioner_8c_a01aaa111925a325c29059c8bc66e516e}{get\-\_\-last\-\_\-slice\-\_\-stat} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+struct \hyperlink{structmdhim__stat}{mdhim\-\_\-stat} $\ast$ \hyperlink{partitioner_8c_a03be2f72263d4c603d84f5f451eb825c}{get\-\_\-first\-\_\-slice\-\_\-stat} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+int \hyperlink{partitioner_8c_a55cb766d118396109a5b7d4b2f6a7231}{get\-\_\-slice\-\_\-from\-\_\-fstat} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int cur\-\_\-slice, long double fstat, int op)
+\item 
+int \hyperlink{partitioner_8c_aee461aaafd119ea1c21b7c9e0d9d83ab}{get\-\_\-slice\-\_\-from\-\_\-istat} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int cur\-\_\-slice, uint64\-\_\-t istat, int op)
+\item 
+\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{partitioner_8c_a1c7d1585bd3a23672d3e5c705d3c133e}{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int op)
 \end{DoxyCompactItemize}
 \subsection*{Variables}
 \begin{DoxyCompactItemize}
@@ -64,7 +88,37 @@ build\-\_\-alphabet Creates our ascii based alphabet and inserts each character 
 {}
 \end{DoxyParamCaption}
 )}}\label{dc/dee/partitioner_8c_ad03667c7124dbb949bba1126d0332abf}
-delete\-\_\-alphabet Deletes the alphabet hash table \hypertarget{partitioner_8c_af78375fc65d2cfe6a01bf02bd8a17253}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-num\-\_\-range\-\_\-servers@{get\-\_\-num\-\_\-range\-\_\-servers}}
+delete\-\_\-alphabet Deletes the alphabet hash table \hypertarget{partitioner_8c_a907b3ed861ab0d25141f89f765d7c29d}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-byte\-\_\-num@{get\-\_\-byte\-\_\-num}}
+\index{get\-\_\-byte\-\_\-num@{get\-\_\-byte\-\_\-num}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-byte\-\_\-num}]{\setlength{\rightskip}{0pt plus 5cm}long double get\-\_\-byte\-\_\-num (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{key, }
+\item[{uint32\-\_\-t}]{key\-\_\-len}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_a907b3ed861ab0d25141f89f765d7c29d}
+\hypertarget{partitioner_8c_a03be2f72263d4c603d84f5f451eb825c}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-first\-\_\-slice\-\_\-stat@{get\-\_\-first\-\_\-slice\-\_\-stat}}
+\index{get\-\_\-first\-\_\-slice\-\_\-stat@{get\-\_\-first\-\_\-slice\-\_\-stat}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-first\-\_\-slice\-\_\-stat}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-stat}$\ast$ get\-\_\-first\-\_\-slice\-\_\-stat (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{dc/dee/partitioner_8c_a03be2f72263d4c603d84f5f451eb825c}
+\hypertarget{partitioner_8c_a01aaa111925a325c29059c8bc66e516e}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-last\-\_\-slice\-\_\-stat@{get\-\_\-last\-\_\-slice\-\_\-stat}}
+\index{get\-\_\-last\-\_\-slice\-\_\-stat@{get\-\_\-last\-\_\-slice\-\_\-stat}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-last\-\_\-slice\-\_\-stat}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-stat}$\ast$ get\-\_\-last\-\_\-slice\-\_\-stat (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{dc/dee/partitioner_8c_a01aaa111925a325c29059c8bc66e516e}
+\hypertarget{partitioner_8c_a38e2742b1d36355820a1b071f1935135}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-next\-\_\-slice\-\_\-stat@{get\-\_\-next\-\_\-slice\-\_\-stat}}
+\index{get\-\_\-next\-\_\-slice\-\_\-stat@{get\-\_\-next\-\_\-slice\-\_\-stat}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-next\-\_\-slice\-\_\-stat}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-stat}$\ast$ get\-\_\-next\-\_\-slice\-\_\-stat (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{slice\-\_\-num}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{dc/dee/partitioner_8c_a38e2742b1d36355820a1b071f1935135}
+\hypertarget{partitioner_8c_af78375fc65d2cfe6a01bf02bd8a17253}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-num\-\_\-range\-\_\-servers@{get\-\_\-num\-\_\-range\-\_\-servers}}
 \index{get\-\_\-num\-\_\-range\-\_\-servers@{get\-\_\-num\-\_\-range\-\_\-servers}!partitioner.c@{partitioner.\-c}}
 \subsubsection[{get\-\_\-num\-\_\-range\-\_\-servers}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t get\-\_\-num\-\_\-range\-\_\-servers (
 \begin{DoxyParamCaption}
@@ -81,16 +135,23 @@ get\-\_\-num\-\_\-range\-\_\-servers Gets the number of range servers
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error, otherwise the number of range servers 
 \end{DoxyReturn}
-\hypertarget{partitioner_8c_aaedfddad0f8cccefaf6c99e2a227663a}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-range\-\_\-server@{get\-\_\-range\-\_\-server}}
+\hypertarget{partitioner_8c_a8028becbce57b1eccea7f9d2b3f89c41}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-prev\-\_\-slice\-\_\-stat@{get\-\_\-prev\-\_\-slice\-\_\-stat}}
+\index{get\-\_\-prev\-\_\-slice\-\_\-stat@{get\-\_\-prev\-\_\-slice\-\_\-stat}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-prev\-\_\-slice\-\_\-stat}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-stat}$\ast$ get\-\_\-prev\-\_\-slice\-\_\-stat (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{slice\-\_\-num}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{dc/dee/partitioner_8c_a8028becbce57b1eccea7f9d2b3f89c41}
+\hypertarget{partitioner_8c_adb863fbd1c1f660fe2d15b0dbcb47c33}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-range\-\_\-server@{get\-\_\-range\-\_\-server}}
 \index{get\-\_\-range\-\_\-server@{get\-\_\-range\-\_\-server}!partitioner.c@{partitioner.\-c}}
 \subsubsection[{get\-\_\-range\-\_\-server}]{\setlength{\rightskip}{0pt plus 5cm}{\bf rangesrv\-\_\-info}$\ast$ get\-\_\-range\-\_\-server (
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{void $\ast$}]{key, }
-\item[{int}]{key\-\_\-len, }
-\item[{int}]{key\-\_\-type}
+\item[{int}]{key\-\_\-len}
 \end{DoxyParamCaption}
-)}}\label{dc/dee/partitioner_8c_aaedfddad0f8cccefaf6c99e2a227663a}
+)}}\label{dc/dee/partitioner_8c_adb863fbd1c1f660fe2d15b0dbcb47c33}
 get\-\_\-range\-\_\-server
 
 gets the range server that handles the key given 
@@ -101,12 +162,114 @@ gets the range server that handles the key given
 \hline
 {\em key\-\_\-len} & length of the key \\
 \hline
-{\em key\-\_\-type} & type of the key \\
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the rank of the range server or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_abe79a49addedc1c8befd8282d3f4080b}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice@{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice}}
+\index{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice@{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice}]{\setlength{\rightskip}{0pt plus 5cm}{\bf rangesrv\-\_\-info}$\ast$ get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{slice}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_abe79a49addedc1c8befd8282d3f4080b}
+get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice
+
+gets the range server that handles the key given 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em slice} & the slice number \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-the rank of the range server or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+the rank of the range server or N\-U\-L\-L on error 
 \end{DoxyReturn}
+\hypertarget{partitioner_8c_a1c7d1585bd3a23672d3e5c705d3c133e}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats@{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats}}
+\index{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats@{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats}]{\setlength{\rightskip}{0pt plus 5cm}{\bf rangesrv\-\_\-info}$\ast$ get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{op}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_a1c7d1585bd3a23672d3e5c705d3c133e}
+get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats
+
+gets the range server based on the stats acquired from a stat flush 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to the key to find the range server of \\
+\hline
+{\em key\-\_\-len} & length of the key \\
+\hline
+{\em op} & operation type ( \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the rank of the range server or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_a55cb766d118396109a5b7d4b2f6a7231}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-slice\-\_\-from\-\_\-fstat@{get\-\_\-slice\-\_\-from\-\_\-fstat}}
+\index{get\-\_\-slice\-\_\-from\-\_\-fstat@{get\-\_\-slice\-\_\-from\-\_\-fstat}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-slice\-\_\-from\-\_\-fstat}]{\setlength{\rightskip}{0pt plus 5cm}int get\-\_\-slice\-\_\-from\-\_\-fstat (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{cur\-\_\-slice, }
+\item[{long double}]{fstat, }
+\item[{int}]{op}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_a55cb766d118396109a5b7d4b2f6a7231}
+\hypertarget{partitioner_8c_aee461aaafd119ea1c21b7c9e0d9d83ab}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-slice\-\_\-from\-\_\-istat@{get\-\_\-slice\-\_\-from\-\_\-istat}}
+\index{get\-\_\-slice\-\_\-from\-\_\-istat@{get\-\_\-slice\-\_\-from\-\_\-istat}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-slice\-\_\-from\-\_\-istat}]{\setlength{\rightskip}{0pt plus 5cm}int get\-\_\-slice\-\_\-from\-\_\-istat (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{cur\-\_\-slice, }
+\item[{uint64\-\_\-t}]{istat, }
+\item[{int}]{op}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_aee461aaafd119ea1c21b7c9e0d9d83ab}
+\hypertarget{partitioner_8c_aeffd996c7f7120755282194fc3cbf0ed}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-slice\-\_\-num@{get\-\_\-slice\-\_\-num}}
+\index{get\-\_\-slice\-\_\-num@{get\-\_\-slice\-\_\-num}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-slice\-\_\-num}]{\setlength{\rightskip}{0pt plus 5cm}int get\-\_\-slice\-\_\-num (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_aeffd996c7f7120755282194fc3cbf0ed}
+get\-\_\-slice\-\_\-num
+
+gets the slice number from a key slice is a portion of the range served by M\-D\-H\-I\-M each range server servers many slices of the range 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to the key to find the range server of \\
+\hline
+{\em key\-\_\-len} & length of the key \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the slice number or 0 on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8c_aa9dc63bce159c2a7e3b7ea5850fe5f32}{\index{partitioner.\-c@{partitioner.\-c}!get\-\_\-str\-\_\-num@{get\-\_\-str\-\_\-num}}
+\index{get\-\_\-str\-\_\-num@{get\-\_\-str\-\_\-num}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{get\-\_\-str\-\_\-num}]{\setlength{\rightskip}{0pt plus 5cm}long double get\-\_\-str\-\_\-num (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{key, }
+\item[{uint32\-\_\-t}]{key\-\_\-len}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_aa9dc63bce159c2a7e3b7ea5850fe5f32}
+\hypertarget{partitioner_8c_af88457f8ff9ff19e6f2af9f26bc9ac0c}{\index{partitioner.\-c@{partitioner.\-c}!is\-\_\-float\-\_\-key@{is\-\_\-float\-\_\-key}}
+\index{is\-\_\-float\-\_\-key@{is\-\_\-float\-\_\-key}!partitioner.c@{partitioner.\-c}}
+\subsubsection[{is\-\_\-float\-\_\-key}]{\setlength{\rightskip}{0pt plus 5cm}int is\-\_\-float\-\_\-key (
+\begin{DoxyParamCaption}
+\item[{int}]{type}
+\end{DoxyParamCaption}
+)}}\label{dc/dee/partitioner_8c_af88457f8ff9ff19e6f2af9f26bc9ac0c}
 \hypertarget{partitioner_8c_a7e8b2c01361a47a75957d29420d76a89}{\index{partitioner.\-c@{partitioner.\-c}!is\-\_\-range\-\_\-server@{is\-\_\-range\-\_\-server}}
 \index{is\-\_\-range\-\_\-server@{is\-\_\-range\-\_\-server}!partitioner.c@{partitioner.\-c}}
 \subsubsection[{is\-\_\-range\-\_\-server}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t is\-\_\-range\-\_\-server (

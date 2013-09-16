@@ -45,7 +45,7 @@ struct mdhim_rm_t *client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
  * Send bulk put to range server
  * 
  * @param md main MDHIM struct
- * @param bpm pointer to bulk put message to be sent or inserted into the range server's work queue
+ * @param bpm_list double pointer to an array of bulk put messages
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
 struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t **bpm_list) {
@@ -159,7 +159,7 @@ struct mdhim_getrm_t *client_get(struct mdhim_t *md, struct mdhim_getm_t *gm) {
 /** Send bulk get to range server
  *
  * @param md main MDHIM struct
- * @param bgm pointer to get message to be sent or inserted into the range server's work queue
+ * @param bgm_list double pointer to an array or bulk get messages
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
 struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t **bgm_list) {
@@ -299,7 +299,7 @@ struct mdhim_rm_t *client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
  * Send bulk delete to range server
  *
  * @param md main MDHIM struct
- * @param bdm pointer to bulk del message to be sent or inserted into the range server's work queue
+ * @param bdm_list double pointer to an array of bulk del messages
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
 struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t **bdm_list) {

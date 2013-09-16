@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['rangesrv_5fmaster',['rangesrv_master',['../d8/dbc/structmdhim__t.html#aec7f0b0a3e8bf81c839a90ec38b0809b',1,'mdhim_t']]],
   ['rangesrv_5fnum',['rangesrv_num',['../df/dcf/structmdhim__rsi__t.html#accbcc2a99c8184df0649f04c01f60baf',1,'mdhim_rsi_t::rangesrv_num()'],['../da/dce/structrangesrv__info.html#a90a6558f7f1922ae3394838255a937f3',1,'rangesrv_info::rangesrv_num()']]],
   ['rangesrvs',['rangesrvs',['../d8/dbc/structmdhim__t.html#ae05a450ac4f312ae4bdb9c1ea52e53e0',1,'mdhim_t']]],
   ['rank',['rank',['../da/dce/structrangesrv__info.html#af545372bc5a40a38b84408a208866960',1,'rangesrv_info']]],

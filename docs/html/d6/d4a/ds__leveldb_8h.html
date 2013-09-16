@@ -95,19 +95,18 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a0c6d2f7294f999de80415a80a640d4e7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a0c6d2f7294f999de80415a80a640d4e7">mdhim_leveldb_open</a> (void **dbh, char *path, int flags, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:a9cd40005400af343f52a066f0f0797ad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a9cd40005400af343f52a066f0f0797ad">mdhim_leveldb_open</a> (void **dbh, void **dbs, char *path, int flags, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 <tr class="memitem:a257ee6a72ac357c08a2b1db9bcb8b9ae"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a257ee6a72ac357c08a2b1db9bcb8b9ae">mdhim_leveldb_put</a> (void *dbh, void *key, int key_len, void *data, int32_t data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 <tr class="memitem:ae458279fc281f11666df59ddda4015b4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#ae458279fc281f11666df59ddda4015b4">mdhim_leveldb_get</a> (void *dbh, void *key, int key_len, void **data, int32_t *data_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
-<tr class="memitem:afa1cb9e94edcae14a04fe27dd52c0fef"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#afa1cb9e94edcae14a04fe27dd52c0fef">mdhim_leveldb_get_next</a> (void *dbh, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
-<tr class="memitem:a8ced40f3a3a8059836722473e6cbdd92"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a8ced40f3a3a8059836722473e6cbdd92">mdhim_leveldb_get_prev</a> (void *dbh, void *curh, void **key, int *key_len, void **data, int32_t *data_len, struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *mstore_cur_opts)</td></tr>
-<tr class="memitem:a9a27ce671225070a1f77e8c1ab42bf51"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a9a27ce671225070a1f77e8c1ab42bf51">mdhim_leveldb_cursor_init</a> (void *dbh)</td></tr>
-<tr class="memitem:aee8e4213a5bc50310e81bc7481519635"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#aee8e4213a5bc50310e81bc7481519635">mdhim_leveldb_cursor_release</a> (void *dbh, void *curh)</td></tr>
-<tr class="memitem:aa3e3647623cde4d5fd2e43b0842cdcb0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#aa3e3647623cde4d5fd2e43b0842cdcb0">mdhim_leveldb_close</a> (void *dbh, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:a8ce6669cc11af3e19bf50ce058d91fce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a8ce6669cc11af3e19bf50ce058d91fce">mdhim_leveldb_get_next</a> (void *dbh, void **key, int *key_len, void **data, int32_t *data_len, void **iterator, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:a2d4a71c69bd8eea79b0f623405e2ab1c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a2d4a71c69bd8eea79b0f623405e2ab1c">mdhim_leveldb_get_prev</a> (void *dbh, void **key, int *key_len, void **data, int32_t *data_len, void **iterator, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:a0d481fd968435ca7556e930ec9260ec0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a0d481fd968435ca7556e930ec9260ec0">mdhim_leveldb_close</a> (void *dbh, void *dbs, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
 <tr class="memitem:a01f25e386f4cca9593ea8d29c362d5e7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a01f25e386f4cca9593ea8d29c362d5e7">mdhim_leveldb_del</a> (void *dbh, void *key, int key_len, struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *mstore_opts)</td></tr>
+<tr class="memitem:a3bfe3ab3f6b230e461a3e412f50e19fa"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a3bfe3ab3f6b230e461a3e412f50e19fa">mdhim_leveldb_iter_free</a> (void **iterator)</td></tr>
 <tr class="memitem:a9e69089d8e78f91b3df7ae532a933e3f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d4a/ds__leveldb_8h.html#a9e69089d8e78f91b3df7ae532a933e3f">mdhim_leveldb_commit</a> (void *dbh)</td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
-<a class="anchor" id="aa3e3647623cde4d5fd2e43b0842cdcb0"></a>
+<a class="anchor" id="a0d481fd968435ca7556e930ec9260ec0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -116,6 +115,12 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">void *&#160;</td>
           <td class="paramname"><em>dbh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>dbs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -134,6 +139,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
     <tr><td class="paramname">dbh</td><td>in pointer to the leveldb db handle </td></tr>
+    <tr><td class="paramname">dbs</td><td>in pointer to the leveldb statistics db handle </td></tr>
     <tr><td class="paramname">mstore_opts</td><td>in additional options for the data store layer</td></tr>
   </table>
   </dd>
@@ -163,48 +169,6 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns:</dt><dd>MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="a9a27ce671225070a1f77e8c1ab42bf51"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void* mdhim_leveldb_cursor_init </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>dbh</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a class="anchor" id="aee8e4213a5bc50310e81bc7481519635"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int mdhim_leveldb_cursor_release </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>dbh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>curh</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
 
 </div>
 </div>
@@ -320,7 +284,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="afa1cb9e94edcae14a04fe27dd52c0fef"></a>
+<a class="anchor" id="a8ce6669cc11af3e19bf50ce058d91fce"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -333,12 +297,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>curh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">void **&#160;</td>
           <td class="paramname"><em>key</em>, </td>
         </tr>
@@ -363,8 +321,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *&#160;</td>
-          <td class="paramname"><em>mstore_cur_opts</em>&#160;</td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>iterator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *&#160;</td>
+          <td class="paramname"><em>mstore_opts</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -373,10 +337,23 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>mdhim_leveldb_get_next Gets the next key/value from the data store</p>
+<dl class="params"><dt>Parameters:</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dbh</td><td>in pointer to the unqlite db handle </td></tr>
+    <tr><td class="paramname">key</td><td>out void ** to the key that we get </td></tr>
+    <tr><td class="paramname">key_len</td><td>out int * to the length of the key </td></tr>
+    <tr><td class="paramname">data</td><td>out void ** to the value belonging to the key </td></tr>
+    <tr><td class="paramname">data_len</td><td>out int * to the length of the value data </td></tr>
+    <tr><td class="paramname">iterator</td><td>in double pointer to an iterator to use </td></tr>
+    <tr><td class="paramname">mstore_opts</td><td>in additional cursor options for the data store layer </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a class="anchor" id="a8ced40f3a3a8059836722473e6cbdd92"></a>
+<a class="anchor" id="a2d4a71c69bd8eea79b0f623405e2ab1c"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -389,12 +366,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>curh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">void **&#160;</td>
           <td class="paramname"><em>key</em>, </td>
         </tr>
@@ -419,8 +390,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">struct <a class="el" href="../../d4/d09/structmdhim__store__cur__opts__t.html">mdhim_store_cur_opts_t</a> *&#160;</td>
-          <td class="paramname"><em>mstore_cur_opts</em>&#160;</td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>iterator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="../../da/d76/structmdhim__store__opts__t.html">mdhim_store_opts_t</a> *&#160;</td>
+          <td class="paramname"><em>mstore_opts</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -432,7 +409,23 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a0c6d2f7294f999de80415a80a640d4e7"></a>
+<a class="anchor" id="a3bfe3ab3f6b230e461a3e412f50e19fa"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mdhim_leveldb_iter_free </td>
+          <td>(</td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>iterator</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9cd40005400af343f52a066f0f0797ad"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -441,6 +434,12 @@ Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">void **&#160;</td>
           <td class="paramname"><em>dbh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>dbs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -470,7 +469,8 @@ Functions</h2></td></tr>
 <p>mdhim_leveldb_open Opens the database</p>
 <dl class="params"><dt>Parameters:</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dbh</td><td>in ** to the leveldb handle </td></tr>
+    <tr><td class="paramname">dbh</td><td>in double pointer to the leveldb handle </td></tr>
+    <tr><td class="paramname">dbs</td><td>in double pointer to the leveldb statistics db handle </td></tr>
     <tr><td class="paramname">path</td><td>in path to the database file </td></tr>
     <tr><td class="paramname">flags</td><td>in flags for opening the data store </td></tr>
     <tr><td class="paramname">mstore_opts</td><td>in additional options for the data store layer</td></tr>
@@ -547,7 +547,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jul 11 2013 10:08:11 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Sep 16 2013 15:51:31 for MDHIM TNG by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.1.1
 </small></address>

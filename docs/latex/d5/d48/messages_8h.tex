@@ -54,7 +54,7 @@ struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t}
 \item 
 \#define \hyperlink{messages_8h_ae4b4d155a05730791e37c1d6d3b9f1ce}{M\-D\-H\-I\-M\-\_\-\-C\-O\-M\-M\-I\-T}~11
 \item 
-\#define \hyperlink{messages_8h_a6018ee1648e2c4ff727d92c889f1fcfe}{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}~0
+\#define \hyperlink{messages_8h_a48ccccbdae35237b29147285a665b3d7}{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-E\-Q}~0
 \item 
 \#define \hyperlink{messages_8h_abccc97c7a5b416abe6891a99b931a846}{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-N\-E\-X\-T}~1
 \item 
@@ -64,17 +64,17 @@ struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t}
 \item 
 \#define \hyperlink{messages_8h_a799816812f32b4adf1a68d9d55662bc3}{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-L\-A\-S\-T}~4
 \item 
-\#define \hyperlink{messages_8h_adf27b37248678071d941278a12105f6d}{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E}~1
+\#define \hyperlink{messages_8h_a693ab58ed9f531d18576ed620603487e}{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G}~1
 \item 
-\#define \hyperlink{messages_8h_a693ab58ed9f531d18576ed620603487e}{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G}~2
+\#define \hyperlink{messages_8h_ab694b3d2e89efa08e3f39c4a43bb82e5}{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}~2
 \item 
 \#define \hyperlink{messages_8h_a29e9fdb5a2d42349106ac93228344514}{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-I\-N\-F\-O}~3
 \item 
-\#define \hyperlink{messages_8h_a95873fdea4af850672cf0b8b18c9038a}{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E}~4
+\#define \hyperlink{messages_8h_a46d611fc0a3afaa0895d915f1ff1b5f7}{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G}~4
 \item 
-\#define \hyperlink{messages_8h_a46d611fc0a3afaa0895d915f1ff1b5f7}{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G}~5
+\#define \hyperlink{messages_8h_a6085c4a681a1b1820a206cf9e5021e29}{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}~5
 \item 
-\#define \hyperlink{messages_8h_a221c897f1d7f44a45ef3e12d0c902057}{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S}~100
+\#define \hyperlink{messages_8h_a221c897f1d7f44a45ef3e12d0c902057}{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S}~100000
 \item 
 \#define \hyperlink{messages_8h_ab763af650593db4d360d9638baa45b22}{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}~2147483647
 \end{DoxyCompactItemize}
@@ -83,11 +83,15 @@ struct \hyperlink{structmdhim__brm__t}{mdhim\-\_\-brm\-\_\-t}
 \item 
 int \hyperlink{messages_8h_aa375aebf439f9a0f522a6545b54fb0ca}{send\-\_\-rangesrv\-\_\-work} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int dest, void $\ast$message)
 \item 
+int \hyperlink{messages_8h_a19d6321f35d27aa25ef1469823c30569}{send\-\_\-all\-\_\-rangesrv\-\_\-work} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$$\ast$messages)
+\item 
 int \hyperlink{messages_8h_aa3fd52dd4aabd2a5da26a4b6ecbc2290}{receive\-\_\-rangesrv\-\_\-work} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int $\ast$src, void $\ast$$\ast$message)
 \item 
 int \hyperlink{messages_8h_a1265a4149b46a3186e7b5c1ff760fde9}{send\-\_\-client\-\_\-response} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int dest, void $\ast$message)
 \item 
 int \hyperlink{messages_8h_ae0b4a90e1666c6748fc6d5837b5e1b42}{receive\-\_\-client\-\_\-response} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int src, void $\ast$$\ast$message)
+\item 
+int \hyperlink{messages_8h_a856ea690bb17e18e8ad132155d471746}{receive\-\_\-all\-\_\-client\-\_\-responses} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int $\ast$srcs, int nsrcs, void $\ast$$\ast$$\ast$messages)
 \item 
 int \hyperlink{messages_8h_a6ff6ea9a88dd286c3a582a7e94039d31}{pack\-\_\-put\-\_\-message} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__putm__t}{mdhim\-\_\-putm\-\_\-t} $\ast$pm, void $\ast$$\ast$sendbuf, int $\ast$sendsize)
 \begin{DoxyCompactList}\small\item\em ------------------------ \end{DoxyCompactList}\item 
@@ -132,19 +136,21 @@ void \hyperlink{messages_8h_a51783bd775a54484161d04576ed7756e}{mdhim\-\_\-full\-
 void \hyperlink{messages_8h_adcf7b9e217c19fa0554ba39aa0e123b7}{mdhim\-\_\-partial\-\_\-release\-\_\-msg} (void $\ast$message)
 \item 
 struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{messages_8h_ac147bc99967b9b2e8b7c28b9a05f1b27}{get\-\_\-rangesrvs} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+int \hyperlink{messages_8h_a0c78d9a2114e78a13f00f733e40a0f63}{get\-\_\-stat\-\_\-flush} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
 \end{DoxyCompactItemize}
 
 
 \subsection{Macro Definition Documentation}
 \hypertarget{messages_8h_a46d611fc0a3afaa0895d915f1ff1b5f7}{\index{messages.\-h@{messages.\-h}!C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G@{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G}}
 \index{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G@{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G}!messages.h@{messages.\-h}}
-\subsubsection[{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G~5}}\label{d5/d48/messages_8h_a46d611fc0a3afaa0895d915f1ff1b5f7}
-\hypertarget{messages_8h_a95873fdea4af850672cf0b8b18c9038a}{\index{messages.\-h@{messages.\-h}!C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E@{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E}}
-\index{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E@{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E}!messages.h@{messages.\-h}}
-\subsubsection[{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E~4}}\label{d5/d48/messages_8h_a95873fdea4af850672cf0b8b18c9038a}
+\subsubsection[{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-M\-S\-G~4}}\label{d5/d48/messages_8h_a46d611fc0a3afaa0895d915f1ff1b5f7}
+\hypertarget{messages_8h_a6085c4a681a1b1820a206cf9e5021e29}{\index{messages.\-h@{messages.\-h}!C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G@{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}}
+\index{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G@{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}!messages.h@{messages.\-h}}
+\subsubsection[{C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-L\-I\-E\-N\-T\-\_\-\-R\-E\-S\-P\-O\-N\-S\-E\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G~5}}\label{d5/d48/messages_8h_a6085c4a681a1b1820a206cf9e5021e29}
 \hypertarget{messages_8h_a221c897f1d7f44a45ef3e12d0c902057}{\index{messages.\-h@{messages.\-h}!M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S@{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S}}
 \index{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S@{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S}!messages.h@{messages.\-h}}
-\subsubsection[{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S~100}}\label{d5/d48/messages_8h_a221c897f1d7f44a45ef3e12d0c902057}
+\subsubsection[{M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-A\-X\-\_\-\-B\-U\-L\-K\-\_\-\-O\-P\-S~100000}}\label{d5/d48/messages_8h_a221c897f1d7f44a45ef3e12d0c902057}
 \hypertarget{messages_8h_af28afb481067ad3abac60489e38c4d06}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-B\-U\-L\-K\-\_\-\-D\-E\-L@{M\-D\-H\-I\-M\-\_\-\-B\-U\-L\-K\-\_\-\-D\-E\-L}}
 \index{M\-D\-H\-I\-M\-\_\-\-B\-U\-L\-K\-\_\-\-D\-E\-L@{M\-D\-H\-I\-M\-\_\-\-B\-U\-L\-K\-\_\-\-D\-E\-L}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-B\-U\-L\-K\-\_\-\-D\-E\-L}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-B\-U\-L\-K\-\_\-\-D\-E\-L~6}}\label{d5/d48/messages_8h_af28afb481067ad3abac60489e38c4d06}
@@ -166,6 +172,9 @@ struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{me
 \hypertarget{messages_8h_a13fb8f77b086ee85a406d251b95bf81e}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-G\-E\-T@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T}}
 \index{M\-D\-H\-I\-M\-\_\-\-G\-E\-T@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-G\-E\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-G\-E\-T~3}}\label{d5/d48/messages_8h_a13fb8f77b086ee85a406d251b95bf81e}
+\hypertarget{messages_8h_a48ccccbdae35237b29147285a665b3d7}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-E\-Q@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-E\-Q}}
+\index{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-E\-Q@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-E\-Q}!messages.h@{messages.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-E\-Q}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-E\-Q~0}}\label{d5/d48/messages_8h_a48ccccbdae35237b29147285a665b3d7}
 \hypertarget{messages_8h_a4c7b9eade04d4e9b9eb5ce6da06cc1d0}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-F\-I\-R\-S\-T@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-F\-I\-R\-S\-T}}
 \index{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-F\-I\-R\-S\-T@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-F\-I\-R\-S\-T}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-F\-I\-R\-S\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-F\-I\-R\-S\-T~3}}\label{d5/d48/messages_8h_a4c7b9eade04d4e9b9eb5ce6da06cc1d0}
@@ -178,9 +187,6 @@ struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{me
 \hypertarget{messages_8h_ae310d4bdc8775196bf958de61dcb3b80}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V}}
 \index{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V~2}}\label{d5/d48/messages_8h_ae310d4bdc8775196bf958de61dcb3b80}
-\hypertarget{messages_8h_a6018ee1648e2c4ff727d92c889f1fcfe}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}}
-\index{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L@{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}!messages.h@{messages.\-h}}
-\subsubsection[{M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-V\-A\-L~0}}\label{d5/d48/messages_8h_a6018ee1648e2c4ff727d92c889f1fcfe}
 \hypertarget{messages_8h_ab763af650593db4d360d9638baa45b22}{\index{messages.\-h@{messages.\-h}!M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}}
 \index{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}!messages.h@{messages.\-h}}
 \subsubsection[{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-M\-S\-G\-\_\-\-S\-I\-Z\-E~2147483647}}\label{d5/d48/messages_8h_ab763af650593db4d360d9638baa45b22}
@@ -201,10 +207,10 @@ struct \hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{me
 \subsubsection[{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-I\-N\-F\-O}]{\setlength{\rightskip}{0pt plus 5cm}\#define R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-I\-N\-F\-O~3}}\label{d5/d48/messages_8h_a29e9fdb5a2d42349106ac93228344514}
 \hypertarget{messages_8h_a693ab58ed9f531d18576ed620603487e}{\index{messages.\-h@{messages.\-h}!R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G@{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G}}
 \index{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G@{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G}!messages.h@{messages.\-h}}
-\subsubsection[{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G}]{\setlength{\rightskip}{0pt plus 5cm}\#define R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G~2}}\label{d5/d48/messages_8h_a693ab58ed9f531d18576ed620603487e}
-\hypertarget{messages_8h_adf27b37248678071d941278a12105f6d}{\index{messages.\-h@{messages.\-h}!R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E@{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E}}
-\index{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E@{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E}!messages.h@{messages.\-h}}
-\subsubsection[{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E~1}}\label{d5/d48/messages_8h_adf27b37248678071d941278a12105f6d}
+\subsubsection[{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G}]{\setlength{\rightskip}{0pt plus 5cm}\#define R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-M\-S\-G~1}}\label{d5/d48/messages_8h_a693ab58ed9f531d18576ed620603487e}
+\hypertarget{messages_8h_ab694b3d2e89efa08e3f39c4a43bb82e5}{\index{messages.\-h@{messages.\-h}!R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G@{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}}
+\index{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G@{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}!messages.h@{messages.\-h}}
+\subsubsection[{R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G}]{\setlength{\rightskip}{0pt plus 5cm}\#define R\-A\-N\-G\-E\-S\-R\-V\-\_\-\-W\-O\-R\-K\-\_\-\-S\-I\-Z\-E\-\_\-\-M\-S\-G~2}}\label{d5/d48/messages_8h_ab694b3d2e89efa08e3f39c4a43bb82e5}
 
 
 \subsection{Function Documentation}
@@ -224,6 +230,23 @@ get\-\_\-rangesrvs Receives range server info from every process and constructs 
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 a list of range servers 
+\end{DoxyReturn}
+\hypertarget{messages_8h_a0c78d9a2114e78a13f00f733e40a0f63}{\index{messages.\-h@{messages.\-h}!get\-\_\-stat\-\_\-flush@{get\-\_\-stat\-\_\-flush}}
+\index{get\-\_\-stat\-\_\-flush@{get\-\_\-stat\-\_\-flush}!messages.h@{messages.\-h}}
+\subsubsection[{get\-\_\-stat\-\_\-flush}]{\setlength{\rightskip}{0pt plus 5cm}int get\-\_\-stat\-\_\-flush (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a0c78d9a2114e78a13f00f733e40a0f63}
+get\-\_\-stat\-\_\-flush Receives stat data from all the range servers and populates md-\/$>$stats
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
 \end{DoxyReturn}
 \hypertarget{messages_8h_a51783bd775a54484161d04576ed7756e}{\index{messages.\-h@{messages.\-h}!mdhim\-\_\-full\-\_\-release\-\_\-msg@{mdhim\-\_\-full\-\_\-release\-\_\-msg}}
 \index{mdhim\-\_\-full\-\_\-release\-\_\-msg@{mdhim\-\_\-full\-\_\-release\-\_\-msg}!messages.h@{messages.\-h}}
@@ -379,7 +402,7 @@ pack\-\_\-bput\-\_\-message Packs a bulk put message structure into contiguous m
 \hline
 {\em bpm} & in structure bput\-\_\-message which will be packed into the sendbuf \\
 \hline
-{\em sendsize} & out double pointer for packed message to send \\
+{\em sendbuf} & out double pointer for packed message to send \\
 \hline
 {\em sendsize} & out pointer for packed message size \\
 \hline
@@ -527,7 +550,7 @@ pack\-\_\-return\-\_\-message Packs a return message structure into contiguous m
 \begin{DoxyParams}{Parameters}
 {\em md} & in main M\-D\-H\-I\-M struct \\
 \hline
-{\em pm} & in structure which will be packed into the sendbuf \\
+{\em rm} & in structure which will be packed into the sendbuf \\
 \hline
 {\em sendbuf} & out double pointer for packed message to send \\
 \hline
@@ -537,7 +560,33 @@ pack\-\_\-return\-\_\-message Packs a return message structure into contiguous m
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error
 \end{DoxyReturn}
-struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} \{ int mtype; int error; \}; \hypertarget{messages_8h_ae0b4a90e1666c6748fc6d5837b5e1b42}{\index{messages.\-h@{messages.\-h}!receive\-\_\-client\-\_\-response@{receive\-\_\-client\-\_\-response}}
+struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} \{ int mtype; int error; \}; \hypertarget{messages_8h_a856ea690bb17e18e8ad132155d471746}{\index{messages.\-h@{messages.\-h}!receive\-\_\-all\-\_\-client\-\_\-responses@{receive\-\_\-all\-\_\-client\-\_\-responses}}
+\index{receive\-\_\-all\-\_\-client\-\_\-responses@{receive\-\_\-all\-\_\-client\-\_\-responses}!messages.h@{messages.\-h}}
+\subsubsection[{receive\-\_\-all\-\_\-client\-\_\-responses}]{\setlength{\rightskip}{0pt plus 5cm}int receive\-\_\-all\-\_\-client\-\_\-responses (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int $\ast$}]{srcs, }
+\item[{int}]{nsrcs, }
+\item[{void $\ast$$\ast$$\ast$}]{messages}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a856ea690bb17e18e8ad132155d471746}
+receive\-\_\-all\-\_\-client\-\_\-responses Receives messages from multiple sources sources
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & in main M\-D\-H\-I\-M struct \\
+\hline
+{\em srcs} & in sources to receive from \\
+\hline
+{\em nsrcs} & in number of sources to receive from \\
+\hline
+{\em messages} & out array of messages to receive \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
+\hypertarget{messages_8h_ae0b4a90e1666c6748fc6d5837b5e1b42}{\index{messages.\-h@{messages.\-h}!receive\-\_\-client\-\_\-response@{receive\-\_\-client\-\_\-response}}
 \index{receive\-\_\-client\-\_\-response@{receive\-\_\-client\-\_\-response}!messages.h@{messages.\-h}}
 \subsubsection[{receive\-\_\-client\-\_\-response}]{\setlength{\rightskip}{0pt plus 5cm}int receive\-\_\-client\-\_\-response (
 \begin{DoxyParamCaption}
@@ -583,6 +632,26 @@ receive\-\_\-rangesrv\-\_\-work message Receives a message from the given source
 \begin{DoxyReturn}{Returns}
 M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S, M\-D\-H\-I\-M\-\_\-\-C\-L\-O\-S\-E, M\-D\-H\-I\-M\-\_\-\-C\-O\-M\-M\-I\-T, or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
 \end{DoxyReturn}
+\hypertarget{messages_8h_a19d6321f35d27aa25ef1469823c30569}{\index{messages.\-h@{messages.\-h}!send\-\_\-all\-\_\-rangesrv\-\_\-work@{send\-\_\-all\-\_\-rangesrv\-\_\-work}}
+\index{send\-\_\-all\-\_\-rangesrv\-\_\-work@{send\-\_\-all\-\_\-rangesrv\-\_\-work}!messages.h@{messages.\-h}}
+\subsubsection[{send\-\_\-all\-\_\-rangesrv\-\_\-work}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-all\-\_\-rangesrv\-\_\-work (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$$\ast$}]{messages}
+\end{DoxyParamCaption}
+)}}\label{d5/d48/messages_8h_a19d6321f35d27aa25ef1469823c30569}
+send\-\_\-all\-\_\-rangesrv\-\_\-work Sends multiple messages simultaneously and waits for them to all complete
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em messages} & double pointer to array of messages to send \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error 
+\end{DoxyReturn}
 \hypertarget{messages_8h_a1265a4149b46a3186e7b5c1ff760fde9}{\index{messages.\-h@{messages.\-h}!send\-\_\-client\-\_\-response@{send\-\_\-client\-\_\-response}}
 \index{send\-\_\-client\-\_\-response@{send\-\_\-client\-\_\-response}!messages.h@{messages.\-h}}
 \subsubsection[{send\-\_\-client\-\_\-response}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-client\-\_\-response (
@@ -624,8 +693,6 @@ send\-\_\-rangesrv\-\_\-work Sends a message to the range server at the given de
 {\em dest} & destination to send to \\
 \hline
 {\em message} & pointer to message struct to send \\
-\hline
-{\em size} & size of the message \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -677,7 +744,7 @@ unpack\-\_\-bget\-\_\-message Unpacks a bulk get message structure into contiguo
 \hline
 {\em mesg\-\_\-size} & in size of the incoming message \\
 \hline
-{\em bgm} & out structure bulk\-\_\-get\-\_\-message which will be unpacked from the message \\
+{\em bgetm} & out bulk get message which will be unpacked from the message \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -703,7 +770,7 @@ unpack\-\_\-bgetrm\-\_\-message Unpacks a bulk get return message structure into
 \hline
 {\em mesg\-\_\-size} & in size of the incoming message \\
 \hline
-{\em bgtrm} & out structure bulk\-\_\-get\-\_\-return\-\_\-message which will be unpacked from the message \\
+{\em bgetrm} & out bulk get return message which will be unpacked from the message \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -729,7 +796,7 @@ unpack\-\_\-bput\-\_\-message Unpacks a bulk put message structure into contiguo
 \hline
 {\em mesg\-\_\-size} & in size of the incoming message \\
 \hline
-{\em bpm} & out structure bulk\-\_\-put\-\_\-message which will be unpacked from the message \\
+{\em bput} & out bulk put message which will be unpacked from the message \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -781,7 +848,7 @@ unpack\-\_\-get\-\_\-message Unpacks a get message structure into contiguous mem
 \hline
 {\em mesg\-\_\-size} & in size of the incoming message \\
 \hline
-{\em pm} & out structure get\-\_\-message which will be unpacked from the message \\
+{\em getm} & out get message which will be unpacked from the message \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -833,7 +900,7 @@ unpack\-\_\-put\-\_\-message Unpacks a put message structure into contiguous mem
 \hline
 {\em mesg\-\_\-size} & in size of the incoming message \\
 \hline
-{\em pm} & out structure put\-\_\-message which will be unpacked from the message \\
+{\em putm} & out put message which will be unpacked from the message \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -854,9 +921,9 @@ unpack\-\_\-return\-\_\-message unpacks a return message structure into contiguo
 \begin{DoxyParams}{Parameters}
 {\em md} & in main M\-D\-H\-I\-M struct \\
 \hline
-{\em pm} & in structure return\-\_\-message which will be packed into the message \\
+{\em message} & out pointer for buffer to unpack message to \\
 \hline
-{\em message} & out pointer for packed message \\
+{\em retm} & in return message that will be unpacked into message \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}

@@ -96,12 +96,9 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts, int sta
  * update_all_stats
  * Adds or updates the given stat to the hash table
  *
- * @param md    pointer to the main MDHIM structure
- * @param type  int that represents the type of stat
- * @param fval  double value for key types that are represented in a float type
- * @param ival  uint64_t for key types that are represented in an int type
- * @param init  int flag to indicate whether this stat is just being initialized, 
- *              but there is not value for it yet
+ * @param md       pointer to the main MDHIM structure
+ * @param key      pointer to the key we are examining
+ * @param key_len  the key's length
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
@@ -335,8 +332,8 @@ int write_stats(struct mdhim_t *md) {
  * range_server_add_work
  * Adds work to the work queue and signals the condition variable for the worker thread
  *
- * @param md  Pointer to the main MDHIM structure
- * @param work_item    pointer to new work item that contains a message to handle
+ * @param md      Pointer to the main MDHIM structure
+ * @param item    pointer to new work item that contains a message to handle
  * @return MDHIM_SUCCESS
  */
 int range_server_add_work(struct mdhim_t *md, work_item *item) {
@@ -368,7 +365,7 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
  * get_work
  * Returns the next work item from the work queue
  *
- * @param mdhim_rs  Pointer to the range server info
+ * @param md  Pointer to the main MDHIM structure
  * @return  the next work_item to process
  */
 
@@ -561,7 +558,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
  * Handles the bulk put message and puts data in the database
  *
  * @param md        Pointer to the main MDHIM struct
- * @param im        pointer to the put message to handle
+ * @param bim       pointer to the bulk put message to handle
  * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
@@ -652,7 +649,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
  * Handles the delete message and deletes the data from the database
  *
  * @param md       Pointer to the main MDHIM struct
- * @param im       pointer to the delete message to handle
+ * @param dm       pointer to the delete message to handle
  * @param source   source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
@@ -690,7 +687,7 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
  * Handles the bulk delete message and deletes the data from the database
  *
  * @param md        Pointer to the main MDHIM struct
- * @param im        pointer to the delete message to handle
+ * @param bdm       pointer to the bulk delete message to handle
  * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
@@ -773,8 +770,9 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
  * Handles the get message, retrieves the data from the database, and sends the results back
  * 
  * @param md        Pointer to the main MDHIM struct
- * @param im        pointer to the get message to handle
+ * @param gm        pointer to the get message to handle
  * @param source    source of the message
+ * @param op        Operation to perform (MDHIM_GET_EQ, MDHIM_GET_NEXT, etc...)
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, int op) {
@@ -920,7 +918,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
  * Handles the bulk get message, retrieves the data from the database, and sends the results back
  * 
  * @param md        Pointer to the main MDHIM struct
- * @param im        pointer to the bulk get message to handle
+ * @param bgm       pointer to the bulk get message to handle
  * @param source    source of the message
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
