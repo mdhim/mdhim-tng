@@ -314,6 +314,14 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - "
 	     "Received message with size: %d and type: %d from rank: %d.", md->mdhim_rank, msg_size, 
 	     mtype, msg_source);
+        
+        // Checks for valid message, if error inform and ignore message
+        if (msg_size==0 || mtype<MDHIM_PUT || mtype>MDHIM_COMMIT) {
+            mlog(MDHIM_SERVER_CRIT, "Rank: %d - Got empty/invalid message in receive_rangesrv_work.", 
+		     md->mdhim_rank);
+            free(recvbuf);
+            return MDHIM_ERROR;
+        }
 
 	switch(mtype) {
 	case MDHIM_PUT:

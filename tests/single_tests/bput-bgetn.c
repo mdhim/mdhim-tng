@@ -117,6 +117,9 @@ int main(int argc, char **argv) {
 
 		//Iterate through the return messages to see if there is an error and to free it
 		brmp = brm;
+                if (!brmp || brmp->error) {
+                        printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
+                } 
 		while (brmp) {
 			if (brmp->error < 0) {
 				printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
