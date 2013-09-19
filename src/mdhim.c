@@ -156,13 +156,22 @@ int mdhimClose(struct mdhim_t *md) {
 	int ret;
 	struct rangesrv_info *rsrv, *trsrv;
 	struct mdhim_basem_t *cm;
+	struct mdhim_stat *stat, *tmp;
 
 	MPI_Barrier(md->mdhim_client_comm);
 	//If I'm rank 0, send a close message to every range server to it can stop its thread
 	if (!md->mdhim_rank) {
 		cm = malloc(sizeof(struct mdhim_basem_t));
 		cm->mtype = MDHIM_CLOSE;
-		client_close(md, cm);
+
+		//If rank 0 is the only range server then send close to itself
+		if ((ret = im_range_server(md)) == 1) {
+			local_client_close(md, cm);
+		} else {
+		//Otherwise, have rank 0 send close to all range servers
+			client_close(md, cm);
+		}
+
 		free(cm);
 	}
 
@@ -192,8 +201,27 @@ int mdhimClose(struct mdhim_t *md) {
 	if ((ret = pthread_mutex_destroy(md->receive_msg_mutex)) != 0) {
 		return MDHIM_ERROR;
 	}
-	free(md->receive_msg_mutex);
+	free(md->receive_msg_mutex);    
+       
+        //Iterate through the stat hash entries to free them
+	HASH_ITER(hh, md->stats, stat, tmp) {	
+		if (!stat) {
+			continue;
+		}
+	
+		HASH_DEL(md->stats, stat); 
+		free(stat->max);
+		free(stat->min);
+		free(stat);
+	}
+
        	MPI_Barrier(md->mdhim_client_comm);
+	MPI_Comm_free(&md->mdhim_client_comm);
+	MPI_Comm_free(&md->mdhim_comm);
+	free(md);
+
+	//Close MLog
+	mlog_close();
 
 	return MDHIM_SUCCESS;
 }
@@ -286,6 +314,8 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,
 	} else {
 		//Send the message through the network as this message is for another rank
 		rm = client_put(md, pm);
+		free(pm->key);
+		free(pm->value);
 		free(pm);
 	}
 
@@ -309,7 +339,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 	struct mdhim_bputm_t *bpm, *lbpm;
 	struct mdhim_brm_t *brm, *brm_head;
 	struct mdhim_rm_t *rm;
-	int i;
+	int i, j;
 	rangesrv_info *ri;
 
 	//Check to see that we were given a sane amount of records
@@ -390,11 +420,16 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
                 }
 	}
 	
+	//Free up messages sent
 	for (i = 0; i < md->num_rangesrvs; i++) {
 		if (!bpm_list[i]) {
 			continue;
 		}
-
+			
+		free(bpm_list[i]->keys);
+		free(bpm_list[i]->values);
+		free(bpm_list[i]->key_lens);
+		free(bpm_list[i]->value_lens);
 		free(bpm_list[i]);
 	}
 
@@ -653,8 +688,9 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
 	} else {
 		//Send the message through the network as this message is for another rank
 		bgrm = client_bget_op(md, gm);
-		free(gm);
 	}
+
+	free(gm);
 
 	return bgrm;
 }

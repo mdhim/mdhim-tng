@@ -45,6 +45,8 @@ void delete_alphabet() {
 		HASH_DEL(mdhim_alphabet, cur_char);  /*delete it (mdhim_alphabet advances to next)*/
 		free(cur_char);            /* free it */
 	}
+
+	mdhim_alphabet = NULL;
 }
 
 long double get_str_num(void *key, uint32_t key_len) {
@@ -289,8 +291,9 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 		return MDHIM_ERROR;
 	}
 
-	//Rank zero can't be a range server so it can do maintenance later
-	if (!rank) {
+	/*Rank zero can't be a range server if there is more than one rank 
+	  so it can do maintenance later*/
+	if (!rank && size > 1) {
 		return rangesrv_num;
 	}
 

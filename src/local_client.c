@@ -293,3 +293,28 @@ struct mdhim_rm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t
 	return brm;
 }
 
+/**
+ * Send close to range server
+ *
+ * @param md main MDHIM struct
+ * @param cm pointer to close message to be inserted into the range server's work queue
+ */
+void local_client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
+	int ret;
+	struct mdhim_rm_t *rm;
+	work_item *item;
+
+	if ((item = malloc(sizeof(work_item))) == NULL) {
+		mlog(MDHIM_CLIENT_CRIT, "Error while allocating memory for client");
+		return;
+	}
+
+	item->message = (void *)cm;
+	item->source = md->mdhim_rank;
+	if ((ret = range_server_add_work(md, item)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Error adding work to range server in local_client_put");
+		return;
+	}
+	
+	return;
+}

@@ -2234,6 +2234,10 @@ void mdhim_full_release_msg(void *msg) {
 
 		free((struct mdhim_bputm_t *) msg);
 		break;
+	case MDHIM_GET:
+		free(((struct mdhim_getm_t *) msg)->key);
+		free((struct mdhim_getm_t *) msg);
+		break;
 	default:
 		break;
 	}
@@ -2292,6 +2296,9 @@ void mdhim_partial_release_msg(void *msg) {
 		}
 
 		free((struct mdhim_bputm_t *) msg);
+		break;
+	case MDHIM_GET:
+		free((struct mdhim_getm_t *) msg);
 		break;
 	default:
 		break;

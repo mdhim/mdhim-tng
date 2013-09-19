@@ -121,11 +121,12 @@ int main(int argc, char **argv) {
 			if (brmp->error < 0) {
 				printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
 			}
-			
+
+			brm = brmp;			
 			brmp = brmp->next;
 			//Free the message
 			mdhim_full_release_msg(brm);
-			brm = brmp;
+
 		}
 
 		free_key_values();
@@ -174,8 +175,10 @@ int main(int argc, char **argv) {
 		round++;
 	}
 
+	free(key_lens);
 	free(keys);
 	free(values);
+	free(value_lens);
 done:
 	//Quit MDHIM
 	ret = mdhimClose(md);

@@ -181,8 +181,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	char stats_path[PATH_MAX];
 	leveldb_filterpolicy_t *main_filter;
 	leveldb_filterpolicy_t *stats_filter;
-	leveldb_cache_t *main_cache;
-	leveldb_cache_t *stats_cache;
 	leveldb_env_t *main_env;
 	leveldb_env_t *stats_env;
 
@@ -191,9 +189,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	leveldb_options_set_create_if_missing(options, 1);
 	leveldb_options_set_compression(options, 0);
 	main_filter = leveldb_filterpolicy_create_bloom(16);
-	main_cache = leveldb_cache_create_lru(536870912);
 	main_env = leveldb_create_default_env();
-	leveldb_options_set_cache(options, main_cache);
 	leveldb_options_set_filter_policy(options, main_filter);
 	leveldb_options_set_max_open_files(options, 500);
 	leveldb_options_set_write_buffer_size(options, 62914560);
@@ -205,9 +201,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	leveldb_options_set_create_if_missing(stat_options, 1);
 	leveldb_options_set_compression(stat_options, 0);
 	stats_filter = leveldb_filterpolicy_create_bloom(16);       
-	stats_cache = leveldb_cache_create_lru(536870912);
 	stats_env = leveldb_create_default_env();
-	leveldb_options_set_cache(stat_options, stats_cache);
 	leveldb_options_set_filter_policy(stat_options, stats_filter);
 	leveldb_options_set_max_open_files(stat_options, 500);
 	leveldb_options_set_write_buffer_size(stat_options, 62914560);
@@ -249,6 +243,8 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
+	//Reset error variable
+	leveldb_free(err); 
 
 	//Open the stats database
 	db = leveldb_open(options, stats_path, &err);
@@ -257,6 +253,8 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
+	//Reset error variable
+	leveldb_free(err); 
 
 	//Set the output comparator
 	mstore_opts->db_ptr1 = cmp;
@@ -272,10 +270,10 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	//Set the rest of the options that aren't used until close
 	mstore_opts->db_ptr8 = main_filter;
 	mstore_opts->db_ptr9 = stats_filter;
-	mstore_opts->db_ptr10 = main_cache;
-	mstore_opts->db_ptr11 = stats_cache;
-	mstore_opts->db_ptr12 = main_env;
-	mstore_opts->db_ptr13 = stats_env;
+	mstore_opts->db_ptr11 = main_env;
+	mstore_opts->db_ptr12 = stats_env;
+	mstore_opts->db_ptr13 = NULL;
+	mstore_opts->db_ptr14 = NULL;
 
 	return MDHIM_SUCCESS;
 }
@@ -307,6 +305,8 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
 	    mlog(MDHIM_SERVER_CRIT, "Error putting key/value in leveldb");
 	    return MDHIM_DB_ERROR;
     }
+    //Reset error variable
+    leveldb_free(err); 
 
     gettimeofday(&end, NULL);
     mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put the next record", 
@@ -344,6 +344,8 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
 		return MDHIM_DB_ERROR;
 	}
+	//Reset error variable
+	leveldb_free(err); 
 
 	if (!ldb_data_len) {
 	  ret = MDHIM_DB_ERROR;
@@ -353,7 +355,7 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	*data_len = ldb_data_len;
 	*data = malloc(*data_len);
 	memcpy(*data, ldb_data, *data_len);
-
+	free(ldb_data);
 	return ret;
 }
 
@@ -604,7 +606,7 @@ int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_
 	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr7);
 	leveldb_filterpolicy_destroy((leveldb_filterpolicy_t *) mstore_opts->db_ptr8);
 	leveldb_filterpolicy_destroy((leveldb_filterpolicy_t *) mstore_opts->db_ptr9);
-	
+
 	return MDHIM_SUCCESS;
 }
 
@@ -631,7 +633,9 @@ int mdhim_leveldb_del(void *dbh, void *key, int key_len,
 		mlog(MDHIM_SERVER_CRIT, "Error deleting key in leveldb");
 		return MDHIM_DB_ERROR;
 	}
-
+	//Reset error variable
+	leveldb_free(err);
+ 
 	return MDHIM_SUCCESS;
 }
 

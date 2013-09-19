@@ -411,11 +411,7 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 
 	/* Wait for the threads to finish */
-	for (i = 0; i < LISTENER_THREADS; i++) {
-		pthread_join(md->mdhim_rs->listeners[i], NULL);
-	}
-	free(md->mdhim_rs->listeners);
-
+	pthread_join(md->mdhim_rs->listener, NULL);
 	pthread_join(md->mdhim_rs->worker, NULL);
 
 	//Destroy the condition variables
@@ -458,6 +454,8 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 
 	//Free the range server information
+	MPI_Comm_free(&md->mdhim_rs->rs_comm);
+	free(md->mdhim_rs->mdhim_store);
 	free(md->mdhim_rs);
 	md->mdhim_rs = NULL;
 	
@@ -624,6 +622,12 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
 			free(new_value);
 		}
+
+		if (*value) {
+			free(*value);
+		}
+		free(value);
+		free(value_len);
 	}
 
 	//Create the response message
@@ -636,7 +640,11 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	brm->server_rank = md->mdhim_rank;
 
 	//Release the bputm message, but don't free the keys and values
-	mdhim_partial_release_msg(bim);
+	if (source != md->mdhim_rank) {
+		mdhim_full_release_msg(bim);
+	} else {
+		mdhim_partial_release_msg(bim);
+	}
 
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
@@ -1106,7 +1114,9 @@ respond:
 	//Set the key and value
 	if (source != md->mdhim_rank) {
 		//If this message is not coming from myself, free the key in the gm message
-		free(gm->key);
+		mdhim_full_release_msg(gm);
+	} else {
+		mdhim_partial_release_msg(gm);
 	}
 
 	bgrm->values = values;
@@ -1403,16 +1413,13 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 
-	md->mdhim_rs->listeners = malloc(sizeof(pthread_t) * LISTENER_THREADS);
-	for (i = 0; i < LISTENER_THREADS; i++) {
-		//Initialize listener threads
-		if ((ret = pthread_create(&md->mdhim_rs->listeners[i], NULL, 
-					  listener_thread, (void *) md)) != 0) {
-			mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-			     "Error while initializing listener thread", 
-			     md->mdhim_rank);
-			return MDHIM_ERROR;
-		}
+	//Initialize listener threads
+	if ((ret = pthread_create(&md->mdhim_rs->listener, NULL, 
+				  listener_thread, (void *) md)) != 0) {
+	  mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+	       "Error while initializing listener thread", 
+	       md->mdhim_rank);
+	  return MDHIM_ERROR;
 	}
 
 	return MDHIM_SUCCESS;
