@@ -409,7 +409,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 	brm_head = client_bput(md, bpm_list);
 	if (lbpm) {
 		rm = local_client_bput(md, lbpm);
-                if (!rm) {
+                if (rm) {
                         brm = malloc(sizeof(struct mdhim_brm_t));
                         brm->error = rm->error;
                         brm->mtype = rm->mtype;
