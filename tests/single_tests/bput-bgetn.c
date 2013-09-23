@@ -185,6 +185,7 @@ int main(int argc, char **argv) {
 done:
 	//Quit MDHIM
 	ret = mdhimClose(md);
+	db_options_destroy(db_opts);
 	gettimeofday(&end_tv, NULL);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");

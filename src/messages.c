@@ -2106,6 +2106,7 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error packing buffer when sending range server info", 
 		     md->mdhim_rank);
+		free(sendbuf);
 		return NULL;
 	}
 
@@ -2115,9 +2116,11 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error while receiving range server info", 
 		     md->mdhim_rank);
+		free(sendbuf);
 		return NULL;
 	}
 
+	free(sendbuf);
 	//Unpack the receive buffer and construct a linked list of range servers
 	for (i = 0; i < md->mdhim_comm_size; i++) {
 		if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, &rsi, sizeof(struct mdhim_rsi_t), 
@@ -2125,6 +2128,7 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 			mlog(MPI_CRIT, "Rank: %d - " 
 			     "Error while unpacking range server info", 
 			     md->mdhim_rank);
+			free(recvbuf);
 			return NULL;
 		}	
 
@@ -2155,6 +2159,7 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 		}
 	}
 
+	free(recvbuf);
 	//Set the range server list in the md struct
 	md->rangesrvs = rs_head;
 

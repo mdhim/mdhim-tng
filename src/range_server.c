@@ -270,6 +270,7 @@ int load_stats(struct mdhim_t *md) {
 
 	free(val);
 	free(val_len);
+	free(key_len);
 	free(*slice);
 	free(slice);
 	return MDHIM_SUCCESS;
@@ -323,6 +324,7 @@ int write_stats(struct mdhim_t *md) {
 		free(stat->max);
 		free(stat->min);
 		free(stat);
+		free(dbstat);
 	}
 
 	return MDHIM_SUCCESS;
@@ -628,6 +630,13 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		}
 		free(value);
 		free(value_len);
+
+		//Release the bput keys/value if the message isn't coming from myself
+		if (source != md->mdhim_rank) {
+			free(bim->keys[i]);
+			free(bim->values[i]);
+		} 
+
 	}
 
 	//Create the response message
@@ -639,12 +648,12 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	//Set the server's rank
 	brm->server_rank = md->mdhim_rank;
 
-	//Release the bputm message, but don't free the keys and values
-	if (source != md->mdhim_rank) {
-		mdhim_full_release_msg(bim);
-	} else {
-		mdhim_partial_release_msg(bim);
-	}
+	//Release the internals of the bput message if the message isn't coming from myself
+	free(bim->keys);
+	free(bim->key_lens);
+	free(bim->values);
+	free(bim->value_lens);
+	free(bim);
 
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
@@ -1112,18 +1121,18 @@ respond:
 	bgrm->keys = keys;
 	bgrm->key_lens = key_lens;
 	//Set the key and value
-	if (source != md->mdhim_rank) {
-		//If this message is not coming from myself, free the key in the gm message
-		mdhim_full_release_msg(gm);
-	} else {
-		mdhim_partial_release_msg(gm);
-	}
-
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_records = gm->num_records;
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
+
+	//Free the incoming message
+	if (source != md->mdhim_rank) {
+		//If this message is not coming from myself, free the key in the gm message
+		free(gm->key);
+	} 
+	free(gm);
 
 	return MDHIM_SUCCESS;
 }
