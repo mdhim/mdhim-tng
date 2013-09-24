@@ -49,7 +49,7 @@ void db_options_set_type(struct db_options_t* opts, int type);
 void db_options_set_key_type(struct db_options_t* opts, int key_type);
 void db_options_set_create_new(struct db_options_t* opts, int create_new);
 void db_options_set_debug_level(struct db_options_t* opts, int dbug);
-void db_options_set_append(db_options_t* opts, int append);
+void db_options_set_append(struct db_options_t* opts, int append);
 void db_options_destroy(struct db_options_t *opts);
 
 #endif

@@ -612,8 +612,8 @@ int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_
 	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr7);
 	leveldb_filterpolicy_destroy((leveldb_filterpolicy_t *) mstore_opts->db_ptr8);
 	leveldb_filterpolicy_destroy((leveldb_filterpolicy_t *) mstore_opts->db_ptr9);
-	leveldb_cache_destroy((leveldb_cache_t *) mstore_opts->db_ptr10);
-	leveldb_cache_destroy((leveldb_cache_t *) mstore_opts->db_ptr11);
+	//	leveldb_cache_destroy((leveldb_cache_t *) mstore_opts->db_ptr10);
+	//leveldb_cache_destroy((leveldb_cache_t *) mstore_opts->db_ptr11);
 
 	return MDHIM_SUCCESS;
 }

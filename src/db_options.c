@@ -57,6 +57,6 @@ void db_options_set_append(db_options_t* opts, int append)
 	opts->db_append = append;
 };
 
-void db_options_destroy(struct db_options_t *opts) {
+void db_options_destroy(db_options_t *opts) {
 	free(opts);
 };

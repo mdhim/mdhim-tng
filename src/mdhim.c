@@ -254,7 +254,6 @@ int mdhimCommit(struct mdhim_t *md) {
 		if (rm) {
 			free(rm);
 		}
-		free(cm);
 	}
 
 	MPI_Barrier(md->mdhim_client_comm);      
@@ -314,8 +313,6 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,
 	} else {
 		//Send the message through the network as this message is for another rank
 		rm = client_put(md, pm);
-		free(pm->key);
-		free(pm->value);
 		free(pm);
 	}
 
@@ -339,7 +336,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 	struct mdhim_bputm_t *bpm, *lbpm;
 	struct mdhim_brm_t *brm, *brm_head;
 	struct mdhim_rm_t *rm;
-	int i, j;
+	int i;
 	rangesrv_info *ri;
 
 	//Check to see that we were given a sane amount of records
@@ -600,6 +597,8 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			continue;
 		}
 
+		free(bgm_list[i]->keys);
+		free(bgm_list[i]->key_lens);
 		free(bgm_list[i]);
 	}
 
@@ -688,9 +687,9 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
 	} else {
 		//Send the message through the network as this message is for another rank
 		bgrm = client_bget_op(md, gm);
+		free(gm);
 	}
 
-	free(gm);
 
 	return bgrm;
 }
@@ -841,6 +840,8 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 			continue;
 		}
 
+		free(bdm_list[i]->keys);
+		free(bdm_list[i]->key_lens);
 		free(bdm_list[i]);
 	}
 

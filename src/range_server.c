@@ -404,7 +404,6 @@ int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
 	int ret;	
 	struct mdhim_store_opts_t opts;
-	int i;
 
 	//Cancel the worker thread
 	if ((ret = pthread_cancel(md->mdhim_rs->worker)) != 0) {
@@ -514,6 +513,9 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 		new_value_len = im->value_len;
 	}
     
+	if (*value && *value_len) {
+		free(*value);
+	}
 	free(value);
 	free(value_len);
         //Put the record in the database
@@ -546,10 +548,16 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
 
+	//Free memory
 	if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
 		free(new_value);
 	}
-
+	if (source != md->mdhim_rank) {
+		free(im->key);
+		free(im->value);
+	} 
+	free(im);
+	
 	return MDHIM_SUCCESS;
 }
 
@@ -636,7 +644,6 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			free(bim->keys[i]);
 			free(bim->values[i]);
 		} 
-
 	}
 
 	//Create the response message
@@ -648,7 +655,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	//Set the server's rank
 	brm->server_rank = md->mdhim_rank;
 
-	//Release the internals of the bput message if the message isn't coming from myself
+	//Release the internals of the bput message
 	free(bim->keys);
 	free(bim->key_lens);
 	free(bim->values);
@@ -695,6 +702,7 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
+	free(dm);
 
 	return MDHIM_SUCCESS;
 }
@@ -740,6 +748,9 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
+	free(bdm->keys);
+	free(bdm->key_lens);
+	free(bdm);
 
 	return MDHIM_SUCCESS;
 }
@@ -778,6 +789,7 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
 	     md->mdhim_rank);
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
+	free(im);
 
 	return MDHIM_SUCCESS;
 }
@@ -914,7 +926,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		gm->key = NULL;
 		gm->key_len = 0;
 	}
-
+	
 	grm->key_len = key_len;
 	grm->value = *value;
 	grm->value_len = *value_len;
@@ -923,6 +935,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - About to send get response to: %d", 
 	     md->mdhim_rank, source);
 	ret = send_locally_or_remote(md, source, grm);
+	free(gm);
 	free(value_len);
 	free(value);
 	free(key);
@@ -985,6 +998,9 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 			bgrm->keys[i] = malloc(bgrm->key_lens[i]);
 			memcpy(bgrm->keys[i], bgm->keys[i], bgrm->key_lens[i]);
 		}
+
+		free(bgm->keys);
+		free(bgm->key_lens);
 	} else {
 		bgrm->keys = bgm->keys;
 		bgrm->key_lens = bgm->key_lens;
@@ -993,8 +1009,12 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_records = bgm->num_records;
+
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
+
+	//Release the bget message
+	free(bgm);
 
 	return MDHIM_SUCCESS;
 }
@@ -1311,7 +1331,6 @@ int range_server_init(struct mdhim_t *md) {
 	int rangesrv_num;
 	int flags = MDHIM_CREATE;
 	struct mdhim_store_opts_t opts;
-	int i;
 
 	//There was an error figuring out if I'm a range server
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {

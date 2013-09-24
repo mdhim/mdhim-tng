@@ -49,6 +49,8 @@ int main(int argc, char **argv) {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
 
+
+	mdhim_full_release_msg(rm);
 	//Commit the database
 	ret = mdhimCommit(md);
 	if (ret != MDHIM_SUCCESS) {
@@ -66,7 +68,9 @@ int main(int argc, char **argv) {
 		printf("Successfully got value: %d from MDHIM\n", *((int *) grm->value));
 	}
 
+	mdhim_full_release_msg(grm);
 	ret = mdhimClose(md);
+	db_options_destroy(db_opts);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}

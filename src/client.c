@@ -383,7 +383,6 @@ struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t **bd
 void client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
 	int return_code;
 	rangesrv_info *rs;
-	int i;
 
 	rs = md->rangesrvs;
 	while (rs) {

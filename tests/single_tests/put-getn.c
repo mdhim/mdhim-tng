@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
 		} else {
 			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
 		}
+
+		mdhim_full_release_msg(rm);
 	}
 
 	//Commit the database
@@ -96,9 +98,12 @@ int main(int argc, char **argv) {
 			       *((int *) grm->key),
 			       *((int *) grm->value));
 		}
+
+		mdhim_full_release_msg(grm);
 	}
 
 	ret = mdhimClose(md);
+	db_options_destroy(db_opts);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}
