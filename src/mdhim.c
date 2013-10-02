@@ -10,7 +10,7 @@
 #include "client.h"
 #include "local_client.h"
 #include "partitioner.h"
-#include "db_options.h"
+#include "mdhim_options.h"
 
 /*! \mainpage MDHIM TNG
  *
@@ -29,7 +29,7 @@
  * @param opts Options structure for DB creation, such as name, and primary key type
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
  */
-struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts) {
+struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	int ret;
 	struct mdhim_t *md;
 	struct rangesrv_info *rangesrvs;
@@ -115,7 +115,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts) {
 	}
 
 	//Initialize the partitioner
-	partitioner_init(md);
+	partitioner_init(md, opts->rserver_factor, opts->max_recs_per_slice);
 
 	//Start range server if I'm a range server
 	if ((ret = range_server_init(md)) != MDHIM_SUCCESS) {

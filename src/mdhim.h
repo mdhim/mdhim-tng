@@ -16,7 +16,7 @@
 #include "partitioner.h"
 #include "Mlog/mlog.h"
 #include "Mlog/mlogfacs.h"
-#include "db_options.h"
+#include "mdhim_options.h"
 
 #define MDHIM_SUCCESS 0
 #define MDHIM_ERROR -1
@@ -59,12 +59,12 @@ struct mdhim_t {
 	   range server running in the same process */
 	void *receive_msg;
         //Options for DB creation
-        db_options_t *db_opts;
+        mdhim_options_t *db_opts;
 	//Statistics retrieved from the mdhimStatFlush operation
 	struct mdhim_stat *stats;
 };
 
-struct mdhim_t *mdhimInit(MPI_Comm appComm, struct db_options_t *opts);
+struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts);
 int mdhimClose(struct mdhim_t *md);
 int mdhimCommit(struct mdhim_t *md);
 int mdhimStatFlush(struct mdhim_t *md);
