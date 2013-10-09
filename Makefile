@@ -1,3 +1,4 @@
+include Makefile.cfg
 .PHONY: mdhim
 
 all: mdhim

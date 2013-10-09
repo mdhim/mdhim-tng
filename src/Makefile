@@ -1,11 +1,4 @@
-MPI_ROOT	= /usr/local
-LEVEL_DB_ROOT   = /users/hng/leveldb-1.12.0
-
-CC	= mpicc -g -O0 -Wall
-CLIBS	= -L${MPI_ROOT}/lib -L${LEVEL_DB_ROOT}
-CINC	= -I${MPI_ROOT}/include -I${LEVEL_DB_ROOT}/include -IMlog/ -Iuthash
-CFLAGS	= 
-
+include ../Makefile.cfg
 OBJS    = mlog.o unqlite.o client.o local_client.o data_store.o ds_unqlite.o ds_leveldb.o partitioner.o messages.o range_server.o mdhim_options.o
 all:	mdhim.o lib
 
