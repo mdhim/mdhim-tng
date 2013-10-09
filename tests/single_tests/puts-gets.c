@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "mpi.h"
 #include "mdhim.h"
-#include "db_options.h"
+#include "mdhim_options.h"
 
 int main(int argc, char **argv) {
 	int ret;
@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	int value;
 	struct mdhim_rm_t *rm;
 	struct mdhim_getrm_t *grm;
-        db_options_t *db_opts;
+        mdhim_options_t *db_opts;
 	int i;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -26,12 +26,12 @@ int main(int argc, char **argv) {
                 exit(1);
         }
         
-        db_opts = db_options_init();
-        db_options_set_path(db_opts, "./");
-        db_options_set_name(db_opts, "mdhimTstDB");
-        db_options_set_type(db_opts, 2); // type = 2 (LevelDB)
-        db_options_set_key_type(db_opts, MDHIM_STRING_KEY); 
-	db_options_set_debug_level(db_opts, MLOG_DBG);
+        db_opts = mdhim_options_init();
+        mdhim_options_set_db_path(db_opts, "./");
+        mdhim_options_set_db_name(db_opts, "mdhimTstDB");
+        mdhim_options_set_db_type(db_opts, 2); // type = 2 (LevelDB)
+        mdhim_options_set_key_type(db_opts, MDHIM_STRING_KEY); 
+	mdhim_options_set_debug_level(db_opts, MLOG_DBG);
 
 	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	if (!md) {

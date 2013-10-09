@@ -13,10 +13,9 @@
    then the last rank will be the range server
 */
 
-#define RANGE_SERVER_FACTOR 4
+//#define RANGE_SERVER_FACTOR 4 // NOW a global variable in partitioner.h
 #define MDHIM_MAX_SERVERS 500
 #define MDHIM_MAX_RANGE_KEY 4294967296ULL
-#define MDHIM_MAX_RECS_PER_SLICE 100000
 //32 bit unsigned integer
 #define MDHIM_INT_KEY 1
 #define MDHIM_LONG_INT_KEY 2
@@ -44,7 +43,7 @@ struct mdhim_char {
 };
 
 int max_rangesrvs;
-void partitioner_init(struct mdhim_t *md);
+void partitioner_init(struct mdhim_t *md, int server_factor, int max_recs_per_slice);
 void partitioner_release();
 uint32_t get_num_range_servers(struct mdhim_t *md);
 uint32_t is_range_server(struct mdhim_t *md, int rank);

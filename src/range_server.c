@@ -13,7 +13,7 @@
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
-#include "db_options.h"
+#include "mdhim_options.h"
 
 /**
  * is_range_server
@@ -501,7 +501,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	}
 
         //If the option to append was specified and there is old data, concat the old and new
-	if (exists &&  md->db_opts->db_append == MDHIM_DB_APPEND) {
+	if (exists &&  md->db_opts->db_value_append == MDHIM_DB_APPEND) {
 		old_value = *value;
 		old_value_len = *value_len;
 		new_value_len = old_value_len + im->value_len;
@@ -549,7 +549,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	ret = send_locally_or_remote(md, source, rm);
 
 	//Free memory
-	if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
+	if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
 		free(new_value);
 	}
 	if (source != md->mdhim_rank) {
@@ -602,7 +602,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		}
 
 		//If the option to append was specified and there is old data, concat the old and new
-		if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
+		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
 			old_value = *value;
 			old_value_len = *value_len;
 			new_value_len = old_value_len + bim->value_lens[i];
@@ -629,7 +629,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
 		}
 
-		if (exists && md->db_opts->db_append == MDHIM_DB_APPEND) {
+		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
 			free(new_value);
 		}
 

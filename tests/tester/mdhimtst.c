@@ -41,7 +41,7 @@ char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 
 #include "mpi.h"
 #include "mdhim.h"
-#include "db_options.h"
+#include "mdhim_options.h"
 
 // From partitioner.h:
 /*
@@ -1637,7 +1637,7 @@ int main( int argc, char * argv[] )
     clock_t  begin, end;
     double   time_spent;
     
-    db_options_t *db_opts; // Local variable for db create options to be passed
+    mdhim_options_t *db_opts; // Local variable for db create options to be passed
     
     int ret;
     int provided = 0;
@@ -1742,13 +1742,13 @@ int main( int argc, char * argv[] )
     }
 
     // Create options for DB initialization
-    db_opts = db_options_init();
-    db_options_set_path(db_opts, db_path);
-    db_options_set_name(db_opts, db_name);
-    db_options_set_type(db_opts, db_type);
-    db_options_set_key_type(db_opts, key_type);
-    db_options_set_debug_level(db_opts, dbug);
-    db_options_set_append(db_opts, dbOptionAppend);  // Default is overwrite
+    db_opts = mdhim_options_init();
+    mdhim_options_set_db_path(db_opts, db_path);
+    mdhim_options_set_db_name(db_opts, db_name);
+    mdhim_options_set_db_type(db_opts, db_type);
+    mdhim_options_set_key_type(db_opts, key_type);
+    mdhim_options_set_debug_level(db_opts, dbug);
+    mdhim_options_set_value_append(db_opts, dbOptionAppend);  // Default is overwrite
     
     md = mdhimInit(MPI_COMM_WORLD, db_opts);
     if (!md)

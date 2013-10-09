@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 	char     *db_path = "/scratch/hng/";
 	char     *db_name = "mdhimTstDB-";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
-	db_options_t *db_opts; // Local variable for db create options to be passed
+	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
 	int size;
 	long flush_time = 0;
@@ -69,12 +69,12 @@ int main(int argc, char **argv) {
 	int round = 0;
 
 	// Create options for DB initialization
-	db_opts = db_options_init();
-	db_options_set_path(db_opts, db_path);
-	db_options_set_name(db_opts, db_name);
-	db_options_set_type(db_opts, db_type);
-	db_options_set_key_type(db_opts, MDHIM_INT_KEY);
-	db_options_set_debug_level(db_opts, dbug);
+	db_opts = mdhim_options_init();
+	mdhim_options_set_db_path(db_opts, db_path);
+	mdhim_options_set_db_name(db_opts, db_name);
+	mdhim_options_set_db_type(db_opts, db_type);
+	mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY);
+	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -188,7 +188,9 @@ int main(int argc, char **argv) {
 done:
 	//Quit MDHIM
 	ret = mdhimClose(md);
-	db_options_destroy(db_opts);
+	mdhim_options_destroy(db_opts);
+	gettimeofday(&end_tv, NULL);
+
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}

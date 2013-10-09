@@ -5,6 +5,13 @@
 //Global hashtable for alphabet used in partitioner algorithm
 struct mdhim_char *mdhim_alphabet = NULL;
 
+//Used to determine the number of range servers which is based in  
+//if myrank % RANGE_SERVER_FACTOR == 0, then myrank is a server
+int range_server_factor;
+
+//Maximum size of a slice. A ranger server may server several slices.
+int mdhim_max_recs_per_slice; 
+
 /**
  * partitioner_init
  * Initializes portions of the mdhim_t struct dealing with the partitioner
@@ -13,9 +20,13 @@ struct mdhim_char *mdhim_alphabet = NULL;
  * @return        MDHIM_ERROR on error, otherwise the number of range servers
  */
 
-void partitioner_init(struct mdhim_t *md) {
+void partitioner_init(struct mdhim_t *md, int server_factor, int max_recs_per_slice) {
 	uint32_t num_rangesrvs;
 	uint32_t max_servers;
+        
+        //Set these two crucial variables to values passed to allow flexible set up.
+        range_server_factor = server_factor;
+        mdhim_max_recs_per_slice = max_recs_per_slice;
 
 	//Figure out how many range servers we could have based on the range server factor
 	num_rangesrvs = get_num_range_servers(md);
@@ -257,14 +268,14 @@ uint32_t get_num_range_servers(struct mdhim_t *md) {
 	}
 
 	/* Get the number of range servers */
-	if (size - 1 < RANGE_SERVER_FACTOR) {
+	if (size - 1 < range_server_factor) {
 		//The size of the communicator is less than the RANGE_SERVER_FACTOR
 		return 1;
 	} 
 	
 	//Figure out the number of range servers, details on the algorithm are in is_range_server
 	for (i = 0; i < size; i++) {
-		if (i % RANGE_SERVER_FACTOR == 0) {
+		if (i % range_server_factor == 0) {
 			num_servers++;
 		}
 	}
@@ -311,12 +322,12 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 	*/
 
 	size -= 1;
-	if (size < RANGE_SERVER_FACTOR && rank == size) {
+	if (size < range_server_factor && rank == size) {
 		//The size of the communicator is less than the RANGE_SERVER_FACTOR
 		rangesrv_num = 1;
-	} else if (rank % RANGE_SERVER_FACTOR == 0) {
+	} else if (rank % range_server_factor == 0) {
 		//This is a range server, get the range server's number
-		rangesrv_num = rank / RANGE_SERVER_FACTOR;
+		rangesrv_num = rank / range_server_factor;
 	}
       		
 	if (rangesrv_num > md->num_rangesrvs) {
@@ -432,7 +443,7 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 
 
 	/* Convert the key to a slice number  */
-	slice_num = (int) ceil((long double) (slice_num/MDHIM_MAX_RECS_PER_SLICE));
+	slice_num = (int) ceil((long double) (slice_num/mdhim_max_recs_per_slice));
 	if (slice_num == 0) {
 		slice_num = 1;
 	}
