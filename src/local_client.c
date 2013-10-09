@@ -301,7 +301,6 @@ struct mdhim_rm_t *local_client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t
  */
 void local_client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
 	int ret;
-	struct mdhim_rm_t *rm;
 	work_item *item;
 
 	if ((item = malloc(sizeof(work_item))) == NULL) {

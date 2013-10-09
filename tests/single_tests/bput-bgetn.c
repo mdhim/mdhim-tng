@@ -7,7 +7,7 @@
 
 #define KEYS 100000
 //#define TOTAL_KEYS 2083334
-#define TOTAL_KEYS 100000
+#define TOTAL_KEYS 1000000
 
 int **keys;
 int *key_lens;
@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm;
 	struct timeval start_tv, end_tv;
-	char     *db_path = "./";
+	char     *db_path = "/scratch/hng/";
 	char     *db_name = "mdhimTstDB-";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	db_options_t *db_opts; // Local variable for db create options to be passed
@@ -110,6 +110,7 @@ int main(int argc, char **argv) {
 		//Insert the keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
 				(void **) values, value_lens, KEYS);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		//record the end time
 		end_record(&end_tv);			       
 		//add the time
@@ -140,6 +141,7 @@ int main(int argc, char **argv) {
 	//Get the stats
 	start_record(&start_tv);
 	ret = mdhimStatFlush(md);
+	//	MPI_Barrier(MPI_COMM_WORLD);
 	end_record(&end_tv);
 	add_time(&start_tv, &end_tv, &flush_time);
 	
@@ -157,6 +159,7 @@ int main(int argc, char **argv) {
 		//Get the keys and values back starting from and including key[0]
 		bgrm = mdhimBGetOp(md, keys[0], sizeof(int), 
 				   KEYS, MDHIM_GET_NEXT);
+		//	        MPI_Barrier(MPI_COMM_WORLD);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
 		//Check if there is an error
@@ -186,7 +189,6 @@ done:
 	//Quit MDHIM
 	ret = mdhimClose(md);
 	db_options_destroy(db_opts);
-	gettimeofday(&end_tv, NULL);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}

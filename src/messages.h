@@ -30,7 +30,7 @@
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
-#define MDHIM_GET_EQ       0
+#define MDHIM_GET_EQ     0
 //Get the next key and value
 #define MDHIM_GET_NEXT   1
 //Get the previous key and value
