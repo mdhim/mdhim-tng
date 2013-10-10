@@ -1,4 +1,4 @@
-MDHIM - Multi-Dimensional Hashing Indexing MiddleWare
+MDHIM - Multi-Dimensional Hashing Indexing Middleware
 
 
 Description

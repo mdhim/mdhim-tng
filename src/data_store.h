@@ -11,8 +11,7 @@
 #include "uthash.h"
 
 /* Storage Methods */
-#define UNQLITE 1 //UNQLITE storage method
-#define LEVELDB 2 //LEVELDB storage method
+#define LEVELDB 1 //LEVELDB storage method
 
 /* mdhim_store_t flags */
 #define MDHIM_CREATE 1 //Implies read/write 
@@ -142,6 +141,6 @@ struct mdhim_store_opts_t {
 	void *db_ptr14;
 };
 
-//Initializes the data store based on the type given (i.e., UNQLITE, LEVELDB, etc...)
+//Initializes the data store based on the type given (i.e., LEVELDB, etc...)
 struct mdhim_store_t *mdhim_db_init(int db_type);
 #endif

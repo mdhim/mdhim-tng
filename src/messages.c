@@ -2186,11 +2186,13 @@ void mdhim_full_release_msg(void *msg) {
 		free((struct mdhim_rm_t *) msg);
 		break;
 	case MDHIM_RECV_GET:
-		if (((struct mdhim_getrm_t *) msg)->key) {
+		if (((struct mdhim_getrm_t *) msg)->key_len && 
+		    ((struct mdhim_getrm_t *) msg)->key) {
 			free(((struct mdhim_getrm_t *) msg)->key);
 		}	
 
-		if (((struct mdhim_getrm_t *) msg)->value) {
+		if (((struct mdhim_getrm_t *) msg)->value_len && 
+		    ((struct mdhim_getrm_t *) msg)->value) {
 			free(((struct mdhim_getrm_t *) msg)->value);
 		}	
 
@@ -2198,7 +2200,8 @@ void mdhim_full_release_msg(void *msg) {
 		break;
 	case MDHIM_RECV_BULK_GET:
 		for (i = 0; i < ((struct mdhim_bgetrm_t *) msg)->num_records; i++) {
-			if (((struct mdhim_bgetrm_t *) msg)->keys[i]) {
+			if (((struct mdhim_bgetrm_t *) msg)->key_lens[i] && 
+			    ((struct mdhim_bgetrm_t *) msg)->keys[i]) {
 				free(((struct mdhim_bgetrm_t *) msg)->keys[i]);
 			}
 			if (((struct mdhim_bgetrm_t *) msg)->value_lens[i] && 
@@ -2224,10 +2227,12 @@ void mdhim_full_release_msg(void *msg) {
 		break;
 	case MDHIM_BULK_PUT:
 		for (i = 0; i < ((struct mdhim_bputm_t *) msg)->num_records; i++) {
-			if (((struct mdhim_bputm_t *) msg)->keys[i]) {
+			if (((struct mdhim_bputm_t *) msg)->key_lens[i] && 
+			    ((struct mdhim_bputm_t *) msg)->keys[i]) {
 				free(((struct mdhim_bputm_t *) msg)->keys[i]);
 			}
-			if (((struct mdhim_bputm_t *) msg)->values[i]) {
+			if (((struct mdhim_bputm_t *) msg)->value_lens[i] && 
+			    ((struct mdhim_bputm_t *) msg)->values[i]) {
 				free(((struct mdhim_bputm_t *) msg)->values[i]);
 			}
 		}
@@ -2248,7 +2253,9 @@ void mdhim_full_release_msg(void *msg) {
 		free((struct mdhim_bputm_t *) msg);
 		break;
 	case MDHIM_GET:
-		free(((struct mdhim_getm_t *) msg)->key);
+		if (((struct mdhim_getm_t *) msg)->key) {
+			free(((struct mdhim_getm_t *) msg)->key);
+		}
 		free((struct mdhim_getm_t *) msg);
 		break;
 	default:

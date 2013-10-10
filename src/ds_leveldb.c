@@ -315,7 +315,7 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
     leveldb_free(err); 
 
     gettimeofday(&end, NULL);
-    mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put the next record", 
+    mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put the record", 
 	 (int) (end.tv_sec - start.tv_sec));
 
     return MDHIM_SUCCESS;

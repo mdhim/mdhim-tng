@@ -1,14 +1,11 @@
 include ../Makefile.cfg
-OBJS    = mlog.o unqlite.o client.o local_client.o data_store.o ds_unqlite.o ds_leveldb.o partitioner.o messages.o range_server.o mdhim_options.o
+OBJS    = mlog.o client.o local_client.o data_store.o ds_leveldb.o partitioner.o messages.o range_server.o mdhim_options.o
 all:	mdhim.o lib
 
 mdhim.o: mdhim.c $(OBJS)
 	$(CC) -c $< $(CINC) $(CLIBS)
 
 mlog.o: Mlog/mlog.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
-
-unqlite.o: unqlite.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 client.o: client.c
@@ -24,9 +21,6 @@ partitioner.o: partitioner.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 data_store.o: data_store.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
-
-ds_unqlite.o: ds_unqlite.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 ds_leveldb.o: ds_leveldb.c

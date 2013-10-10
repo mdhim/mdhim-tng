@@ -21,7 +21,7 @@ typedef struct mdhim_options_t {
 	char *db_name;
     
 	//Different types of dataStores
-	//UNQLITE=1, LEVELDB=2 (from data_store.h)
+	//LEVELDB=1 (from data_store.h)
 	int db_type;
     
 	//Primary key type

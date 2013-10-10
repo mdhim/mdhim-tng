@@ -358,7 +358,7 @@ void usage(void)
 {
 	printf("Usage:\n");
 	printf(" -f<BatchInputFileName> (file with batch commands)\n");
-	printf(" -d<DataBaseType> (Type of DB to use: unqLite=1, levelDB=2)\n");
+	printf(" -d<DataBaseType> (Type of DB to use: levelDB=1)\n");
         printf(" -t<IndexKeyType> (Type of keys: int=1, longInt=2, float=3, "
                "double=4, longDouble=5, string=6, byte=7)\n");
         printf(" -p<pathForDataBase> (path where DB will be created)\n");
@@ -1643,7 +1643,7 @@ int main( int argc, char * argv[] )
     int provided = 0;
     struct mdhim_t *md;
     
-    int db_type = 2; //UNQLITE=1, LEVELDB=2 (data_store.h) 
+    int db_type = LEVELDB; //(data_store.h) 
 
     // Process arguments
     infile = stdin;
@@ -1662,7 +1662,7 @@ int main( int argc, char * argv[] )
                 }
                 break;
 
-            case 'd': // DataBase type (1=unQlite, 2=levelDB)
+            case 'd': // DataBase type (1=levelDB)
                 printf("Data Base type: %s || ", &argv[1][2]);
                 db_type = atoi( &argv[1][2] );
                 break;
