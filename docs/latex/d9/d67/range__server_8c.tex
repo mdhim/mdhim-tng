@@ -1,5 +1,5 @@
 \hypertarget{range__server_8c}{\section{src/range\-\_\-server.c File Reference}
-\label{d9/d67/range__server_8c}\index{src/range\-\_\-server.\-c@{src/range\-\_\-server.\-c}}
+\label{range__server_8c}\index{src/range\-\_\-server.\-c@{src/range\-\_\-server.\-c}}
 }
 {\ttfamily \#include $<$stdlib.\-h$>$}\\*
 {\ttfamily \#include $<$string.\-h$>$}\\*
@@ -10,7 +10,7 @@
 {\ttfamily \#include \char`\"{}mdhim.\-h\char`\"{}}\\*
 {\ttfamily \#include \char`\"{}range\-\_\-server.\-h\char`\"{}}\\*
 {\ttfamily \#include \char`\"{}partitioner.\-h\char`\"{}}\\*
-{\ttfamily \#include \char`\"{}db\-\_\-options.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}mdhim\-\_\-options.\-h\char`\"{}}\\*
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -65,7 +65,7 @@ int \hyperlink{range__server_8c_a8b635329923996a6897411dfc92e73db}{range\-\_\-se
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a573fdfe0a82cb3e48a4607bccd37ac76}
+)}}\label{range__server_8c_a573fdfe0a82cb3e48a4607bccd37ac76}
 get\-\_\-work Returns the next work item from the work queue
 
 
@@ -82,7 +82,7 @@ the next \hyperlink{structwork__item}{work\-\_\-item} to process
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a6b69ffdb719e4f7c525be5849b15135d}
+)}}\label{range__server_8c_a6b69ffdb719e4f7c525be5849b15135d}
 is\-\_\-range\-\_\-server checks if I'm a range server
 
 
@@ -99,14 +99,14 @@ is\-\_\-range\-\_\-server checks if I'm a range server
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{data}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_aa643c8c2955aaec54cffd88624cdf33e}
+)}}\label{range__server_8c_aa643c8c2955aaec54cffd88624cdf33e}
 \hypertarget{range__server_8c_a928bd7ba32d87bcb0c10e463d6857db2}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!load\-\_\-stats@{load\-\_\-stats}}
 \index{load\-\_\-stats@{load\-\_\-stats}!range_server.c@{range\-\_\-server.\-c}}
 \subsubsection[{load\-\_\-stats}]{\setlength{\rightskip}{0pt plus 5cm}int load\-\_\-stats (
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a928bd7ba32d87bcb0c10e463d6857db2}
+)}}\label{range__server_8c_a928bd7ba32d87bcb0c10e463d6857db2}
 load\-\_\-stats Loads the statistics from the database
 
 
@@ -124,7 +124,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{{\bf work\-\_\-item} $\ast$}]{item}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a67d81ae80b7799b6bf558b32b10f81f1}
+)}}\label{range__server_8c_a67d81ae80b7799b6bf558b32b10f81f1}
 range\-\_\-server\-\_\-add\-\_\-work Adds work to the work queue and signals the condition variable for the worker thread
 
 
@@ -145,7 +145,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S
 \item[{struct {\bf mdhim\-\_\-bdelm\-\_\-t} $\ast$}]{bdm, }
 \item[{int}]{source}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_adc8bdb750078dd2a2d0c7b0414670a44}
+)}}\label{range__server_8c_adc8bdb750078dd2a2d0c7b0414670a44}
 range\-\_\-server\-\_\-bdel Handles the bulk delete message and deletes the data from the database
 
 
@@ -168,7 +168,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{struct {\bf mdhim\-\_\-bgetm\-\_\-t} $\ast$}]{bgm, }
 \item[{int}]{source}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_adf44f3067182640c986252a7b95368ee}
+)}}\label{range__server_8c_adf44f3067182640c986252a7b95368ee}
 range\-\_\-server\-\_\-bget Handles the bulk get message, retrieves the data from the database, and sends the results back
 
 
@@ -192,7 +192,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{int}]{source, }
 \item[{int}]{op}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a1ebc876ff97109bc688a5690cbb2320a}
+)}}\label{range__server_8c_a1ebc876ff97109bc688a5690cbb2320a}
 range\-\_\-server\-\_\-bget\-\_\-op Handles the get message given an op and number of records greater than 1
 
 
@@ -217,7 +217,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{struct {\bf mdhim\-\_\-bputm\-\_\-t} $\ast$}]{bim, }
 \item[{int}]{source}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_acf4eb15dd578eb67350021764cd33644}
+)}}\label{range__server_8c_acf4eb15dd578eb67350021764cd33644}
 range\-\_\-server\-\_\-bput Handles the bulk put message and puts data in the database
 
 
@@ -240,7 +240,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{struct {\bf mdhim\-\_\-basem\-\_\-t} $\ast$}]{im, }
 \item[{int}]{source}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a627d6e42e21bbe440d663f64790cad39}
+)}}\label{range__server_8c_a627d6e42e21bbe440d663f64790cad39}
 range\-\_\-server\-\_\-commit Handles the commit message and commits outstanding writes to the database
 
 
@@ -263,7 +263,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{struct {\bf mdhim\-\_\-delm\-\_\-t} $\ast$}]{dm, }
 \item[{int}]{source}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_ad850088b2378dff726323e7524853585}
+)}}\label{range__server_8c_ad850088b2378dff726323e7524853585}
 range\-\_\-server\-\_\-del Handles the delete message and deletes the data from the database
 
 
@@ -287,7 +287,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{int}]{source, }
 \item[{int}]{op}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_aaf0d71a72f9a88327592c93d5959ed41}
+)}}\label{range__server_8c_aaf0d71a72f9a88327592c93d5959ed41}
 range\-\_\-server\-\_\-get Handles the get message, retrieves the data from the database, and sends the results back
 
 
@@ -310,7 +310,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_af34269b3d0d34cd441697cc0e7376d3f}
+)}}\label{range__server_8c_af34269b3d0d34cd441697cc0e7376d3f}
 range\-\_\-server\-\_\-init Initializes the range server (i.\-e., starts the threads and populates the relevant data in md)
 
 
@@ -327,7 +327,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a8b635329923996a6897411dfc92e73db}
+)}}\label{range__server_8c_a8b635329923996a6897411dfc92e73db}
 range\-\_\-server\-\_\-init\-\_\-comm Initializes the range server communicator that is used for range server to range server collectives The stat flush function will use this communicator
 
 
@@ -346,7 +346,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{struct {\bf mdhim\-\_\-putm\-\_\-t} $\ast$}]{im, }
 \item[{int}]{source}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a69effcf76f690e1324650ffa216cd3e0}
+)}}\label{range__server_8c_a69effcf76f690e1324650ffa216cd3e0}
 range\-\_\-server\-\_\-put Handles the put message and puts data in the database
 
 
@@ -367,7 +367,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_abac967b940a3b5aa92cc5fd67491efbe}
+)}}\label{range__server_8c_abac967b940a3b5aa92cc5fd67491efbe}
 range\-\_\-server\-\_\-stop Stop the range server (i.\-e., stops the threads and frees the relevant data in md)
 
 
@@ -386,7 +386,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{int}]{dest, }
 \item[{void $\ast$}]{message}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a9d1efa04e20d7fe6fa8d6e4aa6568c25}
+)}}\label{range__server_8c_a9d1efa04e20d7fe6fa8d6e4aa6568c25}
 send\-\_\-locally\-\_\-or\-\_\-remote Sends the message remotely or locally
 
 
@@ -409,7 +409,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{struct {\bf mdhim\-\_\-store\-\_\-opts\-\_\-t} $\ast$}]{opts, }
 \item[{int}]{stat}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a599eb8c7ba52257c76deca96460ac131}
+)}}\label{range__server_8c_a599eb8c7ba52257c76deca96460ac131}
 \hypertarget{range__server_8c_ab006df9333fd5eace9b3123724c81e74}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!update\-\_\-all\-\_\-stats@{update\-\_\-all\-\_\-stats}}
 \index{update\-\_\-all\-\_\-stats@{update\-\_\-all\-\_\-stats}!range_server.c@{range\-\_\-server.\-c}}
 \subsubsection[{update\-\_\-all\-\_\-stats}]{\setlength{\rightskip}{0pt plus 5cm}int update\-\_\-all\-\_\-stats (
@@ -418,7 +418,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{void $\ast$}]{key, }
 \item[{uint32\-\_\-t}]{key\-\_\-len}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_ab006df9333fd5eace9b3123724c81e74}
+)}}\label{range__server_8c_ab006df9333fd5eace9b3123724c81e74}
 update\-\_\-all\-\_\-stats Adds or updates the given stat to the hash table
 
 
@@ -439,14 +439,14 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \begin{DoxyParamCaption}
 \item[{void $\ast$}]{data}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a6395e14f1667f32b638bae4d22a3771f}
+)}}\label{range__server_8c_a6395e14f1667f32b638bae4d22a3771f}
 \hypertarget{range__server_8c_a068eec82560ccfc202047038a186c866}{\index{range\-\_\-server.\-c@{range\-\_\-server.\-c}!write\-\_\-stats@{write\-\_\-stats}}
 \index{write\-\_\-stats@{write\-\_\-stats}!range_server.c@{range\-\_\-server.\-c}}
 \subsubsection[{write\-\_\-stats}]{\setlength{\rightskip}{0pt plus 5cm}int write\-\_\-stats (
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d9/d67/range__server_8c_a068eec82560ccfc202047038a186c866}
+)}}\label{range__server_8c_a068eec82560ccfc202047038a186c866}
 write\-\_\-stats Writes the statistics stored in a hash table to the database
 
 

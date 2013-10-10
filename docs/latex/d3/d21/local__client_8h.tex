@@ -1,5 +1,5 @@
 \hypertarget{local__client_8h}{\section{src/local\-\_\-client.h File Reference}
-\label{d3/d21/local__client_8h}\index{src/local\-\_\-client.\-h@{src/local\-\_\-client.\-h}}
+\label{local__client_8h}\index{src/local\-\_\-client.\-h@{src/local\-\_\-client.\-h}}
 }
 {\ttfamily \#include \char`\"{}messages.\-h\char`\"{}}\\*
 \subsection*{Functions}
@@ -20,6 +20,8 @@ struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ \hyperlink{lo
 struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ \hyperlink{local__client_8h_a9459b38cbff1978c2851763c2f48dfa1}{local\-\_\-client\-\_\-delete} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__delm__t}{mdhim\-\_\-delm\-\_\-t} $\ast$dm)
 \item 
 struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ \hyperlink{local__client_8h_aa4ef9604f20a1fc45eb1360d7fb9a82e}{local\-\_\-client\-\_\-bdelete} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__bdelm__t}{mdhim\-\_\-bdelm\-\_\-t} $\ast$dm)
+\item 
+void \hyperlink{local__client_8h_afff0004885f4a9bacf231dda7e4f7b82}{local\-\_\-client\-\_\-close} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, struct \hyperlink{structmdhim__basem__t}{mdhim\-\_\-basem\-\_\-t} $\ast$cm)
 \end{DoxyCompactItemize}
 
 
@@ -31,7 +33,7 @@ struct \hyperlink{structmdhim__rm__t}{mdhim\-\_\-rm\-\_\-t} $\ast$ \hyperlink{lo
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-bdelm\-\_\-t} $\ast$}]{bdm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_aa4ef9604f20a1fc45eb1360d7fb9a82e}
+)}}\label{local__client_8h_aa4ef9604f20a1fc45eb1360d7fb9a82e}
 Send bulk delete to M\-D\-H\-I\-M
 
 
@@ -51,7 +53,7 @@ return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-bgetm\-\_\-t} $\ast$}]{bgm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_aad1cc8e587cc6cd7e3a5e2cfd33c8da3}
+)}}\label{local__client_8h_aad1cc8e587cc6cd7e3a5e2cfd33c8da3}
 Send bulk get to range server
 
 
@@ -71,7 +73,7 @@ return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-getm\-\_\-t} $\ast$}]{gm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_a7d7e8b3cf09476f5d8ed780fbf92357f}
+)}}\label{local__client_8h_a7d7e8b3cf09476f5d8ed780fbf92357f}
 Send get with an op and number of records greater than 1 to range server
 
 
@@ -91,7 +93,7 @@ return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-bputm\-\_\-t} $\ast$}]{bpm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_a231740384349684985b8f62ca5ff9848}
+)}}\label{local__client_8h_a231740384349684985b8f62ca5ff9848}
 Send bulk put to range server
 
 
@@ -104,6 +106,23 @@ Send bulk put to range server
 \begin{DoxyReturn}{Returns}
 return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R 
 \end{DoxyReturn}
+\hypertarget{local__client_8h_afff0004885f4a9bacf231dda7e4f7b82}{\index{local\-\_\-client.\-h@{local\-\_\-client.\-h}!local\-\_\-client\-\_\-close@{local\-\_\-client\-\_\-close}}
+\index{local\-\_\-client\-\_\-close@{local\-\_\-client\-\_\-close}!local_client.h@{local\-\_\-client.\-h}}
+\subsubsection[{local\-\_\-client\-\_\-close}]{\setlength{\rightskip}{0pt plus 5cm}void local\-\_\-client\-\_\-close (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{struct {\bf mdhim\-\_\-basem\-\_\-t} $\ast$}]{cm}
+\end{DoxyParamCaption}
+)}}\label{local__client_8h_afff0004885f4a9bacf231dda7e4f7b82}
+Send close to range server
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em cm} & pointer to close message to be inserted into the range server's work queue \\
+\hline
+\end{DoxyParams}
 \hypertarget{local__client_8h_aabada7899fcac9f1391b897d31a456fd}{\index{local\-\_\-client.\-h@{local\-\_\-client.\-h}!local\-\_\-client\-\_\-commit@{local\-\_\-client\-\_\-commit}}
 \index{local\-\_\-client\-\_\-commit@{local\-\_\-client\-\_\-commit}!local_client.h@{local\-\_\-client.\-h}}
 \subsubsection[{local\-\_\-client\-\_\-commit}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-rm\-\_\-t}$\ast$ local\-\_\-client\-\_\-commit (
@@ -111,7 +130,7 @@ return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-basem\-\_\-t} $\ast$}]{cm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_aabada7899fcac9f1391b897d31a456fd}
+)}}\label{local__client_8h_aabada7899fcac9f1391b897d31a456fd}
 Send commit to range server
 
 
@@ -131,7 +150,7 @@ return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-delm\-\_\-t} $\ast$}]{dm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_a9459b38cbff1978c2851763c2f48dfa1}
+)}}\label{local__client_8h_a9459b38cbff1978c2851763c2f48dfa1}
 Send delete to range server
 
 
@@ -151,7 +170,7 @@ return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-getm\-\_\-t} $\ast$}]{gm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_a96a193d241fd172b47da6c2edacf32bb}
+)}}\label{local__client_8h_a96a193d241fd172b47da6c2edacf32bb}
 Send get to range server
 
 
@@ -171,7 +190,7 @@ return\-\_\-message structure with -\/$>$error = M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
 \item[{struct {\bf mdhim\-\_\-putm\-\_\-t} $\ast$}]{pm}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d3/d21/local__client_8h_ab8d64efbbac6eba0fc5e598f55375247}
+)}}\label{local__client_8h_ab8d64efbbac6eba0fc5e598f55375247}
 Send put to range server
 
 

@@ -16,8 +16,10 @@ int mdhim_max_recs_per_slice;
  * partitioner_init
  * Initializes portions of the mdhim_t struct dealing with the partitioner
  *
- * @param md      main MDHIM struct
- * @return        MDHIM_ERROR on error, otherwise the number of range servers
+ * @param md                 main MDHIM struct
+ * @param server_factor      used in calculating the number of range servers
+ * @param max_recs_per_slice the number of records per slice
+ * @return                   MDHIM_ERROR on error, otherwise the number of range servers
  */
 
 void partitioner_init(struct mdhim_t *md, int server_factor, int max_recs_per_slice) {

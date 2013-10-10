@@ -1,5 +1,5 @@
 \hypertarget{mdhim_8c}{\section{src/mdhim.c File Reference}
-\label{d0/d51/mdhim_8c}\index{src/mdhim.\-c@{src/mdhim.\-c}}
+\label{mdhim_8c}\index{src/mdhim.\-c@{src/mdhim.\-c}}
 }
 {\ttfamily \#include $<$stdlib.\-h$>$}\\*
 {\ttfamily \#include \char`\"{}mdhim.\-h\char`\"{}}\\*
@@ -7,11 +7,11 @@
 {\ttfamily \#include \char`\"{}client.\-h\char`\"{}}\\*
 {\ttfamily \#include \char`\"{}local\-\_\-client.\-h\char`\"{}}\\*
 {\ttfamily \#include \char`\"{}partitioner.\-h\char`\"{}}\\*
-{\ttfamily \#include \char`\"{}db\-\_\-options.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}mdhim\-\_\-options.\-h\char`\"{}}\\*
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$ \hyperlink{mdhim_8c_a890e531c2ec36b24479a1a3d13859f33}{mdhim\-Init} (M\-P\-I\-\_\-\-Comm app\-Comm, struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts)
+struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$ \hyperlink{mdhim_8c_a7f5ee28dfbc230724e7d46adea846098}{mdhim\-Init} (M\-P\-I\-\_\-\-Comm app\-Comm, struct \hyperlink{structmdhim__options__t}{mdhim\-\_\-options\-\_\-t} $\ast$opts)
 \item 
 int \hyperlink{mdhim_8c_a03a23e1aa36fdaa3c66db0ed9bd2da62}{mdhim\-Close} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
 \item 
@@ -45,7 +45,7 @@ int \hyperlink{mdhim_8c_ab0f32678b0749c2f757a2091908ac9f0}{mdhim\-Stat\-Flush} (
 \item[{int $\ast$}]{key\-\_\-lens, }
 \item[{int}]{num\-\_\-records}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_af146980abd56f76854392c654d6ef934}
+)}}\label{mdhim_8c_af146980abd56f76854392c654d6ef934}
 Deletes multiple records from M\-D\-H\-I\-M
 
 
@@ -71,7 +71,7 @@ Deletes multiple records from M\-D\-H\-I\-M
 \item[{int $\ast$}]{key\-\_\-lens, }
 \item[{int}]{num\-\_\-records}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_af8e4bde6a59f4167fe1218e5aaa8e4cb}
+)}}\label{mdhim_8c_af8e4bde6a59f4167fe1218e5aaa8e4cb}
 Retrieves multiple records from M\-D\-H\-I\-M
 
 
@@ -98,7 +98,7 @@ Retrieves multiple records from M\-D\-H\-I\-M
 \item[{int}]{num\-\_\-records, }
 \item[{int}]{op}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_ad27f295da8097102a60d748f7aae9962}
+)}}\label{mdhim_8c_ad27f295da8097102a60d748f7aae9962}
 Retrieves multiple sequential records from a single range server if they exist
 
 If the operation passed in is M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-N\-E\-X\-T or M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-P\-R\-E\-V, this return all the records starting from the key passed in in the direction specified
@@ -134,7 +134,7 @@ If the operation passed in is M\-D\-H\-I\-M\-\_\-\-G\-E\-T\-\_\-\-F\-I\-R\-S\-T 
 \item[{int $\ast$}]{value\-\_\-lens, }
 \item[{int}]{num\-\_\-records}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_aed65fb325571c57a442c2d58533d988c}
+)}}\label{mdhim_8c_aed65fb325571c57a442c2d58533d988c}
 Inserts multiple records into M\-D\-H\-I\-M
 
 
@@ -161,7 +161,7 @@ Inserts multiple records into M\-D\-H\-I\-M
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d0/d51/mdhim_8c_a03a23e1aa36fdaa3c66db0ed9bd2da62}
+)}}\label{mdhim_8c_a03a23e1aa36fdaa3c66db0ed9bd2da62}
 Quits the M\-D\-H\-I\-M instance -\/ collective call
 
 
@@ -178,7 +178,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d0/d51/mdhim_8c_a9395f68ca82078f9cc4992f2c1fb0bf2}
+)}}\label{mdhim_8c_a9395f68ca82078f9cc4992f2c1fb0bf2}
 Commits outstanding M\-D\-H\-I\-M writes -\/ collective call
 
 
@@ -197,7 +197,7 @@ M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S or M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R o
 \item[{void $\ast$}]{key, }
 \item[{int}]{key\-\_\-len}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_a7fc1ea51a199cd1f4662a54a39280f9d}
+)}}\label{mdhim_8c_a7fc1ea51a199cd1f4662a54a39280f9d}
 Deletes a single record from M\-D\-H\-I\-M
 
 
@@ -221,7 +221,7 @@ Deletes a single record from M\-D\-H\-I\-M
 \item[{int}]{key\-\_\-len, }
 \item[{int}]{op}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_a8330b9287356ab6dcb2be04f0f63b13f}
+)}}\label{mdhim_8c_a8330b9287356ab6dcb2be04f0f63b13f}
 Retrieves a single record from M\-D\-H\-I\-M
 
 
@@ -238,14 +238,14 @@ Retrieves a single record from M\-D\-H\-I\-M
 \begin{DoxyReturn}{Returns}
 \hyperlink{structmdhim__getrm__t}{mdhim\-\_\-getrm\-\_\-t} $\ast$ or N\-U\-L\-L on error 
 \end{DoxyReturn}
-\hypertarget{mdhim_8c_a890e531c2ec36b24479a1a3d13859f33}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Init@{mdhim\-Init}}
+\hypertarget{mdhim_8c_a7f5ee28dfbc230724e7d46adea846098}{\index{mdhim.\-c@{mdhim.\-c}!mdhim\-Init@{mdhim\-Init}}
 \index{mdhim\-Init@{mdhim\-Init}!mdhim.c@{mdhim.\-c}}
 \subsubsection[{mdhim\-Init}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-t}$\ast$ mdhim\-Init (
 \begin{DoxyParamCaption}
 \item[{M\-P\-I\-\_\-\-Comm}]{app\-Comm, }
-\item[{struct {\bf db\-\_\-options\-\_\-t} $\ast$}]{opts}
+\item[{struct {\bf mdhim\-\_\-options\-\_\-t} $\ast$}]{opts}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_a890e531c2ec36b24479a1a3d13859f33}
+)}}\label{mdhim_8c_a7f5ee28dfbc230724e7d46adea846098}
 mdhim\-Init Initializes M\-D\-H\-I\-M -\/ Collective call
 
 
@@ -268,7 +268,7 @@ mdhim\-\_\-t$\ast$ that contains info about this instance or N\-U\-L\-L if there
 \item[{void $\ast$}]{value, }
 \item[{int}]{value\-\_\-len}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [read]}}}\label{d0/d51/mdhim_8c_a2da747a41b716fab6a81df0c2cf0181b}
+)}}\label{mdhim_8c_a2da747a41b716fab6a81df0c2cf0181b}
 Inserts a single record into M\-D\-H\-I\-M
 
 
@@ -293,7 +293,7 @@ Inserts a single record into M\-D\-H\-I\-M
 \begin{DoxyParamCaption}
 \item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
 \end{DoxyParamCaption}
-)}}\label{d0/d51/mdhim_8c_ab0f32678b0749c2f757a2091908ac9f0}
+)}}\label{mdhim_8c_ab0f32678b0749c2f757a2091908ac9f0}
 Retrieves statistics from all the range servers -\/ collective call
 
 

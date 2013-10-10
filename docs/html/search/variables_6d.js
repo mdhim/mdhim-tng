@@ -2,10 +2,12 @@ var searchData=
 [
   ['max',['max',['../d1/d0b/structmdhim__stat.html#ae563344828e5e734dc924d6192f5fde4',1,'mdhim_stat']]],
   ['max_5frangesrvs',['max_rangesrvs',['../df/dcf/partitioner_8h.html#ad6d142f9c526f895866dfd0a68a7da25',1,'partitioner.h']]],
+  ['max_5frecs_5fper_5fslice',['max_recs_per_slice',['../d3/d03/structmdhim__options__t.html#a46baf3b15d0be9c6d0cab276626e2a6e',1,'mdhim_options_t']]],
   ['mdhim_5falphabet',['mdhim_alphabet',['../dc/dee/partitioner_8c.html#a2b25553eefbd4e031777a50e4d94139e',1,'partitioner.c']]],
   ['mdhim_5fclient_5fcomm',['mdhim_client_comm',['../d8/dbc/structmdhim__t.html#aa7869e9170df4067e8ee986f5e6fda69',1,'mdhim_t']]],
   ['mdhim_5fcomm',['mdhim_comm',['../d8/dbc/structmdhim__t.html#a9772a2d123d58e9cd3e4514b860aee97',1,'mdhim_t']]],
   ['mdhim_5fcomm_5fsize',['mdhim_comm_size',['../d8/dbc/structmdhim__t.html#ab4bf1dd32ae146382cade22a706c1380',1,'mdhim_t']]],
+  ['mdhim_5fmax_5frecs_5fper_5fslice',['mdhim_max_recs_per_slice',['../dc/dee/partitioner_8c.html#ab7ed1387c5d04c47f8ca062a16b2f876',1,'partitioner.c']]],
   ['mdhim_5frank',['mdhim_rank',['../d8/dbc/structmdhim__t.html#a501753bb85acfd853c73d3c888714b20',1,'mdhim_t']]],
   ['mdhim_5frs',['mdhim_rs',['../d8/dbc/structmdhim__t.html#ae555c224ade4584fcc3895f8ea19a302',1,'mdhim_t']]],
   ['mdhim_5fstore',['mdhim_store',['../d3/d34/structmdhim__rs__t.html#aa393b01287a2253acff72c03cc5a83c5',1,'mdhim_rs_t']]],

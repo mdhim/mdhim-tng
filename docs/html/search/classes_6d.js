@@ -13,6 +13,7 @@ var searchData=
   ['mdhim_5fdelm_5ft',['mdhim_delm_t',['../d7/da5/structmdhim__delm__t.html',1,'']]],
   ['mdhim_5fgetm_5ft',['mdhim_getm_t',['../d9/d54/structmdhim__getm__t.html',1,'']]],
   ['mdhim_5fgetrm_5ft',['mdhim_getrm_t',['../d5/dfb/structmdhim__getrm__t.html',1,'']]],
+  ['mdhim_5foptions_5ft',['mdhim_options_t',['../d3/d03/structmdhim__options__t.html',1,'']]],
   ['mdhim_5fputm_5ft',['mdhim_putm_t',['../d6/dcd/structmdhim__putm__t.html',1,'']]],
   ['mdhim_5frm_5ft',['mdhim_rm_t',['../d2/d0c/structmdhim__rm__t.html',1,'']]],
   ['mdhim_5frs_5ft',['mdhim_rs_t',['../d3/d34/structmdhim__rs__t.html',1,'']]],

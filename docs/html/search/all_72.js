@@ -9,13 +9,13 @@ var searchData=
   ['range_5fserver_5fbput',['range_server_bput',['../d9/d67/range__server_8c.html#acf4eb15dd578eb67350021764cd33644',1,'range_server.c']]],
   ['range_5fserver_5fcommit',['range_server_commit',['../d9/d67/range__server_8c.html#a627d6e42e21bbe440d663f64790cad39',1,'range_server.c']]],
   ['range_5fserver_5fdel',['range_server_del',['../d9/d67/range__server_8c.html#ad850088b2378dff726323e7524853585',1,'range_server.c']]],
-  ['range_5fserver_5ffactor',['RANGE_SERVER_FACTOR',['../df/dcf/partitioner_8h.html#ab153476631c26b28926262eccee970a0',1,'partitioner.h']]],
+  ['range_5fserver_5ffactor',['range_server_factor',['../dc/dee/partitioner_8c.html#a1f95670793653c884912c6f2754e8a4a',1,'partitioner.c']]],
   ['range_5fserver_5fget',['range_server_get',['../d9/d67/range__server_8c.html#aaf0d71a72f9a88327592c93d5959ed41',1,'range_server.c']]],
   ['range_5fserver_5finit',['range_server_init',['../d9/d67/range__server_8c.html#af34269b3d0d34cd441697cc0e7376d3f',1,'range_server_init(struct mdhim_t *md):&#160;range_server.c'],['../de/d8a/range__server_8h.html#af34269b3d0d34cd441697cc0e7376d3f',1,'range_server_init(struct mdhim_t *md):&#160;range_server.c']]],
   ['range_5fserver_5finit_5fcomm',['range_server_init_comm',['../d9/d67/range__server_8c.html#a8b635329923996a6897411dfc92e73db',1,'range_server_init_comm(struct mdhim_t *md):&#160;range_server.c'],['../de/d8a/range__server_8h.html#a8b635329923996a6897411dfc92e73db',1,'range_server_init_comm(struct mdhim_t *md):&#160;range_server.c']]],
   ['range_5fserver_5fput',['range_server_put',['../d9/d67/range__server_8c.html#a69effcf76f690e1324650ffa216cd3e0',1,'range_server.c']]],
   ['range_5fserver_5fstop',['range_server_stop',['../d9/d67/range__server_8c.html#abac967b940a3b5aa92cc5fd67491efbe',1,'range_server_stop(struct mdhim_t *md):&#160;range_server.c'],['../de/d8a/range__server_8h.html#abac967b940a3b5aa92cc5fd67491efbe',1,'range_server_stop(struct mdhim_t *md):&#160;range_server.c']]],
-  ['rangesrv_5finfo',['rangesrv_info',['../da/dce/structrangesrv__info.html',1,'rangesrv_info'],['../d5/d48/messages_8h.html#a29e9fdb5a2d42349106ac93228344514',1,'RANGESRV_INFO():&#160;messages.h'],['../de/d8a/range__server_8h.html#a763b1df443630246ee4f493e84eccd29',1,'rangesrv_info():&#160;range_server.h']]],
+  ['rangesrv_5finfo',['rangesrv_info',['../da/dce/structrangesrv__info.html',1,'rangesrv_info'],['../de/d8a/range__server_8h.html#a763b1df443630246ee4f493e84eccd29',1,'rangesrv_info():&#160;range_server.h'],['../d5/d48/messages_8h.html#a29e9fdb5a2d42349106ac93228344514',1,'RANGESRV_INFO():&#160;messages.h']]],
   ['rangesrv_5fmaster',['rangesrv_master',['../d8/dbc/structmdhim__t.html#aec7f0b0a3e8bf81c839a90ec38b0809b',1,'mdhim_t']]],
   ['rangesrv_5fnum',['rangesrv_num',['../df/dcf/structmdhim__rsi__t.html#accbcc2a99c8184df0649f04c01f60baf',1,'mdhim_rsi_t::rangesrv_num()'],['../da/dce/structrangesrv__info.html#a90a6558f7f1922ae3394838255a937f3',1,'rangesrv_info::rangesrv_num()']]],
   ['rangesrv_5fwork_5fmsg',['RANGESRV_WORK_MSG',['../d5/d48/messages_8h.html#a693ab58ed9f531d18576ed620603487e',1,'messages.h']]],
@@ -28,5 +28,6 @@ var searchData=
   ['receive_5fmsg_5fmutex',['receive_msg_mutex',['../d8/dbc/structmdhim__t.html#ae5abe6f33b5951a30f582fda42292706',1,'mdhim_t']]],
   ['receive_5fmsg_5fready_5fcv',['receive_msg_ready_cv',['../d8/dbc/structmdhim__t.html#ac4a79eb13f34377840b924c41802f0fb',1,'mdhim_t']]],
   ['receive_5frangesrv_5fwork',['receive_rangesrv_work',['../dc/d0a/messages_8c.html#aa3fd52dd4aabd2a5da26a4b6ecbc2290',1,'receive_rangesrv_work(struct mdhim_t *md, int *src, void **message):&#160;messages.c'],['../d5/d48/messages_8h.html#aa3fd52dd4aabd2a5da26a4b6ecbc2290',1,'receive_rangesrv_work(struct mdhim_t *md, int *src, void **message):&#160;messages.c']]],
-  ['rs_5fcomm',['rs_comm',['../d3/d34/structmdhim__rs__t.html#a0ed34bdf133e1d59d83d44d0fda49683',1,'mdhim_rs_t']]]
+  ['rs_5fcomm',['rs_comm',['../d3/d34/structmdhim__rs__t.html#a0ed34bdf133e1d59d83d44d0fda49683',1,'mdhim_rs_t']]],
+  ['rserver_5ffactor',['rserver_factor',['../d3/d03/structmdhim__options__t.html#a63c13fdd85eb946ac15fdeb81df96ad8',1,'mdhim_options_t']]]
 ];

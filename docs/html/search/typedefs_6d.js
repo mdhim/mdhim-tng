@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['mdhim_5foptions_5ft',['mdhim_options_t',['../d4/d9d/mdhim__options_8h.html#a2d270845d7a646ff91ff118eccfb3018',1,'mdhim_options.h']]],
   ['mdhim_5frs_5ft',['mdhim_rs_t',['../de/d8a/range__server_8h.html#a7a8d15b08f386c7da5a3bc452a2ae872',1,'range_server.h']]],
   ['mdhim_5fstore_5fclose_5ffn_5ft',['mdhim_store_close_fn_t',['../d8/d32/data__store_8h.html#a07e2ae82dfe71d97db0129a9e8d29eeb',1,'data_store.h']]],
   ['mdhim_5fstore_5fcommit_5ffn_5ft',['mdhim_store_commit_fn_t',['../d8/d32/data__store_8h.html#acbf72a3c5eaa36c296d1ecf18ab6e1ed',1,'data_store.h']]],
