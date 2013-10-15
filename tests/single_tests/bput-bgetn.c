@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm;
 	struct timeval start_tv, end_tv;
-	char     *db_path = "/scratch/hng/";
+	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed

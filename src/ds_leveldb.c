@@ -374,12 +374,11 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
  * @param key_len         out  int * to the length of the key 
  * @param data            out  void ** to the value belonging to the key
  * @param data_len        out  int * to the length of the value data 
- * @param iterator        in   double pointer to an iterator to use
  * @param mstore_opts in   additional cursor options for the data store layer 
  * 
  */
 int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len, void **iterator,
+			   void **data, int32_t *data_len, 
 			   struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_readoptions_t *options;
 	leveldb_t *db = (leveldb_t *) dbh;
@@ -388,7 +387,7 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	const char *res;
 	int len = 0;
 	void *old_key;
-	int old_key_len, passed_iter;
+	int old_key_len;
 	struct timeval start, end;
 
 	//Init the data to return
@@ -403,30 +402,19 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	*key = NULL;
 	*key_len = 0;
 
-	if (iterator && *iterator) {
-	  iter = *iterator;
-	  passed_iter = 1;
-	} else {
-	  iter = leveldb_create_iterator(db, options);
-	  passed_iter = 0;
-	}
+	iter = leveldb_create_iterator(db, options);
 
 	//If the user didn't supply a key, then seek to the first
 	if (!old_key || old_key_len == 0) {
 		leveldb_iter_seek_to_first(iter);
 	} else {
-		if (!passed_iter) {
-			//Otherwise, seek to the key given and then get the next key
-			leveldb_iter_seek(iter, old_key, old_key_len);
-		}
+		leveldb_iter_seek(iter, old_key, old_key_len);
 		if (!leveldb_iter_valid(iter)) { 
 			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
 			goto error;
 		}
 
-		if (!iterator || *iterator) {
-			leveldb_iter_next(iter);
-		}
+		leveldb_iter_next(iter);
 	}
 
 	if (!leveldb_iter_valid(iter)) {
@@ -457,12 +445,7 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 	}
 
         //Destroy iterator
-	if (!iterator) {
-		leveldb_iter_destroy(iter);      
-	} else {
-		*iterator = iter;
-	}
-
+	leveldb_iter_destroy(iter);      
 	gettimeofday(&end, NULL);
 	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to get the next record", 
 	     (int) (end.tv_sec - start.tv_sec));
@@ -471,9 +454,6 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 error:	
 	 //Destroy iterator
 	leveldb_iter_destroy(iter);      
-	if (passed_iter) {
-		*iterator = NULL;
-	}
 	*key = NULL;
 	*key_len = 0;
 	*data = NULL;
@@ -482,7 +462,7 @@ error:
 }
 
 int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len, void **iterator,
+			   void **data, int32_t *data_len, 
 			   struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_readoptions_t *options;
 	leveldb_t *db = (leveldb_t *) dbh;
@@ -491,7 +471,7 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	const char *res;
 	int len = 0;
 	void *old_key;
-	int old_key_len, passed_iter;
+	int old_key_len;
 	struct timeval start, end;
 
 	//Init the data to return
@@ -506,30 +486,19 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	*key = NULL;
 	*key_len = 0;
 
-	if (iterator && *iterator) {
-	  iter = *iterator;
-	  passed_iter = 1;
-	} else {
-	  iter = leveldb_create_iterator(db, options);
-	  passed_iter = 0;
-	}
+	iter = leveldb_create_iterator(db, options);
 
-	//If the user didn't supply a key, then seek to the first
+	//If the user didn't supply a key, then seek to the last
 	if (!old_key || old_key_len == 0) {
 		leveldb_iter_seek_to_last(iter);
 	} else {
-		if (!passed_iter) {
-			//Otherwise, seek to the key given and then get the prev key
-			leveldb_iter_seek(iter, old_key, old_key_len);
-		}
+		leveldb_iter_seek(iter, old_key, old_key_len);
 		if (!leveldb_iter_valid(iter)) { 
 			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
 			goto error;
 		}
-		if (!iterator || *iterator) {
-			leveldb_iter_prev(iter);
-		}
 
+		leveldb_iter_prev(iter);
 	}
 
 	if (!leveldb_iter_valid(iter)) {
@@ -560,23 +529,15 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	}
 
         //Destroy iterator
-	if (!iterator) {
-		leveldb_iter_destroy(iter);      
-	} else {
-		*iterator = iter;
-	}
-
+	leveldb_iter_destroy(iter);      
 	gettimeofday(&end, NULL);
-	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to get the previous record", 
+	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to get the prev record", 
 	     (int) (end.tv_sec - start.tv_sec));
 	return ret;
 
 error:	
 	 //Destroy iterator
 	leveldb_iter_destroy(iter);      
-	if (passed_iter) {
-		*iterator = NULL;
-	}
 	*key = NULL;
 	*key_len = 0;
 	*data = NULL;

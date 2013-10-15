@@ -4,7 +4,7 @@ TESTER = tester
 TLIBS = $(CLIBS) -L../src
 TINC = $(CINC) -I../src -I../src/uthash
 all:	put-get bput-bget put-del bput-bdel mdhimtst put-getn \
-	put-getp puts-gets bput-bgetn
+	put-getp puts-gets bput-bgetn bput-bgetp
 
 put-get: $(SINGLE)/put-get.c 
 	$(CC) $< $(TINC) $(TLIBS) $(CFLAGS) -o $(SINGLE)/$@
@@ -27,6 +27,9 @@ bput-bget: $(SINGLE)/bput-bget.c
 bput-bgetn: $(SINGLE)/bput-bgetn.c 
 	$(CC) $< $(TINC) $(TLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
+bput-bgetp: $(SINGLE)/bput-bgetp.c 
+	$(CC) $< $(TINC) $(TLIBS) $(CFLAGS) -o $(SINGLE)/$@
+
 bput-bdel: $(SINGLE)/bput-bdel.c 
 	$(CC) $< $(TINC) $(TLIBS) $(CFLAGS) -o $(SINGLE)/$@
 
@@ -37,4 +40,4 @@ clean:
 	rm -rf $(SINGLE)/put-get $(SINGLE)/bput-bget $(SINGLE)/put-del $(SINGLE)/bput-bdel\
                $(TESTER)/mdhimtst $(SINGLE)/put-getn \
 	       $(SINGLE)/put-getp $(SINGLE)/puts-gets \
-               $(SINGLE)/bput-bgetn
+               $(SINGLE)/bput-bgetn $(SINGLE)/bput-bgetp

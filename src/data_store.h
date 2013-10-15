@@ -36,11 +36,11 @@ typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, voi
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_next_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
-					 int32_t *data_len, void **iterator,
+					 int32_t *data_len, 
 					 struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
-					 int32_t *data_len, void **iterator,
+					 int32_t *data_len,
 					 struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
 				    struct mdhim_store_opts_t *mstore_opts);

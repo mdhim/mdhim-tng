@@ -51,6 +51,8 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->close = mdhim_leveldb_close;
 		break;
 	default:
+		free(store);
+		store = NULL;
 		break;
 	}
 	

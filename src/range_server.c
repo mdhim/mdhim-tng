@@ -228,7 +228,7 @@ int load_stats(struct mdhim_t *md) {
 		*val_len = 0;		
 		md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_stats, 
 						    (void **) slice, key_len, (void **) val, 
-						    val_len, NULL, &opts);	
+						    val_len, &opts);	
 		if (old_slice) {
 			free(old_slice);
 			old_slice = NULL;
@@ -849,7 +849,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, NULL, &opts)) != MDHIM_SUCCESS) {
+							 value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -861,7 +861,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, NULL, &opts)) != MDHIM_SUCCESS) {
+							 value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -873,7 +873,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, NULL,  &opts)) != MDHIM_SUCCESS) {
+							 value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -885,7 +885,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
 							 key, &key_len, value, 
-							 value_len, NULL, &opts)) != MDHIM_SUCCESS) {
+							 value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -1033,21 +1033,21 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	int error = 0;
 	void **values;
 	void **keys;
+	void **get_key; //Used for passing the key to the db
+	int *get_key_len; //Used for passing the key len to the db
+	void **get_value;
+	int *get_value_len;
 	int32_t *key_lens;
 	int32_t *value_lens;
-	void *last_key;
-	int32_t last_key_len;
 	struct mdhim_bgetrm_t *bgrm;
 	int ret;
 	struct mdhim_store_opts_t opts;
 	int i;
-	void **iterator;
+	int num_records;
 
 	set_store_opts(md, &opts, 0);
 
 	//Initialize pointers and lengths
-	iterator = malloc(sizeof(void *));
-	*iterator = NULL;
 	values = malloc(sizeof(void *) * gm->num_records);
 	value_lens = malloc(sizeof(int32_t) * gm->num_records);
 	memset(value_lens, 0, sizeof(int32_t) * gm->num_records);
@@ -1055,21 +1055,30 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	memset(keys, 0, sizeof(void *) * gm->num_records);
 	key_lens = malloc(sizeof(int32_t) * gm->num_records);
 	memset(key_lens, 0, sizeof(int32_t) * gm->num_records);
-	last_key = NULL;
-	last_key_len = 0;
+	get_key = malloc(sizeof(void *));
+	*get_key = NULL;
+	get_key_len = malloc(sizeof(int32_t));
+	*get_key_len = 0;
+	get_value = malloc(sizeof(void *));
+	get_value_len = malloc(sizeof(int32_t));
+	num_records = 0;
 
 	//Iterate through the arrays and get each record
 	for (i = 0; i < gm->num_records && i < MAX_BULK_OPS; i++) {
 		keys[i] = NULL;
 		key_lens[i] = 0;
 
-		//Set our local pointer to the key and length
+		//If we were passed in a key, copy it
 		if (!i && gm->key_len && gm->key) {
-			keys[i] = gm->key;
-			key_lens[i] = gm->key_len;			
-		} else {
-			keys[i] = last_key;
-			key_lens[i] = last_key_len;
+			*get_key = malloc(gm->key_len);
+			memcpy(*get_key, gm->key, gm->key_len);
+			*get_key_len = gm->key_len;
+		//If we were not passed a key and this is a next/prev, then return an error
+		} else if (!i && (!gm->key_len || !gm->key)
+			   && (op ==  MDHIM_GET_NEXT || 
+			       op == MDHIM_GET_PREV)) {
+			error = MDHIM_ERROR;
+			goto respond;
 		}
 
 		switch(op) {
@@ -1080,15 +1089,26 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 				key_lens[i] = sizeof(int32_t);
 			}
 		case MDHIM_GET_NEXT:	
-			if ((ret = 
-			     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
-								 (void **) (keys + i), (int32_t *) (key_lens + i), 
-								 (void **) (values + i), 
-								 (int32_t *) (value_lens + i), iterator,
-								 &opts)) 
+			if (i && (ret = 
+				  md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
+								      get_key, get_key_len, 
+								      get_value, 
+								      get_value_len,
+								      &opts)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
+				error = ret;
+				key_lens[i] = 0;
+				value_lens[i] = 0;
+				goto respond;
+			} else if (!i && (ret = 
+					  md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+									 *get_key, *get_key_len, 
+									 get_value, 
+									 get_value_len,
+									 &opts))
+				   != MDHIM_SUCCESS) {
 				error = ret;
 				key_lens[i] = 0;
 				value_lens[i] = 0;
@@ -1101,15 +1121,26 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 				key_lens[i] = sizeof(int32_t);
 			}
 		case MDHIM_GET_PREV:
-			if ((ret = 
+			if (i && (ret = 
 			     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
-								 (void **) (keys + i), (int32_t *) (key_lens + i), 
-								 (void **) (values + i), 
-								 (int32_t *) (value_lens + i), iterator,
+								 get_key, get_key_len, 
+								 get_value, 
+								 get_value_len,
 								 &opts)) 
 			    != MDHIM_SUCCESS) {
-				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get prev record", 
 				     md->mdhim_rank);
+				error = ret;
+				key_lens[i] = 0;
+				value_lens[i] = 0;
+				goto respond;
+			} else if (!i && (ret = 
+					  md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+									 *get_key, *get_key_len, 
+									 get_value, 
+									 get_value_len,
+									 &opts))
+				   != MDHIM_SUCCESS) {
 				error = ret;
 				key_lens[i] = 0;
 				value_lens[i] = 0;
@@ -1122,14 +1153,15 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 			goto respond;
 			break;
 		}
-	
-		last_key = keys[i];
-		last_key_len = key_lens[i];
+
+		keys[i] = *get_key;
+		key_lens[i] = *get_key_len;
+	        values[i] = *get_value;
+		value_lens[i] = *get_value_len;
+		num_records++;
 	}
 
 respond:
-	md->mdhim_rs->mdhim_store->iter_free(iterator);
-	free(iterator);
        //Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
@@ -1143,7 +1175,7 @@ respond:
 	//Set the key and value
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
-	bgrm->num_records = gm->num_records;
+	bgrm->num_records = num_records;
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
 
@@ -1153,6 +1185,10 @@ respond:
 		free(gm->key);
 	} 
 	free(gm);
+	free(get_key);
+	free(get_key_len);
+	free(get_value);
+	free(get_value_len);
 
 	return MDHIM_SUCCESS;
 }
