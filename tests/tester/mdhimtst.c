@@ -106,6 +106,9 @@ int err, char * format,
         va_start( ap, format );
         vsnprintf(errMsg, TEST_BUFLEN, format, ap);
         addErrorMessage(errMsg);
+        
+        // Make sure error messages print to stderr when loging output
+        if (to_log) fprintf(stderr, "%s", errMsg); 
         va_end(ap);
     }
     
@@ -392,7 +395,7 @@ static void execFlush(char *command, struct mdhim_t *md, int charIdx)
     int ret = mdhimStatFlush(md);
 
     if (ret != MDHIM_SUCCESS) {
-        tst_say(1, "Error executing flush.\n");
+        tst_say(1, "ERROR: rank %d executing flush.\n", md->mdhim_rank);
     } else {
         tst_say(0, "Flush executed successfully.\n");
     }
@@ -458,13 +461,14 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
              break;
              
         default:
-            tst_say(1, "Error, unrecognized Key_type in execPut\n");
+            tst_say(1, "ERROR: unrecognized Key_type in execPut\n");
     }
 
     // Report any error(s)
     if (!rm || rm->error)
     {
-        tst_say(1, "Error putting key: %s with value: %s into MDHIM\n", key_string, value);
+        tst_say(1, "ERROR: rank %d putting key: %s with value: %s into MDHIM\n", 
+                md->mdhim_rank, key_string, value);
     }
     else
     {
@@ -475,7 +479,8 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
     ret = mdhimCommit(md);
     if (ret != MDHIM_SUCCESS)
     {
-        tst_say(1, "Error committing put key: %s to MDHIM database\n", key_string);
+        tst_say(1, "ERROR: rank %d committing put key: %s to MDHIM database\n", 
+                md->mdhim_rank, key_string);
     }
     else
     {
@@ -497,10 +502,12 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
     struct mdhim_getrm_t *grm;
     char str_key [ TEST_BUFLEN ];
     char buffer2 [ TEST_BUFLEN ];
+    char *v_value = NULL;
     char key_string [ TEST_BUFLEN ];
+    char returned_key [ TEST_BUFLEN ];
     int getOp, newIdx;
     
-    if (verbose) tst_say(0, "# get key getOperator\n" );
+    if (verbose) tst_say(0, "# get key <getOperator verfication_value>\n" );
 
     charIdx = getWordFromString( command, str_key, charIdx);
     newIdx = getWordFromString( command, buffer2, charIdx);
@@ -509,6 +516,14 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
     {
         getOp = atoi(buffer2); // Get operation type
         charIdx = newIdx;
+        
+        // Is there a verification value?
+        newIdx = getWordFromString( command, buffer2, charIdx);
+        if (newIdx != charIdx)
+        {
+            v_value = malloc(sizeof(char) * TEST_BUFLEN);
+            sprintf(v_value, "%s_%d", buffer2, (md->mdhim_rank + 1));//Value to verify
+        }
     }
     else
     {
@@ -523,20 +538,6 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
             sprintf(key_string, "%d", i_key);
             if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [int]\n", key_string, getValLabel(getOp));
             grm = mdhimGet(md, &i_key, sizeof(i_key), getOp);
-            
-            if (!grm || grm->error)
-            {
-                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
-            else if (grm->key && grm->value)
-            {
-                tst_say(0, "Successfully got value: %s for key [int](%s): %d from MDHIM\n", 
-                        expand_escapes(grm->value, grm->value_len), getValLabel(getOp), *((int *) grm->key));
-            }
-            else
-            {
-                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
             break;
             
        case MDHIM_LONG_INT_KEY:
@@ -544,20 +545,6 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
             sprintf(key_string, "%ld", l_key);
             if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [long]\n", key_string, getValLabel(getOp));
             grm = mdhimGet(md, &l_key, sizeof(l_key), getOp);
-            
-            if (!grm || grm->error)
-            {
-                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
-            else if (grm->key && grm->value)
-            {
-                tst_say(0, "Successfully got value: %s for key [long](%s): %ld from MDHIM\n", 
-                        expand_escapes(grm->value, grm->value_len), getValLabel(getOp), *((long *) grm->key));
-            }
-            else
-            {
-                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
             break;
             
        case MDHIM_FLOAT_KEY:
@@ -565,20 +552,6 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
             sprintf(key_string, "%f", f_key);
             if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [float]\n", key_string, getValLabel(getOp));
             grm = mdhimGet(md, &f_key, sizeof(f_key), getOp);
-            
-            if (!grm || grm->error)
-            {
-                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
-            else if (grm->key && grm->value)
-            {
-                tst_say(0, "Successfully got value: %s for key [float](%s): %f from MDHIM\n", 
-                        expand_escapes(grm->value, grm->value_len), getValLabel(getOp), *((float *) grm->key));
-            }
-            else
-            {
-                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
             break;
             
        case MDHIM_DOUBLE_KEY:
@@ -586,20 +559,6 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
             sprintf(key_string, "%e", d_key);
             if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [double]\n", key_string, getValLabel(getOp));
             grm = mdhimGet(md, &d_key, sizeof(d_key), getOp);
-            
-            if (!grm || grm->error)
-            {
-                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
-            else if (grm->key && grm->value)
-            {
-                tst_say(0, "Successfully got value: %s for key [double](%s): %e from MDHIM\n", 
-                        expand_escapes(grm->value, grm->value_len), getValLabel(getOp), *((double *) grm->key));
-            }
-            else
-            {
-                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
             break;
                         
        case MDHIM_STRING_KEY:
@@ -607,25 +566,69 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
             sprintf(key_string, "%s0%d", str_key, (md->mdhim_rank + 1));
             if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [string|byte]\n", key_string, getValLabel(getOp));
             grm = mdhimGet(md, (void *)key_string, strlen(key_string), getOp);
-            
-            if (!grm || grm->error)
-            {
-                tst_say(1, "Error getting value for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
-            else if (grm->key && grm->value)
-            {
-                tst_say(0, "Successfully got value: %s for key [string|byte](%s): %s from MDHIM\n", 
-                        expand_escapes(grm->value, grm->value_len), getValLabel(getOp), grm->key);
-            }
-            else
-            {
-                tst_say(1, "Got null value or return key for key (%s): %s from MDHIM\n", getValLabel(getOp), key_string);
-            }
             break;
  
        default:
             tst_say(1, "Error, unrecognized Key_type in execGet\n");
+            return;
     }
+    
+    if (!grm || grm->error)
+    {
+        tst_say(1, "ERROR: rank %d getting value for key (%s): %s from MDHIM\n", 
+                md->mdhim_rank, getValLabel(getOp), key_string);
+    }
+    else if (grm->key && grm->value)
+    {
+        // Generate correct string from returned key
+        switch (key_type)
+        {
+           case MDHIM_INT_KEY:
+               sprintf(returned_key, "[int]: %d", *((int *) grm->key));
+               break;
+               
+           case MDHIM_LONG_INT_KEY:
+               sprintf(returned_key, "[long]: %ld", *((long *) grm->key));
+               break;
+            
+           case MDHIM_FLOAT_KEY:
+               sprintf(returned_key, "[float]: %f", *((float *) grm->key));
+               break;
+            
+           case MDHIM_DOUBLE_KEY:
+               sprintf(returned_key, "[double]: %e", *((double *) grm->key));
+               break;
+                        
+           case MDHIM_STRING_KEY:
+           case MDHIM_BYTE_KEY:
+               sprintf(returned_key, "[string|byte]: %s", (char *)grm->key);
+   
+        }
+        
+        if ( v_value == NULL )  // No verification value, anything is OK.
+        {
+            tst_say(0, "Successfully get(%s) value: %s for key %s from MDHIM\n", 
+                    getValLabel(getOp), expand_escapes(grm->value, grm->value_len), returned_key);
+        }
+        else if (memcmp(expand_escapes(grm->value, grm->value_len), v_value, grm->value_len))
+        {
+            tst_say(1, "ERROR: rank %d incorrect get(%s) value: %s for key %s from MDHIM expecting %s\n", 
+                md->mdhim_rank, getValLabel(getOp), expand_escapes(grm->value, grm->value_len), returned_key, v_value);
+        }
+        else
+        {
+            tst_say(0, "Successfully get(%s) correct value: %s for key %s from MDHIM\n", 
+                getValLabel(getOp), expand_escapes(grm->value, grm->value_len), returned_key);
+        }
+
+    }
+    else
+    {
+        tst_say(1, "ERROR: rank %d got(%s) null value or return key for key: %s from MDHIM\n", 
+                md->mdhim_rank, getValLabel(getOp), key_string);
+    }
+
+    if (v_value) free(v_value);
 }
 
 //======================================BPUT============================
@@ -764,7 +767,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     ret = 0;
     if (!brm || brm->error)
     {
-        tst_say(1, "Rank - %d: Error bulk inserting keys/values into MDHIM\n", 
+        tst_say(1, "ERROR: rank - %d bulk inserting keys/values into MDHIM\n", 
                     md->mdhim_rank);
         ret = 1;
     }
@@ -773,7 +776,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     {
         if (brmp->error < 0)
         {
-            tst_say(1, "Rank: %d - Error bulk inserting key/values info MDHIM\n", 
+            tst_say(1, "ERROR: rank %d - Error bulk inserting key/values info MDHIM\n", 
                         md->mdhim_rank);
             ret = 1;
         }
@@ -795,7 +798,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     ret = mdhimCommit(md);
     if (ret != MDHIM_SUCCESS)
     {
-        tst_say(1, "Error committing bput to MDHIM database\n");
+        tst_say(1, "ERROR: rank %d committing bput to MDHIM database\n", md->mdhim_rank);
     }
     else
     {
@@ -810,23 +813,32 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 static void execBget(char *command, struct mdhim_t *md, int charIdx)
 {
     int nkeys = 100;
-    char buffer1 [ TEST_BUFLEN ];
+    char buffer [ TEST_BUFLEN ];
     char str_key [ TEST_BUFLEN ];
-    if (verbose) tst_say(0, "# bget n key\n" );
+    char *v_value = NULL;
+    if (verbose) tst_say(0, "# bget n key <verfication_value>\n" );
     struct mdhim_bgetrm_t *bgrm, *bgrmp;
-    int i, size_of, ret;
+    int i, size_of, ret, newIdx;
     void **keys;
     int *key_lens;
     int totRecds;
     
     // Get the number of records to create for bget
-    charIdx = getWordFromString( command, buffer1, charIdx);
-    nkeys = atoi( buffer1 );
+    charIdx = getWordFromString( command, buffer, charIdx);
+    nkeys = atoi( buffer );
     
     key_lens = malloc(sizeof(int) * nkeys);
     
     // Get the key to use as starting point
     charIdx = getWordFromString( command, str_key, charIdx);
+    
+    // Is there a verification value?
+    newIdx = getWordFromString( command, buffer, charIdx);
+    if (newIdx != charIdx)
+    {
+        v_value = malloc(sizeof(char) * TEST_BUFLEN);
+        sprintf(v_value, "%s_%d", buffer, (md->mdhim_rank + 1)); //Value to verify
+    }
 
     if (verbose) tst_say(0, "# mdhimBGet(%d, %s)\n", nkeys, str_key );
 
@@ -934,16 +946,32 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
     while (bgrmp) {
         if (bgrmp->error < 0)
         {
-            tst_say(1, "Rank: %d - Error retrieving values\n", 
-                    md->mdhim_rank);
+            tst_say(1, "ERROR: rank %d retrieving values\n", md->mdhim_rank);
             ret = 1;
         }
 
         totRecds += bgrmp->num_records;
         for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++)
         {
-            if (verbose) tst_say(0, "Rank: %d - got value[%d]: %s\n", md->mdhim_rank,
-                                 i, expand_escapes(bgrmp->values[i], bgrmp->value_lens[i]));
+            if ( v_value != NULL ) 
+                sprintf(buffer, "%s_%d", v_value, i + 1); //Value to verify
+            
+            if ( v_value == NULL )  // No verification value, anything is OK.
+            {
+                if (verbose) tst_say(0, "Rank: %d successfully get[%d] value: %s from MDHIM\n", 
+                                        md->mdhim_rank, i, expand_escapes(bgrmp->values[i], 
+                                        bgrmp->value_lens[i]));
+            }
+            else if (memcmp(expand_escapes(bgrmp->values[i], bgrmp->value_lens[i]), buffer, bgrmp->value_lens[i]))
+            {
+                tst_say(1, "ERROR: rank %d incorrect get[%d] value: %s from MDHIM expecting %s\n", 
+                    md->mdhim_rank, i, expand_escapes(bgrmp->values[i], bgrmp->value_lens[i]), buffer);
+            }
+            else
+            {
+                if (verbose) tst_say(0, "Rank: %d successfully get[%d] correct value: %s from MDHIM\n", 
+                                        md->mdhim_rank, i, expand_escapes(bgrmp->values[i], bgrmp->value_lens[i]));
+            }
         }
 
         bgrmp = bgrmp->next;
@@ -959,12 +987,13 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
             tst_say(0, "Rank: %d - Successfully bulk retrieved %d key/values from MDHIM\n", 
                         md->mdhim_rank, totRecds);
         else
-            tst_say(1, "Rank: %d - got no records for bulk retrieved from MDHIM\n", 
+            tst_say(1, "ERROR: rank %d got no records for bulk retrieved from MDHIM\n", 
                         md->mdhim_rank);
     }
     
     // Release memory
     freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
+    free(v_value);
 }
 
 //======================================BGETOP============================
@@ -1021,7 +1050,6 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
             if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [float]\n", 
                                  nrecs, key_string, getValLabel(getOp));
             bgrm = mdhimBGetOp(md, &f_key, sizeof(f_key), nrecs, getOp);
-            
             break;
             
        case MDHIM_DOUBLE_KEY:
@@ -1030,7 +1058,6 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
             if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [double]\n", 
                                  nrecs, key_string, getValLabel(getOp));
             bgrm = mdhimBGetOp(md, &d_key, sizeof(d_key), nrecs, getOp);
-            
             break;
                         
        case MDHIM_STRING_KEY:
@@ -1047,8 +1074,8 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
     
     if (!bgrm || bgrm->error)
     {
-        tst_say(1, "Error getting %d values for start key (%s): %s from MDHIM\n", 
-                nrecs, getValLabel(getOp), key_string);
+        tst_say(1, "ERROR: rank %d getting %d values for start key (%s): %s from MDHIM\n", 
+                md->mdhim_rank, nrecs, getValLabel(getOp), key_string);
     }
     else if (verbose)
     {
@@ -1127,7 +1154,8 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
 
     if (!rm || rm->error)
     {
-        tst_say(1, "Error deleting key/value from MDHIM. key: %s\n", key_string);
+        tst_say(1, "ERROR: rank %d deleting key/value from MDHIM. key: %s\n", 
+                md->mdhim_rank, key_string);
     }
     else
     {
@@ -1257,7 +1285,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     brm = mdhimBDelete(md, (void **) keys, key_lens, nkeys);
     brmp = brm;
     if (!brm || brm->error) {
-            tst_say(1, "Rank - %d: Error deleting keys/values from MDHIM\n", 
+            tst_say(1, "ERROR: rank %d deleting keys/values from MDHIM\n", 
                     md->mdhim_rank);
     } 
     
@@ -1266,7 +1294,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     {
             if (brmp->error < 0)
             {
-                    tst_say(1, "Rank: %d - Error deleting keys\n", md->mdhim_rank);
+                    tst_say(1, "ERROR: rank %d deleting keys\n", md->mdhim_rank);
                     ret = 1;
             }
 
@@ -1397,8 +1425,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
         // Record any error(s)
         if (!rm || rm->error)
         {
-            if (verbose) tst_say(1, "Error N putting key: %s with value: %s "
-                                    "into MDHIM\n", key_string, value);
+            if (verbose) tst_say(1, "ERROR: rank %d N putting key: %s with value: %s "
+                                    "into MDHIM\n", md->mdhim_rank, key_string, value);
             ret ++;
         }
   
@@ -1407,7 +1435,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
     // Report any error(s)
     if (ret)
     {
-        tst_say(1, "%d error(s) N putting key/value into MDHIM\n", ret);
+        tst_say(1, "ERROR: rank %d - %d error(s) N putting key/value into MDHIM\n", 
+                md->mdhim_rank, ret);
     }
     else
     {
@@ -1418,7 +1447,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
     ret = mdhimCommit(md);
     if (ret != MDHIM_SUCCESS)
     {
-        tst_say(1, "Error committing N put key/value(s) to MDHIM database\n");
+        tst_say(1, "ERROR: rank %d committing N put key/value(s) to MDHIM database\n",
+                md->mdhim_rank);
     }
     else
     {
@@ -1520,7 +1550,8 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
     if (!grm || grm->error)
     {
         // For some reason could not get first record abort the request
-        tst_say(1, "Error N getting FIRST key: %s from MDHIM\n", key_string);
+        tst_say(1, "ERROR: rank %d N getting FIRST key: %s from MDHIM\n", 
+                md->mdhim_rank, key_string);
         ret++;
     }
     else if (grm->key && grm->value)
@@ -1536,7 +1567,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
             // Record any error(s)
             if (!grm || grm->error)
             {
-                tst_say(1, "Error N getting key[%d] from MDHIM\n", i);
+                tst_say(1, "ERROR: rank %d N getting key[%d] from MDHIM\n", i, md->mdhim_rank);
                 ret ++;
                 break;
             }
@@ -1549,7 +1580,8 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
             }
             else
             {
-                tst_say(1, "Got null value or key at N get key[%d] from MDHIM\n", i);
+                tst_say(1, "ERROR: rank %d got null value or key at N get key[%d] "
+                        "from MDHIM\n", md->mdhim_rank, i);
                 ret ++;
                 break;
             }
@@ -1557,15 +1589,16 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
     }
     else
     {
-        tst_say(1, "Got null value or return  key for FIRST key (%s): %s from MDHIM\n", 
-                getValLabel(MDHIM_GET_NEXT), key_string);
+        tst_say(1, "ERROR: rank %d got null value or return  key for FIRST key (%s): %s from MDHIM\n", 
+                md->mdhim_rank, getValLabel(MDHIM_GET_NEXT), key_string);
         ret++;
     }
 
     // Report any error(s)
     if (ret)
     {
-        tst_say(1, "%d error(s) N getting key/value from MDHIM\n", ret);
+        tst_say(1, "ERROR: rank got %d error(s) N getting key/value from MDHIM\n", 
+                md->mdhim_rank, ret);
     }
     else
     {
@@ -1874,26 +1907,25 @@ int main( int argc, char * argv[] )
         tst_say(0, "Seconds to %s : %f\n\n", commands[cmdIdx], time_spent);
     }
     
-    // Calls to finalize mdhim session and close MPI-communication
-    ret = mdhimClose(md);
-    if (ret != MDHIM_SUCCESS)
-    {
-        tst_say(1, "Error closing MDHIM\n");
-    }
-    
     if (errMsgIdx)
     {
-        int i;
-        for (i=0; i<MAX_ERR_REPORT && i<errMsgIdx; i++)
-            tst_say(0, "==ERROR for rank: %d, %s", md->mdhim_rank, errMsgs[i]);
-        tst_say(0, "==TOTAL ERRORS for rank: %d => %d (first %d shown)\n", 
-               md->mdhim_rank, errMsgIdx, i);
+        int i, errsInCmds = errMsgIdx; // Only list the errors up to now
+        for (i=0; i<MAX_ERR_REPORT && i<errsInCmds; i++)
+            tst_say(1, "==%s", errMsgs[i]);
+        tst_say(1, "==TOTAL ERRORS for rank: %d => %d (first %d shown)\n", 
+               md->mdhim_rank, errsInCmds, i);
     }
     else
     {
         tst_say(0, "\n==No errors for rank: %d\n", md->mdhim_rank);
     }
     
+    // Calls to finalize mdhim session and close MPI-communication
+    ret = mdhimClose(md);
+    if (ret != MDHIM_SUCCESS)
+    {
+        tst_say(1, "Error closing MDHIM\n");
+    }    
     fclose(logfile);
     
     MPI_Barrier(MPI_COMM_WORLD);
