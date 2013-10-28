@@ -1567,7 +1567,8 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
             // Record any error(s)
             if (!grm || grm->error)
             {
-                tst_say(1, "ERROR: rank %d N getting key[%d] from MDHIM\n", i, md->mdhim_rank);
+                tst_say(1, "ERROR: rank %d N getting key[%d] from MDHIM. Abort request.\n", 
+                        md->mdhim_rank, i);
                 ret ++;
                 break;
             }
@@ -1581,7 +1582,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
             else
             {
                 tst_say(1, "ERROR: rank %d got null value or key at N get key[%d] "
-                        "from MDHIM\n", md->mdhim_rank, i);
+                        "from MDHIM. Abort request.\n", md->mdhim_rank, i);
                 ret ++;
                 break;
             }
@@ -1597,7 +1598,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
     // Report any error(s)
     if (ret)
     {
-        tst_say(1, "ERROR: rank got %d error(s) N getting key/value from MDHIM\n", 
+        tst_say(1, "ERROR: rank %d got %d error(s) N getting key/value from MDHIM\n", 
                 md->mdhim_rank, ret);
     }
     else
