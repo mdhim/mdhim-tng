@@ -9,7 +9,7 @@
 //#define TOTAL_KEYS 2083334
 #define TOTAL_KEYS 1000000
 
-int **keys;
+uint64_t **keys;
 int *key_lens;
 int **values;
 int *value_lens;
@@ -29,10 +29,10 @@ void add_time(struct timeval *start, struct timeval *end, long *time) {
 void gen_keys_values(int rank, int total_keys) {
 	int i = 0;
 	for (i = 0; i < KEYS; i++) {
-		keys[i] = malloc(sizeof(int));	
+		keys[i] = malloc(sizeof(uint64_t));	
 		//Keys are chosen to fit in one slice
-		*keys[i] = (i + (rank * KEYS)) + total_keys;
-		key_lens[i] = sizeof(int);
+		*keys[i] = i + (rank * TOTAL_KEYS) + total_keys;
+		key_lens[i] = sizeof(uint64_t);
 		values[i] = malloc(sizeof(int));
 		*values[i] = *keys[i];
 		value_lens[i] = sizeof(int);
@@ -73,7 +73,8 @@ int main(int argc, char **argv) {
 	mdhim_options_set_db_path(db_opts, db_path);
 	mdhim_options_set_db_name(db_opts, db_name);
 	mdhim_options_set_db_type(db_opts, db_type);
-	mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY);
+	mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);
+	mdhim_options_set_max_recs_per_slice(db_opts, TOTAL_KEYS);
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
@@ -99,7 +100,7 @@ int main(int argc, char **argv) {
 	
 	key_lens = malloc(sizeof(int) * KEYS);
 	value_lens = malloc(sizeof(int) * KEYS);
-	keys = malloc(sizeof(int *) * KEYS);
+	keys = malloc(sizeof(uint64_t *) * KEYS);
 	values = malloc(sizeof(int *) * KEYS);
 	MPI_Comm_size(md->mdhim_comm, &size);	
 	while (total_keys != TOTAL_KEYS) {
@@ -157,20 +158,21 @@ int main(int argc, char **argv) {
 		gen_keys_values(md->mdhim_rank, total_keys);
 		start_record(&start_tv);
 		//Get the keys and values back starting from and including key[0]
-		bgrm = mdhimBGetOp(md, keys[0], sizeof(int), 
+		bgrm = mdhimBGetOp(md, keys[0], sizeof(uint64_t), 
 				   KEYS, MDHIM_GET_NEXT);
 		//	        MPI_Barrier(MPI_COMM_WORLD);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
 		//Check if there is an error
 		if (!bgrm || bgrm->error) {
-			printf("Rank: %d - Error retrieving values starting at: %d", md->mdhim_rank, *keys[0]);
+			printf("Rank: %d - Error retrieving values starting at: %llu", 
+			       md->mdhim_rank, (long long unsigned int) *keys[0]);
 			goto done;
 		}
 	
 		//Validate that the data retrieved is the correct data
 		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {						
-			assert(*(int *)bgrm->keys[i] == *keys[i]);
+			assert(*(uint64_t *)bgrm->keys[i] == *keys[i]);
 			assert(*(int *)bgrm->values[i] == *values[i]);
 		}
 	

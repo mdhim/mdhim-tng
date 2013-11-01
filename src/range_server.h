@@ -48,6 +48,12 @@ typedef struct mdhim_rs_t {
 	pthread_t listener;
 	pthread_t worker;
 	rangesrv_info info;
+	//Records seconds spent on putting records
+	long double put_time; 
+	//Records seconds spend on getting records
+	long double get_time;
+	long num_put;
+	long num_get;
 } mdhim_rs_t;
 
 int range_server_add_work(struct mdhim_t *md, work_item *item);

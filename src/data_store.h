@@ -29,9 +29,12 @@ struct mdhim_store_opts_t;
 /* Function pointers for abstracting data stores */
 typedef int (*mdhim_store_open_fn_t)(void **db_handle, void **db_stats, char *path, int flags, 
 				     struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int key_len, 
+typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int32_t key_len, 
 				    void *data, int32_t data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
+typedef int (*mdhim_store_batch_put_fn_t)(void *db_handle, void **keys, int32_t *key_lens, 
+					  void **data, int32_t *data_lens, int num_records, 
+					  struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int32_t *data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_next_fn_t)(void *db_handle, void **key, 
@@ -51,7 +54,7 @@ typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 
 //Used for storing stats in a hash table
 struct mdhim_stat {
-	int key;              //Key (slice number)
+	int key;                   //Key (slice number)
 	void *max;                 //Max key
 	void *min;                 //Min key
 	uint64_t num;              //Number of keys in this slice
@@ -110,6 +113,7 @@ struct mdhim_store_t {
 	//Pointers to functions based on data store
 	mdhim_store_open_fn_t open;
 	mdhim_store_put_fn_t put;
+	mdhim_store_batch_put_fn_t batch_put;
 	mdhim_store_get_fn_t get;
 	mdhim_store_get_next_fn_t get_next;
 	mdhim_store_get_prev_fn_t get_prev;
@@ -117,7 +121,7 @@ struct mdhim_store_t {
         mdhim_store_iter_free_fn_t iter_free;
 	mdhim_store_commit_fn_t commit;
 	mdhim_store_close_fn_t close;
-       
+
         //Hashtable for stats
 	struct mdhim_stat *mdhim_store_stats;
 };

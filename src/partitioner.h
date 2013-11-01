@@ -14,8 +14,8 @@
 */
 
 //#define RANGE_SERVER_FACTOR 4 // NOW a global variable in partitioner.h
-#define MDHIM_MAX_SERVERS 500
-#define MDHIM_MAX_RANGE_KEY 4294967296ULL
+#define MDHIM_MAX_SERVERS 100000
+#define MDHIM_MAX_SLICES 2147483647ULL
 //32 bit unsigned integer
 #define MDHIM_INT_KEY 1
 #define MDHIM_LONG_INT_KEY 2

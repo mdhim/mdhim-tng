@@ -10,7 +10,7 @@ struct mdhim_char *mdhim_alphabet = NULL;
 int range_server_factor;
 
 //Maximum size of a slice. A ranger server may server several slices.
-int mdhim_max_recs_per_slice; 
+uint64_t mdhim_max_recs_per_slice; 
 
 /**
  * partitioner_init
@@ -187,7 +187,7 @@ int verify_key(void *key, int key_len, int key_type) {
 	int id;
 	struct mdhim_char *mc;
 	uint64_t ikey = 0;
-	long double size_check;
+	uint64_t size_check;
 
 	if (!key) {
 	  return MDHIM_ERROR;
@@ -221,9 +221,10 @@ int verify_key(void *key, int key_len, int key_type) {
 		ikey = *(double *)key;
 	}
 
-	size_check = (long double) (ikey/MDHIM_MAX_RANGE_KEY);
-	if (size_check >= 1.0f) {
-		mlog(MDHIM_CLIENT_CRIT, "Error - key is too large for the range specified");
+	size_check = ikey/mdhim_max_recs_per_slice;
+	if (size_check >= MDHIM_MAX_SLICES) {
+		mlog(MDHIM_CLIENT_CRIT, "Error - Not enough slices for this key." 
+		     "  Try increasing the slice size.");
 		return MDHIM_ERROR;
 	}
 	
@@ -353,6 +354,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	//The number that maps a key to range server (dependent on key type)
 	int slice_num;
+	uint64_t key_num;
 	//The range server number that we return
 	float fkey;
 	double dkey;
@@ -361,8 +363,8 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	uint64_t total_keys;
 	int key_type = md->key_type;
 
-	//The last key in the range we are representing by the range servers
-	total_keys = MDHIM_MAX_RANGE_KEY;
+	//The last key number that can be represented by the number of slices and the slice size
+	total_keys = MDHIM_MAX_SLICES *  mdhim_max_recs_per_slice;
 
 	//Make sure this key is valid
 	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
@@ -374,11 +376,11 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	//Perform key dependent algorithm to get the key in terms of the ranges served
 	switch(key_type) {
 	case MDHIM_INT_KEY:
-		slice_num = *(uint32_t *) key;
+		key_num = *(uint32_t *) key;
 
 		break;
 	case MDHIM_LONG_INT_KEY:
-		slice_num = *(uint64_t *) key;
+		key_num = *(uint64_t *) key;
 
 		break;
 	case MDHIM_BYTE_KEY:
@@ -399,21 +401,21 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
                 //Used for calculating the range server to use for this string
 		map_num = 0;
 		map_num = get_byte_num(key, key_len);	
-		slice_num = floorl(map_num * total_keys);
+		key_num = floorl(map_num * total_keys);
 
 		break;
 	case MDHIM_FLOAT_KEY:
 		//Convert the key to a float
 		fkey = *((float *) key);
 		fkey = floor(fabsf(fkey));
-		slice_num = fkey;
+		key_num = fkey;
 
 		break;
 	case MDHIM_DOUBLE_KEY:
 		//Convert the key to a double
 		dkey = *((double *) key);
 		dkey = floor(fabs(dkey));
-		slice_num = dkey;
+		key_num = dkey;
 
 		break;
 	case MDHIM_STRING_KEY:
@@ -435,7 +437,7 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
                 //Used for calculating the range server to use for this string
 		map_num = 0;
 		map_num = get_str_num(key, key_len);	
-		slice_num = floorl(map_num * total_keys);
+		key_num = floorl(map_num * total_keys);
 
 		break;
 	default:
@@ -445,7 +447,7 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 
 
 	/* Convert the key to a slice number  */
-	slice_num = (int) ceil((long double) (slice_num/mdhim_max_recs_per_slice));
+	slice_num = key_num/mdhim_max_recs_per_slice;
 	if (slice_num == 0) {
 		slice_num = 1;
 	}
@@ -467,10 +469,7 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, int slice) {
 	uint32_t rangesrv_num;
 	//The range server number that we return
 	rangesrv_info *rp, *ret_rp;
-	uint64_t total_keys;
 
-	//The total number of keys we can hold in all range servers combined
-	total_keys = MDHIM_MAX_RANGE_KEY;
 	if (!slice) {
 		return NULL;
 	}

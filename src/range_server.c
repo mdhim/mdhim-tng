@@ -30,6 +30,22 @@ int im_range_server(struct mdhim_t *md) {
 	
 	return 0;
 }
+
+void add_timing(struct timeval start, struct timeval end, int num, 
+		struct mdhim_t *md, int mtype) {
+	long double elapsed;
+
+	elapsed = (long double) (end.tv_sec - start.tv_sec) + 
+		((long double) (end.tv_usec - start.tv_usec)/1000000.0);
+	if (mtype == MDHIM_PUT || mtype == MDHIM_BULK_PUT) {
+		md->mdhim_rs->put_time += elapsed;
+		md->mdhim_rs->num_put += num;
+	} else if (mtype == MDHIM_GET || mtype == MDHIM_BULK_GET) {
+		md->mdhim_rs->get_time += elapsed;
+		md->mdhim_rs->num_get += num;
+	}
+}
+
 /**
  * send_locally_or_remote
  * Sends the message remotely or locally
@@ -454,6 +470,10 @@ int range_server_stop(struct mdhim_t *md) {
 		     md->mdhim_rank);
 	}
 
+	mlog(MDHIM_SERVER_INFO, "Rank: %d - Inserted: %ld records in %Lf seconds", 
+	     md->mdhim_rank, md->mdhim_rs->num_put, md->mdhim_rs->put_time);
+	mlog(MDHIM_SERVER_INFO, "Rank: %d - Retrieved: %ld records in %Lf seconds", 
+	     md->mdhim_rank, md->mdhim_rs->num_get, md->mdhim_rs->get_time);
 	//Free the range server information
 	MPI_Comm_free(&md->mdhim_rs->rs_comm);
 	free(md->mdhim_rs->mdhim_store);
@@ -484,6 +504,8 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	int32_t new_value_len;
 	void *old_value;
 	int32_t old_value_len;
+	struct timeval start, end;
+	int inserted = 0;
 
 	set_store_opts(md, &opts, 0);
 	value = malloc(sizeof(void *));
@@ -491,7 +513,8 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	value_len = malloc(sizeof(int32_t));
 	*value_len = 0;
         
-	//Check for the key's existence
+	gettimeofday(&start, NULL);
+       //Check for the key's existence
 	md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 				       im->key, im->key_len, value, 
 				       value_len, &opts);
@@ -526,13 +549,18 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	
 		error = ret;
+	} else {
+		inserted = 1;
 	}
 
 	if (!exists && error == MDHIM_SUCCESS) {
 		update_all_stats(md, im->key, im->key_len);
-	}else {
+	} else {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - not updating all stats", md->mdhim_rank);
 	}
+
+	gettimeofday(&end, NULL);
+	add_timing(start, end, inserted, md, MDHIM_PUT);
 
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
@@ -578,66 +606,87 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	struct mdhim_store_opts_t opts;
 	void **value;
 	int32_t *value_len;
-	int exists = 0;
+	int *exists;
 	void *new_value;
 	int32_t new_value_len;
+	void **new_values;
+	int32_t *new_value_lens;
 	void *old_value;
 	int32_t old_value_len;
+	struct timeval start, end;
+	int num_put = 0;
 
+	gettimeofday(&start, NULL);
 	set_store_opts(md, &opts, 0);
+	exists = malloc(bim->num_records * sizeof(int));
+	new_values = malloc(bim->num_records * sizeof(void *));
+	new_value_lens = malloc(bim->num_records * sizeof(int));
+	value = malloc(sizeof(void *));
+	value_len = malloc(sizeof(int32_t));
+
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
-		value = malloc(sizeof(void *));
 		*value = NULL;
-		value_len = malloc(sizeof(int32_t));
 		*value_len = 0;
-		exists = 0;
-		//Check for the key's existence
+
+                //Check for the key's existence
 		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 					       bim->keys[i], bim->key_lens[i], value, 
 					       value_len, &opts);
 		//The key already exists
 		if (*value && *value_len) {
-			exists = 1;
+			exists[i] = 1;
+		} else {
+			exists[i] = 0;
 		}
 
 		//If the option to append was specified and there is old data, concat the old and new
-		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
+		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
 			old_value = *value;
 			old_value_len = *value_len;
 			new_value_len = old_value_len + bim->value_lens[i];
 			new_value = malloc(new_value_len);
 			memcpy(new_value, old_value, old_value_len);
-			memcpy(new_value + old_value_len, bim->values[i], bim->value_lens[i]);
+			memcpy(new_value + old_value_len, bim->values[i], bim->value_lens[i]);		
+			if (exists[i] && source != md->mdhim_rank) {
+				free(bim->values[i]);
+			}
+
+			new_values[i] = new_value;
+			new_value_lens[i] = new_value_len;
 		} else {
-			new_value = bim->values[i];
-			new_value_len = bim->value_lens[i];
+			new_values[i] = bim->values[i];
+			new_value_lens[i] = bim->value_lens[i];
 		}
-
-		error = MDHIM_SUCCESS;
-		//Put the record in the database
-		if ((ret = 
-		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
-						bim->keys[i], bim->key_lens[i], new_value, 
-						new_value_len, &opts)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
-			     md->mdhim_rank);
-			error = ret;
-		}
-
-		if (!exists && error == MDHIM_SUCCESS) {
-			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
-		}
-
-		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
-			free(new_value);
-		}
-
+		
 		if (*value) {
 			free(*value);
 		}
-		free(value);
-		free(value_len);
+	}
+
+	//Put the record in the database
+	if ((ret = 
+	     md->mdhim_rs->mdhim_store->batch_put(md->mdhim_rs->mdhim_store->db_handle, 
+						  bim->keys, bim->key_lens, new_values, 
+						  new_value_lens, bim->num_records,
+						  &opts)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error batch putting records", 
+		     md->mdhim_rank);
+		error = ret;
+	} else {
+		num_put = bim->num_records;
+	}
+
+	for (i = 0; bim->num_records && i < MAX_BULK_OPS; i++) {
+		//Update the stats if this key didn't exist before
+		if (!exists[i] && error == MDHIM_SUCCESS) {
+			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
+		}
+	       
+		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
+			//Release the value created for appending the new and old value
+			free(new_values[i]);
+		}		
 
 		//Release the bput keys/value if the message isn't coming from myself
 		if (source != md->mdhim_rank) {
@@ -645,6 +694,14 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			free(bim->values[i]);
 		} 
 	}
+
+	free(exists);
+	free(new_values);
+	free(new_value_lens);
+	free(value);
+	free(value_len);
+	gettimeofday(&end, NULL);
+	add_timing(start, end, num_put, md, MDHIM_BULK_PUT);
 
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
@@ -812,6 +869,8 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	struct mdhim_getrm_t *grm;
 	int ret;
 	struct mdhim_store_opts_t opts;
+	struct timeval start, end;
+	int num_retrieved = 0;
 
 	set_store_opts(md, &opts, 0);
 	//Initialize pointers and lengths
@@ -831,6 +890,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		key_len = gm->key_len;
 	}
 
+	gettimeofday(&start, NULL);
 	//Get a record from the database
 	switch(op) {
 	// Gets the value for the given key
@@ -897,6 +957,13 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		break;
 	}
 
+	if (error == MDHIM_SUCCESS) {
+		num_retrieved = 1;
+	}
+
+	gettimeofday(&end, NULL);
+	add_timing(start, end, num_retrieved, md, MDHIM_GET);
+
 	//Create the response message
 	grm = malloc(sizeof(struct mdhim_getrm_t));
 	//Set the type
@@ -960,6 +1027,8 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	struct mdhim_bgetrm_t *bgrm;
 	int error = 0;
 	struct mdhim_store_opts_t opts;
+	struct timeval start, end;
+	int num_retrieved = 0;
 
 	set_store_opts(md, &opts, 0);
 	values = malloc(sizeof(void *) * bgm->num_records);
@@ -977,8 +1046,13 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 			value_lens[i] = 0;
 			values[i] = NULL;
 			continue;
-		}	
+		}
+
+		num_retrieved++;
 	}
+
+	gettimeofday(&end, NULL);
+	add_timing(start, end, num_retrieved, md, MDHIM_BULK_GET);
 
 	//Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
@@ -1044,6 +1118,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	struct mdhim_store_opts_t opts;
 	int i;
 	int num_records;
+	struct timeval start, end;
 
 	set_store_opts(md, &opts, 0);
 
@@ -1063,6 +1138,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	get_value_len = malloc(sizeof(int32_t));
 	num_records = 0;
 
+	gettimeofday(&start, NULL);
 	//Iterate through the arrays and get each record
 	for (i = 0; i < gm->num_records && i < MAX_BULK_OPS; i++) {
 		keys[i] = NULL;
@@ -1162,6 +1238,10 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	}
 
 respond:
+
+	gettimeofday(&end, NULL);
+	add_timing(start, end, num_records, md, MDHIM_BULK_GET);
+
        //Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
@@ -1211,9 +1291,6 @@ void *listener_thread(void *data) {
 
 	while (1) {		
 		//Receive messages sent to this server
-		mlog(MPI_DBG, "Rank: %d - Received message from rank: %d of type: %d", 
-		     md->mdhim_rank, source, mtype);
-
 		gettimeofday(&start, NULL);
 		ret = receive_rangesrv_work(md, &source, &message);
 		if (ret < MDHIM_SUCCESS) {
@@ -1221,6 +1298,10 @@ void *listener_thread(void *data) {
 			     md->mdhim_rank);
 			continue;
 		}
+
+		mlog(MPI_DBG, "Rank: %d - Received message from rank: %d of type: %d", 
+		     md->mdhim_rank, source, mtype);
+
 
 		gettimeofday(&end, NULL);	
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Took: %d seconds to receive a range server message", 
@@ -1435,6 +1516,11 @@ int range_server_init(struct mdhim_t *md) {
 		     md->mdhim_rank);
 	}
 
+	//Initialize variables for printing out timings
+	md->mdhim_rs->put_time = 0;
+	md->mdhim_rs->get_time = 0;
+	md->mdhim_rs->num_put = 0;
+	md->mdhim_rs->num_get = 0;
 	//Initialize work queue
 	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
 	md->mdhim_rs->work_queue->head = NULL;

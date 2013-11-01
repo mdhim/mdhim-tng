@@ -18,3 +18,6 @@ int mdhim_leveldb_del(void *dbh, void *key, int key_len,
 		      struct mdhim_store_opts_t *mstore_opts);
 int mdhim_leveldb_iter_free(void **iterator);
 int mdhim_leveldb_commit(void *dbh);
+int mdhim_leveldb_batch_put(void *dbh, void **key, int32_t *key_lens, 
+			    void **data, int32_t *data_lens, int num_records,
+			    struct mdhim_store_opts_t *mstore_opts);

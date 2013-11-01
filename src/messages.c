@@ -374,7 +374,7 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int send_client_response(struct mdhim_t *md, int dest, void *message) {
-	int return_code;
+	int return_code = 0;
 	void *sendbuf = NULL;
 	int sendsize = 0;
 	int mtype;

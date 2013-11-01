@@ -6,6 +6,8 @@
 #ifndef      __OPTIONS_H
 #define      __OPTIONS_H
 
+#include <stdint.h>
+
 /* Append option */
 #define MDHIM_DB_OVERWRITE 0
 #define MDHIM_DB_APPEND 1
@@ -16,6 +18,12 @@ typedef struct mdhim_options_t {
 	//Directory location of DBs
 	char *db_path;
     
+	//Multiple directory locations of DBs
+	char **db_paths;
+
+	//Number of directory locations for DBs
+	int num_db_paths;
+
 	//Name of each DB (will be modified by adding "_<RANK>" to create multiple
 	// unique DB for each rank server.
 	char *db_name;
@@ -46,7 +54,7 @@ typedef struct mdhim_options_t {
         int rserver_factor;
         
         //Maximum size of a slice. A ranger server may server several slices.
-        int max_recs_per_slice; 
+        uint64_t max_recs_per_slice; 
 
 } mdhim_options_t;
 
@@ -59,7 +67,7 @@ void mdhim_options_set_create_new_db(struct mdhim_options_t* opts, int create_ne
 void mdhim_options_set_debug_level(struct mdhim_options_t* opts, int dbug);
 void mdhim_options_set_value_append(struct mdhim_options_t* opts, int append);
 void mdhim_options_set_server_factor(struct mdhim_options_t* opts, int server_factor);
-void mdhim_options_set_max_recs_per_slice(struct mdhim_options_t* opts, int max_recs_per_slice);
+void mdhim_options_set_max_recs_per_slice(struct mdhim_options_t* opts, uint64_t max_recs_per_slice);
 void mdhim_options_destroy(struct mdhim_options_t *opts);
 
 #endif

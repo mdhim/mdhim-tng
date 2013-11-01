@@ -30,6 +30,12 @@ void mdhim_options_set_db_path(mdhim_options_t* opts, char *path)
 	opts->db_path = path;
 };
 
+void mdhim_options_set_db_paths(mdhim_options_t* opts, char **paths, int num_paths)
+{
+	opts->db_paths = paths;
+	opts->num_db_paths = num_paths;
+};
+
 void mdhim_options_set_db_name(mdhim_options_t* opts, char *name)
 {
 	opts->db_name = name;
@@ -65,7 +71,7 @@ void mdhim_options_set_server_factor(mdhim_options_t* opts, int server_factor)
 	opts->rserver_factor = server_factor;
 };
 
-void mdhim_options_set_max_recs_per_slice(mdhim_options_t* opts, int max_recs_per_slice)
+void mdhim_options_set_max_recs_per_slice(mdhim_options_t* opts, uint64_t max_recs_per_slice)
 {
 	opts->max_recs_per_slice = max_recs_per_slice;
 };
