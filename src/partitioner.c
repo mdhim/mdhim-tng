@@ -24,22 +24,13 @@ uint64_t mdhim_max_recs_per_slice;
 
 void partitioner_init(struct mdhim_t *md, int server_factor, int max_recs_per_slice) {
 	uint32_t num_rangesrvs;
-	uint32_t max_servers;
         
         //Set these two crucial variables to values passed to allow flexible set up.
         range_server_factor = server_factor;
         mdhim_max_recs_per_slice = max_recs_per_slice;
 
 	//Figure out how many range servers we could have based on the range server factor
-	num_rangesrvs = get_num_range_servers(md);
-
-	//Figure what makes sense as far as the number of servers
-	max_servers = MDHIM_MAX_SERVERS;
-
-	//If the reasonable number of servers is exceed by num_rangesrvs 
-	if (num_rangesrvs > max_servers) {
-		num_rangesrvs = max_servers;
-	}
+	num_rangesrvs = get_num_range_servers(md);	
         
         // Create the alphabet for string keys
         build_alphabet();
