@@ -30,12 +30,6 @@ void mdhim_options_set_db_path(mdhim_options_t* opts, char *path)
 	opts->db_path = path;
 };
 
-void mdhim_options_set_db_paths(mdhim_options_t* opts, char **paths, int num_paths)
-{
-	opts->db_paths = paths;
-	opts->num_db_paths = num_paths;
-};
-
 void mdhim_options_set_db_name(mdhim_options_t* opts, char *name)
 {
 	opts->db_name = name;

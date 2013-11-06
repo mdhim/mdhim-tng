@@ -17,13 +17,7 @@ typedef struct mdhim_options_t {
 	// -------------------
 	//Directory location of DBs
 	char *db_path;
-    
-	//Multiple directory locations of DBs
-	char **db_paths;
-
-	//Number of directory locations for DBs
-	int num_db_paths;
-
+   
 	//Name of each DB (will be modified by adding "_<RANK>" to create multiple
 	// unique DB for each rank server.
 	char *db_name;

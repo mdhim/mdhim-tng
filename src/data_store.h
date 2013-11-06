@@ -32,9 +32,6 @@ typedef int (*mdhim_store_open_fn_t)(void **db_handle, void **db_stats, char *pa
 typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int32_t key_len, 
 				    void *data, int32_t data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_batch_put_fn_t)(void *db_handle, void **keys, int32_t *key_lens, 
-					  void **data, int32_t *data_lens, int num_records, 
-					  struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int32_t *data_len, 
 				    struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_get_next_fn_t)(void *db_handle, void **key, 
@@ -113,7 +110,6 @@ struct mdhim_store_t {
 	//Pointers to functions based on data store
 	mdhim_store_open_fn_t open;
 	mdhim_store_put_fn_t put;
-	mdhim_store_batch_put_fn_t batch_put;
 	mdhim_store_get_fn_t get;
 	mdhim_store_get_next_fn_t get_next;
 	mdhim_store_get_prev_fn_t get_prev;

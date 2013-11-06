@@ -46,6 +46,44 @@ void add_timing(struct timeval start, struct timeval end, int num,
 	}
 }
 
+//Open the binary manifest
+/*int open_manifest(struct mdhim_t *md) {
+	int fd;
+  
+	fd = open(md->db_opts->db_path, O_WRONLY | O_CREAT | O_TRUNC);
+	if (fd < 0) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error opening manifest file", 
+		     md->mdhim_rank);
+	}
+
+	return fd;
+	}*/
+
+//Write a binary manifest describing
+/*void write_manifest(struct mdhim_t *md) {
+	//Range server with number 1 is in charge of the manifest
+	if (md->mdhim_rs->info.rangesrv_num != 1) {
+		return;
+	}
+
+	if ((fd = open_manifest(md)) < 0) {
+		return;
+	}
+	}*/
+
+/*void read_manifest(struct mdhim_t *md) {
+	int fd;
+
+	//Range server with number 1 is in charge of the manifest
+	if (md->mdhim_rs->info.rangesrv_num == 1) {
+		return;
+	}
+
+	if ((fd = open_manifest(md)) < 0) {
+		return;
+	}
+	}*/
+
 /**
  * send_locally_or_remote
  * Sends the message remotely or locally
@@ -606,87 +644,66 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	struct mdhim_store_opts_t opts;
 	void **value;
 	int32_t *value_len;
-	int *exists;
+	int exists = 0;
 	void *new_value;
 	int32_t new_value_len;
-	void **new_values;
-	int32_t *new_value_lens;
 	void *old_value;
 	int32_t old_value_len;
-	struct timeval start, end;
-	int num_put = 0;
 
-	gettimeofday(&start, NULL);
 	set_store_opts(md, &opts, 0);
-	exists = malloc(bim->num_records * sizeof(int));
-	new_values = malloc(bim->num_records * sizeof(void *));
-	new_value_lens = malloc(bim->num_records * sizeof(int));
-	value = malloc(sizeof(void *));
-	value_len = malloc(sizeof(int32_t));
-
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
+		value = malloc(sizeof(void *));
 		*value = NULL;
+		value_len = malloc(sizeof(int32_t));
 		*value_len = 0;
-
-                //Check for the key's existence
+		exists = 0;
+		//Check for the key's existence
 		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 					       bim->keys[i], bim->key_lens[i], value, 
 					       value_len, &opts);
 		//The key already exists
 		if (*value && *value_len) {
-			exists[i] = 1;
-		} else {
-			exists[i] = 0;
+			exists = 1;
 		}
 
 		//If the option to append was specified and there is old data, concat the old and new
-		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
+		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
 			old_value = *value;
 			old_value_len = *value_len;
 			new_value_len = old_value_len + bim->value_lens[i];
 			new_value = malloc(new_value_len);
 			memcpy(new_value, old_value, old_value_len);
-			memcpy(new_value + old_value_len, bim->values[i], bim->value_lens[i]);		
-			if (exists[i] && source != md->mdhim_rank) {
-				free(bim->values[i]);
-			}
-
-			new_values[i] = new_value;
-			new_value_lens[i] = new_value_len;
+			memcpy(new_value + old_value_len, bim->values[i], bim->value_lens[i]);
 		} else {
-			new_values[i] = bim->values[i];
-			new_value_lens[i] = bim->value_lens[i];
+			new_value = bim->values[i];
+			new_value_len = bim->value_lens[i];
 		}
-		
+
+		error = MDHIM_SUCCESS;
+		//Put the record in the database
+		if ((ret = 
+		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
+						bim->keys[i], bim->key_lens[i], new_value, 
+						new_value_len, &opts)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
+			     md->mdhim_rank);
+			error = ret;
+		}
+
+		if (!exists && error == MDHIM_SUCCESS) {
+			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
+		}
+
+		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
+			free(new_value);
+		}
+
 		if (*value) {
 			free(*value);
 		}
-	}
-
-	//Put the record in the database
-	if ((ret = 
-	     md->mdhim_rs->mdhim_store->batch_put(md->mdhim_rs->mdhim_store->db_handle, 
-						  bim->keys, bim->key_lens, new_values, 
-						  new_value_lens, bim->num_records,
-						  &opts)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error batch putting records", 
-		     md->mdhim_rank);
-		error = ret;
-	} else {
-		num_put = bim->num_records;
-	}
-
-	for (i = 0; bim->num_records && i < MAX_BULK_OPS; i++) {
-		//Update the stats if this key didn't exist before
-		if (!exists[i] && error == MDHIM_SUCCESS) {
-			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
-		}
-	       
-		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
-			//Release the value created for appending the new and old value
-			free(new_values[i]);
-		}		
+		free(value);
+		free(value_len);
 
 		//Release the bput keys/value if the message isn't coming from myself
 		if (source != md->mdhim_rank) {
@@ -694,14 +711,6 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			free(bim->values[i]);
 		} 
 	}
-
-	free(exists);
-	free(new_values);
-	free(new_value_lens);
-	free(value);
-	free(value_len);
-	gettimeofday(&end, NULL);
-	add_timing(start, end, num_put, md, MDHIM_BULK_PUT);
 
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
