@@ -22,7 +22,7 @@ uint64_t mdhim_max_recs_per_slice;
  * @return                   MDHIM_ERROR on error, otherwise the number of range servers
  */
 
-void partitioner_init(struct mdhim_t *md, int server_factor, int max_recs_per_slice) {
+void partitioner_init(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice) {
 	uint32_t num_rangesrvs;
         
         //Set these two crucial variables to values passed to allow flexible set up.
@@ -215,7 +215,8 @@ int verify_key(void *key, int key_len, int key_type) {
 	size_check = ikey/mdhim_max_recs_per_slice;
 	if (size_check >= MDHIM_MAX_SLICES) {
 		mlog(MDHIM_CLIENT_CRIT, "Error - Not enough slices for this key." 
-		     "  Try increasing the slice size.");
+		     "  Try increasing the slice size. ikey: %" PRIu64 " max_recs: %" PRIu64, 
+		     ikey, mdhim_max_recs_per_slice);
 		return MDHIM_ERROR;
 	}
 	

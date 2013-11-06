@@ -14,7 +14,7 @@
 */
 
 //#define RANGE_SERVER_FACTOR 4 // NOW a global variable in partitioner.h
-#define MDHIM_MAX_SLICES 2147483647ULL
+#define MDHIM_MAX_SLICES 2147483647
 //32 bit unsigned integer
 #define MDHIM_INT_KEY 1
 #define MDHIM_LONG_INT_KEY 2
@@ -42,7 +42,7 @@ struct mdhim_char {
 };
 
 int max_rangesrvs;
-void partitioner_init(struct mdhim_t *md, int server_factor, int max_recs_per_slice);
+void partitioner_init(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice);
 void partitioner_release();
 uint32_t get_num_range_servers(struct mdhim_t *md);
 uint32_t is_range_server(struct mdhim_t *md, int rank);

@@ -7,7 +7,6 @@
 #ifndef      __STORE_H
 #define      __STORE_H
 
-#include "unqlite.h"
 #include "uthash.h"
 
 /* Storage Methods */

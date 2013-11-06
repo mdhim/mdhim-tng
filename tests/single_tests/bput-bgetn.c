@@ -8,10 +8,11 @@
 #define KEYS 100000
 //#define TOTAL_KEYS 2083334
 #define TOTAL_KEYS 1000000
+#define SLICE_SIZE 100000
 
 uint64_t **keys;
 int *key_lens;
-int **values;
+uint64_t **values;
 int *value_lens;
 
 void start_record(struct timeval *start) {
@@ -30,11 +31,10 @@ void gen_keys_values(int rank, int total_keys) {
 	int i = 0;
 	for (i = 0; i < KEYS; i++) {
 		keys[i] = malloc(sizeof(uint64_t));	
-		//Keys are chosen to fit in one slice
-		*keys[i] = i + (rank * TOTAL_KEYS) + total_keys;
+		*keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
 		key_lens[i] = sizeof(uint64_t);
 		values[i] = malloc(sizeof(int));
-		*values[i] = *keys[i];
+		*values[i] = 1;
 		value_lens[i] = sizeof(int);
 	}
 }
@@ -56,9 +56,8 @@ int main(int argc, char **argv) {
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm;
 	struct timeval start_tv, end_tv;
-	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_INFO; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 
 	int size;
@@ -67,14 +66,14 @@ int main(int argc, char **argv) {
 	long get_time = 0;
 	int total_keys = 0;
 	int round = 0;
-
+	char *paths[] = {"/panfs/pas12a/vol1/hng/", "/panfs/pas12a/vol2/hng/"};
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
-	mdhim_options_set_db_path(db_opts, db_path);
+	mdhim_options_set_db_paths(db_opts, paths, 2);
 	mdhim_options_set_db_name(db_opts, db_name);
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);
-	mdhim_options_set_max_recs_per_slice(db_opts, TOTAL_KEYS);
+	mdhim_options_set_max_recs_per_slice(db_opts, SLICE_SIZE);
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
@@ -98,7 +97,7 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 	
-	key_lens = malloc(sizeof(int) * KEYS);
+	key_lens = malloc(sizeof(uint64_t) * KEYS);
 	value_lens = malloc(sizeof(int) * KEYS);
 	keys = malloc(sizeof(uint64_t *) * KEYS);
 	values = malloc(sizeof(int *) * KEYS);
@@ -207,6 +206,7 @@ done:
 	printf("Took: %ld seconds to stat flush\n", 
 	       flush_time);
 
-
+	fflush(stdout);
+	fflush(stderr);
 	return 0;
 }

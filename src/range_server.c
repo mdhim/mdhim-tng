@@ -649,8 +649,11 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	int32_t new_value_len;
 	void *old_value;
 	int32_t old_value_len;
+	struct timeval start, end;
+	int num_inserted = 0;
 
 	set_store_opts(md, &opts, 0);
+	gettimeofday(&start, NULL);
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
 		value = malloc(sizeof(void *));
@@ -689,6 +692,8 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 			     md->mdhim_rank);
 			error = ret;
+		} else {
+			num_inserted++;
 		}
 
 		if (!exists && error == MDHIM_SUCCESS) {
@@ -711,6 +716,9 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 			free(bim->values[i]);
 		} 
 	}
+
+	gettimeofday(&end, NULL);
+	add_timing(start, end, num_inserted, md, MDHIM_BULK_PUT);
 
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
@@ -1457,6 +1465,7 @@ int range_server_init(struct mdhim_t *md) {
 	int rangesrv_num;
 	int flags = MDHIM_CREATE;
 	struct mdhim_store_opts_t opts;
+	int path_num = 0;
 
 	//There was an error figuring out if I'm a range server
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {
@@ -1482,7 +1491,14 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->info.rangesrv_num = rangesrv_num;
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
-        sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
+	if (!md->db_opts->db_path) {
+		sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
+	} else {
+		path_num = rangesrv_num/(md->num_rangesrvs/md->db_opts->num_paths);
+		sprintf(filename, "%s%s%d", md->db_opts->db_paths[path_num], 
+			md->db_opts->db_name, md->mdhim_rank);
+	}
+
         
 	//Initialize data store
 	md->mdhim_rs->mdhim_store = mdhim_db_init(md->db_opts->db_type);
