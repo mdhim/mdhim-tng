@@ -215,8 +215,7 @@ int verify_key(void *key, int key_len, int key_type) {
 	size_check = ikey/mdhim_max_recs_per_slice;
 	if (size_check >= MDHIM_MAX_SLICES) {
 		mlog(MDHIM_CLIENT_CRIT, "Error - Not enough slices for this key." 
-		     "  Try increasing the slice size. ikey: %" PRIu64 " max_recs: %" PRIu64, 
-		     ikey, mdhim_max_recs_per_slice);
+		     "  Try increasing the slice size.");
 		return MDHIM_ERROR;
 	}
 	

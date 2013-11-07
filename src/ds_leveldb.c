@@ -252,7 +252,9 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	leveldb_free(err); 
 
 	//Open the stats database
-	db = leveldb_open(options, stats_path, &err);
+	cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
+	leveldb_options_set_comparator(stat_options, cmp);
+	db = leveldb_open(stat_options, stats_path, &err);
 	*((leveldb_t **) dbs) = db;
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");

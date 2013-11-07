@@ -283,15 +283,16 @@ int load_stats(struct mdhim_t *md) {
 		md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_stats, 
 						    (void **) slice, key_len, (void **) val, 
 						    val_len, &opts);	
-		if (old_slice) {
-			free(old_slice);
-			old_slice = NULL;
-		}
-
+		
 		//Add the stat to the hash table - the value is 0 if the key was not in the db
 		if (!*val || !*val_len) {
 			done = 1;
 			continue;
+		}
+
+		if (old_slice) {
+			free(old_slice);
+			old_slice = NULL;
 		}
 
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Loaded stat for slice: %d with " 
@@ -1491,12 +1492,14 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->info.rangesrv_num = rangesrv_num;
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
-	if (!md->db_opts->db_path) {
+	if (!md->db_opts->db_paths) {
 		sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
 	} else {
-		path_num = rangesrv_num/(md->num_rangesrvs/md->db_opts->num_paths);
+		path_num = rangesrv_num/((double) md->num_rangesrvs/(double) md->db_opts->num_paths);
+	        path_num = path_num >= md->db_opts->num_paths ? md->db_opts->num_paths - 1 : path_num;
 		sprintf(filename, "%s%s%d", md->db_opts->db_paths[path_num], 
 			md->db_opts->db_name, md->mdhim_rank);
+
 	}
 
         

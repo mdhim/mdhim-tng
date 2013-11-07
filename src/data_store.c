@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include "data_store.h"
-#include "ds_unqlite.h"
 #include "ds_leveldb.h"
 
 /**
