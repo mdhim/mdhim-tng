@@ -296,12 +296,6 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 		return MDHIM_ERROR;
 	}
 
-	/*Rank zero can't be a range server if there is more than one rank 
-	  so it can do maintenance later*/
-	if (!rank && size > 1) {
-		return rangesrv_num;
-	}
-
 	/* Get the range server number, which is just a number from 1 onward
 	   It represents the ranges the server serves and is calculated with the RANGE_SERVER_FACTOR
 	   
@@ -322,6 +316,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 	} else if (rank % range_server_factor == 0) {
 		//This is a range server, get the range server's number
 		rangesrv_num = rank / range_server_factor;
+		rangesrv_num++;
 	}
       		
 	if (rangesrv_num > md->num_rangesrvs) {
@@ -361,7 +356,7 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given to get_range_server()", 
 		     md->mdhim_rank);
-		return 0;
+		return MDHIM_ERROR;
 	}
 
 	//Perform key dependent algorithm to get the key in terms of the ranges served
@@ -439,9 +434,6 @@ int get_slice_num(struct mdhim_t *md, void *key, int key_len) {
 
 	/* Convert the key to a slice number  */
 	slice_num = key_num/mdhim_max_recs_per_slice;
-	if (slice_num == 0) {
-		slice_num = 1;
-	}
 
 	//Return the slice number
 	return slice_num;
@@ -461,14 +453,10 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, int slice) {
 	//The range server number that we return
 	rangesrv_info *rp, *ret_rp;
 
-	if (!slice) {
-		return NULL;
-	}
-
 	if (md->num_rangesrvs == 1) {
 		rangesrv_num = 1;
 	} else {
-		rangesrv_num = slice % (md->num_rangesrvs - 1);
+		rangesrv_num = slice % md->num_rangesrvs;
 		rangesrv_num++;
 	}
 	//Match the range server number of the key with the range server we have in our list
@@ -502,8 +490,7 @@ rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len) {
 	//The range server number that we return
 	rangesrv_info *ret_rp;
 
-	slice_num = get_slice_num(md, key, key_len);
-	if (!slice_num) {
+	if ((slice_num = get_slice_num(md, key, key_len)) == MDHIM_ERROR) {
 		return NULL;
 	}
 
@@ -747,7 +734,7 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int ke
 	//Get the current slice number of our key
 	if (key && key_len) {
 		cur_slice = get_slice_num(md, key, key_len);
-		if (!cur_slice) {
+		if (cur_slice == MDHIM_ERROR) {
 			mlog(MDHIM_CLIENT_INFO, "Rank: %d - Error: could not determine a valid a slice number", 
 			     md->mdhim_rank);
 			return NULL;
@@ -780,7 +767,7 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int ke
 		slice_num = get_slice_from_istat(md, cur_slice, istat, op);
 	}
 
-       	if (!slice_num) {	
+	if (slice_num == MDHIM_ERROR) {
 		return NULL;
 	}
 

@@ -5,10 +5,10 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 100000
+#define KEYS 1000000
 //#define TOTAL_KEYS 2083334
 #define TOTAL_KEYS 1000000
-#define SLICE_SIZE 100000
+#define SLICE_SIZE 1000000
 
 uint64_t **keys;
 int *key_lens;
@@ -66,14 +66,15 @@ int main(int argc, char **argv) {
 	long get_time = 0;
 	int total_keys = 0;
 	int round = 0;
-	char *paths[] = {"/panfs/pas12a/vol1/hng/", "/panfs/pas12a/vol2/hng/"};
+	char *paths[] = {"./"};
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
-	mdhim_options_set_db_paths(db_opts, paths, 2);
+	mdhim_options_set_db_paths(db_opts, paths, 1);
 	mdhim_options_set_db_name(db_opts, db_name);
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);
 	mdhim_options_set_max_recs_per_slice(db_opts, SLICE_SIZE);
+        mdhim_options_set_server_factor(db_opts, 1);
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
@@ -187,6 +188,7 @@ int main(int argc, char **argv) {
 	free(values);
 	free(value_lens);
 done:
+	MPI_Barrier(MPI_COMM_WORLD);
 	//Quit MDHIM
 	ret = mdhimClose(md);
 	mdhim_options_destroy(db_opts);
@@ -206,7 +208,5 @@ done:
 	printf("Took: %ld seconds to stat flush\n", 
 	       flush_time);
 
-	fflush(stdout);
-	fflush(stderr);
 	return 0;
 }

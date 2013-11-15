@@ -41,6 +41,7 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	case LEVELDB:
 		store->open = mdhim_leveldb_open;
 		store->put = mdhim_leveldb_put;
+		store->batch_put = mdhim_leveldb_batch_put;
 		store->get = mdhim_leveldb_get;
 		store->get_next = mdhim_leveldb_get_next;
 		store->get_prev = mdhim_leveldb_get_prev;

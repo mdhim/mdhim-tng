@@ -2514,13 +2514,7 @@ int get_stat_flush(struct mdhim_t *md) {
 			     md->mdhim_rank);
 			free(tstat);
 			goto error;
-		}
-
-		//Skip empty slices
-		if (!((struct mdhim_db_fstat *)tstat)->slice) {
-			free(tstat);
-			break;
-		}
+		}	
 
 		stat = malloc(sizeof(struct mdhim_stat));
 		if (float_type) {

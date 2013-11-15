@@ -16,7 +16,7 @@
 #include "mdhim_options.h"
 
 /**
- * is_range_server
+ * im_range_server
  * checks if I'm a range server
  *
  * @param md  Pointer to the main MDHIM structure
@@ -465,7 +465,7 @@ int range_server_stop(struct mdhim_t *md) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling worker thread", 
 		     md->mdhim_rank);
 	}
-
+	
 	/* Wait for the threads to finish */
 	pthread_join(md->mdhim_rs->listener, NULL);
 	pthread_join(md->mdhim_rs->worker, NULL);
@@ -628,6 +628,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	return MDHIM_SUCCESS;
 }
 
+
 /**
  * range_server_bput
  * Handles the bulk put message and puts data in the database
@@ -645,71 +646,87 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	struct mdhim_store_opts_t opts;
 	void **value;
 	int32_t *value_len;
-	int exists = 0;
+	int *exists;
 	void *new_value;
 	int32_t new_value_len;
+	void **new_values;
+	int32_t *new_value_lens;
 	void *old_value;
 	int32_t old_value_len;
 	struct timeval start, end;
-	int num_inserted = 0;
+	int num_put = 0;
 
-	set_store_opts(md, &opts, 0);
 	gettimeofday(&start, NULL);
+	set_store_opts(md, &opts, 0);
+	exists = malloc(bim->num_records * sizeof(int));
+	new_values = malloc(bim->num_records * sizeof(void *));
+	new_value_lens = malloc(bim->num_records * sizeof(int));
+	value = malloc(sizeof(void *));
+	value_len = malloc(sizeof(int32_t));
+
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
-		value = malloc(sizeof(void *));
 		*value = NULL;
-		value_len = malloc(sizeof(int32_t));
 		*value_len = 0;
-		exists = 0;
-		//Check for the key's existence
+
+                //Check for the key's existence
 		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
 					       bim->keys[i], bim->key_lens[i], value, 
 					       value_len, &opts);
 		//The key already exists
 		if (*value && *value_len) {
-			exists = 1;
+			exists[i] = 1;
+		} else {
+			exists[i] = 0;
 		}
 
 		//If the option to append was specified and there is old data, concat the old and new
-		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
+		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
 			old_value = *value;
 			old_value_len = *value_len;
 			new_value_len = old_value_len + bim->value_lens[i];
 			new_value = malloc(new_value_len);
 			memcpy(new_value, old_value, old_value_len);
-			memcpy(new_value + old_value_len, bim->values[i], bim->value_lens[i]);
+			memcpy(new_value + old_value_len, bim->values[i], bim->value_lens[i]);		
+			if (exists[i] && source != md->mdhim_rank) {
+				free(bim->values[i]);
+			}
+
+			new_values[i] = new_value;
+			new_value_lens[i] = new_value_len;
 		} else {
-			new_value = bim->values[i];
-			new_value_len = bim->value_lens[i];
+			new_values[i] = bim->values[i];
+			new_value_lens[i] = bim->value_lens[i];
 		}
-
-		error = MDHIM_SUCCESS;
-		//Put the record in the database
-		if ((ret = 
-		     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
-						bim->keys[i], bim->key_lens[i], new_value, 
-						new_value_len, &opts)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
-			     md->mdhim_rank);
-			error = ret;
-		} else {
-			num_inserted++;
-		}
-
-		if (!exists && error == MDHIM_SUCCESS) {
-			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
-		}
-
-		if (exists && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
-			free(new_value);
-		}
-
+		
 		if (*value) {
 			free(*value);
 		}
-		free(value);
-		free(value_len);
+	}
+
+	//Put the record in the database
+	if ((ret = 
+	     md->mdhim_rs->mdhim_store->batch_put(md->mdhim_rs->mdhim_store->db_handle, 
+						  bim->keys, bim->key_lens, new_values, 
+						  new_value_lens, bim->num_records,
+						  &opts)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error batch putting records", 
+		     md->mdhim_rank);
+		error = ret;
+	} else {
+		num_put = bim->num_records;
+	}
+
+	for (i = 0; bim->num_records && i < MAX_BULK_OPS; i++) {
+		//Update the stats if this key didn't exist before
+		if (!exists[i] && error == MDHIM_SUCCESS) {
+			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
+		}
+	       
+		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
+			//Release the value created for appending the new and old value
+			free(new_values[i]);
+		}		
 
 		//Release the bput keys/value if the message isn't coming from myself
 		if (source != md->mdhim_rank) {
@@ -718,8 +735,13 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		} 
 	}
 
+	free(exists);
+	free(new_values);
+	free(new_value_lens);
+	free(value);
+	free(value_len);
 	gettimeofday(&end, NULL);
-	add_timing(start, end, num_inserted, md, MDHIM_BULK_PUT);
+	add_timing(start, end, num_put, md, MDHIM_BULK_PUT);
 
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
@@ -1296,6 +1318,8 @@ respond:
  * Function for the thread that listens for new messages
  */
 void *listener_thread(void *data) {	
+	//Mlog statements could cause a deadlock on range_server_stop due to canceling of threads
+
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	void *message;
 	int source; //The source of the message
@@ -1311,30 +1335,27 @@ void *listener_thread(void *data) {
 		//Receive messages sent to this server
 		gettimeofday(&start, NULL);
 		ret = receive_rangesrv_work(md, &source, &message);
-		if (ret < MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error receiving message in listener", 
-			     md->mdhim_rank);
+		if (ret < MDHIM_SUCCESS) {		
 			continue;
 		}
 
-		mlog(MPI_DBG, "Rank: %d - Received message from rank: %d of type: %d", 
-		     md->mdhim_rank, source, mtype);
+//		printf("Rank: %d - Received message from rank: %d of type: %d", 
+//		     md->mdhim_rank, source, mtype);
 
 
-		gettimeofday(&end, NULL);	
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Took: %d seconds to receive a range server message", 
-		     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
+		gettimeofday(&end, NULL);
+	
+//		printf("Rank: %d - Took: %d seconds to receive a range server message", 
+//		     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
 		//We received a close message - so quit
 		if (ret == MDHIM_CLOSE) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Received close message", 
-			     md->mdhim_rank);
 			break;
 		}
 
                 //Get the message type
 		mtype = ((struct mdhim_basem_t *) message)->mtype;
-		mlog(MPI_DBG, "Rank: %d - Received message from rank: %d of type: %d", 
-		     md->mdhim_rank, source, mtype);
+//		printf("Rank: %d - Received message from rank: %d of type: %d", 
+//		     md->mdhim_rank, source, mtype);
 		
                 //Create a new work item
 		item = malloc(sizeof(work_item));
@@ -1356,6 +1377,8 @@ void *listener_thread(void *data) {
  * Function for the thread that processes work in work queue
  */
 void *worker_thread(void *data) {
+	//Mlog statements could cause a deadlock on range_server_stop due to canceling of threads
+
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	work_item *item;
 	int mtype;
@@ -1378,8 +1401,10 @@ void *worker_thread(void *data) {
 	       
 		pthread_cleanup_pop(0);
 		if (!item) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Got empty work item from queue", 
-			     md->mdhim_rank);
+
+//			printf("Rank: %d - Got empty work item from queue", 
+//			     md->mdhim_rank);
+
 			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 			continue;
 		}
@@ -1389,8 +1414,10 @@ void *worker_thread(void *data) {
 			//Call the appropriate function depending on the message type			
 			//Get the message type
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Got work item from queue with type: %d" 
-			     " from: %d", md->mdhim_rank, mtype, item->source);
+
+//			printf("Rank: %d - Got work item from queue with type: %d" 
+//			     " from: %d", md->mdhim_rank, mtype, item->source);
+
 			switch(mtype) {
 			case MDHIM_PUT:
 				//Pack the put message and pass to range_server_put
@@ -1434,22 +1461,28 @@ void *worker_thread(void *data) {
 			case MDHIM_COMMIT:
 				range_server_commit(md, item->message, item->source);
 				break;
+			case MDHIM_CLOSE:
+				goto done;
+				break;
 			default:
-				mlog(MDHIM_SERVER_CRIT, "Rank: %d - Got unknown work type: %d" 
-				     " from: %d", md->mdhim_rank, mtype, item->source);
+				printf("Rank: %d - Got unknown work type: %d" 
+				       " from: %d", md->mdhim_rank, mtype, item->source);
 				break;
 			}
-				
+			
 			free(item);
 			gettimeofday(&end, NULL);
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Took: %d seconds to process range server work", 
-			     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
+			
+//			printf("Rank: %d - Took: %d seconds to process range server work", 
+//			     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
+			
 			item = get_work(md);
 		}		
-
+		
 		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 	}
 	
+done:
 	return NULL;
 }
 

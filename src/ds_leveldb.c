@@ -191,12 +191,12 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	leveldb_options_set_create_if_missing(options, 1);
 	leveldb_options_set_compression(options, 0);
 	main_filter = leveldb_filterpolicy_create_bloom(256);
-	main_cache = leveldb_cache_create_lru(524288000);
+	main_cache = leveldb_cache_create_lru(52428800);
 	main_env = leveldb_create_default_env();
 	leveldb_options_set_cache(options, main_cache);
 	leveldb_options_set_filter_policy(options, main_filter);
-	leveldb_options_set_max_open_files(options, 1000);
-	leveldb_options_set_write_buffer_size(options, 524288000);
+	leveldb_options_set_max_open_files(options, 100000);
+	leveldb_options_set_write_buffer_size(options, 52428800);
 	leveldb_options_set_env(options, main_env);
 
 	//Create the options for the stat database
@@ -208,7 +208,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	stats_env = leveldb_create_default_env();
 	leveldb_options_set_cache(stat_options, stats_cache);
 	leveldb_options_set_filter_policy(stat_options, stats_filter);
-	leveldb_options_set_max_open_files(stat_options, 500);
 	leveldb_options_set_write_buffer_size(stat_options, 52428800);
 	leveldb_options_set_env(stat_options, stats_env);
 
@@ -320,6 +319,55 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
 	 (int) (end.tv_sec - start.tv_sec));
 
     return MDHIM_SUCCESS;
+}
+
+/**
+ * mdhim_leveldb_batch_put
+ * Stores multiple keys in the data store
+ *
+ * @param dbh          in   pointer to the leveldb handle
+ * @param keys         in   void ** to the key to store
+ * @param key_lens     in   int * to the lengths of the keys
+ * @param data         in   void ** to the values of the keys
+ * @param data_lens    in   int * to the lengths of the value data 
+ * @param num_records  in   int for the number of records to insert 
+ * @param mstore_opts  in   additional options for the data store layer 
+ * 
+ * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
+ */
+int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens, 
+			    void **data, int32_t *data_lens, int num_records,
+			    struct mdhim_store_opts_t *mstore_opts) {
+	leveldb_writeoptions_t *options;
+	char *err = NULL;
+	leveldb_t *db = (leveldb_t *) dbh;
+	struct timeval start, end;
+	leveldb_writebatch_t* write_batch;
+	int i;
+
+	gettimeofday(&start, NULL);
+	write_batch = leveldb_writebatch_create();
+	options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;   
+	for (i = 0; i < num_records; i++) {
+		leveldb_writebatch_put(write_batch, keys[i], key_lens[i], 
+				       data[i], data_lens[i]);
+	}
+
+	leveldb_write(db, options, write_batch, &err);
+	leveldb_writebatch_destroy(write_batch);
+	if (err != NULL) {
+		mlog(MDHIM_SERVER_CRIT, "Error in batch put in leveldb");
+		leveldb_free(err); 
+		return MDHIM_DB_ERROR;
+	}
+	//Reset error variable
+	leveldb_free(err); 
+	
+	gettimeofday(&end, NULL);
+	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put %d records", 
+	     (int) (end.tv_sec - start.tv_sec), num_records);
+	
+	return MDHIM_SUCCESS;
 }
 
 /**

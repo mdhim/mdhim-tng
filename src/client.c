@@ -385,7 +385,7 @@ void client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
 	rangesrv_info *rs;
 
 	rs = md->rangesrvs;
-	while (rs) {
+	while (rs) {	
 		return_code = send_rangesrv_work(md, rs->rank, cm);
 		// If there was an error then log the error code and return MDHIM_ERROR
 		if (return_code != MDHIM_SUCCESS) {
