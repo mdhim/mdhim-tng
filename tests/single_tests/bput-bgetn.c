@@ -5,10 +5,10 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 1000000
+#define KEYS 100000
 //#define TOTAL_KEYS 2083334
-#define TOTAL_KEYS 1000000
-#define SLICE_SIZE 1000000
+#define TOTAL_KEYS 100000
+#define SLICE_SIZE 100000
 
 uint64_t **keys;
 int *key_lens;
@@ -23,8 +23,10 @@ void end_record(struct timeval *end) {
 	gettimeofday(end, NULL);
 }
 
-void add_time(struct timeval *start, struct timeval *end, long *time) {
-	*time += end->tv_sec - start->tv_sec;
+void add_time(struct timeval *start, struct timeval *end, long double *time) {
+  	long double elapsed = (long double) (end->tv_sec - start->tv_sec) + 
+		((long double) (end->tv_usec - start->tv_usec)/1000000.0);
+	*time += elapsed;
 }
 
 void gen_keys_values(int rank, int total_keys) {
@@ -61,9 +63,9 @@ int main(int argc, char **argv) {
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 
 	int size;
-	long flush_time = 0;
-	long put_time = 0;
-	long get_time = 0;
+	long double flush_time = 0;
+	long double put_time = 0;
+	long double get_time = 0;
 	int total_keys = 0;
 	int round = 0;
 	char *paths[] = {"./"};
@@ -201,11 +203,11 @@ done:
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 
-	printf("Took: %ld seconds to put %d keys\n", 
+	printf("Took: %Lf seconds to put %d keys\n", 
 	       put_time, TOTAL_KEYS);
-	printf("Took: %ld seconds to get %d keys/values\n", 
+	printf("Took: %Lf seconds to get %d keys/values\n", 
 	       get_time, TOTAL_KEYS);
-	printf("Took: %ld seconds to stat flush\n", 
+	printf("Took: %Lf seconds to stat flush\n", 
 	       flush_time);
 
 	return 0;

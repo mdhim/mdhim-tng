@@ -717,7 +717,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		num_put = bim->num_records;
 	}
 
-	for (i = 0; bim->num_records && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {
 		//Update the stats if this key didn't exist before
 		if (!exists[i] && error == MDHIM_SUCCESS) {
 			update_all_stats(md, bim->keys[i], bim->key_lens[i]);
