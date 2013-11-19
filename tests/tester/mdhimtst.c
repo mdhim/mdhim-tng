@@ -37,7 +37,7 @@ char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include "mpi.h"
 #include "mdhim.h"
@@ -1668,8 +1668,8 @@ int main( int argc, char * argv[] )
     int      dowork = 1;
     int      dbug = 1; //MLOG_CRIT=1, MLOG_DBG=2
 
-    clock_t  begin, end;
-    double   time_spent;
+    struct timeval begin, end;
+    long double   time_spent;
     
     mdhim_options_t *db_opts; // Local variable for db create options to be passed
     
@@ -1842,7 +1842,7 @@ int main( int argc, char * argv[] )
         charIdx = getWordFromString( commands[cmdIdx], command, 0);
 
         if (verbose) tst_say(0, "\n##exec command: %s\n", command );
-        begin = clock();
+	gettimeofday(&begin, NULL);
         
         // execute the command given
         if( !strcmp( command, "put" ))
@@ -1903,9 +1903,10 @@ int main( int argc, char * argv[] )
 
         }
         
-        end = clock();
-        time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-        tst_say(0, "Seconds to %s : %f\n\n", commands[cmdIdx], time_spent);
+	gettimeofday(&end, NULL);
+	time_spent = (long double) (end.tv_sec - begin.tv_sec) + 
+		((long double) (end.tv_usec - begin.tv_usec)/1000000.0);
+        tst_say(0, "Seconds to %s : %Lf\n\n", commands[cmdIdx], time_spent);
     }
     
     if (errMsgIdx)
