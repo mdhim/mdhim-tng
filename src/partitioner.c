@@ -313,7 +313,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank) {
 	if (size < range_server_factor && rank == size) {
 		//The size of the communicator is less than the RANGE_SERVER_FACTOR
 		rangesrv_num = 1;
-	} else if (rank % range_server_factor == 0) {
+	} else if (size >= range_server_factor && rank % range_server_factor == 0) {
 		//This is a range server, get the range server's number
 		rangesrv_num = rank / range_server_factor;
 		rangesrv_num++;
