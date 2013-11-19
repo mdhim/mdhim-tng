@@ -943,6 +943,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 			     md->mdhim_rank);
 			error = ret;
 		}
+	
 		break;
 	/* Gets the next key and value that is in order after the passed in key */
 	case MDHIM_GET_NEXT:	

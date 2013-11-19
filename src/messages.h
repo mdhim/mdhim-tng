@@ -141,17 +141,17 @@ struct mdhim_rsi_t {
 /* Generic receive message */
 struct mdhim_rm_t {
 	int mtype;  
-	int error;
 	int server_rank;
 	int size;
+	int error;
 };
 
 /* Get receive message */
 struct mdhim_getrm_t {
 	int mtype;
-	int error;
 	int server_rank;
 	int size;
+	int error;
 	void *key;
 	int key_len;
 	void *value;
@@ -161,9 +161,9 @@ struct mdhim_getrm_t {
 /* Bulk get receive message */
 struct mdhim_bgetrm_t {
 	int mtype;
-	int error;
 	int server_rank;
 	int size;
+	int error;
 	void **keys;
 	int *key_lens;
 	void **values;
@@ -175,8 +175,9 @@ struct mdhim_bgetrm_t {
 /* Bulk generic receive message */
 struct mdhim_brm_t {
 	int mtype;
-	int error;
 	int server_rank;
+	int size;
+	int error;
 	struct mdhim_brm_t *next;
 };
 
