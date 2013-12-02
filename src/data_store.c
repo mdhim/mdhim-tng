@@ -6,7 +6,12 @@
 
 #include <stdlib.h>
 #include "data_store.h"
+#ifdef      LEVELDB_SUPPORT
 #include "ds_leveldb.h"
+#endif
+#ifdef      ROCKSDB_SUPPORT
+#include "ds_rocksdb.h"
+#endif
 
 /**
  * mdhim_db_init
@@ -38,6 +43,8 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	store->db_ptr14 = NULL;
 	store->mdhim_store_stats = NULL;
 	switch(type) {
+
+#ifdef      LEVELDB_SUPPORT
 	case LEVELDB:
 		store->open = mdhim_leveldb_open;
 		store->put = mdhim_leveldb_put;
@@ -46,10 +53,26 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->get_next = mdhim_leveldb_get_next;
 		store->get_prev = mdhim_leveldb_get_prev;
 		store->del = mdhim_leveldb_del;
-		store->iter_free = mdhim_leveldb_iter_free;
 		store->commit = mdhim_leveldb_commit;
 		store->close = mdhim_leveldb_close;
 		break;
+
+#endif
+
+#ifdef      ROCKSDB_SUPPORT
+	case ROCKSDB:
+		store->open = mdhim_rocksdb_open;
+		store->put = mdhim_rocksdb_put;
+		store->batch_put = mdhim_rocksdb_batch_put;
+		store->get = mdhim_rocksdb_get;
+		store->get_next = mdhim_rocksdb_get_next;
+		store->get_prev = mdhim_rocksdb_get_prev;
+		store->del = mdhim_rocksdb_del;
+		store->commit = mdhim_rocksdb_commit;
+		store->close = mdhim_rocksdb_close;
+		break;
+#endif
+
 	default:
 		free(store);
 		store = NULL;

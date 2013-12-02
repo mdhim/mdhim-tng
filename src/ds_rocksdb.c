@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include <leveldb/c.h>
+#include <rocksdb/c.h>
 #include <stdio.h>
 #include <linux/limits.h>
 #include <sys/time.h>
-#include "ds_leveldb.h"
+#include "ds_rocksdb.h"
 
 static void cmp_destroy(void* arg) { }
 
@@ -159,11 +159,11 @@ static const char* cmp_name(void* arg) {
 }
 
 /**
- * mdhim_leveldb_open
+ * mdhim_rocksdb_open
  * Opens the database
  *
- * @param dbh            in   double pointer to the leveldb handle
- * @param dbs            in   double pointer to the leveldb statistics db handle 
+ * @param dbh            in   double pointer to the rocksdb handle
+ * @param dbs            in   double pointer to the rocksdb statistics db handle 
  * @param path           in   path to the database file
  * @param flags          in   flags for opening the data store
  * @param mstore_opts    in   additional options for the data store layer 
@@ -171,7 +171,7 @@ static const char* cmp_name(void* arg) {
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 
-int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, 
+int mdhim_rocksdb_open(void **dbh, void **dbs, char *path, int flags, 
 		       struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db;
 	leveldb_options_t *options;
@@ -189,7 +189,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	//Create the options for the main database
 	options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(options, 1);
-	leveldb_options_set_compression(options, 0);
 	main_filter = leveldb_filterpolicy_create_bloom(256);
 	main_cache = leveldb_cache_create_lru(5242880);
 	main_env = leveldb_create_default_env();
@@ -202,7 +201,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	//Create the options for the stat database
 	stat_options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(stat_options, 1);
-	leveldb_options_set_compression(stat_options, 0);
 	stats_filter = leveldb_filterpolicy_create_bloom(256);       
 	stats_cache = leveldb_cache_create_lru(1024);
 	stats_env = leveldb_create_default_env();
@@ -235,7 +233,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	leveldb_options_set_comparator(options, cmp);
 	//Check to see if the given path + "_stat" and the null char will be more than the max
 	if (strlen(path) + 6 > PATH_MAX) {
-		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database - path provided is too long");
+		mlog(MDHIM_SERVER_CRIT, "Error opening rocksdb database - path provided is too long");
 		return MDHIM_DB_ERROR;
 	}
 	sprintf(stats_path, "%s_stats", path);
@@ -244,11 +242,9 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	//Set the output handle
 	*((leveldb_t **) dbh) = db;
 	if (err != NULL) {
-		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
+		mlog(MDHIM_SERVER_CRIT, "Error opening rocksdb database: %s", err);
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 
 	//Open the stats database
 	cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
@@ -256,11 +252,9 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	db = leveldb_open(stat_options, stats_path, &err);
 	*((leveldb_t **) dbs) = db;
 	if (err != NULL) {
-		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
+		mlog(MDHIM_SERVER_CRIT, "Error opening rocksdb database: %s", err);
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 
 	//Set the output comparator
 	mstore_opts->db_ptr1 = cmp;
@@ -285,10 +279,10 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 }
 
 /**
- * mdhim_leveldb_put
+ * mdhim_rocksdb_put
  * Stores a single key in the data store
  *
- * @param dbh         in   pointer to the leveldb handle
+ * @param dbh         in   pointer to the rocksdb handle
  * @param key         in   void * to the key to store
  * @param key_len     in   length of the key
  * @param data        in   void * to the value of the key
@@ -297,7 +291,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t data_len, 
+int mdhim_rocksdb_put(void *dbh, void *key, int key_len, void *data, int32_t data_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
     leveldb_writeoptions_t *options;
     char *err = NULL;
@@ -308,11 +302,9 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
     options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;    	    
     leveldb_put(db, options, key, key_len, data, data_len, &err);
     if (err != NULL) {
-	    mlog(MDHIM_SERVER_CRIT, "Error putting key/value in leveldb");
+	    mlog(MDHIM_SERVER_CRIT, "Error putting key/value in rocksdb");
 	    return MDHIM_DB_ERROR;
     }
-    //Reset error variable
-    leveldb_free(err); 
 
     gettimeofday(&end, NULL);
     mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put the record", 
@@ -322,10 +314,10 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
 }
 
 /**
- * mdhim_leveldb_batch_put
+ * mdhim_rocksdb_batch_put
  * Stores multiple keys in the data store
  *
- * @param dbh          in   pointer to the leveldb handle
+ * @param dbh          in   pointer to the rocksdb handle
  * @param keys         in   void ** to the key to store
  * @param key_lens     in   int * to the lengths of the keys
  * @param data         in   void ** to the values of the keys
@@ -335,7 +327,7 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens, 
+int mdhim_rocksdb_batch_put(void *dbh, void **keys, int32_t *key_lens, 
 			    void **data, int32_t *data_lens, int num_records,
 			    struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_writeoptions_t *options;
@@ -356,12 +348,9 @@ int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens,
 	leveldb_write(db, options, write_batch, &err);
 	leveldb_writebatch_destroy(write_batch);
 	if (err != NULL) {
-		mlog(MDHIM_SERVER_CRIT, "Error in batch put in leveldb");
-		leveldb_free(err); 
+		mlog(MDHIM_SERVER_CRIT, "Error in batch put in rocksdb");
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 	
 	gettimeofday(&end, NULL);
 	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put %d records", 
@@ -371,10 +360,10 @@ int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens,
 }
 
 /**
- * mdhim_leveldb_get
+ * mdhim_rocksdb_get
  * Gets a value, given a key, from the data store
  *
- * @param dbh          in   pointer to the leveldb db handle
+ * @param dbh          in   pointer to the rocksdb db handle
  * @param key          in   void * to the key to retrieve the value of
  * @param key_len      in   length of the key
  * @param data         out  void * to the value of the key
@@ -383,7 +372,7 @@ int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *data_len, 
+int mdhim_rocksdb_get(void *dbh, void *key, int key_len, void **data, int32_t *data_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_readoptions_t *options;
 	char *err = NULL;
@@ -396,11 +385,9 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 	*data = NULL;
 	ldb_data = leveldb_get(db, options, key, key_len, &ldb_data_len, &err);
 	if (err != NULL) {
-		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
+		mlog(MDHIM_SERVER_CRIT, "Error getting value in rocksdb");
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 
 	if (!ldb_data_len) {
 	  ret = MDHIM_DB_ERROR;
@@ -415,7 +402,7 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 }
 
 /**
- * mdhim_leveldb_get_next
+ * mdhim_rocksdb_get_next
  * Gets the next key/value from the data store
  *
  * @param dbh             in   pointer to the unqlite db handle
@@ -426,7 +413,7 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
  * @param mstore_opts in   additional cursor options for the data store layer 
  * 
  */
-int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len, 
+int mdhim_rocksdb_get_next(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
 			   struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_readoptions_t *options;
@@ -510,7 +497,7 @@ error:
 	return MDHIM_DB_ERROR;
 }
 
-int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len, 
+int mdhim_rocksdb_get_prev(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
 			   struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_readoptions_t *options;
@@ -543,7 +530,7 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	} else {
 		leveldb_iter_seek(iter, old_key, old_key_len);
 		if (!leveldb_iter_valid(iter)) { 
-			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
+			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in rocksdb");
 			goto error;
 		}
 
@@ -595,16 +582,16 @@ error:
 }
 
 /**
- * mdhim_leveldb_close
+ * mdhim_rocksdb_close
  * Closes the data store
  *
- * @param dbh         in   pointer to the leveldb db handle 
- * @param dbs         in   pointer to the leveldb statistics db handle 
+ * @param dbh         in   pointer to the rocksdb db handle 
+ * @param dbs         in   pointer to the rocksdb statistics db handle 
  * @param mstore_opts in   additional options for the data store layer 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_rocksdb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_t *db = (leveldb_t *) dbh;
 	leveldb_t *db_s = (leveldb_t *) dbs;
 
@@ -629,17 +616,17 @@ int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_
 }
 
 /**
- * mdhim_leveldb_del
+ * mdhim_rocksdb_del
  * delete the given key
  *
- * @param dbh         in   pointer to the leveldb db handle
+ * @param dbh         in   pointer to the rocksdb db handle
  * @param key         in   void * for the key to delete
  * @param key_len     in   int for the length of the key
  * @param mstore_opts in   additional options for the data store layer 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_del(void *dbh, void *key, int key_len, 
+int mdhim_rocksdb_del(void *dbh, void *key, int key_len, 
 		      struct mdhim_store_opts_t *mstore_opts) {
 	leveldb_writeoptions_t *options;
 	char *err = NULL;
@@ -651,20 +638,18 @@ int mdhim_leveldb_del(void *dbh, void *key, int key_len,
 		mlog(MDHIM_SERVER_CRIT, "Error deleting key in leveldb");
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err);
  
 	return MDHIM_SUCCESS;
 }
 
 /**
- * mdhim_leveldb_commit
+ * mdhim_rocksdb_commit
  * Commits outstanding writes the data store
  *
- * @param dbh         in   pointer to the leveldb handle 
+ * @param dbh         in   pointer to the rocksdb handle 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_commit(void *dbh) {
+int mdhim_rocksdb_commit(void *dbh) {
 	return MDHIM_SUCCESS;
 }

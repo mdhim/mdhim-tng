@@ -1786,7 +1786,6 @@ int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void **send
         int mesg_size;   // Variable to be used as parameter for MPI_pack of safe size
     	int mesg_idx = 0;
         int i;
-        void *outbuf;
 
         // Add up the size of message
         m_size += bdm->num_records * sizeof(int);
@@ -1811,7 +1810,6 @@ int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void **send
 		return MDHIM_ERROR; 
         }
         
-	outbuf = *sendbuf;
         // pack the message first with the structure and then followed by key (plus lengths).
 	return_code = MPI_Pack(bdm, sizeof(struct mdhim_bdelm_t), MPI_CHAR, *sendbuf, 
 			       mesg_size, &mesg_idx, md->mdhim_comm);

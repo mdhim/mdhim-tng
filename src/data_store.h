@@ -11,7 +11,7 @@
 
 /* Storage Methods */
 #define LEVELDB 1 //LEVELDB storage method
-
+#define ROCKSDB 4 //RocksDB
 /* mdhim_store_t flags */
 #define MDHIM_CREATE 1 //Implies read/write 
 #define MDHIM_RDONLY 2
@@ -46,7 +46,6 @@ typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void **key,
 					 struct mdhim_store_opts_t *mstore_opts);
 typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
 				    struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_iter_free_fn_t)(void **iterator);
 typedef int (*mdhim_store_commit_fn_t)(void *db_handle);
 typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
 				      struct mdhim_store_opts_t *mstore_opts);
@@ -117,7 +116,6 @@ struct mdhim_store_t {
 	mdhim_store_get_next_fn_t get_next;
 	mdhim_store_get_prev_fn_t get_prev;
 	mdhim_store_del_fn_t del;
-        mdhim_store_iter_free_fn_t iter_free;
 	mdhim_store_commit_fn_t commit;
 	mdhim_store_close_fn_t close;
 

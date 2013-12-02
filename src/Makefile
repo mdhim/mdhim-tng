@@ -1,5 +1,18 @@
 include ../Makefile.cfg
-OBJS    = mlog.o client.o local_client.o data_store.o ds_leveldb.o partitioner.o messages.o range_server.o mdhim_options.o
+OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o
+
+
+ifeq ($(LEVELDB),1)
+	OBJS += ds_leveldb.o
+endif
+ifeq ($(ROCKSDB),1)
+	OBJS += ds_rocksdb.o
+endif
+
+
+
+
+
 all:	mdhim.o lib
 
 mdhim.o: mdhim.c $(OBJS)
@@ -26,9 +39,12 @@ data_store.o: data_store.c
 ds_leveldb.o: ds_leveldb.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
+ds_rocksdb.o: ds_rocksdb.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
 range_server.o: range_server.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
-	
+
 mdhim_options.o : mdhim_options.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
