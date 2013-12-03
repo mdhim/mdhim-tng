@@ -4,10 +4,12 @@ OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o r
 
 ifeq ($(LEVELDB),1)
 	OBJS += ds_leveldb.o
+else
+	ifeq ($(ROCKSDB),1)
+		OBJS += ds_leveldb.o
+	endif
 endif
-ifeq ($(ROCKSDB),1)
-	OBJS += ds_rocksdb.o
-endif
+
 
 
 
@@ -37,9 +39,6 @@ data_store.o: data_store.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 ds_leveldb.o: ds_leveldb.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
-
-ds_rocksdb.o: ds_rocksdb.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 range_server.o: range_server.c

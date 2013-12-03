@@ -1,6 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef      LEVELDB_SUPPORT
+#include <rocksdb/c.h>
+#else
 #include <leveldb/c.h>
+#endif
+
 #include <stdio.h>
 #include <linux/limits.h>
 #include <sys/time.h>
@@ -189,7 +195,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	//Create the options for the main database
 	options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(options, 1);
-	leveldb_options_set_compression(options, 0);
+	//leveldb_options_set_compression(options, 0);
 	main_filter = leveldb_filterpolicy_create_bloom(256);
 	main_cache = leveldb_cache_create_lru(5242880);
 	main_env = leveldb_create_default_env();
@@ -202,7 +208,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	//Create the options for the stat database
 	stat_options = leveldb_options_create();
 	leveldb_options_set_create_if_missing(stat_options, 1);
-	leveldb_options_set_compression(stat_options, 0);
+	//leveldb_options_set_compression(stat_options, 0);
 	stats_filter = leveldb_filterpolicy_create_bloom(256);       
 	stats_cache = leveldb_cache_create_lru(1024);
 	stats_env = leveldb_create_default_env();
@@ -247,8 +253,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 
 	//Open the stats database
 	cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
@@ -259,8 +263,6 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 
 	//Set the output comparator
 	mstore_opts->db_ptr1 = cmp;
@@ -311,8 +313,6 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
 	    mlog(MDHIM_SERVER_CRIT, "Error putting key/value in leveldb");
 	    return MDHIM_DB_ERROR;
     }
-    //Reset error variable
-    leveldb_free(err); 
 
     gettimeofday(&end, NULL);
     mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put the record", 
@@ -357,11 +357,8 @@ int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens,
 	leveldb_writebatch_destroy(write_batch);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error in batch put in leveldb");
-		leveldb_free(err); 
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 	
 	gettimeofday(&end, NULL);
 	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put %d records", 
@@ -399,8 +396,6 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err); 
 
 	if (!ldb_data_len) {
 	  ret = MDHIM_DB_ERROR;
@@ -651,8 +646,6 @@ int mdhim_leveldb_del(void *dbh, void *key, int key_len,
 		mlog(MDHIM_SERVER_CRIT, "Error deleting key in leveldb");
 		return MDHIM_DB_ERROR;
 	}
-	//Reset error variable
-	leveldb_free(err);
  
 	return MDHIM_SUCCESS;
 }
