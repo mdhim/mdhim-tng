@@ -11,6 +11,7 @@
 
 /* Storage Methods */
 #define LEVELDB 1 //LEVELDB storage method
+#define SOPHIADB  3 //Sophia database
 #define ROCKSDB 4 //RocksDB
 /* mdhim_store_t flags */
 #define MDHIM_CREATE 1 //Implies read/write 

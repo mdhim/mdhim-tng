@@ -12,7 +12,9 @@
 #ifdef      ROCKSDB_SUPPORT
 #include "ds_leveldb.h"
 #endif
-
+#ifdef      SOPHIADB_SUPPORT
+#include "ds_sophia.h"
+#endif
 /**
  * mdhim_db_init
  * Initializes mdhim_store_t structure based on type
@@ -72,7 +74,19 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->close = mdhim_leveldb_close;
 		break;
 #endif
-
+#ifdef      SOPHIADB_SUPPORT
+	case SOPHIADB:
+		store->open = mdhim_sophia_open;
+		store->put = mdhim_sophia_put;
+		store->batch_put = mdhim_sophia_batch_put;
+		store->get = mdhim_sophia_get;
+		store->get_next = mdhim_sophia_get_next;
+		store->get_prev = mdhim_sophia_get_prev;
+		store->del = mdhim_sophia_del;
+		store->commit = mdhim_sophia_commit;
+		store->close = mdhim_sophia_close;
+		break;
+#endif
 	default:
 		free(store);
 		store = NULL;

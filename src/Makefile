@@ -10,9 +10,9 @@ else
 	endif
 endif
 
-
-
-
+ifeq ($(SOPHIADB),1)
+	OBJS += ds_sophia.o
+endif
 
 
 all:	mdhim.o lib
@@ -39,6 +39,9 @@ data_store.o: data_store.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 ds_leveldb.o: ds_leveldb.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+ds_sophia.o: ds_sophia.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 range_server.o: range_server.c

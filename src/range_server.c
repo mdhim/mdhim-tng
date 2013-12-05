@@ -111,8 +111,8 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 		     md->mdhim_rank, dest);
 		pthread_mutex_lock(md->receive_msg_mutex);
 		md->receive_msg = message;
-		pthread_cond_signal(md->receive_msg_ready_cv);
 		pthread_mutex_unlock(md->receive_msg_mutex);
+		pthread_cond_signal(md->receive_msg_ready_cv);
 	}
 
 	return ret;
@@ -342,12 +342,10 @@ int write_stats(struct mdhim_t *md) {
 	struct mdhim_store_opts_t opts;
 	struct mdhim_stat *stat, *tmp;
 	struct mdhim_db_stat *dbstat;
-	int val_len;
 	int float_type = 0;
 
 	float_type = is_float_key(md->key_type);
 	set_store_opts(md, &opts, 1);
-	val_len = sizeof(struct mdhim_db_stat);
 
 	//Iterate through the stat hash entries
 	HASH_ITER(hh, md->mdhim_rs->mdhim_store->mdhim_store_stats, stat, tmp) {	
@@ -412,8 +410,8 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
 	}
 
 	//Signal the waiting thread that there is work available
-	pthread_cond_signal(md->mdhim_rs->work_ready_cv);
 	pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+	pthread_cond_signal(md->mdhim_rs->work_ready_cv);
 
 	return MDHIM_SUCCESS;
 }
@@ -1324,7 +1322,7 @@ void *listener_thread(void *data) {
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	void *message;
 	int source; //The source of the message
-	int mtype; //The message type
+	//	int mtype; //The message type
 	int ret;
 	work_item *item;
 	struct timeval start, end;
@@ -1354,7 +1352,7 @@ void *listener_thread(void *data) {
 		}
 
                 //Get the message type
-		mtype = ((struct mdhim_basem_t *) message)->mtype;
+		//		mtype = ((struct mdhim_basem_t *) message)->mtype;
 //		printf("Rank: %d - Received message from rank: %d of type: %d", 
 //		     md->mdhim_rank, source, mtype);
 		
