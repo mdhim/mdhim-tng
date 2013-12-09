@@ -5,10 +5,10 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 100000
+#define KEYS 1000000
 //#define TOTAL_KEYS 2083334
-#define TOTAL_KEYS 100000
-#define SLICE_SIZE 100000
+#define TOTAL_KEYS 1000000
+#define SLICE_SIZE 1000000
 
 uint64_t **keys;
 int *key_lens;
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 	struct mdhim_bgetrm_t *bgrm;
 	struct timeval start_tv, end_tv;
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_INFO; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 
 	int size;
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 	long double get_time = 0;
 	int total_keys = 0;
 	int round = 0;
-	char *paths[] = {"./"};
+	char *paths[] = {"/tmp/"};
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
 	mdhim_options_set_db_paths(db_opts, paths, 1);
@@ -104,20 +104,17 @@ int main(int argc, char **argv) {
 	value_lens = malloc(sizeof(int) * KEYS);
 	keys = malloc(sizeof(uint64_t *) * KEYS);
 	values = malloc(sizeof(int *) * KEYS);
-	MPI_Comm_size(md->mdhim_comm, &size);	
+	MPI_Comm_size(md->mdhim_comm, &size);
+	MPI_Barrier(MPI_COMM_WORLD);	
+	//record the start time
+	start_record(&start_tv);
 	while (total_keys != TOTAL_KEYS) {
 		//Populate the keys and values to insert
 		gen_keys_values(md->mdhim_rank, total_keys);
-		//record the start time
-		start_record(&start_tv);
 		//Insert the keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
 				(void **) values, value_lens, KEYS);
 		//		MPI_Barrier(MPI_COMM_WORLD);
-		//record the end time
-		end_record(&end_tv);			       
-		//add the time
-		add_time(&start_tv, &end_tv, &put_time);
 
 		//Iterate through the return messages to see if there is an error and to free it
 		brmp = brm;
@@ -141,6 +138,11 @@ int main(int argc, char **argv) {
 		round++;
 	}
 	
+	//Record the end time
+	end_record(&end_tv);
+	//Add the final time
+	add_time(&start_tv, &end_tv, &put_time);
+	MPI_Barrier(MPI_COMM_WORLD);
 	//Get the stats
 	start_record(&start_tv);
 	ret = mdhimStatFlush(md);

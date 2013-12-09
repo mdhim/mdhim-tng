@@ -96,19 +96,12 @@ void add_timing(struct timeval start, struct timeval end, int num,
 int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	int ret = MDHIM_SUCCESS;
 
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending response to: %d", 
-	     md->mdhim_rank, dest);
-
 	if (md->mdhim_rank != dest) {
 		//Sends the message remotely
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending remote response to: %d", 
-		     md->mdhim_rank, dest);
 		ret = send_client_response(md, dest, message);
 		mdhim_full_release_msg(message);
 	} else {
 		//Sends the message locally
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending local response to: %d", 
-		     md->mdhim_rank, dest);
 		pthread_mutex_lock(md->receive_msg_mutex);
 		md->receive_msg = message;
 		pthread_mutex_unlock(md->receive_msg_mutex);
@@ -216,10 +209,6 @@ int update_all_stats(struct mdhim_t *md, void *key, uint32_t key_len) {
 		}
 	}
 	if (!float_type && os) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - stat exists for slice: %d with " 
-		     "min: %lu and max: %lu and val1: %lu and val2: %lu", 
-		     md->mdhim_rank, slice_num, *(uint64_t *)os->min, *(uint64_t *)os->max, 
-		     *(uint64_t *)val1, *(uint64_t *)val2);
 		if (*(uint64_t *)os->min > *(uint64_t *)val1) {
 			free(os->min);
 			stat->min = val1;
@@ -396,9 +385,7 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
 	pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
 	item->next = NULL;
 	item->prev = NULL;       
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - Adding work to queue", 
-			     md->mdhim_rank);
-
+	
 	//Add work to the head of the work queue
 	if (md->mdhim_rs->work_queue->head) {
 		md->mdhim_rs->work_queue->head->prev = item;
@@ -592,8 +579,6 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 
 	if (!exists && error == MDHIM_SUCCESS) {
 		update_all_stats(md, im->key, im->key_len);
-	} else {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - not updating all stats", md->mdhim_rank);
 	}
 
 	gettimeofday(&end, NULL);
@@ -607,9 +592,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	rm->error = error;
 	//Set the server's rank
 	rm->server_rank = md->mdhim_rank;
-
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending response for put request", 
-	     md->mdhim_rank);
+	
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
 
@@ -880,8 +863,6 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
 	//Set the server's rank
 	rm->server_rank = md->mdhim_rank;
 
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - Sending response for commit request", 
-	     md->mdhim_rank);
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
 	free(im);
@@ -921,8 +902,6 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	*value_len = 0;
 
 	//Set our local pointer to the key and length
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - key pointer: %p and length: %d", 
-	     md->mdhim_rank, gm->key, gm->key_len);
 	if (gm->key_len) {
 		*key = gm->key;
 		key_len = gm->key_len;
@@ -1025,8 +1004,6 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	}
 
 	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - key pointer: %p and length: %d with source: %d", 
-	     md->mdhim_rank, gm->key, gm->key_len, source);
 	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
 	  	free(gm->key);
 		gm->key = NULL;
@@ -1038,8 +1015,6 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	grm->value_len = *value_len;
 
 	//Send response
-	mlog(MDHIM_SERVER_DBG, "Rank: %d - About to send get response to: %d", 
-	     md->mdhim_rank, source);
 	ret = send_locally_or_remote(md, source, grm);
 	free(gm);
 	free(value_len);
@@ -1069,6 +1044,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	struct timeval start, end;
 	int num_retrieved = 0;
 
+	gettimeofday(&start, NULL);
 	set_store_opts(md, &opts, 0);
 	values = malloc(sizeof(void *) * bgm->num_records);
 	value_lens = malloc(sizeof(int32_t) * bgm->num_records);
@@ -1322,17 +1298,14 @@ void *listener_thread(void *data) {
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	void *message;
 	int source; //The source of the message
-	//	int mtype; //The message type
 	int ret;
 	work_item *item;
-	struct timeval start, end;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
 	while (1) {		
 		//Receive messages sent to this server
-		gettimeofday(&start, NULL);
 		ret = receive_rangesrv_work(md, &source, &message);
 		if (ret < MDHIM_SUCCESS) {		
 			continue;
@@ -1341,20 +1314,10 @@ void *listener_thread(void *data) {
 //		printf("Rank: %d - Received message from rank: %d of type: %d", 
 //		     md->mdhim_rank, source, mtype);
 
-
-		gettimeofday(&end, NULL);
-	
-//		printf("Rank: %d - Took: %d seconds to receive a range server message", 
-//		     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
 		//We received a close message - so quit
 		if (ret == MDHIM_CLOSE) {
 			break;
 		}
-
-                //Get the message type
-		//		mtype = ((struct mdhim_basem_t *) message)->mtype;
-//		printf("Rank: %d - Received message from rank: %d of type: %d", 
-//		     md->mdhim_rank, source, mtype);
 		
                 //Create a new work item
 		item = malloc(sizeof(work_item));
@@ -1383,7 +1346,6 @@ void *worker_thread(void *data) {
 	int mtype;
 	int op;
 	int num_records;
-	struct timeval start, end;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -1400,16 +1362,11 @@ void *worker_thread(void *data) {
 	       
 		pthread_cleanup_pop(0);
 		if (!item) {
-
-//			printf("Rank: %d - Got empty work item from queue", 
-//			     md->mdhim_rank);
-
 			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 			continue;
 		}
 
 		while (item) {
-			gettimeofday(&start, NULL);
 			//Call the appropriate function depending on the message type			
 			//Get the message type
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
@@ -1469,12 +1426,7 @@ void *worker_thread(void *data) {
 				break;
 			}
 			
-			free(item);
-			gettimeofday(&end, NULL);
-			
-//			printf("Rank: %d - Took: %d seconds to process range server work", 
-//			     md->mdhim_rank, (int) (end.tv_sec - start.tv_sec));
-			
+			free(item);		    
 			item = get_work(md);
 		}		
 		
@@ -1661,9 +1613,6 @@ int range_server_init_comm(struct mdhim_t *md) {
 		size = 0;
 		while (rp) {
 			ranks[i] = rp->rank;
-			mlog(MDHIM_SERVER_DBG2, "MDHIM Rank: %d - " 
-			     "Adding rank: %d to range server comm", 
-			     md->mdhim_rank, rp->rank); 
 			i++;
 			size++;
 			rp = rp->next;
@@ -1688,9 +1637,6 @@ int range_server_init_comm(struct mdhim_t *md) {
 				continue;
 			}
 			ranks[j] = i;
-			mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - " 
-			     "Adding rank: %d to clients only comm", 
-			     md->mdhim_rank, i);
 			j++;
 			size++;
 		}

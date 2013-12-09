@@ -276,8 +276,6 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,
 		return NULL;
 	}
 	
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Sending put request to rank: %d", 
-	     md->mdhim_rank, ri->rank);
 	pm = malloc(sizeof(struct mdhim_putm_t));
 	if (!pm) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
@@ -480,8 +478,6 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	gm->server_rank = ri->rank;
 	gm->num_records = 1;
 
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Sending get request to rank: %d", 
-	     md->mdhim_rank, ri->rank);
 	//Test if I'm a range server
 	ret = im_range_server(md);
 
@@ -666,8 +662,6 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
 	gm->server_rank = ri->rank;
 	gm->num_records = num_records;
 
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Sending get request to rank: %d", 
-	     md->mdhim_rank, ri->rank);
 	//Test if I'm a range server
 	ret = im_range_server(md);
 

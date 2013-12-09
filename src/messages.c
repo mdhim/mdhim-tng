@@ -311,9 +311,6 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	mtype = bm->mtype;
 	msg_size = bm->size;
 	free(bm);
-	mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - "
-	     "Received message with size: %d and type: %d from rank: %d.", md->mdhim_rank, msg_size, 
-	     mtype, msg_source);
         
         // Checks for valid message, if error inform and ignore message
         if (msg_size==0 || mtype<MDHIM_PUT || mtype>MDHIM_COMMIT) {
@@ -405,9 +402,6 @@ int send_client_response(struct mdhim_t *md, int dest, void *message) {
 		ret = MDHIM_ERROR;
 	}
 
-	mlog(MPI_DBG, "Rank: %d - " 
-	     "Sending response message to: %d", 
-	     md->mdhim_rank, dest);
 	//Send the size message
 	return_code = MPI_Send(&sendsize, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE_MSG, 
 			       md->mdhim_comm);
@@ -473,10 +467,6 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	}
 
 	//Received the message
-	mlog(MPI_DBG, "Rank: %d - " 
-	     "Received the message from server: %d", 
-	     md->mdhim_rank, src);
-
 	*message = NULL;
 	bm = malloc(sizeof(struct mdhim_basem_t));
 	//Unpack buffer to get the message type
@@ -710,9 +700,6 @@ int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf
 
         // Add to size the length of the key and data fields
         m_size += pm->key_len + pm->value_len;	
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Packing put message with key len: %d," 
-	     " with value len: %d.", md->mdhim_rank, pm->key_len, pm->value_len);
-
         if (m_size > MDHIM_MAX_MSG_SIZE) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: put message too large."
                      " Put is over Maximum size allowed of %d.", md->mdhim_rank, MDHIM_MAX_MSG_SIZE);
@@ -724,8 +711,6 @@ int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf
         *sendsize = mesg_size;	
 	pm->size = mesg_size;
 
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank: %d - Packing put message has size: %d.", md->mdhim_rank,
-	     mesg_size);
         // Is the computed message size of a safe value? (less than a max message size?)
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
@@ -853,8 +838,6 @@ int unpack_put_message(struct mdhim_t *md, void *message, int mesg_size,  void *
     	int mesg_idx = 0;  // Variable for incremental unpack
         struct mdhim_putm_t *pm;
 
-	mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - Unpacking put message with size: %d",
-	     md->mdhim_rank, mesg_size);
         if ((*((struct mdhim_putm_t **) putm) = malloc(sizeof(struct mdhim_putm_t))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack put message.", md->mdhim_rank);
@@ -1179,8 +1162,6 @@ int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, void **
 	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
     	int mesg_idx = 0;  // Variable for incremental unpack
 
-        mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - Unpacking get message with size: %d",
-	     md->mdhim_rank, mesg_size);
         if ((*((struct mdhim_getm_t **) getm) = malloc(sizeof(struct mdhim_getm_t))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack get message.", md->mdhim_rank);
@@ -1238,8 +1219,6 @@ int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void *
         int i;
 	int num_records;
 
-        mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - Unpacking bget message with size: %d",
-	     md->mdhim_rank, mesg_size);
         if ((*((struct mdhim_bgetm_t **) bgetm) = malloc(sizeof(struct mdhim_bgetm_t))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
                      "memory to unpack bget message.", md->mdhim_rank);
@@ -2090,9 +2069,6 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md) {
 	//Populate range server info to send
 	if (md->mdhim_rs) {
 		rsi.rangesrv_num = md->mdhim_rs->info.rangesrv_num;
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - " 
-		     "I'm a range server with range server number: %u", 
-		     md->mdhim_rank, rsi.rangesrv_num);
 	} else {
 		//I'm not a range server
 		rsi.rangesrv_num = 0;
@@ -2522,10 +2498,6 @@ int get_stat_flush(struct mdhim_t *md) {
 			*(long double *)stat->max = ((struct mdhim_db_fstat *)tstat)->dmax;
 			stat->key = ((struct mdhim_db_fstat *)tstat)->slice;
 			stat->num = ((struct mdhim_db_fstat *)tstat)->num;
-			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
-			     "Retrieved stat for slice: %d, min: %Lf, max: %Lf, num: %lu", 
-			     md->mdhim_rank, stat->key, ((struct mdhim_db_fstat *)tstat)->dmin, 
-			     ((struct mdhim_db_fstat *)tstat)->dmax, stat->num);
 		} else {
 			stat->min = (void *) malloc(sizeof(uint64_t));
 			stat->max = (void *) malloc(sizeof(uint64_t));
@@ -2533,10 +2505,6 @@ int get_stat_flush(struct mdhim_t *md) {
 			*(uint64_t *)stat->max = ((struct mdhim_db_istat *)tstat)->imax;
 			stat->key = ((struct mdhim_db_istat *)tstat)->slice;
 			stat->num = ((struct mdhim_db_istat *)tstat)->num;
-			mlog(MDHIM_CLIENT_DBG, "Rank: %d - " 
-			     "Retrieved stat for slice: %d, min: %lu, max: %lu, num: %lu", 
-			     md->mdhim_rank, stat->key, ((struct mdhim_db_istat *)tstat)->imin, 
-			     ((struct mdhim_db_istat *)tstat)->imax, stat->num);
 		}
 		  
 		HASH_FIND_INT(md->stats, &stat->key, tmp);
