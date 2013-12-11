@@ -1541,9 +1541,12 @@ int range_server_init(struct mdhim_t *md) {
 	} else {
 		path_num = rangesrv_num/((double) md->num_rangesrvs/(double) md->db_opts->num_paths);
 	        path_num = path_num >= md->db_opts->num_paths ? md->db_opts->num_paths - 1 : path_num;
-		sprintf(filename, "%s%s%d", md->db_opts->db_paths[path_num], 
-			md->db_opts->db_name, md->mdhim_rank);
-
+		if (path_num < 0) {
+			sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
+		} else {
+			sprintf(filename, "%s%s%d", md->db_opts->db_paths[path_num], 
+				md->db_opts->db_name, md->mdhim_rank);
+		}
 	}
 
 	//Read in the manifest file

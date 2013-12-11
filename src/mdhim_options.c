@@ -41,7 +41,6 @@ int check_path_length(mdhim_options_t* opts, char *path) {
 	path_len = strlen(path) + 1;
 	if ((path_len + strlen(opts->db_name)) < PATH_MAX &&
 	    (path_len + strlen(MANIFEST_FILE_NAME)) < PATH_MAX) {
-		opts->db_path = path;
 		ret = 1;
 	} else {
 		printf("Path: %s exceeds: %d bytes, so it won't be used\n", path, PATH_MAX);
@@ -104,7 +103,7 @@ void mdhim_options_set_db_paths(struct mdhim_options_t* opts, char **paths, int 
 		sprintf(opts->db_paths[verified_paths], "%s", paths[i]);
 	}
 
-	opts->num_paths = verified_paths;
+	opts->num_paths = ++verified_paths;
 };
 
 void mdhim_options_set_db_name(mdhim_options_t* opts, char *name)
