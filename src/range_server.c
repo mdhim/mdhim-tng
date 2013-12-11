@@ -8,8 +8,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 #include <linux/limits.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
@@ -47,42 +51,95 @@ void add_timing(struct timeval start, struct timeval end, int num,
 }
 
 //Open the binary manifest
-/*int open_manifest(struct mdhim_t *md) {
-	int fd;
-  
-	fd = open(md->db_opts->db_path, O_WRONLY | O_CREAT | O_TRUNC);
+int open_manifest(struct mdhim_t *md, int flags) {
+	int fd;	
+	
+	fd = open(md->db_opts->manifest_path, flags, 00600);
 	if (fd < 0) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error opening manifest file", 
 		     md->mdhim_rank);
 	}
-
+	
 	return fd;
-	}*/
+}
 
-//Write a binary manifest describing
-/*void write_manifest(struct mdhim_t *md) {
+//Write a binary manifest describing the MDHIM instance
+void write_manifest(struct mdhim_t *md) {
+	mdhim_manifest_t manifest;
+	int fd;
+	int ret;
+
+	//Range server with range server number 1 is in charge of the manifest
+	if (md->mdhim_rs->info.rangesrv_num != 1) {	
+		return;
+	}
+
+	if ((fd = open_manifest(md, O_RDWR | O_CREAT | O_TRUNC)) < 0) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error opening manifest file", 
+		     md->mdhim_rank);
+		return;
+	}
+	
+	//Populate the manifest structure
+	manifest.num_rangesrvs = md->num_rangesrvs;
+	manifest.key_type = md->key_type;
+	manifest.db_type = md->db_opts->db_type;
+	manifest.rangesrv_factor = md->db_opts->rserver_factor;
+	manifest.slice_size = md->db_opts->max_recs_per_slice;
+	manifest.num_nodes = md->mdhim_comm_size;
+	if ((ret = write(fd, &manifest, sizeof(manifest))) < 0) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error writing manifest file", 
+		     md->mdhim_rank);
+	}
+
+	close(fd);
+}
+
+void read_manifest(struct mdhim_t *md) {
+	int fd;
+	int ret;
+	mdhim_manifest_t manifest;
+	struct stat st;
+
 	//Range server with number 1 is in charge of the manifest
 	if (md->mdhim_rs->info.rangesrv_num != 1) {
 		return;
 	}
 
-	if ((fd = open_manifest(md)) < 0) {
+	if ((ret = stat(md->db_opts->manifest_path, &st)) < 0) {
+		if (errno == ENOENT) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Manifest doesn't exist", 
+			     md->mdhim_rank);
+		} else {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - There was a problem accessing" 
+			     " the manifest file", 
+			     md->mdhim_rank);
+		}
+		
 		return;
 	}
-	}*/
-
-/*void read_manifest(struct mdhim_t *md) {
-	int fd;
-
-	//Range server with number 1 is in charge of the manifest
-	if (md->mdhim_rs->info.rangesrv_num == 1) {
+	
+	if (st.st_size != sizeof(manifest)) {
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - The manifest file has the wrong size", 
+		     md->mdhim_rank);
 		return;
 	}
 
-	if ((fd = open_manifest(md)) < 0) {
+	if ((fd = open_manifest(md, O_RDWR)) < 0) {
 		return;
 	}
-	}*/
+
+	if ((ret = read(fd, &manifest, sizeof(manifest))) < 0) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error reading manifest file", 
+		     md->mdhim_rank);
+	}
+
+	mlog(MDHIM_SERVER_DBG, "Rank: %d - Manifest contents - \nnum_rangesrvs: %d, key_type: %d, " 
+	     "db_type: %d, rs_factor: %u, slice_size: %lu, num_nodes: %d", 
+	     md->mdhim_rank, manifest.num_rangesrvs, manifest.key_type, manifest.db_type, 
+	     manifest.rangesrv_factor, manifest.slice_size, manifest.num_nodes);
+	close(fd);
+}
 
 /**
  * send_locally_or_remote
@@ -484,6 +541,9 @@ int range_server_stop(struct mdhim_t *md) {
 		     "Error while loading stats", 
 		     md->mdhim_rank);
 	}
+
+	//Write the manifest
+	write_manifest(md);
 
 	set_store_opts(md, &opts, 0);
 	//Close the database
@@ -1486,6 +1546,8 @@ int range_server_init(struct mdhim_t *md) {
 
 	}
 
+	//Read in the manifest file
+	read_manifest(md);
         
 	//Initialize data store
 	md->mdhim_rs->mdhim_store = mdhim_db_init(md->db_opts->db_type);

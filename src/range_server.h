@@ -56,6 +56,16 @@ typedef struct mdhim_rs_t {
 	long num_get;
 } mdhim_rs_t;
 
+
+typedef struct mdhim_manifest_t {
+	int key_type;
+	int db_type;
+	uint32_t num_rangesrvs;
+	int rangesrv_factor;
+	uint64_t slice_size; 
+	int num_nodes;
+} mdhim_manifest_t;
+
 int range_server_add_work(struct mdhim_t *md, work_item *item);
 int range_server_init(struct mdhim_t *md);
 int range_server_init_comm(struct mdhim_t *md);

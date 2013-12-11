@@ -23,6 +23,8 @@ typedef struct mdhim_options_t {
 	//Number of paths in db_paths
 	int num_paths;
 
+	char *manifest_path;
+
 	//Name of each DB (will be modified by adding "_<RANK>" to create multiple
 	// unique DB for each rank server.
 	char *db_name;

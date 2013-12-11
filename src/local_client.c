@@ -75,23 +75,10 @@ struct mdhim_rm_t *local_client_put(struct mdhim_t *md, struct mdhim_putm_t *pm)
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
 */
 struct mdhim_rm_t *local_client_bput(struct mdhim_t *md, struct mdhim_bputm_t *bpm) {
-	int ret, i;
+	int ret;
 	struct mdhim_rm_t *brm;
 	work_item *item;
         
-        int64_t m_size = sizeof(struct mdhim_bputm_t);  // Generous variable for size calc
-        
-        // For the each of the keys and data add enough chars.
-        for (i=0; i < bpm->num_records; i++)
-                m_size += bpm->key_lens[i] + bpm->value_lens[i];
-        
-        // Is the computed message size of a safe value? (less than a max message size?)
-        if (m_size > MDHIM_MAX_MSG_SIZE) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: local bulk put message too large."
-                     " Bput is over Maximum size allowed of %d.", md->mdhim_rank, MDHIM_MAX_MSG_SIZE);
-		return NULL; 
-        }
-
 	if ((item = malloc(sizeof(work_item))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while allocating memory for client");
 		return NULL;

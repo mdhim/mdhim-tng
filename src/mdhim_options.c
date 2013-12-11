@@ -5,17 +5,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include "mdhim_options.h"
 
 // Default path to a local path and name, levelDB=2, int_key_type=1, yes_create_new=1
 // and debug=1 (MLOG_CRIT)
+
+#define MANIFEST_FILE_NAME "/mdhim.manifest"
+
 struct mdhim_options_t *mdhim_options_init()
 {
 	struct mdhim_options_t* opts;
 	opts = malloc(sizeof(struct mdhim_options_t));
     
 	opts->db_path = "./";
-	opts->db_name = "mdhimTstDB-"; 
+	opts->db_name = "mdhimTstDB-";
+	opts->manifest_path ="./mdhim.manifest";
 	opts->db_type = 2;
 	opts->db_key_type = 1;
 	opts->db_create_new = 1;
@@ -29,14 +34,52 @@ struct mdhim_options_t *mdhim_options_init()
 	return opts;
 }
 
+int check_path_length(mdhim_options_t* opts, char *path) {
+	int path_len;
+	int ret = 0;
+
+	path_len = strlen(path) + 1;
+	if ((path_len + strlen(opts->db_name)) < PATH_MAX &&
+	    (path_len + strlen(MANIFEST_FILE_NAME)) < PATH_MAX) {
+		opts->db_path = path;
+		ret = 1;
+	} else {
+		printf("Path: %s exceeds: %d bytes, so it won't be used\n", path, PATH_MAX);
+	}
+
+	return ret;
+}
+
+void set_manifest_path(mdhim_options_t* opts, char *path) {
+	char *manifest_path;
+	int path_len = 0;
+
+	path_len = strlen(path) + strlen(MANIFEST_FILE_NAME) + 1;
+	manifest_path = malloc(path_len);
+	sprintf(manifest_path, "%s%s", path, MANIFEST_FILE_NAME);
+	opts->manifest_path = manifest_path;
+}
+
 void mdhim_options_set_db_path(mdhim_options_t* opts, char *path)
 {
-	opts->db_path = path;
+	int ret;
+
+	if (!path) {
+		return;
+	}
+
+	ret = check_path_length(opts, path);
+	if (ret) {
+		opts->db_path = path;
+		set_manifest_path(opts, path);
+	}
 };
 
 void mdhim_options_set_db_paths(struct mdhim_options_t* opts, char **paths, int num_paths)
 {
 	int i = 0;
+	int ret;
+	int verified_paths = -1;
 
 	if (num_paths <= 0) {
 		return;
@@ -47,11 +90,21 @@ void mdhim_options_set_db_paths(struct mdhim_options_t* opts, char **paths, int 
 		if (!paths[i]) {
 			continue;
 		}
-		opts->db_paths[i] = malloc(strlen(paths[i]) + 1);
-		sprintf(opts->db_paths[i], "%s", paths[i]);
+
+		ret = check_path_length(opts, paths[i]);
+		if (!ret) {
+			continue;
+		}
+		if (!i) {
+			set_manifest_path(opts, paths[i]);
+		}
+
+		verified_paths++;		
+		opts->db_paths[verified_paths] = malloc(strlen(paths[i]) + 1);
+		sprintf(opts->db_paths[verified_paths], "%s", paths[i]);
 	}
 
-	opts->num_paths = num_paths;
+	opts->num_paths = verified_paths;
 };
 
 void mdhim_options_set_db_name(mdhim_options_t* opts, char *name)
