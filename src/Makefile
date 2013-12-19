@@ -10,10 +10,6 @@ else
 	endif
 endif
 
-ifeq ($(SOPHIADB),1)
-	OBJS += ds_sophia.o
-endif
-
 
 all:	mdhim.o lib
 

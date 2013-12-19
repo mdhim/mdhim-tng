@@ -191,8 +191,8 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 				continue;
 			}
 			
-			MPI_Test(req, &flag, &status);
-			if (flag) {
+			ret = MPI_Test(req, &flag, &status);
+			if (flag || ret == MPI_ERR_REQUEST) {
 				free(req);
 				size_reqs[i] = NULL;
 				done++;
@@ -204,8 +204,8 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 				continue;
 			}
 			
-			MPI_Test(req, &flag, &status);
-			if (flag) {
+			ret = MPI_Test(req, &flag, &status);
+			if (flag || ret == MPI_ERR_REQUEST) {
 				free(req);
 				reqs[i] = NULL;
 				done++;
@@ -213,7 +213,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 		}
 		
 		if (done != num_msgs * 2) {
-			usleep(1000);
+			usleep(100);
 		}
 	}
 
@@ -268,7 +268,10 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 
 	while (!flag) {
 		return_code = MPI_Test(&req, &flag, &status);	
-		usleep(200);
+		if (return_code == MPI_ERR_REQUEST) {
+			return MDHIM_ERROR;
+		}
+		usleep(100);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
@@ -290,7 +293,10 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	}
 	while (!flag) {
 		return_code = MPI_Test(&req, &flag, &status);	
-		usleep(200);
+		if (return_code == MPI_ERR_REQUEST) {
+			return MDHIM_ERROR;
+		}
+		usleep(100);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
@@ -370,13 +376,16 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
  * @param message pointer to message to send
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int send_client_response(struct mdhim_t *md, int dest, void *message) {
+int send_client_response(struct mdhim_t *md, int dest, void *message, 
+			 MPI_Request **size_req, MPI_Request **msg_req) {
 	int return_code = 0;
 	void *sendbuf = NULL;
 	int sendsize = 0;
 	int mtype;
 	int ret = MDHIM_SUCCESS;
 
+	*size_req = NULL;
+	*msg_req = NULL;
 	//Pack the client response in the message pointer into sendbuf and set sendsize
 	mtype = ((struct mdhim_basem_t *) message)->mtype;
 	switch(mtype) {
@@ -403,25 +412,32 @@ int send_client_response(struct mdhim_t *md, int dest, void *message) {
 	}
 
 	//Send the size message
-	return_code = MPI_Send(&sendsize, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE_MSG, 
-			       md->mdhim_comm);
+	*size_req = malloc(sizeof(MPI_Request));
+	return_code = MPI_Isend(&sendsize, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE_MSG, 
+				md->mdhim_comm, *size_req);
 	if (return_code != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error sending client response message size in send_client_response", 
 		     md->mdhim_rank);
 		ret = MDHIM_ERROR;
+		free(*size_req);
+		*size_req = NULL;
 	}
+
+	*msg_req = malloc(sizeof(MPI_Request));
 	//Send the actual message
-	return_code = MPI_Send(sendbuf, sendsize, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
-				md->mdhim_comm);
+	return_code = MPI_Isend(sendbuf, sendsize, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
+				md->mdhim_comm, *msg_req);
 	if (return_code != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error sending client response message in send_client_response", 
 		     md->mdhim_rank);
 		ret = MDHIM_ERROR;
+		free(*msg_req);
+		*msg_req = NULL;
 	}
-	free(sendbuf);
 
+	free(sendbuf);
 	return ret;
 }
 
@@ -560,10 +576,11 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 			}
 			
 			return_code = MPI_Test(req, &flag, &status); 
-			if (return_code == MPI_ERR_IN_STATUS) {
+			if (return_code == MPI_ERR_REQUEST) {
 				mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
 				     " while receiving client response message size", 
 				     md->mdhim_rank, status.MPI_ERROR);
+				flag = 1;
 			}
 			if (!flag) {
 			  continue;
@@ -574,7 +591,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		}
 
 		if (done != nsrcs) {
-			usleep(1000);
+			usleep(100);
 		}
 	}
 
@@ -607,9 +624,10 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 			}
 			
 			return_code = MPI_Test(req, &flag, &status);				
-			if (return_code == MPI_ERR_IN_STATUS) {
+			if (return_code == MPI_ERR_REQUEST) {
 				mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
 				     " while receiving work message size", md->mdhim_rank, status.MPI_ERROR);
+				flag = 1;
 			}
 			if (!flag) {
 			  continue;
@@ -620,7 +638,7 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		}
 
 		if (done != nsrcs) {
-			usleep(1000);
+			usleep(100);
 		}
 	}
 

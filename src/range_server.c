@@ -50,7 +50,13 @@ void add_timing(struct timeval start, struct timeval end, int num,
 	}
 }
 
-//Open the binary manifest
+/**
+ * open_manifest
+ * Opens the manifest file
+ *
+ * @param md       Pointer to the main MDHIM structure
+ * @param flags    Flags to open the file with
+ */
 int open_manifest(struct mdhim_t *md, int flags) {
 	int fd;	
 	
@@ -63,7 +69,12 @@ int open_manifest(struct mdhim_t *md, int flags) {
 	return fd;
 }
 
-//Write a binary manifest describing the MDHIM instance
+/**
+ * write_manifest
+ * Writes out the manifest file
+ *
+ * @param md       Pointer to the main MDHIM structure
+ */
 void write_manifest(struct mdhim_t *md) {
 	mdhim_manifest_t manifest;
 	int fd;
@@ -95,50 +106,88 @@ void write_manifest(struct mdhim_t *md) {
 	close(fd);
 }
 
-void read_manifest(struct mdhim_t *md) {
+/**
+ * read_manifest
+ * Reads in and validates the manifest file
+ *
+ * @param md       Pointer to the main MDHIM structure
+ * @return MDHIM_SUCCESS or MDHIM_ERROR on error
+ */
+int read_manifest(struct mdhim_t *md) {
 	int fd;
 	int ret;
 	mdhim_manifest_t manifest;
 	struct stat st;
 
-	//Range server with number 1 is in charge of the manifest
-	if (md->mdhim_rs->info.rangesrv_num != 1) {
-		return;
-	}
-
 	if ((ret = stat(md->db_opts->manifest_path, &st)) < 0) {
 		if (errno == ENOENT) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Manifest doesn't exist", 
 			     md->mdhim_rank);
+			return MDHIM_SUCCESS;
 		} else {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - There was a problem accessing" 
 			     " the manifest file", 
 			     md->mdhim_rank);
-		}
-		
-		return;
+			return MDHIM_ERROR;
+		}		
 	}
 	
 	if (st.st_size != sizeof(manifest)) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - The manifest file has the wrong size", 
 		     md->mdhim_rank);
-		return;
+		return MDHIM_ERROR;
 	}
 
 	if ((fd = open_manifest(md, O_RDWR)) < 0) {
-		return;
+		return MDHIM_ERROR;
 	}
 
 	if ((ret = read(fd, &manifest, sizeof(manifest))) < 0) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error reading manifest file", 
 		     md->mdhim_rank);
+		return MDHIM_ERROR;
 	}
 
+	ret = MDHIM_SUCCESS;	
 	mlog(MDHIM_SERVER_DBG, "Rank: %d - Manifest contents - \nnum_rangesrvs: %d, key_type: %d, " 
 	     "db_type: %d, rs_factor: %u, slice_size: %lu, num_nodes: %d", 
 	     md->mdhim_rank, manifest.num_rangesrvs, manifest.key_type, manifest.db_type, 
 	     manifest.rangesrv_factor, manifest.slice_size, manifest.num_nodes);
+	
+	//Check that the manifest and the current config match
+	if (manifest.key_type != md->key_type) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - The key type in the manifest file" 
+		     " doesn't match the current key type", 
+		     md->mdhim_rank);
+		ret = MDHIM_ERROR;
+	}
+	if (manifest.db_type != md->db_opts->db_type) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - The database type in the manifest file" 
+		     " doesn't match the current database type", 
+		     md->mdhim_rank);
+		ret = MDHIM_ERROR;
+	}
+	if (manifest.rangesrv_factor != md->db_opts->rserver_factor) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - The range server factor in the manifest file" 
+		     " doesn't match the current range server factor", 
+		     md->mdhim_rank);
+		ret = MDHIM_ERROR;
+	}
+	if (manifest.slice_size != md->db_opts->max_recs_per_slice) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - The slice size in the manifest file" 
+		     " doesn't match the current slice size", 
+		     md->mdhim_rank);
+		ret = MDHIM_ERROR;
+	}
+	if (manifest.num_nodes != md->mdhim_comm_size) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - The number of nodes in this MDHIM instance" 
+		     " doesn't match the number used previously", 
+		     md->mdhim_rank);
+		ret = MDHIM_ERROR;
+	}
+	
 	close(fd);
+	return ret;
 }
 
 /**
@@ -152,11 +201,24 @@ void read_manifest(struct mdhim_t *md) {
  */
 int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	int ret = MDHIM_SUCCESS;
+	MPI_Request **size_req, **msg_req;
 
 	if (md->mdhim_rank != dest) {
 		//Sends the message remotely
-		ret = send_client_response(md, dest, message);
-		mdhim_full_release_msg(message);
+		size_req = malloc(sizeof(MPI_Request *));
+		msg_req = malloc(sizeof(MPI_Request *));
+		ret = send_client_response(md, dest, message, size_req, msg_req);
+		if (*size_req) {
+			range_server_add_oreq(md, *size_req, NULL);
+		}
+		if (*msg_req) {
+			range_server_add_oreq(md, *msg_req, message);
+		} else {
+			mdhim_full_release_msg(message);
+		}
+
+		free(size_req);
+		free(msg_req);
 	} else {
 		//Sends the message locally
 		pthread_mutex_lock(md->receive_msg_mutex);
@@ -558,7 +620,9 @@ int range_server_stop(struct mdhim_t *md) {
 	     md->mdhim_rank, md->mdhim_rs->num_put, md->mdhim_rs->put_time);
 	mlog(MDHIM_SERVER_INFO, "Rank: %d - Retrieved: %ld records in %Lf seconds", 
 	     md->mdhim_rank, md->mdhim_rs->num_get, md->mdhim_rs->get_time);
-	//Free the range server information
+	
+	//Free the range server data
+	range_server_clean_oreqs(md);
 	MPI_Comm_free(&md->mdhim_rs->rs_comm);
 	free(md->mdhim_rs->mdhim_store);
 	free(md->mdhim_rs);
@@ -1427,6 +1491,9 @@ void *worker_thread(void *data) {
 		}
 
 		while (item) {
+			//Clean outstanding sends
+			range_server_clean_oreqs(md);
+
 			//Call the appropriate function depending on the message type			
 			//Get the message type
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
@@ -1478,6 +1545,8 @@ void *worker_thread(void *data) {
 				range_server_commit(md, item->message, item->source);
 				break;
 			case MDHIM_CLOSE:
+				free(item);
+				pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 				goto done;
 				break;
 			default:
@@ -1495,6 +1564,80 @@ void *worker_thread(void *data) {
 	
 done:
 	return NULL;
+}
+
+int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {
+	out_req *oreq;
+	out_req *item = md->mdhim_rs->out_req_list;
+
+	oreq = malloc(sizeof(out_req));
+	oreq->next = NULL;
+	oreq->prev = NULL;
+	oreq->message = msg;
+	oreq->req = req;
+
+	if (!item) {
+		md->mdhim_rs->out_req_list = oreq;
+		return MDHIM_SUCCESS;
+	}
+
+	while (item) {
+		if (!item->next) {
+			item->next = oreq;
+			oreq->prev = item;
+			break;
+		}
+
+		item = item->next;
+	}
+
+	return MDHIM_SUCCESS;
+	
+}
+
+int range_server_clean_oreqs(struct mdhim_t *md) {
+	out_req *item = md->mdhim_rs->out_req_list;
+	out_req *t;
+	int ret;
+	int flag = 0;
+	MPI_Status status;
+
+	while (item) {
+		if (!item->req) {
+			item = item->next;
+			continue;
+		}
+
+		ret = MPI_Test((MPI_Request *)item->req, &flag, &status); 
+		if (ret == MPI_ERR_REQUEST) {
+			flag = 1;
+		}
+		if (!flag) {
+			item = item->next;
+			continue;
+		}
+		
+		if (item->next) {
+			item->next->prev = item->prev;
+		}
+		if (item->prev) {
+			item->prev->next = item->next;
+		}
+		if (item == md->mdhim_rs->out_req_list) {
+			md->mdhim_rs->out_req_list = item->next;
+		}
+
+		t = item->next;
+		free(item->req);
+		if (item->message) {
+			free(item->message);
+		}
+
+		free(item);
+		item = t;
+	}
+
+	return MDHIM_SUCCESS;
 }
 
 /**
@@ -1549,8 +1692,14 @@ int range_server_init(struct mdhim_t *md) {
 		}
 	}
 
-	//Read in the manifest file
-	read_manifest(md);
+	//Read in the manifest file if the rangesrv_num is 1
+	if (md->mdhim_rs->info.rangesrv_num == 1 && 
+	    (ret = read_manifest(md)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Fatal error: There was a problem reading or validating the manifest file",
+		     md->mdhim_rank);
+		MPI_Abort(md->mdhim_comm, 0);
+	}
         
 	//Initialize data store
 	md->mdhim_rs->mdhim_store = mdhim_db_init(md->db_opts->db_type);
@@ -1602,6 +1751,9 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
 	md->mdhim_rs->work_queue->head = NULL;
 	md->mdhim_rs->work_queue->tail = NULL;
+
+	//Initialize the outstanding request list
+	md->mdhim_rs->out_req_list = NULL;
 
 	//Initialize work queue mutex
 	md->mdhim_rs->work_queue_mutex = malloc(sizeof(pthread_mutex_t));
