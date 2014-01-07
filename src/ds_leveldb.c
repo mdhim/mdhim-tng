@@ -202,7 +202,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	leveldb_options_set_cache(options, main_cache);
 	leveldb_options_set_filter_policy(options, main_filter);
 	leveldb_options_set_max_open_files(options, 10000);
-	leveldb_options_set_write_buffer_size(options, 5242880);
+	leveldb_options_set_write_buffer_size(options, 50242880);
 	leveldb_options_set_env(options, main_env);
 
 	//Create the options for the stat database
@@ -270,10 +270,15 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
 	mstore_opts->db_ptr2 = options;
 	mstore_opts->db_ptr3 = leveldb_readoptions_create();
 	mstore_opts->db_ptr4 = leveldb_writeoptions_create();
+	//Disable msync for writing
+	leveldb_writeoptions_set_sync(mstore_opts->db_ptr4, 0);
+
 	//Set the generic pointers to hold the options for the mdhim stats db
 	mstore_opts->db_ptr5 = stat_options;
 	mstore_opts->db_ptr6 = leveldb_readoptions_create();
 	mstore_opts->db_ptr7 = leveldb_writeoptions_create();
+	//Disable msync for writing
+	leveldb_writeoptions_set_sync(mstore_opts->db_ptr7, 0);
 
 	//Set the rest of the options that aren't used until close
 	mstore_opts->db_ptr8 = main_filter;
