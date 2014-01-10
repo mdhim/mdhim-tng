@@ -647,6 +647,10 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	int *value_lens;    
 	if (verbose) tst_say(0, "# bput n key data\n" );
 
+	//Initialize variables
+	size_of = 0;
+	keys = NULL;
+
 	// Number of keys to generate
 	charIdx = getWordFromString( command, buffer1, charIdx);
 	nkeys = atoi( buffer1 );
@@ -822,7 +826,10 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 	void **keys;
 	int *key_lens;
 	int totRecds;
-    
+
+	size_of = 0;
+	keys = NULL;
+
 	// Get the number of records to create for bget
 	charIdx = getWordFromString( command, buffer, charIdx);
 	nkeys = atoi( buffer );
@@ -1011,6 +1018,7 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
     
 	if (verbose) tst_say(0, "# bgetop n key op\n" );
     
+	bgrm = NULL;
 	// Get the number of records to retrieve in bgetop
 	charIdx = getWordFromString( command, buffer1, charIdx);
 	nrecs = atoi( buffer1 );
@@ -1109,6 +1117,7 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
 
 	if (verbose) tst_say(0, "# del key\n" );
 
+	rm = NULL;
 	charIdx = getWordFromString( command, str_key, charIdx);
     
 	switch (key_type)
@@ -1177,6 +1186,9 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
     
 	if (verbose) tst_say(0, "# bdel n key\n" );
     
+	keys = NULL;
+	size_of = 0;
+
 	// Number of records to delete
 	charIdx = getWordFromString( command, buffer1, charIdx);
 	nkeys = atoi( buffer1 );
@@ -1348,7 +1360,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 	char *value;
 	int n_iter, key_len, value_len, rand_str_size;
 	int ret, i;
-    
+
+	rm = NULL;
 	key_string = malloc(sizeof(char) * TEST_BUFLEN);
 	ret = 0;
     
@@ -1470,6 +1483,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
 	int n_iter, key_len, rand_str_size;
 	int ret, i;
     
+	grm = NULL;
 	key_string = malloc(sizeof(char) * TEST_BUFLEN);
 	ret = 0;
     

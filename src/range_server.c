@@ -202,21 +202,25 @@ int read_manifest(struct mdhim_t *md) {
 int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	int ret = MDHIM_SUCCESS;
 	MPI_Request **size_req, **msg_req;
+	void **sendbuf;
 
 	if (md->mdhim_rank != dest) {
 		//Sends the message remotely
 		size_req = malloc(sizeof(MPI_Request *));
 		msg_req = malloc(sizeof(MPI_Request *));
-		ret = send_client_response(md, dest, message, size_req, msg_req);
+		sendbuf = malloc(sizeof(void *));
+		ret = send_client_response(md, dest, message, sendbuf, size_req, msg_req);
 		if (*size_req) {
 			range_server_add_oreq(md, *size_req, NULL);
 		}
 		if (*msg_req) {
-			range_server_add_oreq(md, *msg_req, message);
-		} else {
-			mdhim_full_release_msg(message);
+			range_server_add_oreq(md, *msg_req, *sendbuf);
+		} else if (*sendbuf) {
+			free(*sendbuf);
 		}
-
+		
+		free(sendbuf);
+		mdhim_full_release_msg(message);
 		free(size_req);
 		free(msg_req);
 	} else {
@@ -1610,7 +1614,7 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
 
 		ret = MPI_Test((MPI_Request *)item->req, &flag, &status); 
 		if (ret == MPI_ERR_REQUEST) {
-			flag = 1;
+			//flag = 1;
 		}
 		if (!flag) {
 			item = item->next;

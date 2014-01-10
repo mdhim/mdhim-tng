@@ -510,6 +510,19 @@ error:
 	return MDHIM_DB_ERROR;
 }
 
+
+/**
+ * mdhim_leveldb_get_prev
+ * Gets the prev key/value from the data store
+ *
+ * @param dbh             in   pointer to the unqlite db handle
+ * @param key             out  void ** to the key that we get
+ * @param key_len         out  int * to the length of the key 
+ * @param data            out  void ** to the value belonging to the key
+ * @param data_len        out  int * to the length of the value data 
+ * @param mstore_opts in   additional cursor options for the data store layer 
+ * 
+ */
 int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len, 
 			   void **data, int32_t *data_len, 
 			   struct mdhim_store_opts_t *mstore_opts) {
@@ -537,7 +550,7 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 
 	iter = leveldb_create_iterator(db, options);
 
-	//If the user didn't supply a key, then seek to the last
+	//If the user didn't supply a key, then seek to the first
 	if (!old_key || old_key_len == 0) {
 		leveldb_iter_seek_to_last(iter);
 	} else {
@@ -580,7 +593,7 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
         //Destroy iterator
 	leveldb_iter_destroy(iter);      
 	gettimeofday(&end, NULL);
-	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to get the prev record", 
+	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to get the previous record", 
 	     (int) (end.tv_sec - start.tv_sec));
 	return ret;
 

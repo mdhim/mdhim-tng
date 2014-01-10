@@ -6,7 +6,7 @@
 #include "mdhim.h"
 
 #define KEYS 100000
-#define TOTAL_KEYS 1000000
+#define TOTAL_KEYS 100000
 
 int **keys;
 int *key_lens;
@@ -30,7 +30,7 @@ void gen_keys_values(int rank, int total_keys) {
 	for (i = 0; i < KEYS; i++) {
 		keys[i] = malloc(sizeof(int));	
 		//Keys are chosen to fit in one slice
-		*keys[i] = (i + (rank * KEYS)) + total_keys;
+		*keys[i] = i + (rank * TOTAL_KEYS) + total_keys;
 		key_lens[i] = sizeof(int);
 		values[i] = malloc(sizeof(int));
 		*values[i] = *keys[i];
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 	struct timeval start_tv, end_tv;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_DBG; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 
 	int size;
@@ -162,15 +162,18 @@ int main(int argc, char **argv) {
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
 		//Check if there is an error
+		if (!bgrm) {
+			printf("Rank: %d - Empty bgrm: %d\n", md->mdhim_rank, *keys[KEYS-1]);
+		}
 		if (!bgrm || bgrm->error) {
-			printf("Rank: %d - Error retrieving values starting at: %d", md->mdhim_rank, *keys[0]);
+			printf("Rank: %d - Error retrieving values starting at: %d\n", md->mdhim_rank, *keys[KEYS-1]);
 			goto done;
 		}
 	
 		//Validate that the data retrieved is the correct data
 		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {						
-			assert(*(int *)bgrm->keys[i] == *keys[i]);
-			assert(*(int *)bgrm->values[i] == *values[i]);
+			assert(*(int *)bgrm->keys[i] == *keys[KEYS - 1 - i]);
+			assert(*(int *)bgrm->values[i] == *values[KEYS - 1 - i]);
 		}
 	
 		//Free the message received

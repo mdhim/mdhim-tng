@@ -185,7 +185,7 @@ struct mdhim_brm_t {
 int send_rangesrv_work(struct mdhim_t *md, int dest, void *message);
 int send_all_rangesrv_work(struct mdhim_t *md, void **messages);
 int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message);
-int send_client_response(struct mdhim_t *md, int dest, void *message, 
+int send_client_response(struct mdhim_t *md, int dest, void *message, void **sendbuf, 
 			 MPI_Request **size_req, MPI_Request **msg_req);
 int receive_client_response(struct mdhim_t *md, int src, void **message);
 int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs, 

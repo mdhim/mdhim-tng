@@ -374,31 +374,32 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
  * @param md      main MDHIM struct
  * @param dest    destination to send to 
  * @param message pointer to message to send
+ * @param sendbuf double pointer to packed message
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int send_client_response(struct mdhim_t *md, int dest, void *message, 
+int send_client_response(struct mdhim_t *md, int dest, void *message, void **sendbuf, 
 			 MPI_Request **size_req, MPI_Request **msg_req) {
 	int return_code = 0;
-	void *sendbuf = NULL;
 	int sendsize = 0;
 	int mtype;
 	int ret = MDHIM_SUCCESS;
 
 	*size_req = NULL;
 	*msg_req = NULL;
+	*sendbuf = NULL;
 	//Pack the client response in the message pointer into sendbuf and set sendsize
 	mtype = ((struct mdhim_basem_t *) message)->mtype;
 	switch(mtype) {
 	case MDHIM_RECV:
-		return_code = pack_return_message(md, (struct mdhim_rm_t *)message, &sendbuf, 
+		return_code = pack_return_message(md, (struct mdhim_rm_t *)message, sendbuf, 
 						  &sendsize);
 		break;
 	case MDHIM_RECV_GET:
-		return_code = pack_getrm_message(md, (struct mdhim_getrm_t *)message, &sendbuf, 
+		return_code = pack_getrm_message(md, (struct mdhim_getrm_t *)message, sendbuf, 
 						 &sendsize);
 		break;
 	case MDHIM_RECV_BULK_GET:
-		return_code = pack_bgetrm_message(md, (struct mdhim_bgetrm_t *)message, &sendbuf, 
+		return_code = pack_bgetrm_message(md, (struct mdhim_bgetrm_t *)message, sendbuf, 
 						  &sendsize);
 		break;
 	default:
@@ -426,7 +427,7 @@ int send_client_response(struct mdhim_t *md, int dest, void *message,
 
 	*msg_req = malloc(sizeof(MPI_Request));
 	//Send the actual message
-	return_code = MPI_Isend(sendbuf, sendsize, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
+	return_code = MPI_Isend(*sendbuf, sendsize, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
 				md->mdhim_comm, *msg_req);
 	if (return_code != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
@@ -437,7 +438,6 @@ int send_client_response(struct mdhim_t *md, int dest, void *message,
 		*msg_req = NULL;
 	}
 
-	free(sendbuf);
 	return ret;
 }
 
