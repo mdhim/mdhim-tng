@@ -565,18 +565,22 @@ work_item *get_work(struct mdhim_t *md) {
  */
 int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
-	int ret;	
+	int ret, i;	
 	struct mdhim_store_opts_t opts;
 
-	//Cancel the worker thread
-	if ((ret = pthread_cancel(md->mdhim_rs->worker)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling worker thread", 
-		     md->mdhim_rank);
+	//Cancel the worker threads
+	for (i = 0; i < md->db_opts->num_wthreads; i++) {
+		if ((ret = pthread_cancel(*md->mdhim_rs->workers[i])) != 0) {
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling worker thread", 
+			     md->mdhim_rank);
+		}
 	}
 	
 	/* Wait for the threads to finish */
 	pthread_join(md->mdhim_rs->listener, NULL);
-	pthread_join(md->mdhim_rs->worker, NULL);
+	for (i = 0; i < md->db_opts->num_wthreads; i++) {
+		pthread_join(*md->mdhim_rs->workers[i], NULL);
+	}
 
 	//Destroy the condition variables
 	if ((ret = pthread_cond_destroy(md->mdhim_rs->work_ready_cv)) != 0) {
@@ -1652,7 +1656,7 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int range_server_init(struct mdhim_t *md) {
-	int ret;
+	int ret, i;
 	char filename[PATH_MAX];
 	int rangesrv_num;
 	int flags = MDHIM_CREATE;
@@ -1787,13 +1791,18 @@ int range_server_init(struct mdhim_t *md) {
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
-
-	//Initialize worker thread
-	if ((ret = pthread_create(&md->mdhim_rs->worker, NULL, worker_thread, (void *) md)) != 0) {    
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while initializing worker thread", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
+	
+	//Initialize worker threads
+	md->mdhim_rs->workers = malloc(sizeof(pthread_t *) * md->db_opts->num_wthreads);
+	for (i = 0; i < md->db_opts->num_wthreads; i++) {
+		md->mdhim_rs->workers[i] = malloc(sizeof(pthread_t));
+		if ((ret = pthread_create(md->mdhim_rs->workers[i], NULL, 
+					  worker_thread, (void *) md)) != 0) {    
+			mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+			     "Error while initializing worker thread", 
+			     md->mdhim_rank);
+			return MDHIM_ERROR;
+		}
 	}
 
 	//Initialize listener threads

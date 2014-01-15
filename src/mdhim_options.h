@@ -57,6 +57,9 @@ typedef struct mdhim_options_t {
         //Maximum size of a slice. A ranger server may server several slices.
         uint64_t max_recs_per_slice; 
 
+	//Number of worker threads per range server
+	int num_wthreads;
+
 } mdhim_options_t;
 
 struct mdhim_options_t* mdhim_options_init();
@@ -70,6 +73,7 @@ void mdhim_options_set_debug_level(struct mdhim_options_t* opts, int dbug);
 void mdhim_options_set_value_append(struct mdhim_options_t* opts, int append);
 void mdhim_options_set_server_factor(struct mdhim_options_t* opts, int server_factor);
 void mdhim_options_set_max_recs_per_slice(struct mdhim_options_t* opts, uint64_t max_recs_per_slice);
+void mdhim_options_set_num_worker_threads(struct mdhim_options_t* opts, int num_wthreads);
 void mdhim_options_destroy(struct mdhim_options_t *opts);
 
 #endif

@@ -56,7 +56,7 @@ typedef struct mdhim_rs_t {
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;
 	pthread_t listener;
-	pthread_t worker;
+	pthread_t **workers;
 	rangesrv_info info;
 	//Records seconds spent on putting records
 	long double put_time; 
