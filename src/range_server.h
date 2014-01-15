@@ -5,6 +5,7 @@
 #include <mpi.h>
 #include "data_store.h"
 #include "messages.h"
+#include "indexes.h"
 
 struct mdhim_t;
 
@@ -20,22 +21,6 @@ typedef struct work_queue {
 	work_item *head;
 	work_item *tail;
 } work_queue;
-
-typedef struct rangesrv_info rangesrv_info;
-/* 
- * Range server info  
- * Contains information about each range server
- */
-struct rangesrv_info {
-	//The range server's rank in the mdhim_comm
-	uint32_t rank;
-	//The range server's identifier based on rank and number of servers
-	uint32_t rangesrv_num;
-	//The next range server in the list
-	rangesrv_info *next;
-	//The previous range server in the list
-	rangesrv_info *prev;
-};
 
 /* Outstanding requests (i.e., MPI_Req) that need to be freed later */
 typedef struct out_req out_req;
