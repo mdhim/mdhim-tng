@@ -340,9 +340,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 	//Create an array of bulk put messages that holds one bulk message per range server
 	bpm_list = malloc(sizeof(struct mdhim_bputm_t *) * md->num_rangesrvs);
 	//Initialize the pointers of the list to null
-	for (i = 0; i < md->num_rangesrvs; i++) {
-		bpm_list[i] = NULL;
-	}
+	memset(bpm_list , 0 , md->num_rangesrvs * sizeof(mdhim_bputm_t *));
 
 	/* Go through each of the records to find the range server the record belongs to.
 	   If there is not a bulk message in the array for the range server the key belongs to, 

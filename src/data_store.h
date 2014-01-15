@@ -12,6 +12,8 @@
 /* Storage Methods */
 #define LEVELDB 1 //LEVELDB storage method
 #define ROCKSDB 4 //RocksDB
+#define HUGHDB 5 //HughDB
+
 /* mdhim_store_t flags */
 #define MDHIM_CREATE 1 //Implies read/write 
 #define MDHIM_RDONLY 2

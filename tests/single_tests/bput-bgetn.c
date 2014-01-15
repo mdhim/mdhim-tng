@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 	char     *db_name = "mdhimTstDB-";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
-	int db_type = LEVELDB; // (data_store.h) 
+	int db_type = HUGHDB; // (data_store.h) 
 	int size;
 	long double flush_time = 0;
 	long double put_time = 0;

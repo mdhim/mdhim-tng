@@ -12,8 +12,8 @@
 #ifdef      ROCKSDB_SUPPORT
 #include "ds_leveldb.h"
 #endif
-#ifdef      SOPHIADB_SUPPORT
-#include "ds_sophia.h"
+#ifdef      HUGHDB_SUPPORT
+#include "ds_hughdb.h"
 #endif
 /**
  * mdhim_db_init
@@ -72,6 +72,19 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->del = mdhim_leveldb_del;
 		store->commit = mdhim_leveldb_commit;
 		store->close = mdhim_leveldb_close;
+		break;
+#endif
+#ifdef      HUGHDB_SUPPORT
+	case HUGHDB:
+		store->open = mdhim_hughdb_open;
+		store->put = mdhim_hughdb_put;
+		store->batch_put = mdhim_hughdb_batch_put;
+		store->get = mdhim_hughdb_get;
+		store->get_next = mdhim_hughdb_get_next;
+		store->get_prev = mdhim_hughdb_get_prev;
+		store->del = mdhim_hughdb_del;
+		store->commit = mdhim_hughdb_commit;
+		store->close = mdhim_hughdb_close;
 		break;
 #endif
 	default:
