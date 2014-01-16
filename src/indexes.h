@@ -1,6 +1,5 @@
 #define PRIMARY_INDEX
 #define SECONDARY_INDEX
-#define SECONDARY_LOCAL_INDEX
 
 typedef struct rangesrv_info rangesrv_info;
 /* 
@@ -18,15 +17,45 @@ struct rangesrv_info {
 	rangesrv_info *prev;
 };
 
-
-typedef struct index index;
 /* 
- * Index info  
- * Contains information about an index
+ * Remote Index info  
+ * Contains information about a remote index
+ *
+ * A remote index means that an index can be served by one or more range servers
  */
-struct index {
+struct remote_index {
 	rangesrv_info *rangesrvs; /* The range servers 
-				     serving this index (not used for SECONDARY_LOCAL_INDEX) */
+				     serving this index */
 	int type;                 /* The type of index 
-				     (PRIMARY_INDEX, SECONDARY_INDEX, SECONDARY_LOCAL_INDEX) */
+				     (PRIMARY_INDEX, SECONDARY_INDEX) */
+	//This communicator is for range servers only to talk to each other
+	MPI_Comm rs_comm;   
+	//The abstracted data store layer that mdhim uses to store and retrieve records
+	struct mdhim_store_t *mdhim_store;
+	/* The rank of the range server master that will broadcast stat data to all clients
+	   This rank is the rank in mdhim_comm not in the range server communicator */
+	int rangesrv_master;
 };
+
+/* Local Index info
+ * Contains information about a local index
+ *
+ * A local index means that an index is not served by a range server
+ * The index is accessed only by the client that created it.
+ */
+
+struct local_index {
+	//The abstracted data store layer that mdhim uses to store and retrieve records
+	struct mdhim_store_t *mdhim_store;
+};
+
+typedef struct index_manifest_t {
+	int key_type;   //The type of key 
+	int index_type; /* The type of index 
+			   (PRIMARY_INDEX, SECONDARY_INDEX) */
+	int db_type;
+	uint32_t num_rangesrvs;
+	int rangesrv_factor;
+	uint64_t slice_size; 
+	int num_nodes;
+} index_manifest_t;

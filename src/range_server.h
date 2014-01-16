@@ -33,16 +33,13 @@ struct out_req {
 
 /* Range server specific data */
 typedef struct mdhim_rs_t {
-	//This communicator is for range servers only to talk to each other
-	MPI_Comm rs_comm;   
-	//The abstracted data store layer that mdhim uses to store and retrieve records
-	struct mdhim_store_t *mdhim_store;
 	work_queue *work_queue;
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;
 	pthread_t listener;
 	pthread_t worker;
-	rangesrv_info info;
+	struct index *indexes; /* A linked list of remote indexes that is served 
+				  (partially for fully) by this range server */
 	//Records seconds spent on putting records
 	long double put_time; 
 	//Records seconds spend on getting records
@@ -51,18 +48,6 @@ typedef struct mdhim_rs_t {
 	long num_get;
 	out_req *out_req_list;
 } mdhim_rs_t;
-
-
-typedef struct mdhim_manifest_t {
-	int key_type;
-	int db_type;
-	uint32_t num_rangesrvs;
-	int rangesrv_factor;
-	uint64_t slice_size; 
-	int num_nodes;
-} mdhim_manifest_t;
-
-
 
 int range_server_add_work(struct mdhim_t *md, work_item *item);
 int range_server_init(struct mdhim_t *md);

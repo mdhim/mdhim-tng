@@ -45,10 +45,8 @@ struct mdhim_t {
 	//The number of range servers in the rangesrvs list
 	uint32_t num_rangesrvs;
 	//A linked list of range servers
-	rangesrv_info *rangesrvs;
-	//The rank of the range server master that will broadcast stat data to all clients
-	//This rank is the rank in mdhim_comm not in the range server communicator
-	int rangesrv_master;
+	struct remote_index *remote_indexes;
+	struct local_index *local_indexes
 	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 
 	//The mutex used if receiving from ourselves
