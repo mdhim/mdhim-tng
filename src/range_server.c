@@ -1286,15 +1286,6 @@ int range_server_init(struct mdhim_t *md) {
 	struct mdhim_store_opts_t opts;
 	int path_num = 0;
 
-	//There was an error figuring out if I'm a range server
-	if ((rangesrv_num = is_range_server(md, md->mdhim_rank)) == MDHIM_ERROR) {
-		return MDHIM_ERROR;		
-	}
-
-	//I'm not a range server
-	if (!rangesrv_num) {
-		return MDHIM_SUCCESS;
-	}
 
 	//Allocate memory for the mdhim_rs_t struct
 	md->mdhim_rs = malloc(sizeof(struct mdhim_rs_t));
@@ -1305,9 +1296,6 @@ int range_server_init(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
   
-	//Populate md->mdhim_rs
-	md->mdhim_rs->info.rank = md->mdhim_rank;
-	md->mdhim_rs->info.rangesrv_num = rangesrv_num;
 
 	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
 	if (!md->db_opts->db_paths) {

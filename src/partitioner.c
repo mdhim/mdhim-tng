@@ -5,40 +5,6 @@
 //Global hashtable for alphabet used in partitioner algorithm
 struct mdhim_char *mdhim_alphabet = NULL;
 
-//Used to determine the number of range servers which is based in  
-//if myrank % RANGE_SERVER_FACTOR == 0, then myrank is a server
-int range_server_factor;
-
-//Maximum size of a slice. A ranger server may server several slices.
-uint64_t mdhim_max_recs_per_slice; 
-
-/**
- * partitioner_init
- * Initializes portions of the mdhim_t struct dealing with the partitioner
- *
- * @param md                 main MDHIM struct
- * @param server_factor      used in calculating the number of range servers
- * @param max_recs_per_slice the number of records per slice
- * @return                   MDHIM_ERROR on error, otherwise the number of range servers
- */
-
-void partitioner_init(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice) {
-	uint32_t num_rangesrvs;
-        
-        //Set these two crucial variables to values passed to allow flexible set up.
-        range_server_factor = server_factor;
-        mdhim_max_recs_per_slice = max_recs_per_slice;
-
-	//Figure out how many range servers we could have based on the range server factor
-	num_rangesrvs = get_num_range_servers(md);	
-        
-        // Create the alphabet for string keys
-        build_alphabet();
-	
-	md->num_rangesrvs = num_rangesrvs;
-	return;
-}
-
 /**
  * delete_alphabet
  * Deletes the alphabet hash table
@@ -87,6 +53,11 @@ long double get_byte_num(void *key, uint32_t key_len) {
 	}
 
 	return byte_num;
+}
+
+void partitioner_init() {
+	// Create the alphabet for string keys
+	build_alphabet();
 }
 
 /*
@@ -240,90 +211,6 @@ int is_float_key(int type) {
 	} 
 
 	return ret;
-}
-
-/**
- * get_num_range_servers
- * Gets the number of range servers
- *
- * @param md      main MDHIM struct
- * @return        MDHIM_ERROR on error, otherwise the number of range servers
- */
-uint32_t get_num_range_servers(struct mdhim_t *md) {
-	int size;
-	uint32_t num_servers = 0;
-	int i = 0;
-	int ret;
-
-	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
-		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in get_num_range_servers", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
-	}
-
-	/* Get the number of range servers */
-	if (size - 1 < range_server_factor) {
-		//The size of the communicator is less than the RANGE_SERVER_FACTOR
-		return 1;
-	} 
-	
-	//Figure out the number of range servers, details on the algorithm are in is_range_server
-	for (i = 0; i < size; i++) {
-		if (i % range_server_factor == 0) {
-			num_servers++;
-		}
-	}
-      	
-	return num_servers;
-}
-
-/**
- * is_range_server
- * Tests to see if the given rank is a range server or not
- *
- * @param md      main MDHIM struct
- * @param rank    rank to find out if it is a range server
- * @return        MDHIM_ERROR on error, 0 on false, 1 or greater to represent the range server number otherwise
- */
-uint32_t is_range_server(struct mdhim_t *md, int rank) {
-	int size;
-	int ret;
-	uint64_t rangesrv_num = 0;
-
-	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
-		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in is_range_server", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
-	}
-
-	/* Get the range server number, which is just a number from 1 onward
-	   It represents the ranges the server serves and is calculated with the RANGE_SERVER_FACTOR
-	   
-	   The RANGE_SERVER_FACTOR is a number that is divided by the rank such that if the 
-	   remainder is zero, then the rank is a rank server
-
-	   For example, if there were 8 ranks and the RANGE_SERVER_FACTOR is 2, 
-	   then ranks: 2, 4, 6, 8 are range servers
-
-	   If the size of communicator is less than the RANGE_SERVER_FACTOR, 
-	   the last rank is the range server
-	*/
-
-	size -= 1;
-	if (size < range_server_factor && rank == size) {
-		//The size of the communicator is less than the RANGE_SERVER_FACTOR
-		rangesrv_num = 1;
-	} else if (size >= range_server_factor && rank % range_server_factor == 0) {
-		//This is a range server, get the range server's number
-		rangesrv_num = rank / range_server_factor;
-		rangesrv_num++;
-	}
-      		
-	if (rangesrv_num > md->num_rangesrvs) {
-		rangesrv_num = 0;
-	}
-
-	return rangesrv_num;
 }
 
 /**

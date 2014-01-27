@@ -25,7 +25,7 @@
 #define MDHIM_BYTE_KEY 6
 
 //Maximum length of a key
-#define MAX_KEY_LEN 262144
+#define MAX_KEY_LEN 1048576
 
 /* The exponent used for the algorithm that determines the range server
 

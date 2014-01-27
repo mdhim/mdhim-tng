@@ -111,6 +111,10 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	//Initialize the partitioner
 	partitioner_init(md, opts->rserver_factor, opts->max_recs_per_slice);
 
+	//Initialize the indexes and create the primary index
+	md->remote_indexes = NULL;
+	md->local_indexes = NULL;
+
 	//Start range server if I'm a range server
 	if ((ret = range_server_init(md)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error initializing MDHIM range server", 
