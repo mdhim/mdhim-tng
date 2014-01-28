@@ -1280,10 +1280,8 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
  */
 int range_server_init(struct mdhim_t *md) {
 	int ret;
-	char filename[PATH_MAX];
 	int rangesrv_num;
-	int flags = MDHIM_CREATE;
-	struct mdhim_store_opts_t opts;
+
 	int path_num = 0;
 
 
@@ -1294,71 +1292,6 @@ int range_server_init(struct mdhim_t *md) {
 		     "Error while allocating memory for range server", 
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
-	}
-  
-
-	//Database filename is dependent on ranges.  This needs to be configurable and take a prefix
-	if (!md->db_opts->db_paths) {
-		sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
-	} else {
-		path_num = rangesrv_num/((double) md->num_rangesrvs/(double) md->db_opts->num_paths);
-	        path_num = path_num >= md->db_opts->num_paths ? md->db_opts->num_paths - 1 : path_num;
-		if (path_num < 0) {
-			sprintf(filename, "%s%s%d", md->db_opts->db_path, md->db_opts->db_name, md->mdhim_rank);
-		} else {
-			sprintf(filename, "%s%s%d", md->db_opts->db_paths[path_num], 
-				md->db_opts->db_name, md->mdhim_rank);
-		}
-	}
-
-	//Read in the manifest file if the rangesrv_num is 1 for the primary index
-	if (md->mdhim_rs->info->rangesrv_num == 1 && 
-	    (ret = read_manifest(md)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Fatal error: There was a problem reading or validating the manifest file",
-		     md->mdhim_rank);
-		MPI_Abort(md->mdhim_comm, 0);
-	}
-        
-	//Initialize data store
-	md->mdhim_rs->mdhim_store = mdhim_db_init(md->db_opts->db_type);
-	if (!md->mdhim_rs->mdhim_store) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while initializing data store with file: %s",
-		     md->mdhim_rank,
-		     filename);
-		return MDHIM_ERROR;
-	}
-
-	//Clear the options
-	memset(&opts, 0, sizeof(struct mdhim_store_opts_t));
-	//Set the key type
-	opts.key_type = md->key_type;
-
-	//Open the main database and the stats database
-	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle,
-						   &md->mdhim_rs->mdhim_store->db_stats,
-						   filename, flags, &opts)) != MDHIM_SUCCESS){
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while opening database", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
-	}
-	
-	md->mdhim_rs->mdhim_store->db_ptr1 = opts.db_ptr1;
-	md->mdhim_rs->mdhim_store->db_ptr2 = opts.db_ptr2;
-	md->mdhim_rs->mdhim_store->db_ptr3 = opts.db_ptr3;
-	md->mdhim_rs->mdhim_store->db_ptr4 = opts.db_ptr4;
-	md->mdhim_rs->mdhim_store->db_ptr5 = opts.db_ptr5;
-	md->mdhim_rs->mdhim_store->db_ptr6 = opts.db_ptr6;
-	md->mdhim_rs->mdhim_store->db_ptr7 = opts.db_ptr7;
-	md->mdhim_rs->mdhim_store->db_ptr8 = opts.db_ptr8;
-
-	//Load the stats from the database
-	if ((ret = load_stats(md)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while loading stats", 
-		     md->mdhim_rank);
 	}
 
 	//Initialize variables for printing out timings
@@ -1423,87 +1356,3 @@ int range_server_init(struct mdhim_t *md) {
 	return MDHIM_SUCCESS;
 }
 
-/**
- * range_server_init_comm
- * Initializes the range server communicator that is used for range server to range 
- * server collectives
- * The stat flush function will use this communicator
- *
- * @param md  Pointer to the main MDHIM structure
- * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
- */
-int range_server_init_comm(struct mdhim_t *md) {
-	MPI_Group orig, new_group;
-	int *ranks;
-	rangesrv_info *rp;
-	int i = 0, j = 0;
-	int ret, server;
-	int comm_size, size;
-	MPI_Comm new_comm;
-
-	ranks = NULL;
-	//Populate the ranks array that will be in our new comm
-	if ((ret = im_range_server(md)) == 1) {
-		ranks = malloc(sizeof(int) * md->num_rangesrvs);
-		rp = md->rangesrvs;
-		size = 0;
-		while (rp) {
-			ranks[i] = rp->rank;
-			i++;
-			size++;
-			rp = rp->next;
-		}
-	} else {
-		MPI_Comm_size(md->mdhim_comm, &comm_size);
-		ranks = malloc(sizeof(int) * comm_size);
-		size = j = 0;
-		for (i = 0; i < comm_size; i++) {
-			server = 0;
-			rp = md->rangesrvs;
-			while (rp) {			
-				if (i == rp->rank) {
-					server = 1;
-					break;
-				}
-
-				rp = rp->next;
-			}		
-
-			if (server) {
-				continue;
-			}
-			ranks[j] = i;
-			j++;
-			size++;
-		}
-	}
-
-	//Create a new group with the range servers only
-	if ((ret = MPI_Comm_group(md->mdhim_comm, &orig)) != MPI_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while creating a new group in range_server_init_comm", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
-	}
-
-	if ((ret = MPI_Group_incl(orig, size, ranks, &new_group)) != MPI_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while creating adding ranks to the new group in range_server_init_comm", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
-	}
-
-	if ((ret = MPI_Comm_create(md->mdhim_comm, new_group, &new_comm)) 
-	    != MPI_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while creating the new communicator in range_server_init_comm", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
-	}
-	if ((ret = im_range_server(md)) == 1) {
-		memcpy(&md->mdhim_rs->rs_comm, &new_comm, sizeof(MPI_Comm));
-	}
-
-	free(ranks);
-	return MDHIM_SUCCESS;
-}

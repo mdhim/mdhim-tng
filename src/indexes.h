@@ -33,10 +33,15 @@ struct rangesrv_info {
  */
 struct remote_index {
 	int id;
+	//The abstracted data store layer that mdhim uses to store and retrieve records
+	struct mdhim_store_t *mdhim_store;
+	int key_type;             //The key type used in the db
+	int db_type;              //The database type
+	int type;                 /* The type of index 
+				     (PRIMARY_INDEX, SECONDARY_INDEX, LOCAL_INDEX) */
 	rangesrv_info *rangesrvs; /* The range servers 
 				     serving this index */
-	int type;                 /* The type of index 
-				     (PRIMARY_INDEX, SECONDARY_INDEX) */
+
         //Used to determine the number of range servers which is based in  
         //if myrank % RANGE_SERVER_FACTOR == 0, then myrank is a server
 	int range_server_factor;
@@ -46,8 +51,6 @@ struct remote_index {
 
 	//This communicator is for range servers only to talk to each other
 	MPI_Comm rs_comm;   
-	//The abstracted data store layer that mdhim uses to store and retrieve records
-	struct mdhim_store_t *mdhim_store;
 	/* The rank of the range server master that will broadcast stat data to all clients
 	   This rank is the rank in mdhim_comm not in the range server communicator */
 	int rangesrv_master;
@@ -75,6 +78,10 @@ struct local_index {
 	int id;
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
+	int key_type;             //The key type used in the db
+	int db_type;              //The database type
+	int type;                 /* The type of index 
+				     (PRIMARY_INDEX, SECONDARY_INDEX, LOCAL_INDEX) */
 };
 
 typedef struct index_manifest_t {

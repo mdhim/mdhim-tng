@@ -121,6 +121,9 @@ struct mdhim_store_t {
 
         //Hashtable for stats
 	struct mdhim_stat *mdhim_store_stats;
+
+	//Lock to allow concurrent readers and a single writer to the mdhim_store_stats
+	pthread_rwlock_t mdhim_store_stats_lock;
 };
 
 /* mdhim storage options passed to direct storage access functions i.e.: get, put, open */

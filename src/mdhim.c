@@ -114,20 +114,16 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	//Initialize the indexes and create the primary index
 	md->remote_indexes = NULL;
 	md->local_indexes = NULL;
-
-	//Start range server if I'm a range server
-	if ((ret = range_server_init(md)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error initializing MDHIM range server", 
+	if (pthread_rwlock_init(&md->remote_indexes_lock, NULL) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing remote_indexes_lock", 
 		     md->mdhim_rank);
 		return NULL;
 	}
 
-	//Get a list of all the range servers including myself if I am one
-	if (!(rangesrvs = get_rangesrvs(md))) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Did not receive any range servers" 
-		     "while initializing", md->mdhim_rank);
-		return NULL;
-	}
+	//Create the default remote primary index
+	int create_remote_index(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice, 
+			int db_type, int key_type)
 
 	//Set up the range server communicator if I'm a range server
 	if ((ret = range_server_init_comm(md)) != MDHIM_SUCCESS) {

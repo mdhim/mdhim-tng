@@ -41,13 +41,15 @@ struct mdhim_t {
 	int mdhim_rank;
 	//The size of mdhim_comm
 	int mdhim_comm_size;
-	//The key type of this database
-	int key_type;
 	//The number of range servers in the rangesrvs list
 	uint32_t num_rangesrvs;
 	//A linked list of range servers
 	struct remote_index *remote_indexes;
 	struct local_index *local_indexes
+
+	//Lock to allow concurrent readers and a single writer to the remote_indexes hash table
+	pthread_rwlock_t remote_indexes_lock;
+
 	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 
 	//The mutex used if receiving from ourselves
