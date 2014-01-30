@@ -260,6 +260,8 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts, int sta
 	opts->db_ptr12 = md->mdhim_rs->mdhim_store->db_ptr12;
 	opts->db_ptr13 = md->mdhim_rs->mdhim_store->db_ptr13;
 	opts->db_ptr14 = md->mdhim_rs->mdhim_store->db_ptr14;
+
+	opts->key_type = md->key_type;
 }
 
 /**
