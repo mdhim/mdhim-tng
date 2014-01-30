@@ -59,6 +59,8 @@ struct mdhim_basem_t {
 	int mtype; 
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 };
 
 /* Put message */
@@ -66,6 +68,8 @@ struct mdhim_putm_t {
 	int mtype;
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	void *key;
 	int key_len;
 	void *value;
@@ -77,6 +81,8 @@ struct mdhim_bputm_t {
 	int mtype;
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	void **keys;
 	int *key_lens;
 	void **values;
@@ -89,6 +95,8 @@ struct mdhim_getm_t {
 	int mtype;  
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
 	/* The key to get if op is MDHIM_GET_EQ
@@ -105,6 +113,8 @@ struct mdhim_bgetm_t {
 	int mtype;  
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	//Operation type i.e, MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;
 	void **keys;
@@ -118,6 +128,8 @@ struct mdhim_delm_t {
 	int mtype;
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	void *key;
 	int key_len; 
 };
@@ -127,6 +139,8 @@ struct mdhim_bdelm_t {
 	int mtype;  
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	void **keys;
 	int *key_lens;
 	int num_records;
@@ -143,6 +157,8 @@ struct mdhim_rm_t {
 	int mtype;  
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	int error;
 };
 
@@ -151,6 +167,8 @@ struct mdhim_getrm_t {
 	int mtype;
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	int error;
 	void *key;
 	int key_len;
@@ -163,6 +181,8 @@ struct mdhim_bgetrm_t {
 	int mtype;
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	int error;
 	void **keys;
 	int *key_lens;
@@ -177,6 +197,8 @@ struct mdhim_brm_t {
 	int mtype;
 	int server_rank;
 	int size;
+	int index;
+	int index_type;
 	int error;
 	struct mdhim_brm_t *next;
 };

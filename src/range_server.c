@@ -228,25 +228,6 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 	free(md->mdhim_rs->work_queue);
 
-	//Write the stats to the database
-	if ((ret = write_stats(md)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-		     "Error while loading stats", 
-		     md->mdhim_rank);
-	}
-
-	//Write the manifest
-	write_manifest(md);
-
-	set_store_opts(md, &opts, 0);
-	//Close the database
-	if ((ret = md->mdhim_rs->mdhim_store->close(md->mdhim_rs->mdhim_store->db_handle, 
-						    md->mdhim_rs->mdhim_store->db_stats, &opts)) 
-	    != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
-		     md->mdhim_rank);
-	}
-
 	mlog(MDHIM_SERVER_INFO, "Rank: %d - Inserted: %ld records in %Lf seconds", 
 	     md->mdhim_rank, md->mdhim_rs->num_put, md->mdhim_rs->put_time);
 	mlog(MDHIM_SERVER_INFO, "Rank: %d - Retrieved: %ld records in %Lf seconds", 
@@ -254,8 +235,6 @@ int range_server_stop(struct mdhim_t *md) {
 	
 	//Free the range server data
 	range_server_clean_oreqs(md);
-	MPI_Comm_free(&md->mdhim_rs->rs_comm);
-	free(md->mdhim_rs->mdhim_store);
 	free(md->mdhim_rs);
 	md->mdhim_rs = NULL;
 	

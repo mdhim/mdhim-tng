@@ -31,10 +31,12 @@ struct rangesrv_info {
  *
  * A remote index means that an index can be served by one or more range servers
  */
-struct remote_index {
+struct index_t {
 	int id;
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
+	//Options for the mdhim data store
+	mdhim_store_opts_t *opts;
 	int key_type;             //The key type used in the db
 	int db_type;              //The database type
 	int type;                 /* The type of index 
@@ -58,30 +60,10 @@ struct remote_index {
 	//The number of range servers for this index
 	uint32_t num_rangesrvs;
 
-	//The hash table of range servers
-	rangesrv_info *rangesrvs;
-
 	//The rank's range server information, if it is a range server for this index
 	rangesrv_info myinfo;
 
 	UT_hash_handle hh;         /* makes this structure hashable */
-};
-
-/* Local Index info
- * Contains information about a local index
- *
- * A local index means that an index is not served by a range server
- * The index is accessed only by the client that created it.
- */
-
-struct local_index {
-	int id;
-	//The abstracted data store layer that mdhim uses to store and retrieve records
-	struct mdhim_store_t *mdhim_store;
-	int key_type;             //The key type used in the db
-	int db_type;              //The database type
-	int type;                 /* The type of index 
-				     (PRIMARY_INDEX, SECONDARY_INDEX, LOCAL_INDEX) */
 };
 
 typedef struct index_manifest_t {
@@ -95,5 +77,18 @@ typedef struct index_manifest_t {
 	uint64_t slice_size; 
 	int num_nodes;
 } index_manifest_t;
+
+int update_all_stats(struct mdhim_t *md, struct local_index *bi, void *key, uint32_t key_len);
+int load_stats(struct mdhim_t *md, struct index_t *bi);
+int write_stats(struct mdhim_t *md, struct index_t *bi);
+struct mdhim_store_t *open_db_store(struct mdhim_t *md, struct index_t *rindex);
+uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex);
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type);
+struct index_t *create_remote_index(struct mdhim_t *md, int server_factor, 
+				    uint64_t max_recs_per_slice, int db_type, 
+				    int key_type);
+struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex);
+uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *rindex);
+int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 
 #endif

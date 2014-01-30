@@ -33,6 +33,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	int ret;
 	struct mdhim_t *md;
 	struct rangesrv_info *rangesrvs;
+	struct index_t *default_index;
 
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
@@ -48,11 +49,6 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 
 	//Set the key type for this database from the options passed
         md->db_opts = opts;
-	md->key_type = opts->db_key_type;
-	if (md->key_type < MDHIM_INT_KEY || md->key_type > MDHIM_BYTE_KEY) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Invalid key type specified");
-		return NULL;
-	}
 
 	//Dup the communicator passed in for the communicator used for communication 
 	//to and from the range servers
@@ -109,7 +105,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	}
 
 	//Initialize the partitioner
-	partitioner_init(md, opts->rserver_factor, opts->max_recs_per_slice);
+	partitioner_init();
 
 	//Initialize the indexes and create the primary index
 	md->remote_indexes = NULL;
@@ -122,13 +118,11 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	}
 
 	//Create the default remote primary index
-	int create_remote_index(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice, 
-			int db_type, int key_type)
-
-	//Set up the range server communicator if I'm a range server
-	if ((ret = range_server_init_comm(md)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error initializing" 
-		     " MDHIM range server communicator", 
+	default_index = create_remote_index(md, opts->rserver_factor, opts->max_recs_per_slice, 
+					    opts->db_type, opts->db_key_type);
+	if (!default_index) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Couldn't create the default index", 
 		     md->mdhim_rank);
 		return NULL;
 	}
@@ -173,13 +167,10 @@ int mdhimClose(struct mdhim_t *md) {
 	//Free up memory used by the partitioner
 	partitioner_release();
 
-	//Free up the range server list
-	rsrv = md->rangesrvs;
-	while (rsrv) {
-		trsrv = rsrv->next;
-		free(rsrv);
-		rsrv = trsrv;
-	}
+	//Free up memory used by indexes
+	indexes_release(md);
+
+	mdhim_alphabet = NULL;
 
 	//Destroy the receive condition variable
 	if ((ret = pthread_cond_destroy(md->receive_msg_ready_cv)) != 0) {

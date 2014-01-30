@@ -6,11 +6,11 @@
  * @param md       Pointer to the main MDHIM structure
  * @param flags    Flags to open the file with
  */
-int open_manifest(struct mdhim_t *md, struct local_index *bi, int flags) {
+int open_manifest(struct mdhim_t *md, struct index_t *index, int flags) {
 	int fd;	
 	char path[PATH_MAX];
 
-	sprintf(path, "%s%d_%d", bi->type, bi->id);
+	sprintf(path, "%s%d_%d", index->type, index->id);
 	fd = open(path, flags, 00600);
 	if (fd < 0) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error opening manifest file", 
@@ -26,37 +26,35 @@ int open_manifest(struct mdhim_t *md, struct local_index *bi, int flags) {
  *
  * @param md       Pointer to the main MDHIM structure
  */
-void write_manifest(struct mdhim_t *md, struct local_index *bi) {
+void write_manifest(struct mdhim_t *md, struct index_t *index) {
 	index_manifest_t manifest;
 	int fd;
 	int ret;
-	struct remote_index *ri;
 
 	//Range server with range server number 1, for the primary index, is in charge of the manifest
-	if (bi->type != LOCAL_INDEX && 
-	    ((struct remote_index *)bi)->myinfo.rangesrv_num != 1) {	
+	if (index->type != LOCAL_INDEX && 
+	    (index->myinfo.rangesrv_num != 1) {	
 		return;
 	}
 
-	if ((fd = open_manifest(md, bi, O_RDWR | O_CREAT | O_TRUNC)) < 0) {
+	if ((fd = open_manifest(md, index, O_RDWR | O_CREAT | O_TRUNC)) < 0) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error opening manifest file", 
 		     md->mdhim_rank);
 		return;
 	}
 	
 	//Populate the manifest structure
-	if (bi->type != LOCAL_INDEX) {
-		ri = (struct remote_index *)bi;
-		manifest.num_rangesrvs = ri->num_rangesrvs;
-		manifest.key_type = ri->key_type;
-		manifest.db_type = ri->db_type;
-		manifest.rangesrv_factor = ri->rserver_factor;
-		manifest.slice_size = ri->max_recs_per_slice;
-		manifest.num_nodes = ri->mdhim_comm_size;
+	if (index->type != LOCAL_INDEX) {
+		manifest.num_rangesrvs = index->num_rangesrvs;
+		manifest.key_type = index->key_type;
+		manifest.db_type = index->db_type;
+		manifest.rangesrv_factor = index->rserver_factor;
+		manifest.slice_size = index->max_recs_per_slice;
+		manifest.num_nodes = index->mdhim_comm_size;
 	} else {
 		manifest.num_rangesrvs = 0;
-		manifest.key_type = bi->key_type;
-		manifest.db_type = bi->db_type;
+		manifest.key_type = index->key_type;
+		manifest.db_type = index->db_type;
 		manifest.rangesrv_factor = 0;
 		manifest.slice_size = 0;
 		manifest.num_nodes = 1;
@@ -77,14 +75,13 @@ void write_manifest(struct mdhim_t *md, struct local_index *bi) {
  * @param md       Pointer to the main MDHIM structure
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int read_manifest(struct mdhim_t *md, struct local_index *bi) {
+int read_manifest(struct mdhim_t *md, struct index_t *index) {
 	int fd;
 	int ret;
 	index_manifest_t manifest;
 	struct stat st;
-	struct remote_index *ri;
 
-	if ((fd = open_manifest(md, bi, O_RDWR)) < 0) {
+	if ((fd = open_manifest(md, index, O_RDWR)) < 0) {
 		return MDHIM_ERROR;
 	}
 
@@ -101,34 +98,33 @@ int read_manifest(struct mdhim_t *md, struct local_index *bi) {
 	     manifest.rangesrv_factor, manifest.slice_size, manifest.num_nodes);
 	
 	//Check that the manifest and the current config match
-	if (manifest.key_type != bi->key_type) {
+	if (manifest.key_type != index->key_type) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - The key type in the manifest file" 
 		     " doesn't match the current key type", 
 		     md->mdhim_rank);
 		ret = MDHIM_ERROR;
 	}
-	if (manifest.db_type != bi->db_type) {
+	if (manifest.db_type != index->db_type) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - The database type in the manifest file" 
 		     " doesn't match the current database type", 
 		     md->mdhim_rank);
 		ret = MDHIM_ERROR;
 	}
 
-	if (bi->type != LOCAL_INDEX) {
-		ri = (struct remote_index *) bi;
-		if (manifest.rangesrv_factor != ri->rserver_factor) {
+	if (index->type != LOCAL_INDEX) {
+		if (manifest.rangesrv_factor != index->rserver_factor) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - The range server factor in the manifest file" 
 			     " doesn't match the current range server factor", 
 			     md->mdhim_rank);
 			ret = MDHIM_ERROR;
 		}
-		if (manifest.slice_size != ri->max_recs_per_slice) {
+		if (manifest.slice_size != index->max_recs_per_slice) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - The slice size in the manifest file" 
 			     " doesn't match the current slice size", 
 			     md->mdhim_rank);
 			ret = MDHIM_ERROR;
 		}
-		if (manifest.num_nodes != ri->mdhim_comm_size) {
+		if (manifest.num_nodes != index->mdhim_comm_size) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - The number of nodes in this MDHIM instance" 
 			     " doesn't match the number used previously", 
 			     md->mdhim_rank);
@@ -150,7 +146,7 @@ int read_manifest(struct mdhim_t *md, struct local_index *bi) {
  * @param key_len  the key's length
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int update_all_stats(struct mdhim_t *md, struct local_index *bi, void *key, uint32_t key_len) {
+int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t key_len) {
 	int slice_num;
 	void *val1, *val2;
 	int float_type = 0;
@@ -256,7 +252,7 @@ int update_all_stats(struct mdhim_t *md, struct local_index *bi, void *key, uint
  * @param md  Pointer to the main MDHIM structure
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int load_stats(struct mdhim_t *md, struct local_index *bi) {
+int load_stats(struct mdhim_t *md, struct index_t *bi) {
 	void **val;
 	int *val_len, *key_len;
 	struct mdhim_store_opts_t opts;
@@ -340,7 +336,7 @@ int load_stats(struct mdhim_t *md, struct local_index *bi) {
  * @param md  Pointer to the main MDHIM structure
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int write_stats(struct mdhim_t *md, struct local_index *bi) {
+int write_stats(struct mdhim_t *md, struct index_t *bi) {
 	struct mdhim_store_opts_t opts;
 	struct mdhim_stat *stat, *tmp;
 	struct mdhim_db_stat *dbstat;
@@ -394,7 +390,7 @@ int write_stats(struct mdhim_t *md, struct local_index *bi) {
  * @return the initialized data store or NULL on error
  */
 
-struct mdhim_store_t *open_db_store(struct mdhim_t *md, struct local_index *rindex) {
+struct mdhim_store_t *open_db_store(struct mdhim_t *md, struct index_t *rindex) {
 	char filename[PATH_MAX];
 	int flags = MDHIM_CREATE;
 	struct mdhim_store_opts_t opts;
@@ -465,7 +461,7 @@ struct mdhim_store_t *open_db_store(struct mdhim_t *md, struct local_index *rind
  * @param rindex   pointer to a remote_index struct
  * @return         MDHIM_ERROR on error, otherwise the number of range servers
  */
-uint32_t get_num_range_servers(struct mdhim_t *md, struct remote_index *rindex) {
+uint32_t get_num_range_servers(struct mdhim_t *md, struct index *rindex) {
 	int size;
 	uint32_t num_servers = 0;
 	int i = 0;
@@ -494,35 +490,50 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct remote_index *rindex) 
 }
 
 /**
- * create_local_index
+ * create_index_t
  * Creates a local index only visible to the calling rank
  *
  * @param  md  main MDHIM struct
  * @return     MDHIM_ERROR on error, otherwise the index identifier
  */
-int create_local_index(struct mdhim_t *md, int db_type, int key_type) {
-	struct local_index *li;
+struct index_t *create_index_t(struct mdhim_t *md, int db_type, int key_type) {
+	struct index_t *li;
 
-	//Create a new local_index to hold our index entry
-	li = malloc(sizeof(struct local_index));
+	//Check that the key type makes sense
+	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Invalid key type specified");
+		return NULL;
+	}
+
+	//Create a new index_t to hold our index entry
+	li = malloc(sizeof(struct index_t));
 
 	//Initialize the new index struct
-	memset(li, 0, sizeof(struct local_index));
-	li->id = HASH_COUNT(md->local_indexes);
+	memset(li, 0, sizeof(struct index_t));
+	li->id = HASH_COUNT(md->index_tes);
 	li->type = LOCAL_INDEX;
 	li->key_type = key_type;
 	li->db_type = db_type;
 
+	//Populate my range server info for this index
+	li->myinfo.rank = md->mdhim_rank;
+	li->myinfo.rangesrv_num = 1;
+
 	//Add it to the hash table
 	HASH_ADD_INT(md->local_indexes, id, li);
                 	
-	li->mdhim_store = open_db_store(md, (struct local_index *) li);
+	li->mdhim_store = open_db_store(md, (struct index_t *) li);
 	if (!li->mdhim_store) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error opening data store for index: %d", 
 		     md->mdhim_rank, li->id);
 	}
 
-	return li->id;
+	//Initialize the range server threads if they haven't been already
+	if (!md->mdhim_rs) {
+		ret = range_server_init(md);
+	}
+
+	return li;
 }
 
 /**
@@ -535,8 +546,9 @@ int create_local_index(struct mdhim_t *md, int db_type, int key_type) {
  * @return                   MDHIM_ERROR on error, otherwise the index identifier
  */
 
-int create_remote_index(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice, 
-			int db_type, int key_type) {
+struct index *create_remote_index(struct mdhim_t *md, int server_factor, 
+				  uint64_t max_recs_per_slice, 
+				  int db_type, int key_type) {
 	uint32_t num_rangesrvs;
 	int type;
 	struct remote_index *ri;
@@ -546,11 +558,18 @@ int create_remote_index(struct mdhim_t *md, int server_factor, uint64_t max_recs
 
 
 	MPI_Barrier(md->mdhim_comm);
+
+	//Check that the key type makes sense
+	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Invalid key type specified");
+		return NULL;
+	}
+
 	//Acquire the lock to update remote_indexes
 	if (pthread_rwlock_wrlock(&md->remote_indexes_lock) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the remote_indexes_lock", 
 		     md->mdhim_rank);
-		return MDHIM_ERROR;
+		return NULL;
 	}		
 
 	//Create a new remote_index to hold our index entry
@@ -573,7 +592,6 @@ int create_remote_index(struct mdhim_t *md, int server_factor, uint64_t max_recs
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->remote_indexes, id, ri);                      
-
 
 	//Get the range servers for this index
 	rs_table = get_rangesrvs(md, ri);
@@ -608,7 +626,7 @@ int create_remote_index(struct mdhim_t *md, int server_factor, uint64_t max_recs
 	ri->myinfo.rank = md->mdhim_rank;
 	ri->myinfo.rangesrv_num = rangesrv_num;
 	//Open the data store
-	ri->mdhim_store = open_db_store(md, (struct local_index *) ri);
+	ri->mdhim_store = open_db_store(md, (struct index_t *) ri);
 
 	//Initialize the range server threads if they haven't been already
 	if (!md->mdhim_rs) {
@@ -619,10 +637,10 @@ done:
 	//Release the remote indexes lock
 	pthread_rwlock_unlock(&md->remote_indexes_lock);
 	if (!ri) {
-		return MDHIM_ERROR;
+		return NULL;
 	}
 
-	return ri->id;
+	return ri;
 }
 
 /**
@@ -632,7 +650,7 @@ done:
  * @param md      in   main MDHIM struct
  * @return a list of range servers
  */
-struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct remote_index *rindex ) {
+struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct remote_index *rindex) {
 	struct rangesrv_info *rs_table = NULL;
 	struct rangesrv_info *rs_entry;
 	uint32_t rangesrv_num;
@@ -673,11 +691,17 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct remote_index *rin
  * @param rank    rank to find out if it is a range server
  * @return        MDHIM_ERROR on error, 0 on false, 1 or greater to represent the range server number otherwise
  */
-uint32_t is_range_server(struct mdhim_t *md, int rank, struct remote_index *rindex) {
+uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *li) {
 	int size;
 	int ret;
 	uint64_t rangesrv_num = 0;
+	struct remote_index *rindex;
 
+	if (li->type == LOCAL_INDEX) {
+		return 1;
+	}
+
+	rindex = (struct remote_index *) li;
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
 		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in is_range_server", 
 		     md->mdhim_rank);
@@ -723,7 +747,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank, struct remote_index *rind
  * @param md  Pointer to the main MDHIM structure
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int index_init_comm(struct mdhim_t *md, struct local_index *bi) {
+int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 	MPI_Group orig, new_group;
 	int *ranks;
 	rangesrv_info *rp;
@@ -792,4 +816,40 @@ int index_init_comm(struct mdhim_t *md, struct local_index *bi) {
 
 	free(ranks);
 	return MDHIM_SUCCESS;
+}
+
+void indexes_release(struct mdhim_t *md) {
+	struct index_t *cur_indx, *tmp_indx;
+	struct rangsrv_info *cur_rs, *tmp_rs;
+
+	HASH_ITER(hh, md->remote_indexes, cur_indx, tmp_indx) {
+		HASH_DEL(md->remote_indexes, cur_indx); 
+		HASH_ITER(hh, cur_index->rangesrvs, cur_rs, tmp_rs) {
+			HASH_DEL(cur_index->rangesrvs, cur_rs); 
+			free(cur_rs);
+		}
+		
+		//Write the stats to the database
+		if ((ret = write_stats(md)) != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+			     "Error while loading stats", 
+			     md->mdhim_rank);
+		}
+		
+		//Write the manifest
+		write_manifest(md);
+		
+		set_store_opts(md, &opts, 0);
+		//Close the database
+		if ((ret = cur_index->mdhim_store->close(cur_index->mdhim_store->db_handle, 
+							 cur_index->mdhim_store->db_stats, &opts)) 
+		    != MDHIM_SUCCESS) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
+			     md->mdhim_rank);
+		}
+		
+		MPI_Comm_free(&cur_index->rs_comm);
+		free(cur_index->mdhim_store);
+		free(cur_indx);
+	}
 }
