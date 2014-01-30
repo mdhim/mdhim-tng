@@ -63,6 +63,9 @@ struct index_t {
 	//The rank's range server information, if it is a range server for this index
 	rangesrv_info myinfo;
 
+	//Statistics retrieved from the mdhimStatFlush operation
+	struct mdhim_stat *stats;
+
 	UT_hash_handle hh;         /* makes this structure hashable */
 };
 
@@ -90,5 +93,6 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *rindex);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
+int get_stat_flush(struct mdhim_t *md, index_t *index);
 
 #endif

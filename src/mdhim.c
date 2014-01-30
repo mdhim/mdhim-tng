@@ -11,6 +11,7 @@
 #include "local_client.h"
 #include "partitioner.h"
 #include "mdhim_options.h"
+#include "indexes.h"
 
 /*! \mainpage MDHIM TNG
  *
@@ -213,7 +214,7 @@ int mdhimClose(struct mdhim_t *md) {
  * @param md main MDHIM struct
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int mdhimCommit(struct mdhim_t *md) {
+int mdhimCommit(struct mdhim_t *md, struct index_t *index) {
 	int ret = MDHIM_SUCCESS;
 	struct mdhim_basem_t *cm;
 	struct mdhim_rm_t *rm = NULL;
@@ -224,6 +225,8 @@ int mdhimCommit(struct mdhim_t *md) {
 	if ((rs = im_range_server(md)) == 1) {       
 		cm = malloc(sizeof(struct mdhim_basem_t));
 		cm->mtype = MDHIM_COMMIT;
+		cm->index = index->id;
+		cm->index_type = index->type;
 		rm = local_client_commit(md, cm);
 		if (!rm || rm->error) {
 			ret = MDHIM_ERROR;
@@ -252,7 +255,8 @@ int mdhimCommit(struct mdhim_t *md) {
  * @param value_len the length of the value
  * @return mdhim_rm_t * or NULL on error
  */
-struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,  
+struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index, 
+			    void *key, int key_len,  
 			    void *value, int value_len) {
 	int ret;
 	struct mdhim_putm_t *pm;
@@ -282,7 +286,8 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,
 	pm->value = value;
 	pm->value_len = value_len;
 	pm->server_rank = ri->rank;
-	
+	pm->index = index->id;
+	pm->index_type = index->type;
 	//Test if I'm a range server
 	ret = im_range_server(md);
 
@@ -309,8 +314,10 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,
  * @param num_records  the number of records to store (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
-struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens, 
-			      void **values, int *value_lens, int num_records) {
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index, 
+			      void **keys, int *key_lens, 
+			      void **values, int *value_lens, 
+			      int num_records) {
 	struct mdhim_bputm_t **bpm_list;
 	struct mdhim_bputm_t *bpm, *lbpm;
 	struct mdhim_brm_t *brm, *brm_head;
@@ -366,6 +373,8 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
 			bpm->num_records = 0;
 			bpm->server_rank = ri->rank;
 			bpm->mtype = MDHIM_BULK_PUT;
+			bpm->index = index->id;
+			bpm->index_type = index->type;
 			if (ri->rank != md->mdhim_rank) {
 				bpm_list[ri->rangesrv_num - 1] = bpm;
 			} else {
@@ -425,7 +434,8 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
  * @param op        the operation type
  * @return mdhim_getrm_t * or NULL on error
  */
-struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len, 
+struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t index,
+			       void *key, int key_len, 
 			       int op) {
 	int ret;
 	struct mdhim_getm_t *gm;
@@ -468,6 +478,8 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
 	gm->key_len = key_len;
 	gm->server_rank = ri->rank;
 	gm->num_records = 1;
+	gm->index = index->id;
+	gm->index_type = index->type;
 
 	//Test if I'm a range server
 	ret = im_range_server(md);
@@ -493,7 +505,8 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len,
  * @param num_records  the number of keys to get (i.e., the number of keys in keys array)
  * @return mdhim_bgetrm_t * or NULL on error
  */
-struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, 
+struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
+				 void **keys, int *key_lens, 
 				 int num_records) {
 	struct mdhim_bgetm_t **bgm_list;
 	struct mdhim_bgetm_t *bgm, *lbgm;
@@ -548,6 +561,8 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
 			bgm->server_rank = ri->rank;
 			bgm->mtype = MDHIM_BULK_GET;
 			bgm->op = MDHIM_GET_EQ;
+			bgm->index = index->id;
+			bgm->index_type = index->type;
 			if (ri->rank != md->mdhim_rank) {
 				bgm_list[ri->rangesrv_num - 1] = bgm;
 			} else {
@@ -605,9 +620,10 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens,
  * @param op           the operation to perform (i.e., MDHIM_GET_NEXT or MDHIM_GET_PREV)
  * @return mdhim_bgetrm_t * or NULL on error
  */
-struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len, 
+struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
+				   void *key, int key_len, 
 				   int num_records, int op) {
-  int ret;
+	int ret;
 	struct mdhim_getm_t *gm;
 	struct mdhim_bgetrm_t *bgrm;
 	rangesrv_info *ri = NULL;
@@ -652,6 +668,8 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
 	gm->key_len = key_len;
 	gm->server_rank = ri->rank;
 	gm->num_records = num_records;
+	gm->index = index->id;
+	gm->index_type = index->type;
 
 	//Test if I'm a range server
 	ret = im_range_server(md);
@@ -677,7 +695,8 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len,
  * @param key_len   the length of the key
  * @return mdhim_rm_t * or NULL on error
  */
-struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len) {
+struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, struct index_t *index, 
+			       void *key, int key_len) {
 	struct mdhim_delm_t *dm;
 	struct mdhim_rm_t *rm = NULL;
 	rangesrv_info *ri;
@@ -704,7 +723,9 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len) {
 	dm->key = key;
 	dm->key_len = key_len;
 	dm->server_rank = ri->rank;
-	
+	dm->index = index->id;
+	dm->index_type = index->type;
+
 	//Test if I'm a range server
 	ret = im_range_server(md);
 
@@ -729,7 +750,8 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len) {
  * @param num_records  the number of keys to delete (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
-struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
+struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, struct index_t *index,
+				 void **keys, int *key_lens,
 				 int num_records) {
 	struct mdhim_bdelm_t **bdm_list;
 	struct mdhim_bdelm_t *bdm, *lbdm;
@@ -784,6 +806,8 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 			bdm->num_records = 0;
 			bdm->server_rank = ri->rank;
 			bdm->mtype = MDHIM_BULK_DEL;
+			bdm->index = index->id;
+			bdm->index_type = index->type;
 			if (ri->rank != md->mdhim_rank) {
 				bdm_list[ri->rangesrv_num - 1] = bdm;
 			} else {
@@ -832,11 +856,11 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
  * @param md main MDHIM struct
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int mdhimStatFlush(struct mdhim_t *md) {
+int mdhimStatFlush(struct mdhim_t *md, struct index_t *index) {
 	int ret;
 
 	MPI_Barrier(md->mdhim_client_comm);	
-	if ((ret = get_stat_flush(md)) != MDHIM_SUCCESS) {
+	if ((ret = get_stat_flush(md, index)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while getting MDHIM stat data in mdhimStatFlush", 
 		     md->mdhim_rank);

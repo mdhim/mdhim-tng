@@ -59,26 +59,31 @@ struct mdhim_t {
 	void *receive_msg;
         //Options for DB creation
         mdhim_options_t *db_opts;
-	//Statistics retrieved from the mdhimStatFlush operation
-	struct mdhim_stat *stats;
 };
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts);
 int mdhimClose(struct mdhim_t *md);
 int mdhimCommit(struct mdhim_t *md);
-int mdhimStatFlush(struct mdhim_t *md);
-struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, void *key, int key_len,  
+int mdhimStatFlush(struct mdhim_t *md, struct index_t *index);
+struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index,
+			    void *key, int key_len,  
 			    void *value, int value_len);
-struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, void **keys, int *key_lens,
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index, 
+			      void **keys, int *key_lens,
 			      void **values, int *value_lens, int num_records);
-struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, void *key, int key_len, 
+struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
+			       void *key, int key_len, 
 			       int op);
-struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, void **keys, int *key_lens, 
+struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
+				 void **keys, int *key_lens, 
 				 int num_records);
-struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, void *key, int key_len, 
+struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
+				   void *key, int key_len, 
 				   int num_records, int op);
-struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len);
-struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
+struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, struct index_t *index,
+			       void *key, int key_len);
+struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, struct index_t *index,
+				 void **keys, int *key_lens,
 				 int num_keys);
 void mdhim_release_recv_msg(void *msg);
 #endif
