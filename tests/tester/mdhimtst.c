@@ -1677,7 +1677,7 @@ int main( int argc, char * argv[] )
 	int      charIdx; // Index to last processed character of a command line
 	char     command  [ TEST_BUFLEN ];
 	char     filename [ TEST_BUFLEN ];
-	char     *db_path = "./";
+	char     *db_path = " ";
 	char     *db_name = "mdhimTst-";
 	int      dowork = 1;
 	int      dbug = 1; //MLOG_CRIT=1, MLOG_DBG=2
@@ -1693,7 +1693,7 @@ int main( int argc, char * argv[] )
 	int provided = 0;
 	struct mdhim_t *md;
     
-	int db_type = LEVELDB; //(data_store.h) 
+	int db_type = MYSQLDB; //(data_store.h) 
 
 	// Process arguments
 	infile = stdin;
