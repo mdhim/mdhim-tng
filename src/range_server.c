@@ -94,32 +94,41 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	return ret;
 }
 
-void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts, int stat) {
+struct index_t *find_index(struct mdhim_t *md, mdhim_basem_t *msg) {
+	struct index_t *ret;
+       
+	ret = get_index(msg->index, msg->index_type);
+
+	return ret;
+
+}
+
+void set_store_opts(struct index_t *index, struct mdhim_store_opts_t *opts, int stat) {
 	if (!stat) {
-		opts->db_ptr1 = md->mdhim_rs->mdhim_store->db_ptr1;
-		opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr2;
-		opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr3;
-		opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr4;
-		opts->db_ptr5 = md->mdhim_rs->mdhim_store->db_ptr5;
-		opts->db_ptr6 = md->mdhim_rs->mdhim_store->db_ptr6;
-		opts->db_ptr7 = md->mdhim_rs->mdhim_store->db_ptr7;
+		opts->db_ptr1 = index->mdhim_store->db_ptr1;
+		opts->db_ptr2 = index->mdhim_store->db_ptr2;
+		opts->db_ptr3 = index->mdhim_store->db_ptr3;
+		opts->db_ptr4 = index->mdhim_store->db_ptr4;
+		opts->db_ptr5 = index->mdhim_store->db_ptr5;
+		opts->db_ptr6 = index->mdhim_store->db_ptr6;
+		opts->db_ptr7 = index->mdhim_store->db_ptr7;
 	} else {
 		opts->db_ptr1 = NULL;	       
-		opts->db_ptr2 = md->mdhim_rs->mdhim_store->db_ptr5;
-		opts->db_ptr3 = md->mdhim_rs->mdhim_store->db_ptr6;
-		opts->db_ptr4 = md->mdhim_rs->mdhim_store->db_ptr7;
+		opts->db_ptr2 = index->mdhim_store->db_ptr5;
+		opts->db_ptr3 = index->mdhim_store->db_ptr6;
+		opts->db_ptr4 = index->mdhim_store->db_ptr7;
 		opts->db_ptr5 = NULL;	       
 		opts->db_ptr6 = NULL;	       
 		opts->db_ptr7 = NULL;	       
 	}  
 
-	opts->db_ptr8 = md->mdhim_rs->mdhim_store->db_ptr8;
-	opts->db_ptr9 = md->mdhim_rs->mdhim_store->db_ptr9;
-	opts->db_ptr10 = md->mdhim_rs->mdhim_store->db_ptr10;
-	opts->db_ptr11 = md->mdhim_rs->mdhim_store->db_ptr11;
-	opts->db_ptr12 = md->mdhim_rs->mdhim_store->db_ptr12;
-	opts->db_ptr13 = md->mdhim_rs->mdhim_store->db_ptr13;
-	opts->db_ptr14 = md->mdhim_rs->mdhim_store->db_ptr14;
+	opts->db_ptr8 = index->mdhim_store->db_ptr8;
+	opts->db_ptr9 = index->mdhim_store->db_ptr9;
+	opts->db_ptr10 = index->mdhim_store->db_ptr10;
+	opts->db_ptr11 = index->mdhim_store->db_ptr11;
+	opts->db_ptr12 = index->mdhim_store->db_ptr12;
+	opts->db_ptr13 = index->mdhim_store->db_ptr13;
+	opts->db_ptr14 = index->mdhim_store->db_ptr14;
 }
 
 /**
@@ -264,13 +273,23 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	int32_t old_value_len;
 	struct timeval start, end;
 	int inserted = 0;
+	struct index_t *index;
 
 	set_store_opts(md, &opts, 0);
 	value = malloc(sizeof(void *));
 	*value = NULL;
 	value_len = malloc(sizeof(int32_t));
 	*value_len = 0;
-        
+
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) im);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, im->index);
+		error = MDHIM_ERROR;
+		goto done;
+	}
+
 	gettimeofday(&start, NULL);
        //Check for the key's existence
 	md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
@@ -318,6 +337,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	gettimeofday(&end, NULL);
 	add_timing(start, end, inserted, md, MDHIM_PUT);
 
+done:
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type

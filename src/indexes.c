@@ -496,12 +496,21 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index *rindex) {
  * @param  md  main MDHIM struct
  * @return     MDHIM_ERROR on error, otherwise the index identifier
  */
-struct index_t *create_index_t(struct mdhim_t *md, int db_type, int key_type) {
+struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_type) {
 	struct index_t *li;
-
+	pthread_rwlock_t *indexes_lock;
+	
 	//Check that the key type makes sense
 	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Invalid key type specified");
+		return NULL;
+	}
+
+	indexes_lock = get_index_lock(md, LOCAL_INDEX);
+	//Acquire the lock to update remote_indexes
+	if (pthread_rwlock_wrlock(indexes_lock) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
+		     md->mdhim_rank);
 		return NULL;
 	}
 
@@ -528,6 +537,12 @@ struct index_t *create_index_t(struct mdhim_t *md, int db_type, int key_type) {
 		     md->mdhim_rank, li->id);
 	}
 
+	if (pthread_rwlock_unlock(indexes_lock) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+	
 	//Initialize the range server threads if they haven't been already
 	if (!md->mdhim_rs) {
 		ret = range_server_init(md);
@@ -555,7 +570,7 @@ struct index *create_remote_index(struct mdhim_t *md, int server_factor,
 	uint32_t rangesrv_num;
 	int ret;
 	struct rangesrv_info *rs_table;
-
+	pthread_rwlock_t *indexes_lock;
 
 	MPI_Barrier(md->mdhim_comm);
 
@@ -565,9 +580,10 @@ struct index *create_remote_index(struct mdhim_t *md, int server_factor,
 		return NULL;
 	}
 
+	indexes_lock = get_index_lock(md, REMOTE_INDEX);
 	//Acquire the lock to update remote_indexes
-	if (pthread_rwlock_wrlock(&md->remote_indexes_lock) != 0) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the remote_indexes_lock", 
+	if (pthread_rwlock_wrlock(indexes_lock) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
 		     md->mdhim_rank);
 		return NULL;
 	}		
@@ -635,7 +651,12 @@ struct index *create_remote_index(struct mdhim_t *md, int server_factor,
 	
 done:
 	//Release the remote indexes lock
-	pthread_rwlock_unlock(&md->remote_indexes_lock);
+	if (pthread_rwlock_unlock(indexes_lock) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
 	if (!ri) {
 		return NULL;
 	}
@@ -818,6 +839,44 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 	return MDHIM_SUCCESS;
 }
 
+struct pthread_rw_lock_t *get_index_lock(struct mdhim_t *md, int type) {
+	pthread_rwlock_t *indexes_lock;
+
+	if (type != LOCAL_INDEX) {
+		indexes_lock = md->remote_indexes_lock;
+	} else {
+		indexes_lock = md->local_indexes_lock;
+	}
+
+	return indexes_lock;
+}
+
+struct index_t *get_index(struct mdhim_t *md, int index_id, int type) {
+	pthread_rwlock_t *indexes_lock;
+	struct index_t *index;
+
+	indexes_lock = get_index_lock(md, type);
+	//Acquire the lock to update remote_indexes	
+	if (pthread_rwlock_wrlock(indexes_lock) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
+		     md->mdhim_rank);
+		return NULL;
+	}		
+	
+	index = NULL;
+	if (type == LOCAL_INDEX) {
+		HASH_FIND_INT(md->local_indexes, &index_id, index);
+	} else {
+		HASH_FIND_INT(md->remote_indexes, &index_id, index);
+	}
+
+	if (pthread_rwlock_unlock(indexes_lock) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+}
+
 void indexes_release(struct mdhim_t *md) {
 	struct index_t *cur_indx, *tmp_indx;
 	struct rangsrv_info *cur_rs, *tmp_rs;
@@ -884,7 +943,7 @@ int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 	
 	num_items = 0;
 	//Determine the size of the buffers to send based on the number and type of stats
-	if ((ret = is_float_key(md->key_type)) == 1) {
+	if ((ret = is_float_key(index->key_type)) == 1) {
 		float_type = 1;
 		stat_size = sizeof(struct mdhim_db_fstat);
 	} else {

@@ -47,6 +47,7 @@ struct mdhim_t {
 
 	//Lock to allow concurrent readers and a single writer to the remote_indexes hash table
 	pthread_rwlock_t remote_indexes_lock;
+	pthread_rwlock_t local_indexes_lock;
 
 	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 

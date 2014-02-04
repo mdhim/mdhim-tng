@@ -9,8 +9,10 @@
 
 #include "uthash.h"
 
-#define PRIMARY_INDEX
-#define SECONDARY_INDEX
+#define PRIMARY_INDEX 1
+#define SECONDARY_INDEX 2
+#define LOCAL_INDEX 3
+#define REMOTE_INDEX 4
 
 typedef struct rangesrv_info rangesrv_info;
 /* 
@@ -94,5 +96,6 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *rindex);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, index_t *index);
+struct index_t *get_index(int index_id, int type);
 
 #endif
