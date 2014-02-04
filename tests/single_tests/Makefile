@@ -2,11 +2,13 @@ include ../../Makefile.cfg
 CLIBS += -L../../src
 CINC += -I../../src -I../../src/uthash
 all:	put-get bput-bget put-del bput-bdel put-getn \
-	put-getp puts-gets bput-bgetn bput-bgetp
+	put-getp puts-gets bput-bgetn bput-bgetp plfs-put-get
 
 put-get: put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
+plfs-put-get: plfs-put-get.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 puts-gets: puts-gets.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
