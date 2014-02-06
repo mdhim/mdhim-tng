@@ -95,7 +95,7 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
  * @param messages double pointer to array of messages to send
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
+int send_all_rangesrv_work(struct mdhim_t *md, void **messages, int num_srvs) {
 	int return_code = MDHIM_ERROR;
 	void *sendbuf = NULL;
 	void **sendbufs;
@@ -112,18 +112,18 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages) {
 
 	ret = MDHIM_SUCCESS;
 	num_msgs = 0;
-	reqs = malloc(sizeof(MPI_Request *) * md->num_rangesrvs);
-	size_reqs = malloc(sizeof(MPI_Request *) * md->num_rangesrvs);
-	memset(reqs, 0, sizeof(MPI_Request *) * md->num_rangesrvs);
-	memset(size_reqs, 0, sizeof(MPI_Request *) * md->num_rangesrvs);
-	sendbufs = malloc(sizeof(void *) * md->num_rangesrvs);
-	memset(sendbufs, 0, sizeof(void *) * md->num_rangesrvs);
-	sizes = malloc(sizeof(int) * md->num_rangesrvs);
-	memset(sizes, 0, sizeof(int) * md->num_rangesrvs);
+	reqs = malloc(sizeof(MPI_Request *) * num_srvs);
+	size_reqs = malloc(sizeof(MPI_Request *) * num_srvs);
+	memset(reqs, 0, sizeof(MPI_Request *) * num_srvs);
+	memset(size_reqs, 0, sizeof(MPI_Request *) * num_srvs);
+	sendbufs = malloc(sizeof(void *) * num_srvs);
+	memset(sendbufs, 0, sizeof(void *) * num_srvs);
+	sizes = malloc(sizeof(int) * num_srvs);
+	memset(sizes, 0, sizeof(int) * num_srvs);
 	done = 0;
 
 	//Send all messages at once
-	for (i = 0; i < md->num_rangesrvs; i++) {
+	for (i = 0; i < num_srvs; i++) {
 		mesg = *(messages + i);
 		if (!mesg) {
 			continue;

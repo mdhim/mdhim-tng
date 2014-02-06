@@ -48,7 +48,8 @@ struct mdhim_rm_t *client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
  * @param bpm_list double pointer to an array of bulk put messages
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t **bpm_list) {
+struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct index_t *index, 
+				struct mdhim_bputm_t **bpm_list) {
 	int return_code;
 	struct mdhim_brm_t *brm_head, *brm_tail, *brm;
 	struct mdhim_rm_t **rm_list, *rm;
@@ -57,8 +58,8 @@ struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t **bpm_l
 	int num_srvs;
 
 	num_srvs = 0;
-	srvs = malloc(sizeof(int) * md->num_rangesrvs);
-	for (i = 0; i < md->num_rangesrvs; i++) {
+	srvs = malloc(sizeof(int) * index->num_rangesrvs);
+	for (i = 0; i < index->num_rangesrvs; i++) {
 		if (!bpm_list[i]) {
 			continue;
 		}
@@ -72,7 +73,7 @@ struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct mdhim_bputm_t **bpm_l
 	  return NULL;
 	}
 
-	return_code = send_all_rangesrv_work(md, (void **) bpm_list);
+	return_code = send_all_rangesrv_work(md, (void **) bpm_list, index->num_rangesrvs);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
@@ -162,7 +163,8 @@ struct mdhim_getrm_t *client_get(struct mdhim_t *md, struct mdhim_getm_t *gm) {
  * @param bgm_list double pointer to an array or bulk get messages
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t **bgm_list) {
+struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct index_t *index, 
+				   struct mdhim_bgetm_t **bgm_list) {
 	int return_code;
 	struct mdhim_bgetrm_t *bgrm_head, *bgrm_tail, *bgrm;
 	struct mdhim_bgetrm_t **bgrm_list;
@@ -171,8 +173,8 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t **bg
 	int num_srvs;
 
 	num_srvs = 0;
-	srvs = malloc(sizeof(int) * md->num_rangesrvs);
-	for (i = 0; i < md->num_rangesrvs; i++) {
+	srvs = malloc(sizeof(int) * index->num_rangesrvs);
+	for (i = 0; i < index->num_rangesrvs; i++) {
 		if (!bgm_list[i]) {
 			continue;
 		}
@@ -186,7 +188,7 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct mdhim_bgetm_t **bg
 	  return NULL;
 	}
 
-	return_code = send_all_rangesrv_work(md, (void **) bgm_list);
+	return_code = send_all_rangesrv_work(md, (void **) bgm_list, index->num_rangesrvs);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
@@ -302,7 +304,8 @@ struct mdhim_rm_t *client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
  * @param bdm_list double pointer to an array of bulk del messages
  * @return return_message structure with ->error = MDHIM_SUCCESS or MDHIM_ERROR
  */
-struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t **bdm_list) {
+struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct index_t *index, 
+				   struct mdhim_bdelm_t **bdm_list) {
 	int return_code;
 	struct mdhim_brm_t *brm_head, *brm_tail, *brm;
 	struct mdhim_rm_t **rm_list, *rm;
@@ -311,8 +314,8 @@ struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t **bd
 	int num_srvs;
 
 	num_srvs = 0;
-	srvs = malloc(sizeof(int) * md->num_rangesrvs);
-	for (i = 0; i < md->num_rangesrvs; i++) {
+	srvs = malloc(sizeof(int) * index->num_rangesrvs);
+	for (i = 0; i < index->num_rangesrvs; i++) {
 		if (!bdm_list[i]) {
 			continue;
 		}
@@ -321,7 +324,7 @@ struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t **bd
 		num_srvs++;
 	}
 
-	return_code = send_all_rangesrv_work(md, (void **) bdm_list);
+	return_code = send_all_rangesrv_work(md, (void **) bdm_list, index->num_rangesrvs);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
@@ -382,18 +385,18 @@ struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct mdhim_bdelm_t **bd
  */
 void client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
 	int return_code;
-	rangesrv_info *rs;
+	struct index_t *cur_indx, *tmp_indx;
+	struct rangesrv_info *cur_rs, *tmp_rs;
 
-	rs = md->rangesrvs;
-	while (rs) {	
-		return_code = send_rangesrv_work(md, rs->rank, cm);
-		// If there was an error then log the error code and return MDHIM_ERROR
-		if (return_code != MDHIM_SUCCESS) {
-			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
-			     "close record request",  md->mdhim_rank, return_code);
+	HASH_ITER(hh, md->remote_indexes, cur_indx, tmp_indx) {
+		HASH_ITER(hh, cur_indx->rangesrvs, cur_rs, tmp_rs) {
+			return_code = send_rangesrv_work(md, cur_rs->rank, cm);
+			// If there was an error then log the error code and return MDHIM_ERROR
+			if (return_code != MDHIM_SUCCESS) {
+				mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
+				     "close record request",  md->mdhim_rank, return_code);
+			}
 		}
-
-		rs = rs->next;
 	}
 
 	return;

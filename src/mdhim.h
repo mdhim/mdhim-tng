@@ -43,7 +43,7 @@ struct mdhim_t {
 	int mdhim_comm_size;
 	//A linked list of range servers
 	struct index_t *remote_indexes;
-	struct index_t *local_indexes
+	struct index_t *local_indexes;
 
 	//Lock to allow concurrent readers and a single writer to the remote_indexes hash table
 	pthread_rwlock_t remote_indexes_lock;

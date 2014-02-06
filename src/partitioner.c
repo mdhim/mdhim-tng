@@ -144,7 +144,8 @@ void build_alphabet() {
  *
  * @return        MDHIM_ERROR if the key is not valid, otherwise the MDHIM_SUCCESS
  */
-int verify_key(void *key, int key_len, int key_type) {
+int verify_key(struct index_t *index, void *key, 
+	       int key_len, int key_type) {
 	int i;
 	int id;
 	struct mdhim_char *mc;
@@ -183,7 +184,7 @@ int verify_key(void *key, int key_len, int key_type) {
 		ikey = *(double *)key;
 	}
 
-	size_check = ikey/mdhim_max_recs_per_slice;
+	size_check = ikey/index->mdhim_max_recs_per_slice;
 	if (size_check >= MDHIM_MAX_SLICES) {
 		mlog(MDHIM_CLIENT_CRIT, "Error - Not enough slices for this key." 
 		     "  Try increasing the slice size.");
@@ -240,7 +241,7 @@ int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_
 	total_keys = MDHIM_MAX_SLICES *  index->mdhim_max_recs_per_slice;
 
 	//Make sure this key is valid
-	if ((ret = verify_key(key, key_len, key_type)) != MDHIM_SUCCESS) {
+	if ((ret = verify_key(index, key, key_len, key_type)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given to get_range_server()", 
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
@@ -489,7 +490,7 @@ int get_slice_from_fstat(struct mdhim_t *md, struct index_t *index,
 			slice_num = cur_slice;
 			goto done;
 		} else {
-			new_stat = get_next_slice_stat(md, cur_slice);
+			new_stat = get_next_slice_stat(md, index, cur_slice);
 			goto new_stat;
 		}
 
@@ -499,17 +500,17 @@ int get_slice_from_fstat(struct mdhim_t *md, struct index_t *index,
 			slice_num = cur_slice;
 			goto done;
 		} else {
-			new_stat = get_prev_slice_stat(md, cur_slice);
+			new_stat = get_prev_slice_stat(md, index, cur_slice);
 			goto new_stat;
 		}
 
 		break;
 	case MDHIM_GET_FIRST:
-		new_stat = get_first_slice_stat(md);
+		new_stat = get_first_slice_stat(md, index);
 		goto new_stat;
 		break;
 	case MDHIM_GET_LAST:
-		new_stat = get_last_slice_stat(md);
+		new_stat = get_last_slice_stat(md, index);
 		goto new_stat;
 		break;
 	default:
@@ -547,7 +548,7 @@ int get_slice_from_istat(struct mdhim_t *md, struct index_t *index,
 			slice_num = cur_slice;
 			goto done;
 		} else {		
-			new_stat = get_next_slice_stat(md, cur_slice);
+			new_stat = get_next_slice_stat(md, index, cur_slice);
 			goto new_stat;
 		}
 
@@ -557,17 +558,17 @@ int get_slice_from_istat(struct mdhim_t *md, struct index_t *index,
 			slice_num = cur_slice;
 			goto done;
 		} else {
-			new_stat = get_prev_slice_stat(md, cur_slice);
+			new_stat = get_prev_slice_stat(md, index, cur_slice);
 			goto new_stat;
 		}
 
 		break;
 	case MDHIM_GET_FIRST:
-		new_stat = get_first_slice_stat(md);
+		new_stat = get_first_slice_stat(md, index);
 		goto new_stat;
 		break;
 	case MDHIM_GET_LAST:
-		new_stat = get_last_slice_stat(md);
+		new_stat = get_last_slice_stat(md, index);
 		goto new_stat;
 		break;
 	default:

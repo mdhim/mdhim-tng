@@ -8,6 +8,7 @@
 #define      __INDEX_H
 
 #include "uthash.h"
+#include "mdhim_options.h"
 
 #define PRIMARY_INDEX 1
 #define SECONDARY_INDEX 2
@@ -38,7 +39,7 @@ struct index_t {
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
 	//Options for the mdhim data store
-	mdhim_store_opts_t *opts;
+	struct mdhim_store_opts_t *opts;
 	int key_type;             //The key type used in the db
 	int db_type;              //The database type
 	int type;                 /* The type of index 
@@ -83,7 +84,7 @@ typedef struct index_manifest_t {
 	int num_nodes;
 } index_manifest_t;
 
-int update_all_stats(struct mdhim_t *md, struct local_index *bi, void *key, uint32_t key_len);
+int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t key_len);
 int load_stats(struct mdhim_t *md, struct index_t *bi);
 int write_stats(struct mdhim_t *md, struct index_t *bi);
 struct mdhim_store_t *open_db_store(struct mdhim_t *md, struct index_t *rindex);
@@ -95,7 +96,7 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *rindex);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
-int get_stat_flush(struct mdhim_t *md, index_t *index);
+int get_stat_flush(struct mdhim_t *md, struct index_t *index);
 struct index_t *get_index(int index_id, int type);
 
 #endif

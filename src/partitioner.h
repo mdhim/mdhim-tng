@@ -43,7 +43,7 @@ struct mdhim_char {
 };
 
 int max_rangesrvs;
-void partitioner_init(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice);
+void partitioner_init();
 void partitioner_release();
 rangesrv_info *get_range_server(struct mdhim_t *md, struct index_t *index,
 				void *key, int key_len);
