@@ -12,10 +12,10 @@ int main(int argc, char **argv) {
 	struct mdhim_rm_t *rm;
 	struct mdhim_getrm_t *grm;
 	char     *db_path = "./";
-	char     *db_name = "mdhimTstDB-";
+	char     *db_name = "mdhimTstDB";
 	int      dbug = MLOG_CRIT;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
-	int db_type = LEVELDB; // (data_store.h) 
+	int db_type = MYSQLDB; // (data_store.h) 
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
