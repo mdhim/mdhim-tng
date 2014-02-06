@@ -275,7 +275,6 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	int inserted = 0;
 	struct index_t *index;
 
-	set_store_opts(md, &opts, 0);
 	value = malloc(sizeof(void *));
 	*value = NULL;
 	value_len = malloc(sizeof(int32_t));
@@ -290,9 +289,10 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 		goto done;
 	}
 
+	set_store_opts(index, &opts, 0);
 	gettimeofday(&start, NULL);
        //Check for the key's existence
-	md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+	index->mdhim_store->get(index->mdhim_store->db_handle, 
 				       im->key, im->key_len, value, 
 				       value_len, &opts);
 	//The key already exists
@@ -320,9 +320,9 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	free(value_len);
         //Put the record in the database
 	if ((ret = 
-	     md->mdhim_rs->mdhim_store->put(md->mdhim_rs->mdhim_store->db_handle, 
-					    im->key, im->key_len, new_value, 
-					    new_value_len, &opts)) != MDHIM_SUCCESS) {
+	     index->mdhim_store->put(index->mdhim_store->db_handle, 
+				     im->key, im->key_len, new_value, 
+				     new_value_len, &opts)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	
 		error = ret;
@@ -390,22 +390,32 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	int32_t old_value_len;
 	struct timeval start, end;
 	int num_put = 0;
+	struct index_t *index;
 
 	gettimeofday(&start, NULL);
-	set_store_opts(md, &opts, 0);
 	exists = malloc(bim->num_records * sizeof(int));
 	new_values = malloc(bim->num_records * sizeof(void *));
 	new_value_lens = malloc(bim->num_records * sizeof(int));
 	value = malloc(sizeof(void *));
 	value_len = malloc(sizeof(int32_t));
 
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) im);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, im->index);
+		error = MDHIM_ERROR;
+		goto done;
+	}
+
+	set_store_opts(index, &opts, 0);
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
 		*value = NULL;
 		*value_len = 0;
 
                 //Check for the key's existence
-		md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
+		index->mdhim_store->get(index->mdhim_store->db_handle, 
 					       bim->keys[i], bim->key_lens[i], value, 
 					       value_len, &opts);
 		//The key already exists
@@ -441,10 +451,10 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 
 	//Put the record in the database
 	if ((ret = 
-	     md->mdhim_rs->mdhim_store->batch_put(md->mdhim_rs->mdhim_store->db_handle, 
-						  bim->keys, bim->key_lens, new_values, 
-						  new_value_lens, bim->num_records,
-						  &opts)) != MDHIM_SUCCESS) {
+	     index->mdhim_store->batch_put(index->mdhim_store->db_handle, 
+					   bim->keys, bim->key_lens, new_values, 
+					   new_value_lens, bim->num_records,
+					   &opts)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error batch putting records", 
 		     md->mdhim_rank);
 		error = ret;
@@ -478,6 +488,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	gettimeofday(&end, NULL);
 	add_timing(start, end, num_put, md, MDHIM_BULK_PUT);
 
+ done:
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
@@ -510,19 +521,30 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
-	int ret;
+	int ret = MDHIM_ERROR;
 	struct mdhim_rm_t *rm;
 	struct mdhim_store_opts_t opts;
+	struct index_t *index;
 
-	set_store_opts(md, &opts, 0);
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) im);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, im->index);
+		ret = MDHIM_ERROR;
+		goto done;
+	}
+
+	set_store_opts(index, &opts, 0);
 	//Put the record in the database
 	if ((ret = 
-	     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
-					dm->key, dm->key_len, &opts)) != MDHIM_SUCCESS) {
+	     index->mdhim_store->del(index->mdhim_store->db_handle, 
+				     dm->key, dm->key_len, &opts)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
 		     md->mdhim_rank);
 	}
 
+ done:
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
@@ -554,21 +576,32 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	int error = 0;
 	struct mdhim_rm_t *brm;
 	struct mdhim_store_opts_t opts;
+	struct index_t *index;
 
-	set_store_opts(md, &opts, 0);
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) gm);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, im->index);
+		error = MDHIM_ERROR;
+		goto done;
+	}
+
+	set_store_opts(index, &opts, 0);
 	//Iterate through the arrays and delete each record
 	for (i = 0; i < bdm->num_records && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
-		     md->mdhim_rs->mdhim_store->del(md->mdhim_rs->mdhim_store->db_handle, 
-						bdm->keys[i], bdm->key_lens[i],
-						&opts)) != MDHIM_SUCCESS) {
+		     index->mdhim_store->del(index->mdhim_store->db_handle, 
+					     bdm->keys[i], bdm->key_lens[i],
+					     &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
 	}
 
+done:
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
@@ -599,15 +632,26 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source) {
 	int ret;
 	struct mdhim_rm_t *rm;
-	
+	struct index_t *index;
+
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) im);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, im->index);
+		ret = MDHIM_ERROR;
+		goto done;
+	}
+
         //Put the record in the database
 	if ((ret = 
-	     md->mdhim_rs->mdhim_store->commit(md->mdhim_rs->mdhim_store->db_handle)) 
+	     index->mdhim_store->commit(index->mdhim_store->db_handle)) 
 	    != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error committing database", 
 		     md->mdhim_rank);	
 	}
-	
+
+ done:	
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
@@ -644,8 +688,8 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	struct mdhim_store_opts_t opts;
 	struct timeval start, end;
 	int num_retrieved = 0;
+	struct index_t *index;	
 
-	set_store_opts(md, &opts, 0);
 	//Initialize pointers and lengths
 	value = malloc(sizeof(void *));
 	value_len = malloc(sizeof(int32_t));
@@ -655,6 +699,16 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	key_len = 0;
 	*value_len = 0;
 
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) gm);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, gm->index);
+		error = MDHIM_ERROR;
+		goto done;
+	}
+
+	set_store_opts(index, &opts, 0);
 	//Set our local pointer to the key and length
 	if (gm->key_len) {
 		*key = gm->key;
@@ -664,60 +718,60 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	gettimeofday(&start, NULL);
 	//Get a record from the database
 	switch(op) {
-	// Gets the value for the given key
+		// Gets the value for the given key
 	case MDHIM_GET_EQ:
 		if ((ret = 
-		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-						    *key, key_len, value, 
-						    value_len, &opts)) != MDHIM_SUCCESS) {
+		     index->mdhim_store->get(index->mdhim_store->db_handle, 
+					     *key, key_len, value, 
+					     value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
 	
 		break;
-	/* Gets the next key and value that is in order after the passed in key */
+		/* Gets the next key and value that is in order after the passed in key */
 	case MDHIM_GET_NEXT:	
 		if ((ret = 
-		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
-							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+		     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
+						  key, &key_len, value, 
+						  value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
 		}	
 		break;
-	/* Gets the previous key and value that is in order before the passed in key
-	   or the last key if no key was passed in */
+		/* Gets the previous key and value that is in order before the passed in key
+		   or the last key if no key was passed in */
 	case MDHIM_GET_PREV:
 		if ((ret = 
-		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
-							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+		     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
+						  key, &key_len, value, 
+						  value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
 		break;
-	/* Gets the first key/value */
+		/* Gets the first key/value */
 	case MDHIM_GET_FIRST:
 		key_len = 0;
 		if ((ret = 
-		     md->mdhim_rs->mdhim_store->get_next(md->mdhim_rs->mdhim_store->db_handle, 
-							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+		     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
+						  key, &key_len, value, 
+						  value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
 		}
 		break;
-	/* Gets the last key/value */
+		/* Gets the last key/value */
 	case MDHIM_GET_LAST:
 		key_len = 0;
 		if ((ret = 
-		     md->mdhim_rs->mdhim_store->get_prev(md->mdhim_rs->mdhim_store->db_handle, 
-							 key, &key_len, value, 
-							 value_len, &opts)) != MDHIM_SUCCESS) {
+		     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
+						  key, &key_len, value, 
+						  value_len, &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -736,6 +790,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	gettimeofday(&end, NULL);
 	add_timing(start, end, num_retrieved, md, MDHIM_GET);
 
+done:
 	//Create the response message
 	grm = malloc(sizeof(struct mdhim_getrm_t));
 	//Set the type
@@ -759,7 +814,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 
 	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
 	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
-	  	free(gm->key);
+		free(gm->key);
 		gm->key = NULL;
 		gm->key_len = 0;
 	}
@@ -797,19 +852,30 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	struct mdhim_store_opts_t opts;
 	struct timeval start, end;
 	int num_retrieved = 0;
+	struct index_t *index;
 
 	gettimeofday(&start, NULL);
-	set_store_opts(md, &opts, 0);
 	values = malloc(sizeof(void *) * bgm->num_records);
 	value_lens = malloc(sizeof(int32_t) * bgm->num_records);
 	memset(value_lens, 0, sizeof(int32_t) * bgm->num_records);
+
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) bgm);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, bgm->index);
+		error = MDHIM_ERROR;
+		goto done;
+	}
+
+	set_store_opts(index, &opts, 0);
 	//Iterate through the arrays and get each record
 	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
 	  //Get records from the database
 		if ((ret = 
-		     md->mdhim_rs->mdhim_store->get(md->mdhim_rs->mdhim_store->db_handle, 
-						    bgm->keys[i], bgm->key_lens[i], &values[i], 
-						    &value_lens[i], &opts)) != MDHIM_SUCCESS) {
+		     index->mdhim_store->get(index->mdhim_store->db_handle, 
+					     bgm->keys[i], bgm->key_lens[i], &values[i], 
+					     &value_lens[i], &opts)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
 			error = ret;
 			value_lens[i] = 0;
@@ -823,6 +889,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	gettimeofday(&end, NULL);
 	add_timing(start, end, num_retrieved, md, MDHIM_BULK_GET);
 
+done:
 	//Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
@@ -888,8 +955,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	int i;
 	int num_records;
 	struct timeval start, end;
-
-	set_store_opts(md, &opts, 0);
+	struct index_t *index;
 
 	//Initialize pointers and lengths
 	values = malloc(sizeof(void *) * gm->num_records);
@@ -907,6 +973,16 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	get_value_len = malloc(sizeof(int32_t));
 	num_records = 0;
 
+	//Get the index referenced the message
+	index = find_index(md, (struct mdhim_basem_t *) gm);
+	if (!index) {
+		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
+		     md->mdhim_rank, im->index);
+		error = MDHIM_ERROR;
+		goto respond;
+	}
+
+	set_store_opts(index, &opts, 0);
 	gettimeofday(&start, NULL);
 	//Iterate through the arrays and get each record
 	for (i = 0; i < gm->num_records && i < MAX_BULK_OPS; i++) {

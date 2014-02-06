@@ -270,7 +270,7 @@ int load_stats(struct mdhim_t *md, struct index_t *bi) {
 	*key_len = sizeof(int);
 	val = malloc(sizeof(struct mdhim_db_stat *));	
 	val_len = malloc(sizeof(int));
-	set_store_opts(md, &opts, 1);
+	set_store_opts(bi, &opts, 1);
 	old_slice = NULL;
 	bi->mdhim_store->mdhim_store_stats = NULL;
 	while (!done) {
@@ -343,7 +343,7 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 	int float_type = 0;
 
 	float_type = is_float_key(md->key_type);
-	set_store_opts(md, &opts, 1);
+	set_store_opts(bi, &opts, 1);
 
 	//Iterate through the stat hash entries
 	HASH_ITER(hh, bi->mdhim_store->mdhim_store_stats, stat, tmp) {	
@@ -371,7 +371,7 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 				     &dbstat->slice, sizeof(int), dbstat, 
 				     sizeof(struct mdhim_db_stat), &opts);	
 		//Delete and free hash entry
-		HASH_DEL(b->mdhim_store->mdhim_store_stats, stat); 
+		HASH_DEL(bi->mdhim_store->mdhim_store_stats, stat); 
 		free(stat->max);
 		free(stat->min);
 		free(stat);
@@ -898,7 +898,7 @@ void indexes_release(struct mdhim_t *md) {
 		//Write the manifest
 		write_manifest(md);
 		
-		set_store_opts(md, &opts, 0);
+		set_store_opts(cur_indx, &opts, 0);
 		//Close the database
 		if ((ret = cur_indx->mdhim_store->close(cur_indx->mdhim_store->db_handle, 
 							cur_indx->mdhim_store->db_stats, &opts)) 

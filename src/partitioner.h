@@ -3,6 +3,7 @@
 
 #include "mdhim.h"
 #include "uthash.h"
+#include "indexes.h"
 
 /* Used to determine if a rank is a range server
    Works like this:
@@ -44,16 +45,17 @@ struct mdhim_char {
 int max_rangesrvs;
 void partitioner_init(struct mdhim_t *md, int server_factor, uint64_t max_recs_per_slice);
 void partitioner_release();
-uint32_t get_num_range_servers(struct mdhim_t *md);
-uint32_t is_range_server(struct mdhim_t *md, int rank);
-rangesrv_info *get_range_server(struct mdhim_t *md, void *key, int key_len);
-rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, int slice);
+rangesrv_info *get_range_server(struct mdhim_t *md, struct index_t *index,
+				void *key, int key_len);
+rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, 
+					 struct index_t *index, int slice);
 void build_alphabet();
-int verify_key(void *key, int key_len, int key_type);
+int verify_key(struct index_t *index, void *key, int key_len, int key_type);
 long double get_str_num(void *key, uint32_t key_len);
 long double get_byte_num(void *key, uint32_t key_len);
-int get_slice_num(struct mdhim_t *md, void *key, int key_len);
+int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_len);
 int is_float_key(int type);
-rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, void *key, int key_len, int op);
+rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, struct index_t *index, 
+					   void *key, int key_len, int op);
 
 #endif
