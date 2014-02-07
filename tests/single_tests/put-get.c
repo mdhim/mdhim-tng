@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 	struct mdhim_rm_t *rm;
 	struct mdhim_getrm_t *grm;
         mdhim_options_t *db_opts;
-
+	struct index_t *index;
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");
@@ -41,8 +41,9 @@ int main(int argc, char **argv) {
 	//Put the keys and values
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
-	rm = mdhimPut(md, &key, sizeof(key), 
-		       &value, sizeof(value));
+	rm = mdhimPut(md, md->primary_index, 
+		      &key, sizeof(key), 
+		      &value, sizeof(value));
 	if (!rm || rm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
 
 	mdhim_full_release_msg(rm);
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
@@ -61,7 +62,7 @@ int main(int argc, char **argv) {
 
 	//Get the values
 	value = 0;
-	grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
+	grm = mdhimGet(md, md->primary_index, &key, sizeof(key), MDHIM_GET_EQ);
 	if (!grm || grm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
 	} else {

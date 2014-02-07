@@ -53,7 +53,6 @@ int range_server_add_work(struct mdhim_t *md, work_item *item);
 int range_server_init(struct mdhim_t *md);
 int range_server_init_comm(struct mdhim_t *md);
 int range_server_stop(struct mdhim_t *md);
-int im_range_server(struct mdhim_t *md);
 int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg); //Add an outstanding request
 int range_server_clean_oreqs(struct mdhim_t *md); //Clean outstanding reqs
 

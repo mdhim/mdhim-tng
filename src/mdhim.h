@@ -41,13 +41,16 @@ struct mdhim_t {
 	int mdhim_rank;
 	//The size of mdhim_comm
 	int mdhim_comm_size;
+
+	//A pointer to the primary index
+	struct index_t *primary_index;
 	//A linked list of range servers
 	struct index_t *remote_indexes;
 	struct index_t *local_indexes;
 
 	//Lock to allow concurrent readers and a single writer to the remote_indexes hash table
-	pthread_rwlock_t remote_indexes_lock;
-	pthread_rwlock_t local_indexes_lock;
+	pthread_rwlock_t *remote_indexes_lock;
+	pthread_rwlock_t *local_indexes_lock;
 
 	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 
@@ -64,7 +67,7 @@ struct mdhim_t {
 
 struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts);
 int mdhimClose(struct mdhim_t *md);
-int mdhimCommit(struct mdhim_t *md);
+int mdhimCommit(struct mdhim_t *md, struct index_t *index);
 int mdhimStatFlush(struct mdhim_t *md, struct index_t *index);
 struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index,
 			    void *key, int key_len,  

@@ -67,6 +67,7 @@ void partitioner_init() {
  */
 void partitioner_release() {
 	delete_alphabet();
+	mdhim_alphabet = NULL;
 }
 
 /**

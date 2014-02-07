@@ -87,7 +87,7 @@ typedef struct index_manifest_t {
 int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t key_len);
 int load_stats(struct mdhim_t *md, struct index_t *bi);
 int write_stats(struct mdhim_t *md, struct index_t *bi);
-struct mdhim_store_t *open_db_store(struct mdhim_t *md, struct index_t *rindex);
+int open_db_store(struct mdhim_t *md, struct index_t *rindex);
 uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex);
 struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type);
 struct index_t *create_remote_index(struct mdhim_t *md, int server_factor, 
@@ -97,6 +97,9 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *rindex);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, struct index_t *index);
-struct index_t *get_index(int index_id, int type);
+struct index_t *get_index(struct mdhim_t *md, int index_id, int type);
+void indexes_release(struct mdhim_t *md);
+void set_store_opts(struct index_t *index, struct mdhim_store_opts_t *opts, int stat);
+int im_range_server(struct index_t *index);
 
 #endif
