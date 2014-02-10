@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 		key = malloc(100);
 		sprintf(key, "%c", (int) '0' + (md->mdhim_rank + 1) + i);
 		value = 500 * (md->mdhim_rank + 1) + i;
-		rm = mdhimPut(md, key, strlen(key) + 1, 
+		rm = mdhimPut(md, md->primary_index, key, strlen(key) + 1, 
 			      &value, sizeof(value));
 		if (!rm || rm->error) {
 			printf("Error inserting key/value into MDHIM\n");
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 		}
 
 		//Commit the database
-		ret = mdhimCommit(md);
+		ret = mdhimCommit(md, md->primary_index);
 		if (ret != MDHIM_SUCCESS) {
 			printf("Error committing MDHIM database\n");
 		} else {
@@ -62,7 +62,8 @@ int main(int argc, char **argv) {
 
 		//Get the values
 		value = 0;
-		grm = mdhimGet(md, key, strlen(key) + 1, MDHIM_GET_EQ);
+		grm = mdhimGet(md, md->primary_index, 
+			       key, strlen(key) + 1, MDHIM_GET_EQ);
 		if (!grm || grm->error) {
 			printf("Error getting value for key: %s from MDHIM\n", key);
 		} else {

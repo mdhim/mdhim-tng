@@ -941,6 +941,8 @@ struct index_t *get_index(struct mdhim_t *md, int index_id, int type) {
 		     md->mdhim_rank);
 		return NULL;
 	}
+
+	return index;
 }
 
 void indexes_release(struct mdhim_t *md) {

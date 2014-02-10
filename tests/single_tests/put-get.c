@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 	struct mdhim_rm_t *rm;
 	struct mdhim_getrm_t *grm;
         mdhim_options_t *db_opts;
-	struct index_t *index;
+
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");

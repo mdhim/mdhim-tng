@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
-		rm = mdhimPut(md, &key, sizeof(key), 
+		rm = mdhimPut(md, md->primary_index, &key, sizeof(key), 
 			      &value, sizeof(value));
 		if (!rm || rm->error) {
 			printf("Error inserting key/value into MDHIM\n");
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Get the stats
-	ret = mdhimStatFlush(md);
+	ret = mdhimStatFlush(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error getting stats\n");
 	} else {
@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 	for (i = keys_per_rank; i > 0; i--) {
 		value = 0;
 		key = keys_per_rank * md->mdhim_rank + i;
-		grm = mdhimGet(md, &key, sizeof(int), MDHIM_GET_PREV);				
+		grm = mdhimGet(md, md->primary_index, &key, sizeof(int), MDHIM_GET_PREV);				
 		if (!grm || grm->error) {
 			printf("Error getting value for key: %d from MDHIM\n", key);
 		} else if (grm->key && grm->value) {

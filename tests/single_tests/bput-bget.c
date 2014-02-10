@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 		}
 
 		//Insert the keys into MDHIM
-		brm = mdhimBPut(md, (void **) keys, key_lens,  
+		brm = mdhimBPut(md, md->primary_index, (void **) keys, key_lens,  
 				(void **) values, value_lens, KEYS);
 		brmp = brm;
                 if (!brmp || brmp->error) {
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 	total = 0;
 	while (total != TOTAL) {
 		//Get the values back for each key inserted
-		bgrm = mdhimBGet(md, (void **) keys, key_lens, 
+		bgrm = mdhimBGet(md, md->primary_index, (void **) keys, key_lens, 
 				 KEYS);
 		bgrmp = bgrm;
 		while (bgrmp) {

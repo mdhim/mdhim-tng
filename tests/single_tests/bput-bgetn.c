@@ -112,7 +112,8 @@ int main(int argc, char **argv) {
 		//Populate the keys and values to insert
 		gen_keys_values(md->mdhim_rank, total_keys);
 		//Insert the keys into MDHIM
-		brm = mdhimBPut(md, (void **) keys, key_lens,  
+		brm = mdhimBPut(md, md->primary_index, 
+				(void **) keys, key_lens,  
 				(void **) values, value_lens, KEYS);
 		//		MPI_Barrier(MPI_COMM_WORLD);
 
@@ -145,7 +146,7 @@ int main(int argc, char **argv) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	//Get the stats
 	start_record(&start_tv);
-	ret = mdhimStatFlush(md);
+	ret = mdhimStatFlush(md, md->primary_index);
 	//	MPI_Barrier(MPI_COMM_WORLD);
 	end_record(&end_tv);
 	add_time(&start_tv, &end_tv, &flush_time);
@@ -162,7 +163,8 @@ int main(int argc, char **argv) {
 		gen_keys_values(md->mdhim_rank, total_keys);
 		start_record(&start_tv);
 		//Get the keys and values back starting from and including key[0]
-		bgrm = mdhimBGetOp(md, keys[0], sizeof(uint64_t), 
+		bgrm = mdhimBGetOp(md, md->primary_index, 
+				   keys[0], sizeof(uint64_t), 
 				   KEYS, MDHIM_GET_NEXT);
 		//	        MPI_Barrier(MPI_COMM_WORLD);
 		end_record(&end_tv);

@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Insert the records
-	brm = mdhimBPut(md, (void **) keys, key_lens,  
+	brm = mdhimBPut(md, md->primary_index, (void **) keys, key_lens,  
 			(void **) values, value_lens, KEYS);
 	brmp = brm;
 	if (!brm || brm->error) {
@@ -82,7 +82,8 @@ int main(int argc, char **argv) {
 	}
 
 	//Delete the records
-	brm = mdhimBDelete(md, (void **) keys, key_lens, 
+	brm = mdhimBDelete(md, md->primary_index, 
+			   (void **) keys, key_lens, 
 			   KEYS);
 	brmp = brm;
 	if (!brm || brm->error) {
@@ -100,7 +101,8 @@ int main(int argc, char **argv) {
 	}
 
 	//Try to get the records back - should fail
-	bgrm = mdhimBGet(md, (void **) keys, key_lens, 
+	bgrm = mdhimBGet(md, md->primary_index, 
+			 (void **) keys, key_lens, 
 			 KEYS);
 	bgrmp = bgrm;
 	while (bgrmp) {

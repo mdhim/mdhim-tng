@@ -392,7 +392,7 @@ void freeKeyValueMem(int nkeys, void **keys, int *key_lens, char **values, int *
 static void execFlush(char *command, struct mdhim_t *md, int charIdx)
 {
 	//Get the stats
-	int ret = mdhimStatFlush(md);
+	int ret = mdhimStatFlush(md, md->primary_index);
 
 	if (ret != MDHIM_SUCCESS) {
 		tst_say(1, "ERROR: rank %d executing flush.\n", md->mdhim_rank);
@@ -429,35 +429,40 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 		i_key = atoi(str_key) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%d", i_key);
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s) [int]\n", key_string, value );
-		rm = mdhimPut(md, &i_key, sizeof(i_key), value, strlen(value)+1);
+		rm = mdhimPut(md, md->primary_index, &i_key, 
+			      sizeof(i_key), value, strlen(value)+1);
 		break;
              
         case MDHIM_LONG_INT_KEY:
 		l_key = atol(str_key) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%ld", l_key);
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s) [long]\n", key_string, value );
-		rm = mdhimPut(md, &l_key, sizeof(l_key), value, strlen(value)+1);
+		rm = mdhimPut(md, md->primary_index, &l_key, sizeof(l_key), 
+			      value, strlen(value)+1);
 		break;
 
         case MDHIM_FLOAT_KEY:
 		f_key = atof( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%f", f_key);
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", key_string, value );
-		rm = mdhimPut(md, &f_key, sizeof(f_key), value, strlen(value)+1);
+		rm = mdhimPut(md, md->primary_index, &f_key, 
+			      sizeof(f_key), value, strlen(value)+1);
 		break;
             
 	case MDHIM_DOUBLE_KEY:
 		d_key = atof( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%e", d_key);
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", key_string, value );
-		rm = mdhimPut(md, &d_key, sizeof(d_key), value, strlen(value)+1);
+		rm = mdhimPut(md, md->primary_index, &d_key, 
+			      sizeof(d_key), value, strlen(value)+1);
 		break;
                                      
         case MDHIM_STRING_KEY:
         case MDHIM_BYTE_KEY:
 		sprintf(key_string, "%s0%d", str_key, (md->mdhim_rank + 1));
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s) [string|byte]\n", key_string, value );
-		rm = mdhimPut(md, (void *)key_string, strlen(key_string), value, strlen(value)+1);
+		rm = mdhimPut(md, md->primary_index, (void *)key_string, 
+			      strlen(key_string), value, strlen(value)+1);
 		break;
              
         default:
@@ -476,7 +481,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	}
     
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "ERROR: rank %d committing put key: %s to MDHIM database\n", 
@@ -537,35 +542,41 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
 		i_key = atoi( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%d", i_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [int]\n", key_string, getValLabel(getOp));
-		grm = mdhimGet(md, &i_key, sizeof(i_key), getOp);
+		grm = mdhimGet(md, md->primary_index, 
+			       &i_key, sizeof(i_key), getOp);
 		break;
             
 	case MDHIM_LONG_INT_KEY:
 		l_key = atol( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%ld", l_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [long]\n", key_string, getValLabel(getOp));
-		grm = mdhimGet(md, &l_key, sizeof(l_key), getOp);
+		grm = mdhimGet(md, md->primary_index, 
+			       &l_key, sizeof(l_key), getOp);
 		break;
             
 	case MDHIM_FLOAT_KEY:
 		f_key = atof( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%f", f_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [float]\n", key_string, getValLabel(getOp));
-		grm = mdhimGet(md, &f_key, sizeof(f_key), getOp);
+		grm = mdhimGet(md, md->primary_index, 
+			       &f_key, sizeof(f_key), getOp);
 		break;
             
 	case MDHIM_DOUBLE_KEY:
 		d_key = atof( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%e", d_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [double]\n", key_string, getValLabel(getOp));
-		grm = mdhimGet(md, &d_key, sizeof(d_key), getOp);
+		grm = mdhimGet(md, md->primary_index, 
+			       &d_key, sizeof(d_key), getOp);
 		break;
                         
 	case MDHIM_STRING_KEY:
 	case MDHIM_BYTE_KEY:
 		sprintf(key_string, "%s0%d", str_key, (md->mdhim_rank + 1));
 		if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [string|byte]\n", key_string, getValLabel(getOp));
-		grm = mdhimGet(md, (void *)key_string, strlen(key_string), getOp);
+		grm = mdhimGet(md, md->primary_index, 
+			       (void *)key_string, strlen(key_string), 
+			       getOp);
 		break;
  
 	default:
@@ -766,7 +777,8 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	}
 
 	//Insert the keys into MDHIM
-	brm = mdhimBPut(md, keys, key_lens, (void **) values, value_lens, nkeys);
+	brm = mdhimBPut(md, md->primary_index, keys, key_lens, (void **) values, 
+			value_lens, nkeys);
 	brmp = brm;
 	ret = 0;
 	if (!brm || brm->error)
@@ -799,7 +811,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	}
 
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "ERROR: rank %d committing bput to MDHIM database\n", md->mdhim_rank);
@@ -945,7 +957,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 	}
     
 	//Get the values back for each key retrieved
-	bgrm = mdhimBGet(md, keys, key_lens, nkeys);
+	bgrm = mdhimBGet(md, md->primary_index, keys, key_lens, nkeys);
 	ret = 0; // Used to determine if any errors are encountered
     
 	totRecds = 0;
@@ -1041,7 +1053,8 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 		sprintf(key_string, "%d", i_key);
 		if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [int]\n", 
 				     nrecs, key_string, getValLabel(getOp));
-		bgrm = mdhimBGetOp(md, &i_key, sizeof(i_key), nrecs, getOp);
+		bgrm = mdhimBGetOp(md, md->primary_index, &i_key, sizeof(i_key), nrecs, 
+				   getOp);
 		break;
             
 	case MDHIM_LONG_INT_KEY:
@@ -1049,7 +1062,8 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 		sprintf(key_string, "%ld", l_key);
 		if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [long]\n", 
 				     nrecs, key_string, getValLabel(getOp));
-		bgrm = mdhimBGetOp(md, &l_key, sizeof(l_key), nrecs, getOp);
+		bgrm = mdhimBGetOp(md, md->primary_index, &l_key, sizeof(l_key), nrecs, 
+				   getOp);
 		break;
             
 	case MDHIM_FLOAT_KEY:
@@ -1057,7 +1071,8 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 		sprintf(key_string, "%f", f_key);
 		if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [float]\n", 
 				     nrecs, key_string, getValLabel(getOp));
-		bgrm = mdhimBGetOp(md, &f_key, sizeof(f_key), nrecs, getOp);
+		bgrm = mdhimBGetOp(md, md->primary_index, &f_key, sizeof(f_key), nrecs, 
+				   getOp);
 		break;
             
 	case MDHIM_DOUBLE_KEY:
@@ -1065,7 +1080,8 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 		sprintf(key_string, "%e", d_key);
 		if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [double]\n", 
 				     nrecs, key_string, getValLabel(getOp));
-		bgrm = mdhimBGetOp(md, &d_key, sizeof(d_key), nrecs, getOp);
+		bgrm = mdhimBGetOp(md, md->primary_index, &d_key, sizeof(d_key), nrecs, 
+				   getOp);
 		break;
                         
 	case MDHIM_STRING_KEY:
@@ -1073,7 +1089,8 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 		sprintf(key_string, "%s0%d0%d", key_string, (md->mdhim_rank + 1), 1);
 		if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [string|byte]\n", 
 				     nrecs, key_string, getValLabel(getOp));
-		bgrm = mdhimBGetOp(md, (void *)key_string, strlen(key_string), nrecs, getOp);
+		bgrm = mdhimBGetOp(md, md->primary_index, (void *)key_string, strlen(key_string), 
+				   nrecs, getOp);
 		break;
  
 	default:
@@ -1126,35 +1143,35 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
 		i_key = atoi( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%d", i_key);
 		if (verbose) tst_say(0, "# mdhimDelete( %s ) [int]\n", key_string);
-		rm = mdhimDelete(md, &i_key, sizeof(i_key));
+		rm = mdhimDelete(md, md->primary_index, &i_key, sizeof(i_key));
 		break;
             
 	case MDHIM_LONG_INT_KEY:
 		l_key = atol( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%ld", l_key);
 		if (verbose) tst_say(0, "# mdhimDelete( %s ) [long]\n", key_string);
-		rm = mdhimDelete(md, &l_key, sizeof(l_key));
+		rm = mdhimDelete(md, md->primary_index, &l_key, sizeof(l_key));
 		break;
             
 	case MDHIM_FLOAT_KEY:
 		f_key = atof( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%f", f_key);
 		if (verbose) tst_say(0, "# mdhimDelete( %s ) [float]\n", key_string);
-		rm = mdhimDelete(md, &f_key, sizeof(f_key));
+		rm = mdhimDelete(md, md->primary_index, &f_key, sizeof(f_key));
 		break;
             
 	case MDHIM_DOUBLE_KEY:
 		d_key = atof( str_key ) * (md->mdhim_rank + 1);
 		sprintf(key_string, "%e", d_key);
 		if (verbose) tst_say(0, "# mdhimDelete( %s ) [double]\n", key_string);
-		rm = mdhimDelete(md, &d_key, sizeof(d_key));
+		rm = mdhimDelete(md, md->primary_index, &d_key, sizeof(d_key));
 		break;
                         
 	case MDHIM_STRING_KEY:
 	case MDHIM_BYTE_KEY:
 		sprintf(key_string, "%s0%d", str_key, (md->mdhim_rank + 1));
 		if (verbose) tst_say(0, "# mdhimDelete( %s ) [string|byte]\n", key_string);
-		rm = mdhimDelete(md, (void *)key_string, strlen(key_string));
+		rm = mdhimDelete(md, md->primary_index, (void *)key_string, strlen(key_string));
 		break;
  
 	default:
@@ -1294,7 +1311,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
 	}
 
 	//Delete the records
-	brm = mdhimBDelete(md, (void **) keys, key_lens, nkeys);
+	brm = mdhimBDelete(md, md->primary_index, (void **) keys, key_lens, nkeys);
 	brmp = brm;
 	if (!brm || brm->error) {
 		tst_say(1, "ERROR: rank %d deleting keys/values from MDHIM\n", 
@@ -1394,7 +1411,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			sprintf(key_string, "%d", i_key);
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [int]\n", 
 					     key_string, value );
-			rm = mdhimPut(md, &i_key, sizeof(i_key), value, strlen(value)+1);
+			rm = mdhimPut(md, md->primary_index, &i_key, sizeof(i_key), value, 
+				      strlen(value)+1);
 			break;
 
 		case MDHIM_LONG_INT_KEY:
@@ -1402,7 +1420,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			sprintf(key_string, "%ld", l_key);
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [long]\n", 
 					     key_string, value );
-			rm = mdhimPut(md, &l_key, sizeof(l_key), value, strlen(value)+1);
+			rm = mdhimPut(md, md->primary_index, &l_key, sizeof(l_key), value, 
+				      strlen(value)+1);
 			break;
 
 		case MDHIM_FLOAT_KEY:
@@ -1410,7 +1429,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			sprintf(key_string, "%f", f_key);
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", 
 					     key_string, value );
-			rm = mdhimPut(md, &f_key, sizeof(f_key), value, strlen(value)+1);
+			rm = mdhimPut(md, md->primary_index, &f_key, sizeof(f_key), value, 
+				      strlen(value)+1);
 			break;
 
 		case MDHIM_DOUBLE_KEY:
@@ -1418,7 +1438,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			sprintf(key_string, "%e", d_key);
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", 
 					     key_string, value );
-			rm = mdhimPut(md, &d_key, sizeof(d_key), value, strlen(value)+1);
+			rm = mdhimPut(md, md->primary_index, &d_key, sizeof(d_key), value, 
+				      strlen(value)+1);
 			break;
 
 		case MDHIM_STRING_KEY:
@@ -1427,7 +1448,8 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			key_string = random_string(key_len, rand_str_size);
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [string|byte]\n", 
 					     key_string, value );
-			rm = mdhimPut(md, (void *)key_string, strlen(key_string), 
+			rm = mdhimPut(md, md->primary_index, (void *)key_string, 
+				      strlen(key_string), 
 				      value, strlen(value)+1);
 			break;
 
@@ -1457,7 +1479,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 	}
     
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "ERROR: rank %d committing N put key/value(s) to MDHIM database\n",
@@ -1510,7 +1532,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
 			i_key = rand() / 5;
 		sprintf(key_string, "%d", i_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s ) [int]\n", key_string );
-		grm = mdhimGet(md, &i_key, sizeof(i_key), MDHIM_GET_NEXT);
+		grm = mdhimGet(md, md->primary_index, &i_key, sizeof(i_key), MDHIM_GET_NEXT);
 		break;
 
         case MDHIM_LONG_INT_KEY:
@@ -1520,7 +1542,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
 			l_key = rand() / 3;
 		sprintf(key_string, "%ld", l_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s ) [long]\n", key_string );
-		grm = mdhimGet(md, &l_key, sizeof(l_key), MDHIM_GET_NEXT);
+		grm = mdhimGet(md, md->primary_index, &l_key, sizeof(l_key), MDHIM_GET_NEXT);
 		break;
 
         case MDHIM_FLOAT_KEY:
@@ -1530,7 +1552,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
 			f_key = rand() / 5.0;
 		sprintf(key_string, "%f", f_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s ) [float]\n", key_string );
-		grm = mdhimGet(md, &f_key, sizeof(f_key), MDHIM_GET_NEXT);
+		grm = mdhimGet(md, md->primary_index, &f_key, sizeof(f_key), MDHIM_GET_NEXT);
 		break;
 
 	case MDHIM_DOUBLE_KEY:
@@ -1540,7 +1562,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
 			d_key = rand() / 3.0;
 		sprintf(key_string, "%e", d_key);
 		if (verbose) tst_say(0, "# mdhimGet( %s ) [double]\n", key_string );
-		grm = mdhimGet(md, &d_key, sizeof(d_key), MDHIM_GET_NEXT);
+		grm = mdhimGet(md, md->primary_index, &d_key, sizeof(d_key), MDHIM_GET_NEXT);
 		break;
 
         case MDHIM_STRING_KEY:
@@ -1553,7 +1575,8 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
 		else
 			key_string = random_string(key_len, rand_str_size);
 		if (verbose) tst_say(0, "# mdhimGet( %s ) [string|byte]\n", key_string );
-		grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_NEXT);
+		grm = mdhimGet(md, md->primary_index, (void *)key_string, strlen(key_string), 
+			       MDHIM_GET_NEXT);
 		break;
 
         default:
@@ -1577,7 +1600,8 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
         
 		for (i=1; i<n_iter; i++)
 		{
-			grm = mdhimGet(md, grm->key, grm->key_len, MDHIM_GET_NEXT);
+			grm = mdhimGet(md, md->primary_index, grm->key, grm->key_len, 
+				       MDHIM_GET_NEXT);
 			// Record any error(s)
 			if (!grm || grm->error)
 			{
