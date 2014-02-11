@@ -13,8 +13,8 @@ int main(int argc, char **argv) {
 	struct mdhim_getrm_t *grm;
 	int i;
 	int keys_per_rank = 5;
-	char     *db_path = "./";
-	char     *db_name = "mdhimTstDB-";
+	char     *db_path = " ";
+	char     *db_name = "mdhim";
 	int      dbug = MLOG_CRIT;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 

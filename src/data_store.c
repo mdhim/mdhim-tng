@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "data_store.h"
 #ifdef      LEVELDB_SUPPORT
 #include "ds_leveldb.h"
@@ -15,6 +16,11 @@
 #ifdef      SOPHIADB_SUPPORT
 #include "ds_sophia.h"
 #endif
+#ifdef      MYSQLDB_SUPPORT
+#include "ds_mysql.h"
+#endif
+
+
 /**
  * mdhim_db_init
  * Initializes mdhim_store_t structure based on type
@@ -74,6 +80,22 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->close = mdhim_leveldb_close;
 		break;
 #endif
+
+#ifdef      MYSQLDB_SUPPORT
+	case	MYSQLDB:
+		store->open = mdhim_mysql_open;
+		store->put = mdhim_mysql_put;
+		store->batch_put = mdhim_mysql_batch_put;
+		store->get = mdhim_mysql_get;
+		store->get_next = mdhim_mysql_get_next;
+		store->get_prev = mdhim_mysql_get_prev;
+		store->del = mdhim_mysql_del;
+		store->commit = mdhim_mysql_commit;
+		store->close = mdhim_mysql_close;
+		break;
+#endif
+
+
 	default:
 		free(store);
 		store = NULL;

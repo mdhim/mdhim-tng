@@ -10,6 +10,10 @@ else
 	endif
 endif
 
+ifeq ($(MYSQLDB),1)
+	OBJS += ds_mysql.o
+endif
+
 
 all:	mdhim.o lib
 
@@ -32,6 +36,9 @@ partitioner.o: partitioner.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 data_store.o: data_store.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+ds_mysql.o: ds_mysql.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 ds_leveldb.o: ds_leveldb.c
