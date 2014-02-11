@@ -59,7 +59,7 @@ pthread_rwlock_t *get_index_lock(struct mdhim_t *md, int type) {
  */
 
 int im_range_server(struct index_t *index) {
-	if (index->myinfo.rangesrv_num >= 0) {
+	if (index->myinfo.rangesrv_num > 0) {
 		return 1;
 	}
 	
@@ -80,7 +80,7 @@ int open_manifest(struct mdhim_t *md, struct index_t *index, int flags) {
 	sprintf(path, "%s%d_%d", md->db_opts->manifest_path, index->type, index->id);
 	fd = open(path, flags, 00600);
 	if (fd < 0) {
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error opening manifest file", 
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error opening manifest file", 
 		     md->mdhim_rank);
 	}
 	
@@ -672,7 +672,7 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	ri->type = ri->id > 0 ? SECONDARY_INDEX : PRIMARY_INDEX;
 	ri->key_type = key_type;
 	ri->db_type = db_type;
-	ri->myinfo.rangesrv_num = -1;
+	ri->myinfo.rangesrv_num = 0;
 	ri->myinfo.rank = md->mdhim_rank;
 
 	//Figure out how many range servers we could have based on the range server factor
@@ -704,10 +704,9 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	//Read in the manifest file if the rangesrv_num is 1 for the primary index
 	if (rangesrv_num == 1 && 
 	    (ret = read_manifest(md, ri)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - " 
 		     "Fatal error: There was a problem reading or validating the manifest file",
 		     md->mdhim_rank);
-		MPI_Abort(md->mdhim_comm, 0);
 	}        
 
 	//Populate my range server info for this index
@@ -758,8 +757,8 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex) 
 	//Iterate through the ranks to determine which ones are range servers
 	for (i = 0; i < md->mdhim_comm_size; i++) {
 		//Test if the rank is range server for this index
-		if ((rangesrv_num = is_range_server(md, md->mdhim_rank, rindex)) == MDHIM_ERROR) {
-			return NULL;		
+		if ((rangesrv_num = is_range_server(md, i, rindex)) == MDHIM_ERROR) {
+			continue;
 		}
 
 		if (!rangesrv_num) {
@@ -959,12 +958,28 @@ void indexes_release(struct mdhim_t *md) {
 			free(cur_rs);
 		}
 		
-		//Write the stats to the database
-		if ((ret = write_stats(md, cur_indx)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
-			     "Error while loading stats", 
-			     md->mdhim_rank);
+		//Clean up the storage if I'm a range server for this index
+		if (cur_indx->myinfo.rangesrv_num > 0) {
+			//Write the stats to the database
+			if ((ret = write_stats(md, cur_indx)) != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+				     "Error while loading stats", 
+				     md->mdhim_rank);
+			}
+
+			//Write the manifest
+			write_manifest(md, cur_indx);
+			
+			set_store_opts(cur_indx, &opts, 0);
+			//Close the database
+			if ((ret = cur_indx->mdhim_store->close(cur_indx->mdhim_store->db_handle, 
+							cur_indx->mdhim_store->db_stats, &opts)) 
+			    != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
+				     md->mdhim_rank);
+			}
 		}
+	
 		
 		//Iterate through the stat hash entries to free them
 		HASH_ITER(hh, cur_indx->stats, stat, tmp) {	
@@ -978,17 +993,7 @@ void indexes_release(struct mdhim_t *md) {
 			free(stat);
 		}
 
-		//Write the manifest
-		write_manifest(md, cur_indx);
-		
-		set_store_opts(cur_indx, &opts, 0);
-		//Close the database
-		if ((ret = cur_indx->mdhim_store->close(cur_indx->mdhim_store->db_handle, 
-							cur_indx->mdhim_store->db_stats, &opts)) 
-		    != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
-			     md->mdhim_rank);
-		}
+	
 		
 		MPI_Comm_free(&cur_indx->rs_comm);
 		free(cur_indx->mdhim_store);
