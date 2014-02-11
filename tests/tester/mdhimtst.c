@@ -1694,6 +1694,7 @@ int main( int argc, char * argv[] )
 	struct mdhim_t *md;
     
 	int db_type = LEVELDB; //(data_store.h) 
+	MPI_Comm comm;
 
 	// Process arguments
 	infile = stdin;
@@ -1812,7 +1813,8 @@ int main( int argc, char * argv[] )
 	mdhim_options_set_max_recs_per_slice(db_opts, slice);
 	mdhim_options_set_value_append(db_opts, dbOptionAppend);  // Default is overwrite
     
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md)
 	{
 		printf("Error initializing MDHIM\n");

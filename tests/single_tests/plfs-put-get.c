@@ -5,7 +5,7 @@
 #include "mdhim.h"
 #include "mdhim_options.h"
 
-#define SLICE_SIZE 10485760
+#define SLICE_SIZE 1
 
 struct plfs_record {
 	unsigned long long int logical_offset;
@@ -78,6 +78,7 @@ int main(int argc, char **argv) {
 	struct plfs_record *rec = NULL;
 	FILE *file;
 	unsigned long long int key;
+	MPI_Comm comm;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
@@ -102,7 +103,8 @@ int main(int argc, char **argv) {
 	mdhim_options_set_value_append(db_opts, 1);
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);

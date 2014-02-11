@@ -69,6 +69,8 @@ int main(int argc, char **argv) {
 	int total_keys = 0;
 	int round = 0;
 	char *paths[] = {"/tmp/"};
+	MPI_Comm comm;
+
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
 	mdhim_options_set_db_paths(db_opts, paths, 1);
@@ -93,7 +95,8 @@ int main(int argc, char **argv) {
         }
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);

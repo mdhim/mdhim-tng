@@ -29,10 +29,14 @@
  * @param opts Options structure for DB creation, such as name, and primary key type
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
  */
-struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
+struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	int ret;
 	struct mdhim_t *md;
 	struct rangesrv_info *rangesrvs;
+	MPI_Comm comm;
+
+	//Set the comm to the void pointer
+	comm = *(MPI_Comm *)appComm;
 
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
@@ -56,12 +60,12 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 
 	//Dup the communicator passed in for the communicator used for communication 
 	//to and from the range servers
-	if ((ret = MPI_Comm_dup(appComm, &md->mdhim_comm)) != MPI_SUCCESS) {
+	if ((ret = MPI_Comm_dup(comm, &md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}
   	//Dup the communicator passed in for barriers between clients
-	if ((ret = MPI_Comm_dup(appComm, &md->mdhim_client_comm)) != MPI_SUCCESS) {
+	if ((ret = MPI_Comm_dup(comm, &md->mdhim_client_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}

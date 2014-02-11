@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
 	int      dbug = MLOG_CRIT;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; //(data_store.h) 
+	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -44,7 +45,8 @@ int main(int argc, char **argv) {
         }
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);

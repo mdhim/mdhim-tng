@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
 	int db_type = LEVELDB; //(data_store.h) 
 	struct timeval start_tv, end_tv;
 	unsigned totaltime;
+	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -42,7 +43,8 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
