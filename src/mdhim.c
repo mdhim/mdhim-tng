@@ -189,7 +189,17 @@ int mdhimClose(struct mdhim_t *md) {
 		return MDHIM_ERROR;
 	}
 	free(md->receive_msg_mutex);    
-            
+
+	if ((ret = pthread_rwlock_destroy(md->local_indexes_lock)) != 0) {
+		return MDHIM_ERROR;
+	}
+	free(md->local_indexes_lock);
+
+	if ((ret = pthread_rwlock_destroy(md->remote_indexes_lock)) != 0) {
+		return MDHIM_ERROR;
+	}
+	free(md->remote_indexes_lock);
+
        	MPI_Barrier(md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_comm);
@@ -342,7 +352,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index,
 		if ((ri = get_range_server(md, index, keys[i], key_lens[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-			     "Error while determining range server in mdhimBput", 
+			     "Error while determining range server in mdhimBPut", 
 			     md->mdhim_rank);
 			continue;
 		}

@@ -351,7 +351,7 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, struct index_t *ind
 
 	//Find the range server number in the hash table
 	ret_rp = NULL;
-	HASH_FIND_INT(index->rangesrvs, &rangesrv_num, ret_rp);
+	HASH_FIND_INT(index->rangesrvs_by_num, &rangesrv_num, ret_rp);
 
 	//Return the rank
 	return ret_rp;

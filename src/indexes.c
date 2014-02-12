@@ -219,7 +219,7 @@ int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t
 	struct mdhim_stat *os, *stat;
 
 	//Acquire the lock to update the stats
-	if (pthread_rwlock_wrlock(&bi->mdhim_store->mdhim_store_stats_lock) != 0) {
+	if (pthread_rwlock_wrlock(bi->mdhim_store->mdhim_store_stats_lock) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the mdhim_store_stats_lock", 
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
@@ -307,7 +307,7 @@ int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t
 	}
 
 	//Release the remote indexes lock
-	pthread_rwlock_unlock(&bi->mdhim_store->mdhim_store_stats_lock);
+	pthread_rwlock_unlock(bi->mdhim_store->mdhim_store_stats_lock);
 	return MDHIM_SUCCESS;
 }
 
@@ -639,7 +639,6 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	struct index_t *ri;
 	uint32_t rangesrv_num;
 	int ret;
-	struct rangesrv_info *rs_table;
 	pthread_rwlock_t *indexes_lock;
 
 	MPI_Barrier(md->mdhim_comm);
@@ -678,25 +677,35 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	//Figure out how many range servers we could have based on the range server factor
 	ri->num_rangesrvs = get_num_range_servers(md, ri);		
 
-	//Add it to the hash table
-	HASH_ADD_INT(md->remote_indexes, id, ri);                      
-
 	//Get the range servers for this index
-	rs_table = get_rangesrvs(md, ri);
-	if (!rs_table) {
+	ret = get_rangesrvs(md, ri);
+	if (ret != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Couldn't get the range server list", 
 		     md->mdhim_rank);
 	}
 
-	ri->rangesrvs = rs_table;
-	//Test if I'm a range server
-	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, ri)) == MDHIM_ERROR) {
-		free(ri);
-		ri = NULL;
+	//Add it to the hash table
+	HASH_ADD_INT(md->remote_indexes, id, ri);
+
+	//Test if I'm a range server and get the range server number
+	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, ri)) == MDHIM_ERROR) {	
 		goto done;
 	}
 
-	//I'm not a range server
+	if (rangesrv_num > 0) {
+		//Populate my range server info for this index
+		ri->myinfo.rank = md->mdhim_rank;
+		ri->myinfo.rangesrv_num = rangesrv_num;
+	}
+
+	//Initialize the communicator for this index
+	if ((ret = index_init_comm(md, ri)) != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error creating the index communicator", 
+		     md->mdhim_rank);
+		goto done;
+	}
+
+	//If not a range server, our work here is done
 	if (!rangesrv_num) {
 		goto done;
 	}	
@@ -708,10 +717,6 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 		     "Fatal error: There was a problem reading or validating the manifest file",
 		     md->mdhim_rank);
 	}        
-
-	//Populate my range server info for this index
-	ri->myinfo.rank = md->mdhim_rank;
-	ri->myinfo.rangesrv_num = rangesrv_num;
 
 	//Open the data store
 	ret = open_db_store(md, (struct index_t *) ri);
@@ -747,13 +752,11 @@ done:
  * @param md      in   main MDHIM struct
  * @return a list of range servers
  */
-struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex) {
-	struct rangesrv_info *rs_table = NULL;
-	struct rangesrv_info *rs_entry;
+int get_rangesrvs(struct mdhim_t *md, struct index_t *rindex) {
+	struct rangesrv_info *rs_entry_num, *rs_entry_rank;
 	uint32_t rangesrv_num;
 	int i;
 
-	rs_table = NULL;
 	//Iterate through the ranks to determine which ones are range servers
 	for (i = 0; i < md->mdhim_comm_size; i++) {
 		//Test if the rank is range server for this index
@@ -770,15 +773,17 @@ struct rangesrv_info *get_rangesrvs(struct mdhim_t *md, struct index_t *rindex) 
 			rindex->rangesrv_master = i;
 		}
 
-		rs_entry = malloc(sizeof(struct rangesrv_info));
-		rs_entry->rank = i;
-		rs_entry->rangesrv_num = rangesrv_num;
+		rs_entry_num = malloc(sizeof(struct rangesrv_info));
+		rs_entry_rank = malloc(sizeof(struct rangesrv_info));
+		rs_entry_num->rank = rs_entry_rank->rank = i;
+		rs_entry_rank->rangesrv_num = rs_entry_num->rangesrv_num = rangesrv_num;
 		
-		//Add it to the hash table
-		HASH_ADD_INT(rs_table, rank, rs_entry);                
+		//Add it to the hash tables
+		HASH_ADD_INT(rindex->rangesrvs_by_num, rangesrv_num, rs_entry_num);     
+		HASH_ADD_INT(rindex->rangesrvs_by_rank, rank, rs_entry_rank);                 
 	}
 
-	return rs_table;
+	return MDHIM_SUCCESS;
 }
 
 /**
@@ -848,40 +853,36 @@ uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *li) {
 int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 	MPI_Group orig, new_group;
 	int *ranks;
-	rangesrv_info *rp;
-	int i = 0, j = 0;
+	int i = 0;
 	int ret;
 	int comm_size, size;
 	MPI_Comm new_comm;
 	struct rangesrv_info *rangesrv, *tmp;
 
 	ranks = NULL;
+	size = 0;
 	//Populate the ranks array that will be in our new comm
 	if ((ret = im_range_server(bi)) == 1) {
 		ranks = malloc(sizeof(int) * bi->num_rangesrvs);
-		rp = bi->rangesrvs;
-		size = 0;
 		//Iterate through the stat hash entries
-		HASH_ITER(hh, bi->rangesrvs, rangesrv, tmp) {	
+		HASH_ITER(hh, bi->rangesrvs_by_rank, rangesrv, tmp) {	
 			if (!rangesrv) {
 				continue;
 			}
 
-			ranks[i] = rangesrv->rank;
-			size++;			
+			ranks[size] = rangesrv->rank;
+			size++;
 		}
 	} else {
 		MPI_Comm_size(md->mdhim_comm, &comm_size);
 		ranks = malloc(sizeof(int) * comm_size);
-		size = j = 0;
 		for (i = 0; i < comm_size; i++) {
-			HASH_FIND_INT(bi->rangesrvs, &i, rangesrv);
+			HASH_FIND_INT(bi->rangesrvs_by_rank, &i, rangesrv);
 			if (rangesrv) {
 				continue;
 			}
 
-			ranks[j] = i;
-			j++;
+			ranks[size] = i;
 			size++;
 		}
 	}
@@ -910,6 +911,8 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 	}
 	if ((ret = im_range_server(bi)) == 1) {
 		memcpy(&bi->rs_comm, &new_comm, sizeof(MPI_Comm));
+	} else {
+		MPI_Comm_free(&new_comm);
 	}
 
 	free(ranks);
@@ -953,8 +956,13 @@ void indexes_release(struct mdhim_t *md) {
 
 	HASH_ITER(hh, md->remote_indexes, cur_indx, tmp_indx) {
 		HASH_DEL(md->remote_indexes, cur_indx); 
-		HASH_ITER(hh, cur_indx->rangesrvs, cur_rs, tmp_rs) {
-			HASH_DEL(cur_indx->rangesrvs, cur_rs); 
+		HASH_ITER(hh, cur_indx->rangesrvs_by_num, cur_rs, tmp_rs) {
+			HASH_DEL(cur_indx->rangesrvs_by_num, cur_rs); 
+			free(cur_rs);
+		}
+
+		HASH_ITER(hh, cur_indx->rangesrvs_by_rank, cur_rs, tmp_rs) {
+			HASH_DEL(cur_indx->rangesrvs_by_rank, cur_rs); 
 			free(cur_rs);
 		}
 		
@@ -978,6 +986,11 @@ void indexes_release(struct mdhim_t *md) {
 				mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
 				     md->mdhim_rank);
 			}
+			
+			pthread_rwlock_destroy(cur_indx->mdhim_store->mdhim_store_stats_lock);
+			free(cur_indx->mdhim_store->mdhim_store_stats_lock);
+			MPI_Comm_free(&cur_indx->rs_comm);
+			free(cur_indx->mdhim_store);
 		}
 	
 		
@@ -991,12 +1004,8 @@ void indexes_release(struct mdhim_t *md) {
 			free(stat->max);
 			free(stat->min);
 			free(stat);
-		}
-
+		}			
 	
-		
-		MPI_Comm_free(&cur_indx->rs_comm);
-		free(cur_indx->mdhim_store);
 		free(cur_indx);
 	}
 }
