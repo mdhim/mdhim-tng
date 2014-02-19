@@ -388,7 +388,7 @@ void client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
 	struct index_t *cur_indx, *tmp_indx;
 	struct rangesrv_info *cur_rs, *tmp_rs;
 
-	HASH_ITER(hh, md->remote_indexes, cur_indx, tmp_indx) {
+	HASH_ITER(hh, md->indexes, cur_indx, tmp_indx) {
 		HASH_ITER(hh, cur_indx->rangesrvs_by_rank, cur_rs, tmp_rs) {
 			return_code = send_rangesrv_work(md, cur_rs->rank, cm);
 			// If there was an error then log the error code and return MDHIM_ERROR

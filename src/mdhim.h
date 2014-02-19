@@ -45,12 +45,10 @@ struct mdhim_t {
 	//A pointer to the primary index
 	struct index_t *primary_index;
 	//A linked list of range servers
-	struct index_t *remote_indexes;
-	struct index_t *local_indexes;
+	struct index_t *indexes;
 
 	//Lock to allow concurrent readers and a single writer to the remote_indexes hash table
-	pthread_rwlock_t *remote_indexes_lock;
-	pthread_rwlock_t *local_indexes_lock;
+	pthread_rwlock_t *indexes_lock;
 
 	//The range server structure which is used only if we are a range server
 	mdhim_rs_t *mdhim_rs; 
@@ -80,7 +78,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 			       int op);
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 				 void **keys, int *key_lens, 
-				 int num_records);
+				 int num_records, int op);
 struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
 				   void *key, int key_len, 
 				   int num_records, int op);

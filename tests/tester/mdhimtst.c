@@ -957,7 +957,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 	}
     
 	//Get the values back for each key retrieved
-	bgrm = mdhimBGet(md, md->primary_index, keys, key_lens, nkeys);
+	bgrm = mdhimBGet(md, md->primary_index, keys, key_lens, nkeys, MDHIM_GET_EQ);
 	ret = 0; // Used to determine if any errors are encountered
     
 	totRecds = 0;

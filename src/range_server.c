@@ -81,7 +81,7 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 struct index_t *find_index(struct mdhim_t *md, struct mdhim_basem_t *msg) {
 	struct index_t *ret;
        
-	ret = get_index(md, msg->index, msg->index_type);
+	ret = get_index(md, msg->index);
 
 	return ret;
 

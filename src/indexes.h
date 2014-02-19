@@ -44,10 +44,13 @@ struct index_t {
 	int db_type;              //The database type
 	int type;                 /* The type of index 
 				     (PRIMARY_INDEX, SECONDARY_INDEX, LOCAL_INDEX) */
+	int primary_id;           /* The primary index id if this is a secondary index */
 	rangesrv_info *rangesrvs_by_num; /* Hash table of the range servers 
 					    serving this index.  Key is range server number */
 	rangesrv_info *rangesrvs_by_rank; /* Hash table of the range servers 
 					     serving this index.  Key is the rank */
+	rangesrv_info *local_server;      /* Range server serving a local index - 
+					     Only used for a local index */
         //Used to determine the number of range servers which is based in  
         //if myrank % RANGE_SERVER_FACTOR == 0, then myrank is a server
 	int range_server_factor;
@@ -83,6 +86,7 @@ typedef struct index_manifest_t {
 	int rangesrv_factor;
 	uint64_t slice_size; 
 	int num_nodes;
+	int local_server_rank;
 } index_manifest_t;
 
 int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t key_len);
@@ -93,12 +97,12 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex);
 struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type);
 struct index_t *create_remote_index(struct mdhim_t *md, int server_factor, 
 				    uint64_t max_recs_per_slice, int db_type, 
-				    int key_type);
+				    int key_type, int primary_index_id);
 int get_rangesrvs(struct mdhim_t *md, struct index_t *rindex);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *rindex);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, struct index_t *index);
-struct index_t *get_index(struct mdhim_t *md, int index_id, int type);
+struct index_t *get_index(struct mdhim_t *md, int index_id);
 void indexes_release(struct mdhim_t *md);
 void set_store_opts(struct index_t *index, struct mdhim_store_opts_t *opts, int stat);
 int im_range_server(struct index_t *index);

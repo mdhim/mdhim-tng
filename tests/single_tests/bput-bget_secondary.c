@@ -54,28 +54,24 @@ int main(int argc, char **argv) {
 	int provided;
 	int i;
 	struct mdhim_t *md;
+	int total = 0;
 	struct mdhim_brm_t *brm, *brmp;
-	struct mdhim_bgetrm_t *bgrm;
+	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 	struct timeval start_tv, end_tv;
+	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
-	int db_type = LEVELDB; // (data_store.h) 
-	int size;
-	long double flush_time = 0;
+	int db_type = LEVELDB; //(data_store.h) 
 	long double put_time = 0;
 	long double get_time = 0;
-	int total_keys = 0;
-	int round = 0;
-	char *paths[] = {"/tmp/"};
+
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
-	mdhim_options_set_db_paths(db_opts, paths, 1);
+	mdhim_options_set_db_path(db_opts, db_path);
 	mdhim_options_set_db_name(db_opts, db_name);
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);
-	mdhim_options_set_max_recs_per_slice(db_opts, SLICE_SIZE);
-        mdhim_options_set_server_factor(db_opts, 1);
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
@@ -91,32 +87,29 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
+	gettimeofday(&start_tv, NULL);
 	//Initialize MDHIM
 	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);
 		exit(1);
-	}
-	
+	}	
+
 	key_lens = malloc(sizeof(uint64_t) * KEYS);
 	value_lens = malloc(sizeof(int) * KEYS);
 	keys = malloc(sizeof(uint64_t *) * KEYS);
 	values = malloc(sizeof(int *) * KEYS);
-	MPI_Comm_size(md->mdhim_comm, &size);
 	MPI_Barrier(MPI_COMM_WORLD);	
 	//record the start time
-	start_record(&start_tv);
-	while (total_keys != TOTAL_KEYS) {
+	start_record(&start_tv);	
+	while (total != TOTAL_KEYS) {
 		//Populate the keys and values to insert
-		gen_keys_values(md->mdhim_rank, total_keys);
-		//Insert the keys into MDHIM
-		brm = mdhimBPut(md, md->primary_index, 
-				(void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS);
-		//		MPI_Barrier(MPI_COMM_WORLD);
+		gen_keys_values(md->mdhim_rank, total);
 
-		//Iterate through the return messages to see if there is an error and to free it
+		//Insert the keys into MDHIM
+		brm = mdhimBPut(md, md->primary_index, (void **) keys, key_lens,  
+				(void **) values, value_lens, KEYS);
 		brmp = brm;
                 if (!brmp || brmp->error) {
                         printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
@@ -125,93 +118,85 @@ int main(int argc, char **argv) {
 			if (brmp->error < 0) {
 				printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
 			}
-
-			brm = brmp;			
+	
 			brmp = brmp->next;
 			//Free the message
 			mdhim_full_release_msg(brm);
-
+			brm = brmp;
 		}
-
-		free_key_values();
-		total_keys += KEYS;
-		round++;
-	}
 	
+		free_key_values();
+		total += KEYS;
+	}
+
 	//Record the end time
 	end_record(&end_tv);
 	//Add the final time
 	add_time(&start_tv, &end_tv, &put_time);
 	MPI_Barrier(MPI_COMM_WORLD);
-	//Get the stats
-	start_record(&start_tv);
-	ret = mdhimStatFlush(md, md->primary_index);
-	//	MPI_Barrier(MPI_COMM_WORLD);
-	end_record(&end_tv);
-	add_time(&start_tv, &end_tv, &flush_time);
-	
+
+	//Commit the database
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
-		printf("Error getting stats from MDHIM database\n");
+		printf("Error committing MDHIM database\n");
 	} else {
-//			printf("Got stats\n");
+		printf("Committed MDHIM database\n");
 	}
-	
-	total_keys = 0;
-	while (total_keys != TOTAL_KEYS) {	
-		//Populate the keys and values we expect to retrieve
-		gen_keys_values(md->mdhim_rank, total_keys);
+
+	total = 0;
+	while (total != TOTAL_KEYS) {
+		//Populate the keys and values to retrieve
+		gen_keys_values(md->mdhim_rank, total);
 		start_record(&start_tv);
-		//Get the keys and values back starting from and including key[0]
-		bgrm = mdhimBGetOp(md, md->primary_index, 
-				   keys[0], sizeof(uint64_t), 
-				   KEYS, MDHIM_GET_NEXT);
-		//	        MPI_Barrier(MPI_COMM_WORLD);
+		//Get the values back for each key inserted
+		bgrm = mdhimBGet(md, md->primary_index, (void **) keys, key_lens, 
+				 KEYS, MDHIM_GET_EQ);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
-		//Check if there is an error
-		if (!bgrm || bgrm->error) {
-			printf("Rank: %d - Error retrieving values starting at: %llu", 
-			       md->mdhim_rank, (long long unsigned int) *keys[0]);
-			goto done;
-		}
+
+		bgrmp = bgrm;
+		while (bgrmp) {
+			if (!bgrmp || bgrmp->error) {
+				printf("Rank: %d - Error retrieving values starting at: %llu", 
+				       md->mdhim_rank, (long long unsigned int) *keys[0]);
+			}
 	
-		//Validate that the data retrieved is the correct data
-		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {						
-			assert(*(uint64_t *)bgrm->keys[i] == *keys[i]);
-			assert(*(int *)bgrm->values[i] == *values[i]);
+			//Validate that the data retrieved is the correct data
+			for (i = 0; i < bgrmp->num_records && !bgrmp->error; i++) {						
+				assert(*(uint64_t *)bgrmp->keys[i] == *keys[i]);
+				assert(*(int *)bgrmp->values[i] == *values[i]);
+			}
+
+			bgrmp = bgrmp->next;
+			//Free the message received
+			mdhim_full_release_msg(bgrm);
+			bgrm = bgrmp;
 		}
-	
-		//Free the message received
-		mdhim_full_release_msg(bgrm);
-		free_key_values();	       
-		total_keys += KEYS;
-		round++;
+
+		free_key_values();
+		total += KEYS;
 	}
 
 	free(key_lens);
 	free(keys);
 	free(values);
 	free(value_lens);
-done:
+
 	MPI_Barrier(MPI_COMM_WORLD);
+
 	//Quit MDHIM
 	ret = mdhimClose(md);
-	mdhim_options_destroy(db_opts);
 	gettimeofday(&end_tv, NULL);
-
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}
 	
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
-
 	printf("Took: %Lf seconds to put %d keys\n", 
 	       put_time, TOTAL_KEYS);
 	printf("Took: %Lf seconds to get %d keys/values\n", 
 	       get_time, TOTAL_KEYS);
-	printf("Took: %Lf seconds to stat flush\n", 
-	       flush_time);
 
 	return 0;
 }

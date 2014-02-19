@@ -108,18 +108,9 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	partitioner_init();
 
 	//Initialize the indexes and create the primary index
-	md->remote_indexes = NULL;
-	md->local_indexes = NULL;
-	md->remote_indexes_lock = malloc(sizeof(pthread_rwlock_t));
-	md->local_indexes_lock = malloc(sizeof(pthread_rwlock_t));
-	if (pthread_rwlock_init(md->remote_indexes_lock, NULL) != 0) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Error while initializing remote_indexes_lock", 
-		     md->mdhim_rank);
-		return NULL;
-	}
-
-	if (pthread_rwlock_init(md->local_indexes_lock, NULL) != 0) {
+	md->indexes = NULL;
+	md->indexes_lock = malloc(sizeof(pthread_rwlock_t));
+	if (pthread_rwlock_init(md->indexes_lock, NULL) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while initializing remote_indexes_lock", 
 		     md->mdhim_rank);
@@ -128,7 +119,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 
 	//Create the default remote primary index
 	primary_index = create_remote_index(md, opts->rserver_factor, opts->max_recs_per_slice, 
-					    opts->db_type, opts->db_key_type);
+					    opts->db_type, opts->db_key_type, 0);
 	if (!primary_index) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Couldn't create the default index", 
@@ -190,15 +181,10 @@ int mdhimClose(struct mdhim_t *md) {
 	}
 	free(md->receive_msg_mutex);    
 
-	if ((ret = pthread_rwlock_destroy(md->local_indexes_lock)) != 0) {
+	if ((ret = pthread_rwlock_destroy(md->indexes_lock)) != 0) {
 		return MDHIM_ERROR;
 	}
-	free(md->local_indexes_lock);
-
-	if ((ret = pthread_rwlock_destroy(md->remote_indexes_lock)) != 0) {
-		return MDHIM_ERROR;
-	}
-	free(md->remote_indexes_lock);
+	free(md->indexes_lock);
 
        	MPI_Barrier(md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_client_comm);
@@ -441,11 +427,12 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 			       int op) {
 	int ret;
 	struct mdhim_getm_t *gm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_getrm_t *grm, *grmp;
 	rangesrv_info *ri = NULL;
+	struct index_t *primary_index;
 
 	//Get the range server this key will be sent to
-	if (op == MDHIM_GET_EQ) {
+	if (op == MDHIM_GET_EQ || op == MDHIM_GET_PRIMARY_EQ) {
 		ri = get_range_server(md, index, key, key_len);
 	} else {
 		ri = get_range_server_from_stats(md, index, key, key_len, op);
@@ -495,6 +482,20 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 		free(gm);
 	}
 
+	if (op == MDHIM_GET_PRIMARY_EQ && grm && !grm->error) {
+		grmp = grm;
+		primary_index = get_index(md, index->primary_id);
+		if (!primary_index) {
+			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+			     "Couldn't retrieve the primary index from the secondary", 
+			     md->mdhim_rank);
+			mdhim_full_release_msg(grmp);
+			return NULL;
+		}
+		grm = mdhimGet(md, primary_index, grmp->value, grmp->value_len, MDHIM_GET_EQ);
+		mdhim_full_release_msg(grmp);
+	}
+
 	return grm;
 }
 
@@ -509,12 +510,22 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
  */
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 				 void **keys, int *key_lens, 
-				 int num_records) {
+				 int num_records, int op) {
 	struct mdhim_bgetm_t **bgm_list;
 	struct mdhim_bgetm_t *bgm, *lbgm;
 	struct mdhim_bgetrm_t *bgrm_head, *lbgrm;
 	int i;
 	rangesrv_info *ri;
+	void **primary_keys;
+	int *primary_key_lens, plen;
+	struct index_t *primary_index;
+
+	if (op != MDHIM_GET_EQ && op != MDHIM_GET_PRIMARY_EQ) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Invalid op specified for mdhimBGet", 
+		     md->mdhim_rank);
+		return NULL;
+	}
 
 	//Check to see that we were given a sane amount of records
 	if (num_records > MAX_BULK_OPS) {
@@ -598,6 +609,34 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 
 	free(bgm_list);
 
+	if (op == MDHIM_GET_PRIMARY_EQ) {
+		primary_keys = malloc(sizeof(void *) * num_records);
+		primary_key_lens = malloc(sizeof(int) * num_records);
+		plen = 0;
+
+		for (i = 0; i < num_records; i++) {
+			primary_keys[i] = NULL;
+		}
+		memset(primary_key_lens, 0, sizeof(int) * num_records);
+		while (bgrm_head) {
+			for (i = 0; i < bgrm_head->num_records; i++) {
+				memcpy(primary_keys[plen], bgrm_head->values[i], 
+				       bgrm_head->value_lens[i]);
+				primary_key_lens[plen] = bgrm_head->value_lens[i];
+				plen++;					
+			}
+
+			lbgrm = bgrm_head->next;
+			mdhim_full_release_msg(bgrm_head);
+			bgrm_head = lbgrm;
+		}
+
+		primary_index = get_index(md, index->primary_id);
+		bgrm_head = mdhimBGet(md, primary_index,
+				      primary_keys, primary_key_lens, 
+				      num_records, MDHIM_GET_EQ);
+	}
+
 	//Return the head of the list
 	return bgrm_head;
 }
@@ -630,7 +669,7 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
 	struct mdhim_bgetrm_t *bgrm;
 	rangesrv_info *ri = NULL;
 
-	if (op == MDHIM_GET_EQ) {
+	if (op == MDHIM_GET_EQ || op == MDHIM_GET_PRIMARY_EQ) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Invalid operation for mdhimBGetOp", 
 		     md->mdhim_rank);

@@ -2,7 +2,8 @@ include ../../Makefile.cfg
 CLIBS += -L../../src
 CINC += -I../../src -I../../src/uthash
 all:	put-get bput-bget put-del bput-bdel put-getn \
-	put-getp puts-gets bput-bgetn bput-bgetp
+	put-getp puts-gets bput-bgetn bput-bgetp \
+	bput-bget_secondary
 
 put-get: put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
@@ -22,6 +23,9 @@ put-del: put-del.c
 bput-bget: bput-bget.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
+bput-bget_secondary: bput-bget_secondary.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
 bput-bgetn: bput-bgetn.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
@@ -35,4 +39,4 @@ clean:
 	rm -rf put-get bput-bget put-del bput-bdel\
                put-getn put-getp \
                puts-gets bput-bgetn \
-               bput-bgetp
+               bput-bgetp bput-bget_secondary

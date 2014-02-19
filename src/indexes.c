@@ -38,18 +38,6 @@ void set_store_opts(struct index_t *index, struct mdhim_store_opts_t *opts, int 
 	opts->db_ptr14 = index->mdhim_store->db_ptr14;
 }
 
-pthread_rwlock_t *get_index_lock(struct mdhim_t *md, int type) {
-	pthread_rwlock_t *indexes_lock;
-
-	if (type != LOCAL_INDEX) {
-		indexes_lock = md->remote_indexes_lock;
-	} else {
-		indexes_lock = md->local_indexes_lock;
-	}
-
-	return indexes_lock;
-}
-
 /**
  * im_range_server
  * checks if I'm a range server
@@ -102,6 +90,9 @@ void write_manifest(struct mdhim_t *md, struct index_t *index) {
 	if (index->type != LOCAL_INDEX && 
 	    (index->myinfo.rangesrv_num != 1)) {	
 		return;
+	} else if (index->type == LOCAL_INDEX && 
+		   md->mdhim_rank != index->local_server->rank) {
+		return;
 	}
 
 	if ((fd = open_manifest(md, index, O_RDWR | O_CREAT | O_TRUNC)) < 0) {
@@ -118,6 +109,7 @@ void write_manifest(struct mdhim_t *md, struct index_t *index) {
 		manifest.rangesrv_factor = index->range_server_factor;
 		manifest.slice_size = index->mdhim_max_recs_per_slice;
 		manifest.num_nodes = md->mdhim_comm_size;
+		manifest.local_server_rank = -1;
 	} else {
 		manifest.num_rangesrvs = 0;
 		manifest.key_type = index->key_type;
@@ -125,6 +117,7 @@ void write_manifest(struct mdhim_t *md, struct index_t *index) {
 		manifest.rangesrv_factor = 0;
 		manifest.slice_size = 0;
 		manifest.num_nodes = 1;
+		manifest.local_server_rank = index->local_server->rank;
 	}
 	
 	if ((ret = write(fd, &manifest, sizeof(manifest))) < 0) {
@@ -196,12 +189,18 @@ int read_manifest(struct mdhim_t *md, struct index_t *index) {
 			     md->mdhim_rank);
 			ret = MDHIM_ERROR;
 		}
+	} else {
+		if (manifest.local_server_rank != index->local_server->rank) {
+			mlog(MDHIM_SERVER_CRIT, "Rank: %d - The manifest has a different server" 
+			     " rank for a local index than the one currently specified", 
+			     md->mdhim_rank);
+			ret = MDHIM_ERROR;
+		}
 	}
 	
 	close(fd);
 	return ret;
 }
-
 
 /**
  * update_all_stats
@@ -562,14 +561,13 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex) {
 
 /**
  * create_index_t
- * Creates a local index only visible to the calling rank
+ * Creates an index handled by a single range server
  *
  * @param  md  main MDHIM struct
  * @return     MDHIM_ERROR on error, otherwise the index identifier
  */
-struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_type) {
-	struct index_t *li;
-	pthread_rwlock_t *indexes_lock;
+struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_type, int server_rank) {
+	struct index_t *index;
 	int ret;
 
 	//Check that the key type makes sense
@@ -578,41 +576,40 @@ struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_ty
 		return NULL;
 	}
 
-	indexes_lock = get_index_lock(md, LOCAL_INDEX);
 	//Acquire the lock to update index_tes
-	if (pthread_rwlock_wrlock(indexes_lock) != 0) {
+	if (pthread_rwlock_wrlock(md->indexes_lock) != 0) {     
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
 		     md->mdhim_rank);
 		return NULL;
 	}
 
 	//Create a new index_t to hold our index entry
-	li = malloc(sizeof(struct index_t));
+	index = malloc(sizeof(struct index_t));
 
 	//Initialize the new index struct
-	memset(li, 0, sizeof(struct index_t));
-	li->id = HASH_COUNT(md->local_indexes);
-	li->type = LOCAL_INDEX;
-	li->key_type = key_type;
-	li->db_type = db_type;
-
-	//Populate my range server info for this index
-	li->myinfo.rank = md->mdhim_rank;
-	li->myinfo.rangesrv_num = 1;
+	memset(index, 0, sizeof(struct index_t));
+	index->id = HASH_COUNT(md->indexes);
+	index->type = LOCAL_INDEX;
+	index->key_type = key_type;
+	index->db_type = db_type;
+	index->num_rangesrvs = 1;
+	index->local_server = malloc(sizeof(struct rangesrv_info));
+	index->local_server->rank = server_rank;
+	index->local_server->rangesrv_num = 1;
 
 	//Add it to the hash table
-	HASH_ADD_INT(md->local_indexes, id, li);
-                	
-	ret = open_db_store(md, (struct index_t *) li);
-	if (ret != MDHIM_SUCCESS) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error opening data store for index: %d", 
-		     md->mdhim_rank, li->id);
+	HASH_ADD_INT(md->indexes, id, index);
+
+	if (md->mdhim_rank != server_rank) {
+		goto done;
 	}
 
-	if (pthread_rwlock_unlock(indexes_lock) != 0) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock", 
-		     md->mdhim_rank);
-		return NULL;
+	index->myinfo.rank = md->mdhim_rank;
+	index->myinfo.rangesrv_num = 1;
+	ret = open_db_store(md, (struct index_t *) index);
+	if (ret != MDHIM_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error opening data store for index: %d", 
+		     md->mdhim_rank, index->id);
 	}
 	
 	//Initialize the range server threads if they haven't been already
@@ -620,7 +617,14 @@ struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_ty
 		ret = range_server_init(md);
 	}
 
-	return li;
+done:
+	if (pthread_rwlock_unlock(md->indexes_lock) != 0) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	return index;
 }
 
 /**
@@ -634,12 +638,11 @@ struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_ty
  */
 
 struct index_t *create_remote_index(struct mdhim_t *md, int server_factor, 
-				  uint64_t max_recs_per_slice, 
-				  int db_type, int key_type) {
+				    uint64_t max_recs_per_slice, 
+				    int db_type, int key_type, int primary_index_id) {
 	struct index_t *ri;
 	uint32_t rangesrv_num;
 	int ret;
-	pthread_rwlock_t *indexes_lock;
 
 	MPI_Barrier(md->mdhim_comm);
 
@@ -649,9 +652,8 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 		return NULL;
 	}
 
-	indexes_lock = get_index_lock(md, REMOTE_INDEX);
-	//Acquire the lock to update remote_indexes
-	if (pthread_rwlock_wrlock(indexes_lock) != 0) {
+	//Acquire the lock to update indexes
+	if (pthread_rwlock_wrlock(md->indexes_lock) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
 		     md->mdhim_rank);
 		return NULL;
@@ -665,7 +667,7 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 
 	//Initialize the new index struct
 	memset(ri, 0, sizeof(struct index_t));
-	ri->id = HASH_COUNT(md->remote_indexes);
+	ri->id = HASH_COUNT(md->indexes);
 	ri->range_server_factor = server_factor;
 	ri->mdhim_max_recs_per_slice = max_recs_per_slice;
 	ri->type = ri->id > 0 ? SECONDARY_INDEX : PRIMARY_INDEX;
@@ -673,6 +675,7 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	ri->db_type = db_type;
 	ri->myinfo.rangesrv_num = 0;
 	ri->myinfo.rank = md->mdhim_rank;
+	ri->primary_id = ri->type == SECONDARY_INDEX ? primary_index_id : -1;
 
 	//Figure out how many range servers we could have based on the range server factor
 	ri->num_rangesrvs = get_num_range_servers(md, ri);		
@@ -685,7 +688,7 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	}
 
 	//Add it to the hash table
-	HASH_ADD_INT(md->remote_indexes, id, ri);
+	HASH_ADD_INT(md->indexes, id, ri);
 
 	//Test if I'm a range server and get the range server number
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, ri)) == MDHIM_ERROR) {	
@@ -732,7 +735,7 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	
 done:
 	//Release the remote indexes lock
-	if (pthread_rwlock_unlock(indexes_lock) != 0) {
+	if (pthread_rwlock_unlock(md->indexes_lock) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock", 
 		     md->mdhim_rank);
 		return NULL;
@@ -794,17 +797,19 @@ int get_rangesrvs(struct mdhim_t *md, struct index_t *rindex) {
  * @param rank    rank to find out if it is a range server
  * @return        MDHIM_ERROR on error, 0 on false, 1 or greater to represent the range server number otherwise
  */
-uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *li) {
+uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index) {
 	int size;
 	int ret;
 	uint64_t rangesrv_num = 0;
-	struct index_t *rindex;
-
-	if (li->type == LOCAL_INDEX) {
+	
+	//If a local index, check to see if the caller is the range server
+	if (index->type == LOCAL_INDEX && 
+	    index->local_server->rank == md->mdhim_rank) {
 		return 1;
+	} else if (index->type == LOCAL_INDEX) {
+		return 0;
 	}
 
-	rindex = (struct index_t *) li;
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
 		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in is_range_server", 
 		     md->mdhim_rank);
@@ -825,16 +830,16 @@ uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *li) {
 	*/
 
 	size -= 1;
-	if (size < rindex->range_server_factor && rank == size) {
+	if (size < index->range_server_factor && rank == size) {
 		//The size of the communicator is less than the RANGE_SERVER_FACTOR
 		rangesrv_num = 1;
-	} else if (size >= rindex->range_server_factor && rank % rindex->range_server_factor == 0) {
+	} else if (size >= index->range_server_factor && rank % index->range_server_factor == 0) {
 		//This is a range server, get the range server's number
-		rangesrv_num = rank / rindex->range_server_factor;
+		rangesrv_num = rank / index->range_server_factor;
 		rangesrv_num++;
 	}
       		
-	if (rangesrv_num > rindex->num_rangesrvs) {
+	if (rangesrv_num > index->num_rangesrvs) {
 		rangesrv_num = 0;
 	}
 
@@ -919,26 +924,22 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 	return MDHIM_SUCCESS;
 }
 
-struct index_t *get_index(struct mdhim_t *md, int index_id, int type) {
-	pthread_rwlock_t *indexes_lock;
+struct index_t *get_index(struct mdhim_t *md, int index_id) {
 	struct index_t *index;
 
-	indexes_lock = get_index_lock(md, type);
-	//Acquire the lock to update remote_indexes	
-	if (pthread_rwlock_wrlock(indexes_lock) != 0) {
+	//Acquire the lock to update indexes	
+	if (pthread_rwlock_wrlock(md->indexes_lock) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
 		     md->mdhim_rank);
 		return NULL;
 	}		
 	
 	index = NULL;
-	if (type == LOCAL_INDEX) {
-		HASH_FIND_INT(md->local_indexes, &index_id, index);
-	} else {
-		HASH_FIND_INT(md->remote_indexes, &index_id, index);
+	if (index_id >= 0) {
+		HASH_FIND_INT(md->indexes, &index_id, index);
 	}
 
-	if (pthread_rwlock_unlock(indexes_lock) != 0) {
+	if (pthread_rwlock_unlock(md->indexes_lock) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock", 
 		     md->mdhim_rank);
 		return NULL;
@@ -954,8 +955,8 @@ void indexes_release(struct mdhim_t *md) {
 	struct mdhim_stat *stat, *tmp;
 	struct mdhim_store_opts_t opts;
 
-	HASH_ITER(hh, md->remote_indexes, cur_indx, tmp_indx) {
-		HASH_DEL(md->remote_indexes, cur_indx); 
+	HASH_ITER(hh, md->indexes, cur_indx, tmp_indx) {
+		HASH_DEL(md->indexes, cur_indx); 
 		HASH_ITER(hh, cur_indx->rangesrvs_by_num, cur_rs, tmp_rs) {
 			HASH_DEL(cur_indx->rangesrvs_by_num, cur_rs); 
 			free(cur_rs);
@@ -975,8 +976,10 @@ void indexes_release(struct mdhim_t *md) {
 				     md->mdhim_rank);
 			}
 
-			//Write the manifest
-			write_manifest(md, cur_indx);
+			if (cur_indx->myinfo.rangesrv_num == 1) {
+				//Write the manifest
+				write_manifest(md, cur_indx);
+			}
 			
 			set_store_opts(cur_indx, &opts, 0);
 			//Close the database

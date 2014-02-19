@@ -39,6 +39,10 @@
 #define MDHIM_GET_FIRST  3
 //Get the last key and value
 #define MDHIM_GET_LAST   4
+/* Use these operation types for retrieving the primary key
+   from a secondary index and key. */
+//Gets the primary key's value from a secondary key
+#define MDHIM_GET_PRIMARY_EQ 5
 
 //Message Types
 #define RANGESRV_WORK_MSG         1

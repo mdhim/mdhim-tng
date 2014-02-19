@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
 	//Try to get the records back - should fail
 	bgrm = mdhimBGet(md, md->primary_index, 
 			 (void **) keys, key_lens, 
-			 KEYS);
+			 KEYS, MDHIM_GET_EQ);
 	bgrmp = bgrm;
 	while (bgrmp) {
 		if (bgrmp->error < 0) {

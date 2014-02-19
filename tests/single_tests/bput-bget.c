@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 	while (total != TOTAL) {
 		//Get the values back for each key inserted
 		bgrm = mdhimBGet(md, md->primary_index, (void **) keys, key_lens, 
-				 KEYS);
+				 KEYS, MDHIM_GET_EQ);
 		bgrmp = bgrm;
 		while (bgrmp) {
 			if (bgrmp->error < 0) {
