@@ -387,9 +387,19 @@ void client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
 	int return_code;
 	struct index_t *cur_indx, *tmp_indx;
 	struct rangesrv_info *cur_rs, *tmp_rs;
+	int *srvs;
 
+	srvs = malloc(sizeof(int) * md->mdhim_comm_size);
+	memset(srvs, 0, sizeof(int) * md->mdhim_comm_size);
 	HASH_ITER(hh, md->indexes, cur_indx, tmp_indx) {
 		HASH_ITER(hh, cur_indx->rangesrvs_by_rank, cur_rs, tmp_rs) {
+			if (srvs[cur_rs->rank]) {
+				continue;
+			} 
+			
+			//Set the bit map so we don't send the same message to the same rank
+			srvs[cur_rs->rank] = 1;
+
 			return_code = send_rangesrv_work(md, cur_rs->rank, cm);
 			// If there was an error then log the error code and return MDHIM_ERROR
 			if (return_code != MDHIM_SUCCESS) {
@@ -398,6 +408,8 @@ void client_close(struct mdhim_t *md, struct mdhim_basem_t *cm) {
 			}
 		}
 	}
+
+	free(srvs);
 
 	return;
 }

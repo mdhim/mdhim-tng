@@ -874,6 +874,8 @@ done:
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_records = bgm->num_records;
+	bgrm->index = index->id;
+	bgrm->index_type = index->type;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);

@@ -7,7 +7,10 @@
 
 #define KEYS 1000000
 #define TOTAL_KEYS 1000000
-#define SLICE_SIZE 1000000
+#define SLICE_SIZE 1000
+#define SECONDARY_SLICE_SIZE 5
+#define PRIMARY 1
+#define SECONDARY 2
 
 uint64_t **keys;
 int *key_lens;
@@ -28,15 +31,29 @@ void add_time(struct timeval *start, struct timeval *end, long double *time) {
 	*time += elapsed;
 }
 
-void gen_keys_values(int rank, int total_keys) {
+void gen_keys_values(int rank, int total_keys, int index_type) {
 	int i = 0;
 	for (i = 0; i < KEYS; i++) {
 		keys[i] = malloc(sizeof(uint64_t));	
-		*keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
+		if (index_type == PRIMARY) {			
+			*keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
+		} else {
+			/* If we are generating keys for the secondary index, then they should be distributed differently
+			   across the range servers */
+			*keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys + SECONDARY_SLICE_SIZE;
+		}
+
 		key_lens[i] = sizeof(uint64_t);
-		values[i] = malloc(sizeof(int));
-		*values[i] = 1;
-		value_lens[i] = sizeof(int);
+		values[i] = malloc(sizeof(uint64_t));
+		value_lens[i] = sizeof(uint64_t);
+
+		if (index_type == PRIMARY) {
+			*values[i] = rank;
+		} else {
+			//The secondary key's values should be the primary key they refer to
+			*values[i] =  i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
+		}
+       
 	}
 }
 
@@ -65,6 +82,7 @@ int main(int argc, char **argv) {
 	int db_type = LEVELDB; //(data_store.h) 
 	long double put_time = 0;
 	long double get_time = 0;
+	struct index_t *secondary_index;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -72,6 +90,8 @@ int main(int argc, char **argv) {
 	mdhim_options_set_db_name(db_opts, db_name);
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);
+	mdhim_options_set_max_recs_per_slice(db_opts, SLICE_SIZE);
+        mdhim_options_set_server_factor(db_opts, 4);
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
@@ -96,20 +116,27 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 
-	key_lens = malloc(sizeof(uint64_t) * KEYS);
+	key_lens = malloc(sizeof(int) * KEYS);
 	value_lens = malloc(sizeof(int) * KEYS);
 	keys = malloc(sizeof(uint64_t *) * KEYS);
-	values = malloc(sizeof(int *) * KEYS);
-	MPI_Barrier(MPI_COMM_WORLD);	
-	//record the start time
-	start_record(&start_tv);	
-	while (total != TOTAL_KEYS) {
-		//Populate the keys and values to insert
-		gen_keys_values(md->mdhim_rank, total);
+	values = malloc(sizeof(uint64_t *) * KEYS);
 
-		//Insert the keys into MDHIM
+	/* Primary key entries */
+	MPI_Barrier(MPI_COMM_WORLD);	
+	total = 0;
+	while (total != TOTAL_KEYS) {
+		//Populate the primary keys and values to insert
+		gen_keys_values(md->mdhim_rank, total, PRIMARY);
+
+		//record the start time
+		start_record(&start_tv);	
+		//Insert the primary keys into MDHIM
 		brm = mdhimBPut(md, md->primary_index, (void **) keys, key_lens,  
 				(void **) values, value_lens, KEYS);
+		//Record the end time
+		end_record(&end_tv);
+		//Add the final time
+		add_time(&start_tv, &end_tv, &put_time);
 		brmp = brm;
                 if (!brmp || brmp->error) {
                         printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
@@ -129,11 +156,50 @@ int main(int argc, char **argv) {
 		total += KEYS;
 	}
 
-	//Record the end time
-	end_record(&end_tv);
-	//Add the final time
-	add_time(&start_tv, &end_tv, &put_time);
+	/* End primary key entries */
+
+
+	/* Secondary key entries */
+	//Create the secondary remote index
+	secondary_index = create_remote_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
+					      MDHIM_LONG_INT_KEY, 
+					      md->primary_index->id);
 	MPI_Barrier(MPI_COMM_WORLD);
+	total = 0;
+	while (total != TOTAL_KEYS) {
+		//Populate the primary keys and values to insert
+		gen_keys_values(md->mdhim_rank, total, SECONDARY);
+
+		//record the start time
+		start_record(&start_tv);
+		//Insert the primary keys into MDHIM
+		brm = mdhimBPut(md, secondary_index, (void **) keys, key_lens,  
+				(void **) values, value_lens, KEYS);
+		//Record the end time
+		end_record(&end_tv);
+		//Add the final time
+		add_time(&start_tv, &end_tv, &put_time);
+		brmp = brm;
+                if (!brmp || brmp->error) {
+                        printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
+                } 
+		while (brmp) {
+			if (brmp->error < 0) {
+				printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
+			}
+	
+			brmp = brmp->next;
+			//Free the message
+			mdhim_full_release_msg(brm);
+			brm = brmp;
+		}
+	
+		free_key_values();
+		total += KEYS;
+	}
+	
+	MPI_Barrier(MPI_COMM_WORLD);
+	/* End secondary key entries */
 
 	//Commit the database
 	ret = mdhimCommit(md, md->primary_index);
@@ -143,17 +209,19 @@ int main(int argc, char **argv) {
 		printf("Committed MDHIM database\n");
 	}
 
+	//Retrieve the primary key's values from the secondary key
 	total = 0;
 	while (total != TOTAL_KEYS) {
 		//Populate the keys and values to retrieve
-		gen_keys_values(md->mdhim_rank, total);
+		gen_keys_values(md->mdhim_rank, total, SECONDARY);
 		start_record(&start_tv);
 		//Get the values back for each key inserted
-		bgrm = mdhimBGet(md, md->primary_index, (void **) keys, key_lens, 
-				 KEYS, MDHIM_GET_EQ);
+		bgrm = mdhimBGet(md, secondary_index, (void **) keys, key_lens, 
+				 KEYS, MDHIM_GET_PRIMARY_EQ);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
-
+		free_key_values();
+		gen_keys_values(md->mdhim_rank, total, PRIMARY);
 		bgrmp = bgrm;
 		while (bgrmp) {
 			if (!bgrmp || bgrmp->error) {
@@ -162,9 +230,12 @@ int main(int argc, char **argv) {
 			}
 	
 			//Validate that the data retrieved is the correct data
-			for (i = 0; i < bgrmp->num_records && !bgrmp->error; i++) {						
-				assert(*(uint64_t *)bgrmp->keys[i] == *keys[i]);
-				assert(*(int *)bgrmp->values[i] == *values[i]);
+			for (i = 0; i < bgrmp->num_records && !bgrmp->error; i++) {   				
+				if (!bgrmp->value_lens[i]) {
+					printf("Rank: %d - Got an empty value for key: %llu", 
+					       md->mdhim_rank, *(long long unsigned int *)bgrmp->keys[i]);
+					continue;
+				}
 			}
 
 			bgrmp = bgrmp->next;
@@ -194,9 +265,9 @@ int main(int argc, char **argv) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 	printf("Took: %Lf seconds to put %d keys\n", 
-	       put_time, TOTAL_KEYS);
+	       put_time, TOTAL_KEYS * 2);
 	printf("Took: %Lf seconds to get %d keys/values\n", 
-	       get_time, TOTAL_KEYS);
+	       get_time, TOTAL_KEYS * 2);
 
 	return 0;
 }

@@ -492,6 +492,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 			mdhim_full_release_msg(grmp);
 			return NULL;
 		}
+
 		grm = mdhimGet(md, primary_index, grmp->value, grmp->value_len, MDHIM_GET_EQ);
 		mdhim_full_release_msg(grmp);
 	}
@@ -555,8 +556,8 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 			     "Error while determining range server in mdhimBget", 
 			     md->mdhim_rank);
 			continue;
-		}
-       
+		}      	
+
 		if (ri->rank != md->mdhim_rank) {
 			//Set the message in the list for this range server
 			bgm = bgm_list[ri->rangesrv_num - 1];
@@ -620,9 +621,10 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 		memset(primary_key_lens, 0, sizeof(int) * num_records);
 		while (bgrm_head) {
 			for (i = 0; i < bgrm_head->num_records; i++) {
+				primary_keys[plen] = malloc(bgrm_head->value_lens[i]);
 				memcpy(primary_keys[plen], bgrm_head->values[i], 
 				       bgrm_head->value_lens[i]);
-				primary_key_lens[plen] = bgrm_head->value_lens[i];
+				primary_key_lens[plen] = bgrm_head->value_lens[i];			
 				plen++;					
 			}
 
@@ -635,6 +637,13 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 		bgrm_head = mdhimBGet(md, primary_index,
 				      primary_keys, primary_key_lens, 
 				      num_records, MDHIM_GET_EQ);
+
+		//Free up the primary keys and lens arrays
+		for (i = 0; i < plen; i++) {
+			free(primary_keys[i]);			
+		}
+		free(primary_keys);
+		free(primary_key_lens);
 	}
 
 	//Return the head of the list
