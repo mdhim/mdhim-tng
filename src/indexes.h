@@ -94,7 +94,8 @@ int load_stats(struct mdhim_t *md, struct index_t *bi);
 int write_stats(struct mdhim_t *md, struct index_t *bi);
 int open_db_store(struct mdhim_t *md, struct index_t *rindex);
 uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex);
-struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type);
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, 
+				   int server_rank, int primary_index_id);
 struct index_t *create_remote_index(struct mdhim_t *md, int server_factor, 
 				    uint64_t max_recs_per_slice, int db_type, 
 				    int key_type, int primary_index_id);

@@ -566,9 +566,11 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex) {
  * @param  md  main MDHIM struct
  * @return     MDHIM_ERROR on error, otherwise the index identifier
  */
-struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_type, int server_rank) {
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, 
+				   int server_rank, int primary_index_id) {
 	struct index_t *index;
 	int ret;
+	struct rangesrv_info *rs_entry_num, *rs_entry_rank;
 
 	//Check that the key type makes sense
 	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
@@ -576,7 +578,13 @@ struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_ty
 		return NULL;
 	}
 
-	//Acquire the lock to update index_tes
+	//Check that the rank makes sense
+	if (server_rank >= md->mdhim_comm_size) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Invalid rank for the creation of local index");
+		return NULL;
+	}
+
+	//Acquire the lock to update indexes
 	if (pthread_rwlock_wrlock(md->indexes_lock) != 0) {     
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
 		     md->mdhim_rank);
@@ -593,19 +601,30 @@ struct index_t *create_local_index_t(struct mdhim_t *md, int db_type, int key_ty
 	index->key_type = key_type;
 	index->db_type = db_type;
 	index->num_rangesrvs = 1;
+	index->mdhim_max_recs_per_slice = MDHIM_MAX_SLICES;
 	index->local_server = malloc(sizeof(struct rangesrv_info));
 	index->local_server->rank = server_rank;
 	index->local_server->rangesrv_num = 1;
+	index->primary_id = primary_index_id;
+	index->rangesrv_master = server_rank;
+	rs_entry_num = malloc(sizeof(struct rangesrv_info));
+	rs_entry_rank = malloc(sizeof(struct rangesrv_info));
+	rs_entry_num->rank = rs_entry_rank->rank = server_rank;
+	rs_entry_rank->rangesrv_num = rs_entry_num->rangesrv_num = 1;		
+	HASH_ADD_INT(index->rangesrvs_by_num, rangesrv_num, rs_entry_num);     
+	HASH_ADD_INT(index->rangesrvs_by_rank, rank, rs_entry_rank);                 
+	if (md->mdhim_rank == server_rank) {
+		index->myinfo.rank = md->mdhim_rank;
+		index->myinfo.rangesrv_num = 1;
+	}
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->indexes, id, index);
-
 	if (md->mdhim_rank != server_rank) {
 		goto done;
 	}
 
-	index->myinfo.rank = md->mdhim_rank;
-	index->myinfo.rangesrv_num = 1;
+	//Open the data store
 	ret = open_db_store(md, (struct index_t *) index);
 	if (ret != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error opening data store for index: %d", 
@@ -717,7 +736,7 @@ struct index_t *create_remote_index(struct mdhim_t *md, int server_factor,
 	if (rangesrv_num == 1 && 
 	    (ret = read_manifest(md, ri)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_DBG, "MDHIM Rank: %d - " 
-		     "Fatal error: There was a problem reading or validating the manifest file",
+		     "Warning: There was a problem reading or validating the manifest file",
 		     md->mdhim_rank);
 	}        
 
@@ -992,7 +1011,9 @@ void indexes_release(struct mdhim_t *md) {
 			
 			pthread_rwlock_destroy(cur_indx->mdhim_store->mdhim_store_stats_lock);
 			free(cur_indx->mdhim_store->mdhim_store_stats_lock);
-			MPI_Comm_free(&cur_indx->rs_comm);
+			if (cur_indx->type != LOCAL_INDEX) {
+				MPI_Comm_free(&cur_indx->rs_comm);
+			}
 			free(cur_indx->mdhim_store);
 		}
 	
@@ -1013,6 +1034,51 @@ void indexes_release(struct mdhim_t *md) {
 	}
 }
 
+int pack_stats(struct index_t *index, void *buf, int size, 
+	       int float_type, int stat_size, MPI_Comm comm) {
+	
+	struct mdhim_stat *stat, *tmp;
+	void *tstat;
+	struct mdhim_db_istat *istat;
+	struct mdhim_db_fstat *fstat;
+	int ret = MPI_SUCCESS;
+	int sendidx = 0;
+
+	//Pack the stat data I have by iterating through the stats hash
+	HASH_ITER(hh, index->mdhim_store->mdhim_store_stats, stat, tmp) {
+		//Get the appropriate struct to send
+		if (float_type) {
+			fstat = malloc(sizeof(struct mdhim_db_fstat));
+			fstat->slice = stat->key;
+			fstat->num = stat->num;
+			fstat->dmin = *(long double *) stat->min;
+			fstat->dmax = *(long double *) stat->max;
+			tstat = fstat;
+		} else {
+			istat = malloc(sizeof(struct mdhim_db_istat));
+			istat->slice = stat->key;
+			istat->num = stat->num;
+			istat->imin = *(uint64_t *) stat->min;
+			istat->imax = *(uint64_t *) stat->max;
+			tstat = istat;
+		}
+		  
+		//Pack the struct
+		if ((ret = MPI_Pack(tstat, stat_size, MPI_CHAR, buf, size, &sendidx, 
+				    comm)) != MPI_SUCCESS) {
+			mlog(MPI_CRIT, "Error packing buffer when sending stat info" 
+			     " to master range server");
+			free(buf);
+			free(tstat);
+			return ret;
+		}
+
+		free(tstat);
+	}
+
+	return ret;
+}
+
 /**
  * get_stat_flush
  * Receives stat data from all the range servers and populates md->stats
@@ -1022,8 +1088,7 @@ void indexes_release(struct mdhim_t *md) {
  */
 int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 	char *sendbuf;
-	int sendsize;
-	int sendidx = 0;
+	int sendsize = 0;
 	int recvidx = 0;
 	char *recvbuf;
 	int *recvcounts;
@@ -1034,11 +1099,9 @@ int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 	int float_type = 0;
 	struct mdhim_stat *stat, *tmp;
 	void *tstat;
-	int stat_size;
-	struct mdhim_db_istat *istat;
-	struct mdhim_db_fstat *fstat;
+	int stat_size = 0;
 	int master;
-	int num_items;
+	int num_items = 0;
 
 	
 	num_items = 0;
@@ -1064,7 +1127,9 @@ int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 		} else {
 			sendsize = num_items * sizeof(struct mdhim_db_istat);
 		}
+	}
 
+	if (index->myinfo.rangesrv_num > 0 && index->type != LOCAL_INDEX) {	
 		//Get the master range server rank according the range server comm
 		if ((ret = MPI_Comm_size(index->rs_comm, &master)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
@@ -1104,38 +1169,14 @@ int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 
 		//Allocate send buffer
 		sendbuf = malloc(sendsize);		  
-		//Pack the stat data I have by iterating through the stats hash
-		HASH_ITER(hh, index->mdhim_store->mdhim_store_stats, stat, tmp) {
-			//Get the appropriate struct to send
-			if (float_type) {
-				fstat = malloc(sizeof(struct mdhim_db_fstat));
-				fstat->slice = stat->key;
-				fstat->num = stat->num;
-				fstat->dmin = *(long double *) stat->min;
-				fstat->dmax = *(long double *) stat->max;
-				tstat = fstat;
-			} else {
-				istat = malloc(sizeof(struct mdhim_db_istat));
-				istat->slice = stat->key;
-				istat->num = stat->num;
-				istat->imin = *(uint64_t *) stat->min;
-				istat->imax = *(uint64_t *) stat->max;
-				tstat = istat;
-			}
-		  
-			//Pack the struct
-			if ((ret = MPI_Pack(tstat, stat_size, MPI_CHAR, sendbuf, sendsize, &sendidx, 
-					    index->rs_comm)) != MPI_SUCCESS) {
-				mlog(MPI_CRIT, "Rank: %d - " 
-				     "Error packing buffer when sending stat info to master range server", 
-				     md->mdhim_rank);
-				free(sendbuf);
-				free(tstat);
-				goto error;
-			}
 
-			free(tstat);
-		}
+		//Pack the stat data I have by iterating through the stats hash
+		ret =  pack_stats(index, sendbuf, sendsize,
+				  float_type, stat_size, index->rs_comm);
+		if (ret != MPI_SUCCESS) {
+			free(recvbuf);
+			goto error;
+		}	
 
 		//Allocate the recv buffer for the master range server
 		if (md->mdhim_rank == index->rangesrv_master) {
@@ -1160,10 +1201,19 @@ int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 		free(recvcounts);
 		free(displs);
 		free(sendbuf);	
+	} else if (index->myinfo.rangesrv_num > 0 && index->type == LOCAL_INDEX) {
+		//Allocate recv buffer
+		recvbuf = malloc(sendsize);	
+		ret =  pack_stats(index, recvbuf, sendsize,
+				  float_type, stat_size, md->mdhim_comm);
+		if (ret != MPI_SUCCESS) {
+			free(recvbuf);
+			goto error;
+		}	
 	}
 
 	MPI_Barrier(md->mdhim_client_comm);
-	//The master range server broadcasts the number of status it is going to send
+	//The master range server broadcasts the number of stats it is going to send
 	if ((ret = MPI_Bcast(&num_items, 1, MPI_UNSIGNED, index->rangesrv_master,
 			     md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - " 

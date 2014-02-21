@@ -3,9 +3,16 @@ CLIBS += -L../../src
 CINC += -I../../src -I../../src/uthash
 all:	put-get bput-bget put-del bput-bdel put-getn \
 	put-getp puts-gets bput-bgetn bput-bgetp \
-	bput-bget_secondary
+	bput-bget_secondary put-get_secondary \
+	put-get_secondary_local
 
 put-get: put-get.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
+put-get_secondary: put-get_secondary.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
+put-get_secondary_local: put-get_secondary_local.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 puts-gets: puts-gets.c 
@@ -37,6 +44,7 @@ bput-bdel: bput-bdel.c
 
 clean:
 	rm -rf put-get bput-bget put-del bput-bdel\
-               put-getn put-getp \
-               puts-gets bput-bgetn \
-               bput-bgetp bput-bget_secondary
+		put-getn put-getp \
+		puts-gets bput-bgetn \
+		bput-bgetp bput-bget_secondary \
+		put-get_secondary put-get_secondary_local

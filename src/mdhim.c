@@ -427,9 +427,11 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 			       int op) {
 	int ret;
 	struct mdhim_getm_t *gm;
-	struct mdhim_getrm_t *grm, *grmp;
+	struct mdhim_getrm_t *grm;
 	rangesrv_info *ri = NULL;
 	struct index_t *primary_index;
+	void *secondary_key;
+	int secondary_key_len;
 
 	//Get the range server this key will be sent to
 	if (op == MDHIM_GET_EQ || op == MDHIM_GET_PRIMARY_EQ) {
@@ -438,7 +440,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 		ri = get_range_server_from_stats(md, index, key, key_len, op);
 	}
 
-	if (!ri && op != MDHIM_GET_EQ) {
+	if (!ri && (op != MDHIM_GET_EQ && op != MDHIM_GET_PRIMARY_EQ)) {
 		mlog(MDHIM_CLIENT_INFO, "MDHIM Rank: %d - " 
 		     "Key: %lu not available based on current stats information.", 
 		     md->mdhim_rank, *(uint64_t *) key);
@@ -462,7 +464,7 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 
 	//Initialize the get message
 	gm->mtype = MDHIM_GET;
-	gm->op = op;
+	gm->op = (op == MDHIM_GET_PRIMARY_EQ) ? MDHIM_GET_EQ : op;
 	gm->key = key;
 	gm->key_len = key_len;
 	gm->server_rank = ri->rank;
@@ -483,18 +485,29 @@ struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 	}
 
 	if (op == MDHIM_GET_PRIMARY_EQ && grm && !grm->error) {
-		grmp = grm;
 		primary_index = get_index(md, index->primary_id);
 		if (!primary_index) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Couldn't retrieve the primary index from the secondary", 
 			     md->mdhim_rank);
-			mdhim_full_release_msg(grmp);
+			mdhim_full_release_msg(grm);
+			return NULL;
+		}
+		
+		if (!grm->value_len) {
+			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+			     "Couldn't retrieve the primary key from the secondary key", 
+			     md->mdhim_rank);
+			mdhim_full_release_msg(grm);
 			return NULL;
 		}
 
-		grm = mdhimGet(md, primary_index, grmp->value, grmp->value_len, MDHIM_GET_EQ);
-		mdhim_full_release_msg(grmp);
+		secondary_key = malloc(grm->value_len);
+		memcpy(secondary_key, grm->value, grm->value_len);
+		secondary_key_len = grm->value_len;
+		mdhim_full_release_msg(grm);
+		grm = mdhimGet(md, primary_index, secondary_key, secondary_key_len, MDHIM_GET_EQ);
+		free(secondary_key);
 	}
 
 	return grm;

@@ -52,8 +52,7 @@ void gen_keys_values(int rank, int total_keys, int index_type) {
 		} else {
 			//The secondary key's values should be the primary key they refer to
 			*values[i] =  i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
-		}
-       
+		}       
 	}
 }
 
