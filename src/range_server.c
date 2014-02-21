@@ -260,7 +260,14 @@ void set_store_opts(struct mdhim_t *md, struct mdhim_store_opts_t *opts, int sta
 	opts->db_ptr12 = md->mdhim_rs->mdhim_store->db_ptr12;
 	opts->db_ptr13 = md->mdhim_rs->mdhim_store->db_ptr13;
 	opts->db_ptr14 = md->mdhim_rs->mdhim_store->db_ptr14;
-
+		if (md->db_opts->db_type == MYSQLDB){
+	opts->db_ptr10 = md->db_opts->db_host;
+	opts->db_ptr11 = md->db_opts->db_user;
+	opts->db_ptr12 = md->db_opts->db_upswd;
+	opts->db_ptr13 = md->db_opts->dbs_user;
+	opts->db_ptr14 = md->db_opts->dbs_upswd;	
+	}	
+	
 	opts->key_type = md->key_type;
 }
 
@@ -1724,8 +1731,8 @@ int range_server_init(struct mdhim_t *md) {
 	//Clear the options
 	memset(&opts, 0, sizeof(struct mdhim_store_opts_t));
 	//Set the key type
-	opts.key_type = md->key_type;
-
+	set_store_opts(md, &opts, 0);
+	
 	//Open the main database and the stats database
 	if ((ret = md->mdhim_rs->mdhim_store->open(&md->mdhim_rs->mdhim_store->db_handle,
 						   &md->mdhim_rs->mdhim_store->db_stats,

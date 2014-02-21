@@ -1693,7 +1693,7 @@ int main( int argc, char * argv[] )
 	int provided = 0;
 	struct mdhim_t *md;
     
-	int db_type = MYSQLDB; //(data_store.h) 
+	int db_type = LEVELDB; //(data_store.h) 
 
 	// Process arguments
 	infile = stdin;
@@ -1808,10 +1808,13 @@ int main( int argc, char * argv[] )
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, key_type);
 	mdhim_options_set_debug_level(db_opts, dbug);
+	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
 	mdhim_options_set_server_factor(db_opts, factor);
 	mdhim_options_set_max_recs_per_slice(db_opts, slice);
 	mdhim_options_set_value_append(db_opts, dbOptionAppend);  // Default is overwrite
-    
+	//Setup Login credientials to database
+	//mdhim_options_set_login_c(db_opts, host server, user name, user' password, statstics user name, statistic user name's password);
+    	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
 	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	if (!md)
 	{

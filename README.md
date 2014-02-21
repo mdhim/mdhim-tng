@@ -11,6 +11,7 @@ environment and to take advantage of high speed networks.
 Requirements
 ---------------
 Leveldb: http://code.google.com/p/leveldb/
+Mysqldb: http://www.mysql.com/
 An MPI distribution that supports MPI_THREAD_MULTIPLE well (this excludes OpenMPI)
 
 

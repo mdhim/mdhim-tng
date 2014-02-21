@@ -31,13 +31,15 @@ int main(int argc, char **argv) {
         mdhim_options_set_db_type(db_opts, MYSQLDB);
         mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY); //Key_type = 1 (int)
 	mdhim_options_set_debug_level(db_opts, MLOG_CRIT);
+	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
 
 	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
 	}	
-
+	
 	//Put the keys and values
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
