@@ -218,7 +218,6 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	int ret;
 	struct mdhim_rm_t *rm;
 	int error = 0;
-	struct mdhim_store_opts_t opts;
 	void **value;
 	int32_t *value_len;
 	int exists = 0;
@@ -244,12 +243,11 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 		goto done;
 	}
 
-	set_store_opts(index, &opts, 0);
 	gettimeofday(&start, NULL);
        //Check for the key's existence
 	index->mdhim_store->get(index->mdhim_store->db_handle, 
 				       im->key, im->key_len, value, 
-				       value_len, &opts);
+				       value_len);
 	//The key already exists
 	if (*value && *value_len) {
 		exists = 1;
@@ -277,7 +275,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	if ((ret = 
 	     index->mdhim_store->put(index->mdhim_store->db_handle, 
 				     im->key, im->key_len, new_value, 
-				     new_value_len, &opts)) != MDHIM_SUCCESS) {
+				     new_value_len)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error putting record", 
 		     md->mdhim_rank);	
 		error = ret;
@@ -333,7 +331,6 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	int ret;
 	int error = MDHIM_SUCCESS;
 	struct mdhim_rm_t *brm;
-	struct mdhim_store_opts_t opts;
 	void **value;
 	int32_t *value_len;
 	int *exists;
@@ -363,7 +360,6 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 		goto done;
 	}
 
-	set_store_opts(index, &opts, 0);
 	//Iterate through the arrays and insert each record
 	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
 		*value = NULL;
@@ -372,7 +368,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
                 //Check for the key's existence
 		index->mdhim_store->get(index->mdhim_store->db_handle, 
 					       bim->keys[i], bim->key_lens[i], value, 
-					       value_len, &opts);
+					       value_len);
 		//The key already exists
 		if (*value && *value_len) {
 			exists[i] = 1;
@@ -408,8 +404,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	if ((ret = 
 	     index->mdhim_store->batch_put(index->mdhim_store->db_handle, 
 					   bim->keys, bim->key_lens, new_values, 
-					   new_value_lens, bim->num_records,
-					   &opts)) != MDHIM_SUCCESS) {
+					   new_value_lens, bim->num_records)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error batch putting records", 
 		     md->mdhim_rank);
 		error = ret;
@@ -478,7 +473,6 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	int ret = MDHIM_ERROR;
 	struct mdhim_rm_t *rm;
-	struct mdhim_store_opts_t opts;
 	struct index_t *index;
 
 	//Get the index referenced the message
@@ -490,11 +484,10 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 		goto done;
 	}
 
-	set_store_opts(index, &opts, 0);
 	//Put the record in the database
 	if ((ret = 
 	     index->mdhim_store->del(index->mdhim_store->db_handle, 
-				     dm->key, dm->key_len, &opts)) != MDHIM_SUCCESS) {
+				     dm->key, dm->key_len)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
 		     md->mdhim_rank);
 	}
@@ -530,7 +523,6 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	int ret;
 	int error = 0;
 	struct mdhim_rm_t *brm;
-	struct mdhim_store_opts_t opts;
 	struct index_t *index;
 
 	//Get the index referenced the message
@@ -542,14 +534,13 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 		goto done;
 	}
 
-	set_store_opts(index, &opts, 0);
 	//Iterate through the arrays and delete each record
 	for (i = 0; i < bdm->num_records && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
 		     index->mdhim_store->del(index->mdhim_store->db_handle, 
-					     bdm->keys[i], bdm->key_lens[i],
-					     &opts)) != MDHIM_SUCCESS) {
+					     bdm->keys[i], bdm->key_lens[i])) 
+		    != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error deleting record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -640,7 +631,6 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 	int32_t *value_len, key_len;
 	struct mdhim_getrm_t *grm;
 	int ret;
-	struct mdhim_store_opts_t opts;
 	struct timeval start, end;
 	int num_retrieved = 0;
 	struct index_t *index;	
@@ -663,7 +653,6 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		goto done;
 	}
 
-	set_store_opts(index, &opts, 0);
 	//Set our local pointer to the key and length
 	if (gm->key_len) {
 		*key = gm->key;
@@ -678,7 +667,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     index->mdhim_store->get(index->mdhim_store->db_handle, 
 					     *key, key_len, value, 
-					     value_len, &opts)) != MDHIM_SUCCESS) {
+					     value_len)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -690,7 +679,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
 						  key, &key_len, value, 
-						  value_len, &opts)) != MDHIM_SUCCESS) {
+						  value_len)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -702,7 +691,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
 						  key, &key_len, value, 
-						  value_len, &opts)) != MDHIM_SUCCESS) {
+						  value_len)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -714,7 +703,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
 						  key, &key_len, value, 
-						  value_len, &opts)) != MDHIM_SUCCESS) {
+						  value_len)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -726,7 +715,7 @@ int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, in
 		if ((ret = 
 		     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
 						  key, &key_len, value, 
-						  value_len, &opts)) != MDHIM_SUCCESS) {
+						  value_len)) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 			     md->mdhim_rank);
 			error = ret;
@@ -804,7 +793,6 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	int i;
 	struct mdhim_bgetrm_t *bgrm;
 	int error = 0;
-	struct mdhim_store_opts_t opts;
 	struct timeval start, end;
 	int num_retrieved = 0;
 	struct index_t *index;
@@ -823,14 +811,13 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 		goto done;
 	}
 
-	set_store_opts(index, &opts, 0);
 	//Iterate through the arrays and get each record
 	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
 	  //Get records from the database
 		if ((ret = 
 		     index->mdhim_store->get(index->mdhim_store->db_handle, 
 					     bgm->keys[i], bgm->key_lens[i], &values[i], 
-					     &value_lens[i], &opts)) != MDHIM_SUCCESS) {
+					     &value_lens[i])) != MDHIM_SUCCESS) {
 			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
 			error = ret;
 			value_lens[i] = 0;
@@ -908,7 +895,6 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	int32_t *value_lens;
 	struct mdhim_bgetrm_t *bgrm;
 	int ret;
-	struct mdhim_store_opts_t opts;
 	int i;
 	int num_records;
 	struct timeval start, end;
@@ -939,7 +925,6 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 		goto respond;
 	}
 
-	set_store_opts(index, &opts, 0);
 	gettimeofday(&start, NULL);
 	//Iterate through the arrays and get each record
 	for (i = 0; i < gm->num_records && i < MAX_BULK_OPS; i++) {
@@ -971,8 +956,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 				  index->mdhim_store->get_next(index->mdhim_store->db_handle, 
 							       get_key, get_key_len, 
 							       get_value, 
-							       get_value_len,
-							       &opts)) 
+							       get_value_len)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 				     md->mdhim_rank);
@@ -984,8 +968,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 					  index->mdhim_store->get(index->mdhim_store->db_handle, 
 								  *get_key, *get_key_len, 
 								  get_value, 
-								  get_value_len,
-								  &opts))
+								  get_value_len))
 				   != MDHIM_SUCCESS) {
 				error = ret;
 				key_lens[i] = 0;
@@ -1003,8 +986,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 			     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
 							  get_key, get_key_len, 
 							  get_value, 
-							  get_value_len,
-							  &opts)) 
+							  get_value_len)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get prev record", 
 				     md->mdhim_rank);
@@ -1016,8 +998,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 					  index->mdhim_store->get(index->mdhim_store->db_handle, 
 								  *get_key, *get_key_len, 
 								  get_value, 
-								  get_value_len,
-								  &opts))
+								  get_value_len))
 				   != MDHIM_SUCCESS) {
 				error = ret;
 				key_lens[i] = 0;

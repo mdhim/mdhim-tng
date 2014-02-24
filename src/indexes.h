@@ -39,7 +39,6 @@ struct index_t {
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
 	//Options for the mdhim data store
-	struct mdhim_store_opts_t *opts;
 	int key_type;             //The key type used in the db
 	int db_type;              //The database type
 	int type;                 /* The type of index 
@@ -105,7 +104,6 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, struct index_t *index);
 struct index_t *get_index(struct mdhim_t *md, int index_id);
 void indexes_release(struct mdhim_t *md);
-void set_store_opts(struct index_t *index, struct mdhim_store_opts_t *opts, int stat);
 int im_range_server(struct index_t *index);
 
 #endif

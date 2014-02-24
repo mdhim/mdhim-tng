@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "partitioner.h"
 
 //Global hashtable for alphabet used in partitioner algorithm
@@ -545,7 +546,8 @@ int get_slice_from_istat(struct mdhim_t *md, struct index_t *index,
 
 	switch(op) {
 	case MDHIM_GET_NEXT:
-		if (cur_stat && *(uint64_t *)cur_stat->max > istat) {
+		if (cur_stat && *(uint64_t *)cur_stat->max > istat && 
+		    *(uint64_t *)cur_stat->min <= istat) {
 			slice_num = cur_slice;
 			goto done;
 		} else {		
@@ -555,7 +557,8 @@ int get_slice_from_istat(struct mdhim_t *md, struct index_t *index,
 
 		break;
 	case MDHIM_GET_PREV:
-		if (cur_stat && *(uint64_t *)cur_stat->min < istat) {
+		if (cur_stat && *(uint64_t *)cur_stat->min < istat && 
+		    *(uint64_t *)cur_stat->max >= istat ) {
 			slice_num = cur_slice;
 			goto done;
 		} else {
@@ -611,7 +614,7 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, struct index_t *i
 	cur_slice = slice_num = 0;
 	//If we don't have any stats info, then return null
 	if (!index->stats) {
-		mlog(MDHIM_CLIENT_INFO, "Rank: %d - No statistics data available" 
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - No statistics data available" 
 		     " to do a cursor based operation.  Perform a mdhimStatFlush first.", 
 		     md->mdhim_rank);
 		return NULL;
@@ -623,11 +626,11 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, struct index_t *i
 	if (key && key_len) {
 		cur_slice = get_slice_num(md, index, key, key_len);
 		if (cur_slice == MDHIM_ERROR) {
-			mlog(MDHIM_CLIENT_INFO, "Rank: %d - Error: could not determine a" 
+			mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error: could not determine a" 
 			     " valid a slice number", 
 			     md->mdhim_rank);
 			return NULL;
-		}
+		}	
 	} else if (op != MDHIM_GET_FIRST && op != MDHIM_GET_LAST) {
 		//If the op is not first or last, then we expect a key
 		return NULL;

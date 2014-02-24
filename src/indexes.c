@@ -10,34 +10,6 @@
 #include "mdhim.h"
 #include "indexes.h"
 
-void set_store_opts(struct index_t *index, struct mdhim_store_opts_t *opts, int stat) {
-	if (!stat) {
-		opts->db_ptr1 = index->mdhim_store->db_ptr1;
-		opts->db_ptr2 = index->mdhim_store->db_ptr2;
-		opts->db_ptr3 = index->mdhim_store->db_ptr3;
-		opts->db_ptr4 = index->mdhim_store->db_ptr4;
-		opts->db_ptr5 = index->mdhim_store->db_ptr5;
-		opts->db_ptr6 = index->mdhim_store->db_ptr6;
-		opts->db_ptr7 = index->mdhim_store->db_ptr7;
-	} else {
-		opts->db_ptr1 = NULL;	       
-		opts->db_ptr2 = index->mdhim_store->db_ptr5;
-		opts->db_ptr3 = index->mdhim_store->db_ptr6;
-		opts->db_ptr4 = index->mdhim_store->db_ptr7;
-		opts->db_ptr5 = NULL;	       
-		opts->db_ptr6 = NULL;	       
-		opts->db_ptr7 = NULL;	       
-	}  
-
-	opts->db_ptr8 = index->mdhim_store->db_ptr8;
-	opts->db_ptr9 = index->mdhim_store->db_ptr9;
-	opts->db_ptr10 = index->mdhim_store->db_ptr10;
-	opts->db_ptr11 = index->mdhim_store->db_ptr11;
-	opts->db_ptr12 = index->mdhim_store->db_ptr12;
-	opts->db_ptr13 = index->mdhim_store->db_ptr13;
-	opts->db_ptr14 = index->mdhim_store->db_ptr14;
-}
-
 /**
  * im_range_server
  * checks if I'm a range server
@@ -317,10 +289,9 @@ int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t
  * @param md  Pointer to the main MDHIM structure
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int load_stats(struct mdhim_t *md, struct index_t *bi) {
+int load_stats(struct mdhim_t *md, struct index_t *index) {
 	void **val;
 	int *val_len, *key_len;
-	struct mdhim_store_opts_t opts;
 	int **slice;
 	int *old_slice;
 	struct mdhim_stat *stat;
@@ -328,23 +299,22 @@ int load_stats(struct mdhim_t *md, struct index_t *bi) {
 	void *min, *max;
 	int done = 0;
 
-	float_type = is_float_key(bi->key_type);
+	float_type = is_float_key(index->key_type);
 	slice = malloc(sizeof(int *));
 	*slice = NULL;
 	key_len = malloc(sizeof(int));
 	*key_len = sizeof(int);
 	val = malloc(sizeof(struct mdhim_db_stat *));	
 	val_len = malloc(sizeof(int));
-	set_store_opts(bi, &opts, 1);
 	old_slice = NULL;
-	bi->mdhim_store->mdhim_store_stats = NULL;
+	index->mdhim_store->mdhim_store_stats = NULL;
 	while (!done) {
 		//Check the db for the key/value
 		*val = NULL;
 		*val_len = 0;		
-		bi->mdhim_store->get_next(bi->mdhim_store->db_stats, 
-					  (void **) slice, key_len, (void **) val, 
-					  val_len, &opts);	
+		index->mdhim_store->get_next(index->mdhim_store->db_stats, 
+					     (void **) slice, key_len, (void **) val, 
+					     val_len);	
 		
 		//Add the stat to the hash table - the value is 0 if the key was not in the db
 		if (!*val || !*val_len) {
@@ -381,7 +351,7 @@ int load_stats(struct mdhim_t *md, struct index_t *bi) {
 		stat->num = (*(struct mdhim_db_stat **)val)->num;
 		stat->key = **slice;
 		old_slice = *slice;
-		HASH_ADD_INT(bi->mdhim_store->mdhim_store_stats, key, stat); 
+		HASH_ADD_INT(index->mdhim_store->mdhim_store_stats, key, stat); 
 		free(*val);
 	}
 
@@ -402,13 +372,11 @@ int load_stats(struct mdhim_t *md, struct index_t *bi) {
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int write_stats(struct mdhim_t *md, struct index_t *bi) {
-	struct mdhim_store_opts_t opts;
 	struct mdhim_stat *stat, *tmp;
 	struct mdhim_db_stat *dbstat;
 	int float_type = 0;
 
 	float_type = is_float_key(bi->key_type);
-	set_store_opts(bi, &opts, 1);
 
 	//Iterate through the stat hash entries
 	HASH_ITER(hh, bi->mdhim_store->mdhim_store_stats, stat, tmp) {	
@@ -434,7 +402,7 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 		//Write the key to the database		
 		bi->mdhim_store->put(bi->mdhim_store->db_stats, 
 				     &dbstat->slice, sizeof(int), dbstat, 
-				     sizeof(struct mdhim_db_stat), &opts);	
+				     sizeof(struct mdhim_db_stat));	
 		//Delete and free hash entry
 		HASH_DEL(bi->mdhim_store->mdhim_store_stats, stat); 
 		free(stat->max);
@@ -458,7 +426,6 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 int open_db_store(struct mdhim_t *md, struct index_t *index) {
 	char filename[PATH_MAX];
 	int flags = MDHIM_CREATE;
-	struct mdhim_store_opts_t opts;
 	int path_num;
 	int ret;
 
@@ -488,30 +455,16 @@ int open_db_store(struct mdhim_t *md, struct index_t *index) {
 		return MDHIM_ERROR;
 	}
 
-	//Clear the options
-	memset(&opts, 0, sizeof(struct mdhim_store_opts_t));
-	//Set the key type
-	opts.key_type = index->key_type;
-
 	//Open the main database and the stats database
 	if ((ret = index->mdhim_store->open(&index->mdhim_store->db_handle,
 					    &index->mdhim_store->db_stats,
-					    filename, flags, &opts)) != MDHIM_SUCCESS){
+					    filename, flags, index->key_type)) != MDHIM_SUCCESS){
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while opening database", 
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 	
-	index->mdhim_store->db_ptr1 = opts.db_ptr1;
-	index->mdhim_store->db_ptr2 = opts.db_ptr2;
-	index->mdhim_store->db_ptr3 = opts.db_ptr3;
-	index->mdhim_store->db_ptr4 = opts.db_ptr4;
-	index->mdhim_store->db_ptr5 = opts.db_ptr5;
-	index->mdhim_store->db_ptr6 = opts.db_ptr6;
-	index->mdhim_store->db_ptr7 = opts.db_ptr7;
-	index->mdhim_store->db_ptr8 = opts.db_ptr8;
-
 	//Load the stats from the database
 	if ((ret = load_stats(md, index)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
@@ -972,7 +925,6 @@ void indexes_release(struct mdhim_t *md) {
 	struct rangesrv_info *cur_rs, *tmp_rs;
 	int ret;
 	struct mdhim_stat *stat, *tmp;
-	struct mdhim_store_opts_t opts;
 
 	HASH_ITER(hh, md->indexes, cur_indx, tmp_indx) {
 		HASH_DEL(md->indexes, cur_indx); 
@@ -1000,10 +952,9 @@ void indexes_release(struct mdhim_t *md) {
 				write_manifest(md, cur_indx);
 			}
 			
-			set_store_opts(cur_indx, &opts, 0);
 			//Close the database
 			if ((ret = cur_indx->mdhim_store->close(cur_indx->mdhim_store->db_handle, 
-							cur_indx->mdhim_store->db_stats, &opts)) 
+								cur_indx->mdhim_store->db_stats)) 
 			    != MDHIM_SUCCESS) {
 				mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error closing database", 
 				     md->mdhim_rank);

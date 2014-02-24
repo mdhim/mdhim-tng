@@ -23,32 +23,24 @@
 #define MDHIM_NUM_STAT 3
 
 struct mdhim_store_t;
-struct mdhim_store_opts_t;
 
 /* Function pointers for abstracting data stores */
 typedef int (*mdhim_store_open_fn_t)(void **db_handle, void **db_stats, char *path, int flags, 
-				     struct mdhim_store_opts_t *mstore_opts);
+				     int key_type);
 typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int32_t key_len, 
-				    void *data, int32_t data_len, 
-				    struct mdhim_store_opts_t *mstore_opts);
+				    void *data, int32_t data_len);
 typedef int (*mdhim_store_batch_put_fn_t)(void *db_handle, void **keys, int32_t *key_lens, 
-					  void **data, int32_t *data_lens, int num_records, 
-					  struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int32_t *data_len, 
-				    struct mdhim_store_opts_t *mstore_opts);
+					  void **data, int32_t *data_lens, int num_records);
+typedef int (*mdhim_store_get_fn_t)(void *db_handle, void *key, int key_len, void **data, int32_t *data_len);
 typedef int (*mdhim_store_get_next_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
-					 int32_t *data_len, 
-					 struct mdhim_store_opts_t *mstore_opts);
+					 int32_t *data_len);
 typedef int (*mdhim_store_get_prev_fn_t)(void *db_handle, void **key, 
 					 int *key_len, void **data, 
-					 int32_t *data_len,
-					 struct mdhim_store_opts_t *mstore_opts);
-typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len,
-				    struct mdhim_store_opts_t *mstore_opts);
+					 int32_t *data_len);
+typedef int (*mdhim_store_del_fn_t)(void *db_handle, void *key, int key_len);
 typedef int (*mdhim_store_commit_fn_t)(void *db_handle);
-typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats,
-				      struct mdhim_store_opts_t *mstore_opts);
+typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats);
 
 //Used for storing stats in a hash table
 struct mdhim_stat {
@@ -93,21 +85,6 @@ struct mdhim_store_t {
 	void *db_handle;
 	//Handle to db for stats
 	void *db_stats;
-	//Generic pointers for data base structures such as options
-	void *db_ptr1;
-	void *db_ptr2;
-	void *db_ptr3;
-	void *db_ptr4;
-	void *db_ptr5;
-	void *db_ptr6;
-	void *db_ptr7;
-	void *db_ptr8;
-	void *db_ptr9;
-	void *db_ptr10;
-	void *db_ptr11;
-	void *db_ptr12;
-	void *db_ptr13;
-	void *db_ptr14;
 	//Pointers to functions based on data store
 	mdhim_store_open_fn_t open;
 	mdhim_store_put_fn_t put;
@@ -124,25 +101,6 @@ struct mdhim_store_t {
 
 	//Lock to allow concurrent readers and a single writer to the mdhim_store_stats
 	pthread_rwlock_t *mdhim_store_stats_lock;
-};
-
-/* mdhim storage options passed to direct storage access functions i.e.: get, put, open */
-struct mdhim_store_opts_t {
-	int key_type; 
-	void *db_ptr1;
-	void *db_ptr2;
-	void *db_ptr3;
-	void *db_ptr4;
-	void *db_ptr5;
-	void *db_ptr6;
-	void *db_ptr7;
-	void *db_ptr8;
-	void *db_ptr9;
-	void *db_ptr10;
-	void *db_ptr11;
-	void *db_ptr12;
-	void *db_ptr13;
-	void *db_ptr14;
 };
 
 //Initializes the data store based on the type given (i.e., LEVELDB, etc...)
