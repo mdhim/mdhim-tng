@@ -12,6 +12,7 @@ Requirements
 ---------------
 Leveldb: http://code.google.com/p/leveldb/
 Mysqldb: http://www.mysql.com/
+Mysqldb C Connector: http://dev.mysql.com/downloads/connector/c/
 An MPI distribution that supports MPI_THREAD_MULTIPLE well (this excludes OpenMPI)
 
 

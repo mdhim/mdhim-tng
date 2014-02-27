@@ -34,6 +34,7 @@
 char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -415,7 +416,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	char key_string [ TEST_BUFLEN ];
 	char value [ TEST_BUFLEN ];
 	int ret;
-    
+ 
 	if (verbose) tst_say(0, "# put key data\n" );
 	charIdx = getWordFromString( command, str_key, charIdx);
 	// Get value to store
@@ -645,7 +646,10 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	int *key_lens;
 	char **values;
 	int *value_lens;    
+
 	if (verbose) tst_say(0, "# bput n key data\n" );
+
+
 
 	//Initialize variables
 	size_of = 0;
@@ -1695,6 +1699,7 @@ int main( int argc, char * argv[] )
     
 	int db_type = LEVELDB; //(data_store.h) 
 
+
 	// Process arguments
 	infile = stdin;
 	while ((argc > 1) && (argv[1][0] == '-'))
@@ -1821,7 +1826,12 @@ int main( int argc, char * argv[] )
 		printf("Error initializing MDHIM\n");
 		exit(1);
 	}
-    
+   
+/*	i = md->mdhim_rank;
+	while (i == 0) {
+		sleep(1);
+	} 
+*/
 	/* initialization for random string generation */
 	srand( time( NULL ) + md->mdhim_rank);
 	sc_len = strlen( sourceChars );

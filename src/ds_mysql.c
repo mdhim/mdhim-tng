@@ -8,18 +8,17 @@
 #include "ds_mysql.h"
 #include <unistd.h>
 #include <mcheck.h>
-
-/* create db
-
-* Helps to create the database for mysql if it does not exist 
-* @param dbmn  Database name that will be used in the function
-* @param db Database connection used to create the database
-* Exit(1) is used to exit out if you don't have a connection
-
-*/
+#define MYSQL_BUFFER 1024
 #define MYSQLDB_HANDLE 1
 #define MYSQLDB_STAT_HANDLE 2
 
+char *sb_key_copy(char *key_t, int key_len_t) {
+	char *k_copy =  malloc(key_len_t+1);
+		memset(k_copy, 0, key_len_t+1);
+		memcpy(k_copy, key_t, key_len_t);
+
+	return k_copy;
+	}
 //Struct for MYSQL Handling
 //MDI = Mysql Database Info 
 typedef struct {
@@ -44,7 +43,7 @@ char *put_value(MYSQL *pdb, void *key_t, int k_len, void *data_t, int d_len, cha
 char chunk[2*d_len+1];
   mysql_real_escape_string(pdb, chunk, data_t, d_len);
  // mysql_real_escape_string(db, key_t_insert,key_t,k_len);
-
+	char *key_copy;
 	size_t st_len, size=0;
 	char *r_query=NULL, *st;
 	switch(pk_type){
@@ -53,7 +52,11 @@ char chunk[2*d_len+1];
  		 		st_len = strlen(st);
   				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
   				r_query=malloc(sizeof(char)*(size)); 
-  				snprintf(r_query, st_len + size, st, t_name, (char*)key_t, chunk);
+				key_copy = malloc(k_len+1);
+				memset(key_copy, 0, k_len+1);
+				memcpy(key_copy, key_t, k_len);
+  				snprintf(r_query, st_len + size, st, t_name, key_copy, chunk);
+				free(key_copy);
 			break;
        			case MDHIM_FLOAT_KEY:
 				st = "Insert INTO %s (Id, Value) VALUES (%f, '%s');";
@@ -88,7 +91,12 @@ char chunk[2*d_len+1];
  		 		st_len = strlen(st);
   				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
   				r_query=malloc(sizeof(char)*(size)); 
-  				snprintf(r_query, size, st, t_name, (char*)key_t, chunk);
+				memset(r_query, 0, size);
+				key_copy = malloc(k_len+1);
+				memset(key_copy, 0, k_len+1);
+				memcpy(key_copy, key_t, k_len);
+  				snprintf(r_query, size, st, t_name, key_copy, chunk);
+				free(key_copy);
 			break; 
 		}	
 	return r_query;
@@ -163,14 +171,25 @@ char chunk[2*d_len+1];
 
 }
 
+
+/* create db
+
+* Helps to create the database for mysql if it does not exist 
+* @param dbmn  Database name that will be used in the function
+* @param db Database connection used to create the database
+* Exit(1) is used to exit out if you don't have a connection
+
+*/
+
 void create_db(char *dbmn, MYSQL *db){
-	char q_create[256];
-		sprintf(q_create, "USE %s", dbmn);
-	
+	char q_create[MYSQL_BUFFER];
+	char *creater = "CREATE DATABASE %s";
+	char *use_state= "USE %s";
+	snprintf(q_create, sizeof(char)*MYSQL_BUFFER, use_state, dbmn);
 	 if (mysql_query(db, q_create)) 
 	  {
 		memset(q_create, 0, strlen(q_create));
-		sprintf(q_create, "CREATE DATABASE %s", dbmn);
+		snprintf(q_create, sizeof(char)*(strlen(creater)+strlen(dbmn)),creater, dbmn);
 		//printf("\nCREATE DATABASE %s\n",dbmn);
 		if(mysql_query(db,q_create)) {
 	     		fprintf(stderr, "%s\n", mysql_error(db));
@@ -178,7 +197,7 @@ void create_db(char *dbmn, MYSQL *db){
 	      		exit(1);
 	  	} 
 		memset(q_create, 0, strlen(q_create));
-		sprintf(q_create, "USE %s", dbmn);
+		snprintf(q_create, sizeof(char)*(strlen(use_state)+strlen(dbmn)),use_state, dbmn);
 		if(mysql_query(db,q_create)) {
 	     		fprintf(stderr, "%s\n", mysql_error(db));
       			mysql_close(db);
@@ -195,11 +214,18 @@ void create_db(char *dbmn, MYSQL *db){
  * @param k_type Key type that is used to create the table with the proper type for the key/value storage
  **/
 void create_table(char *dbmt, MYSQL *db, char* db_name, int k_type){
-	char name[256];
-	sprintf(name, "SHOW TABLES LIKE \'%s\'", dbmt);
+	char name[MYSQL_BUFFER];
+	//snprintf(name, "SHOW TABLES LIKE \'%s\'", dbmt);
   //Create table and if it's there stop
-	  if(mysql_query(db, name)){
+	  if(mysql_query(db, "SHOW TABLES LIKE 'mdhim'")){
 		fprintf(stderr, "%s\n", mysql_error(db));
+		}
+		int check_er = mysql_errno(db);
+	    //printf("\nThis is the error number: %d\n", check_er);
+		if (check_er == 1050){
+			if(mysql_query(db, "Drop table mdhim")){
+		fprintf(stderr, "%s\n", mysql_error(db));
+			}
 		}
 	  MYSQL_RES *table_res=mysql_store_result(db);
 	  int row_count = table_res->row_count;
@@ -208,22 +234,22 @@ void create_table(char *dbmt, MYSQL *db, char* db_name, int k_type){
 		memset(name, 0, strlen(name));
 		switch(k_type){
 			case MDHIM_STRING_KEY:
-			sprintf(name, "CREATE TABLE %s( Id VARCHAR(767) PRIMARY KEY, Value LONGBLOB)", dbmt);
+			snprintf(name, sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id VARCHAR(767) PRIMARY KEY, Value LONGBLOB)", dbmt);
 			break;
        			case MDHIM_FLOAT_KEY:
-				sprintf(name, "CREATE TABLE %s( Id FLOAT PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id FLOAT PRIMARY KEY, Value LONGBLOB)", dbmt);
 				break;
    			case MDHIM_DOUBLE_KEY:
-				sprintf(name, "CREATE TABLE %s( Id DOUBLE PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id DOUBLE PRIMARY KEY, Value LONGBLOB)", dbmt);
 			break;
       			case MDHIM_INT_KEY: 
-				sprintf(name, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", dbmt);
 			break;
 			case MDHIM_LONG_INT_KEY:
-				sprintf(name, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", dbmt);
 			break;
 			case MDHIM_BYTE_KEY:
-				sprintf(name, "CREATE TABLE %s( Id VARCHAR(767) PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id VARCHAR(767) PRIMARY KEY, Value LONGBLOB)", dbmt);
 			break; 
 		}
 
@@ -317,14 +343,10 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
 	char *db_mysql_pswd = (char*)mstore_opts -> db_ptr12;
 	char *sdb_mysql_pswd = (char*)mstore_opts->db_ptr14;
 	//Abstracting the host, usernames, and password
-	char *db_mysql_name = "maindb";// strtok(path_s, "/");//mstore_opts -> db_ptr4; //Abstracting Database
-	char *db_mysql_table = "mdhim"; //strtok(NULL, "/");
+	char *db_mysql_name = "maindb"; //mstore_opts -> db_ptr4; //Abstracting Database
+	char *db_mysql_table = "mdhim"; 
 	char *sdb_mysql_name = "statsdb";//mstore_opts -> db_ptr4; //Abstracting Statsics Database 
 	char *sdb_mysql_table = "mdhim"; 
-	
-	//printf ("This is db_mysql_name: %s\n", db_mysql_name);
-	//int compare = strcmp(db_mysql_name, ".");
-	//if (compare ==0) db_mysql_name = "mdhim_t";
 
 	//connect to the Database
 	if (mysql_real_connect(db, db_mysql_host, db_mysql_user, db_mysql_pswd, 
@@ -333,7 +355,6 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
       		mysql_close(db);
       		return MDHIM_DB_ERROR;
   		}  
-		//connect to the Database
 	if (mysql_real_connect(sdb, db_mysql_host, sdb_mysql_user, sdb_mysql_pswd, 
           NULL, 0, NULL, 0) == NULL){
      		fprintf(stderr, "%s\n", mysql_error(db));
@@ -350,6 +371,7 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
 	create_db(sdb_mysql_name, sdb);
 	create_table(sdb_mysql_table, sdb, sdb_mysql_name, mstore_opts->key_type);
 	//Abstracting the host, usernames, and password
+	
 	Input_DB = malloc(sizeof(MDI));
 	Stat_DB = malloc(sizeof(MDI));	
 	Input_DB->msqdb = db;
@@ -360,9 +382,8 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
 	*dbs = Stat_DB;
 	mstore_opts -> db_ptr5 = db_mysql_table;
 	mstore_opts -> db_ptr6 = sdb_mysql_table;
-	//free(path_s);
 
-		return MDHIM_SUCCESS;
+	return MDHIM_SUCCESS;
 
 }
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -410,12 +431,16 @@ int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_
 	char *query;    
 	//Insert key and value into table
 	query = put_value(db, key, key_len, data, data_len, table_name, mstore_opts->key_type);
+	//printf("\nThis is the query: \n%s\n", query);
+
     if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
 		int check_er = mysql_errno(db);
 	    //printf("\nThis is the error number: %d\n", check_er);
 		if (check_er == 1062){
 			memset(query, 0, sizeof(char)*strlen(query));
 			query = update_value(db, key, key_len, data, data_len, table_name, mstore_opts->key_type);
+		//printf("\nThis is the query: \n%s\n", query);
+
 
 		if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
 			//printf("This is the query: %s\n", query);
@@ -437,7 +462,6 @@ int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_
    	gettimeofday(&end, NULL);
     	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put the record", 
 	(int) (end.tv_sec - start.tv_sec));
-	free(query);
     return MDHIM_SUCCESS;
 }
 
@@ -487,12 +511,15 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
 	printf("Number records: %d\n", num_records);
 	for (i = 0; i < num_records; i++) {
 		query = put_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, mstore_opts->key_type);
+	//printf("\nThis is the query: \n%s\n", query);
+
 	    if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
 			int check_er = mysql_errno(db);
 		    //printf("\nThis is the error number: %d\n", check_er);
 			if (check_er == 1062){
 				memset(query, 0, sizeof(char)*strlen(query));
 				query = update_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, mstore_opts->key_type);
+				printf("\nThis is the query: \n%s\n", query);
 
 			if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
 				//printf("This is the query: %s\n", query);
@@ -516,7 +543,6 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
 	gettimeofday(&end, NULL);
 	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put %d records", 
 	     (int) (end.tv_sec - start.tv_sec), num_records);
-	free(query);
 	return MDHIM_SUCCESS; 
 } 
 
@@ -539,13 +565,13 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
 int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*data_len, struct mdhim_store_opts_t *mstore_opts){	
 	MYSQL_RES *data_res;
 	int ret = MDHIM_SUCCESS;
- 	char *get_value;
+ 	char get_value[MYSQL_BUFFER+key_len];
 	MYSQL_ROW row; 
 	void *msl_data;
 	char *table_name;
 	MDI *x = (MDI *)(dbh);
 	MYSQL *db = x->msqdb;
-	get_value = malloc(sizeof(char)*256);
+	char *key_copy;
 
 	switch(x->msqht){
 	case MYSQLDB_HANDLE:
@@ -565,35 +591,38 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	      goto error;
 	  }
 
-//Go ahead and make the check for the primary key's data type and length
-//Then check the key's Data type and lenght
-//If mismatch occurs exit out!
 	*data = NULL;
+	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
+		mstore_opts->key_type == MDHIM_BYTE_KEY) {
+		key_copy = sb_key_copy(key, key_len);
+	}
+	
+//Create statement to go through and get the value based upon the key
 
 		switch(mstore_opts -> key_type){
 			case MDHIM_STRING_KEY:
-				get_value = realloc(get_value, (sizeof(char)*256)+(sizeof(char)*key_len)+1);
-				sprintf(get_value, "Select Value FROM %s WHERE Id = '%s'",table_name, (char*)key);
+				snprintf(get_value, sizeof(char)*(MYSQL_BUFFER+ key_len), "Select Value FROM %s WHERE Id = '%s'",table_name, key_copy);
+			free(key_copy);
 			break;
        			case MDHIM_FLOAT_KEY:
-				sprintf(get_value, "Select Value FROM %s WHERE Id = %f",table_name, *((float*)key));
+				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %f",table_name, *((float*)key));
 				break;
    			case MDHIM_DOUBLE_KEY:
-				sprintf(get_value, "Select Value FROM %s WHERE Id = %lf",table_name, *((double*)key));
+				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %lf",table_name, *((double*)key));
 			break;
       			case MDHIM_INT_KEY: 
-				sprintf(get_value, "Select Value FROM %s WHERE Id = %d",table_name, *((int*)key));
+				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %d",table_name, *((int*)key));
 			break;
 			case MDHIM_LONG_INT_KEY:
-				sprintf(get_value, "Select Value FROM %s WHERE Id = %ld",table_name, *((long*)key));
+				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %ld",table_name, *((long*)key));
 			break;
 			case MDHIM_BYTE_KEY:
-				get_value = realloc(get_value, (sizeof(char)*256)+(sizeof(char)*key_len)+1);
-				sprintf(get_value, "Select Value FROM %s WHERE Id = '%s'",table_name, (char*)key);
+				snprintf(get_value, sizeof(char)*(MYSQL_BUFFER+ key_len), "Select Value FROM %s WHERE Id = '%s'",table_name, key_copy);
+			free(key_copy);
 			break; 
 		}
-	//sprintf(get_value, "Select Value FROM %s WHERE Id = %d",table_name, *((int*)key));
-	//printf("Here is get_value: \n%s\n", get_value);
+//Query and get results if no resuls get an error or else get the value
+	//printf("\nThis is the query: \n%s\n", get_value);
 	if (mysql_query(db,get_value)) {
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in mysql");
 		goto error;
@@ -608,9 +637,9 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	*data_len = sizeof(row[0]);
 	*data = malloc(*data_len);
 	msl_data = row[0];
+	printf("\nThis is the value: \n%s\n", (char*)msl_data);
 	memcpy(*data, msl_data, *data_len);
 	mysql_free_result(data_res);
-	free(get_value);
 	return ret;
 
 error:	
@@ -642,7 +671,7 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len,
 	      fprintf(stderr, "%s\n", mysql_error(db));
 	      return MDHIM_DB_ERROR;
 	  }
-	char key_delete[256];
+	char key_delete[MYSQL_BUFFER+key_len];
 	//Delete the Key
 	char *table_name;
 	switch(x->msqht){
@@ -658,25 +687,25 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len,
 	}
 			switch(mstore_opts -> key_type){
 			case MDHIM_STRING_KEY:
-				sprintf(key_delete, "Delete FROM %s WHERE Id = '%s'",table_name, (char*)key);
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = '%s'",table_name, (char*)key);
 			break;
        			case MDHIM_FLOAT_KEY:
-				sprintf(key_delete, "Delete FROM %s WHERE Id = %f",table_name, *((float*)key));
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %f",table_name, *((float*)key));
 				break;
    			case MDHIM_DOUBLE_KEY:
-				sprintf(key_delete, "Delete FROM %s WHERE Id = %lf",table_name, *((double*)key));
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %lf",table_name, *((double*)key));
 			break;
       			case MDHIM_INT_KEY: 
-				sprintf(key_delete, "Delete FROM %s WHERE Id = %d",table_name, *((int*)key));
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %d",table_name, *((int*)key));
 			break;
 			case MDHIM_LONG_INT_KEY:
-				sprintf(key_delete, "Delete FROM %s WHERE Id = %ld",table_name, *((long*)key));
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %ld",table_name, *((long*)key));
 			break;
 			case MDHIM_BYTE_KEY:
-				sprintf(key_delete, "Delete FROM %s WHERE Id = '%s'",table_name,  (char*)key);
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len), "Delete FROM %s WHERE Id = '%s'",table_name,  (char*)key);
 			break; 
 		}
-	//sprintf(key_delete, "Delete FROM %s WHERE Id = %d",table_name, *((int*)key));
+	//snprintf(key_delete, "Delete FROM %s WHERE Id = %d",table_name, *((int*)key));
 	if (mysql_query(db,key_delete)) {
 		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
 		return MDHIM_DB_ERROR;
@@ -702,7 +731,12 @@ int mdhim_mysql_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_op
 	MDI *y = (MDI *)(dbs);
 	MYSQL *db = x->msqdb;
 	MYSQL *sdb = y->msqdb;
-	
+	/*if(mysql_query(db, "Drop table maindb.mdhim")){
+		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
+	}
+	if (mysql_query(sdb, "Drop table statsdb.mdhim")){
+		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
+	}*/
 	mysql_close(db);
 	mysql_close(sdb);
 	free(x);
@@ -738,7 +772,7 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	int ret = MDHIM_SUCCESS;
 	void *old_key, *msl_key, *msl_data;
 	struct timeval start, end;
-	char get_next[256];
+	char get_next[MYSQL_BUFFER+*key_len];
 	MYSQL_RES *key_result;
 	MYSQL_ROW key_row;
 	char *table_name;
@@ -757,6 +791,11 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	
 	gettimeofday(&start, NULL);	
 	old_key = *key;
+		char *key_copy;
+	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
+		mstore_opts->key_type == MDHIM_BYTE_KEY ) {
+		if (old_key !=NULL) key_copy = sb_key_copy((char*)old_key, *key_len);
+	}
 	*key = NULL;
 	*key_len = 0;
 	*data = NULL;
@@ -764,7 +803,7 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 
 	//Get the Key from the tables and if there was no old key, use the first one.
 	if (!old_key){
-		sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s)", table_name, table_name);
+		snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select min(Id) from %s)", table_name, table_name);
 		if(mysql_query(db, get_next)) { 
 			mlog(MDHIM_SERVER_DBG2, "Could not get the next key/value");
 			goto error;
@@ -773,25 +812,27 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	} else {
 			switch(mstore_opts -> key_type){
 			case MDHIM_STRING_KEY:
-				sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id >'%s')", table_name,table_name, (char*)old_key);
+				snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select min(Id) from %s where Id >'%s')", table_name,table_name, key_copy);
+			free(key_copy);
 			break;
        			case MDHIM_FLOAT_KEY:
-				sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id >%f)", table_name,table_name, *((float*)old_key));
+				snprintf(get_next,  sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select min(Id) from %s where Id >%f)", table_name,table_name, *((float*)old_key));
 				break;
    			case MDHIM_DOUBLE_KEY:
-				sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id >%lf)", table_name,table_name, *((double*)old_key));
+				snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select min(Id) from %s where Id >%lf)", table_name,table_name, *((double*)old_key));
 			break;
       			case MDHIM_INT_KEY: 
-				sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id >%d)", table_name,table_name, *((int*)old_key));
+				snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select min(Id) from %s where Id >%d)", table_name,table_name, *((int*)old_key));
 			break;
 			case MDHIM_LONG_INT_KEY:
-				sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id >%ld)", table_name,table_name, *((long*)old_key));
+				snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select min(Id) from %s where Id >%ld)", table_name,table_name, *((long*)old_key));
 			break;
 			case MDHIM_BYTE_KEY:
-				sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id > '%s')", table_name,table_name,  (char*)old_key);
+				snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select min(Id) from %s where Id > '%s')", table_name,table_name,  key_copy);
+			free(key_copy);
 			break; 
 		}
-		//sprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id >%d)", table_name, table_name, *(int*)old_key);
+		//snprintf(get_next, "Select * From %s where Id = (Select min(Id) from %s where Id >%d)", table_name, table_name, *(int*)old_key);
 	if(mysql_query(db, get_next)) {  
 			mlog(MDHIM_SERVER_DBG2, "Could not get the next key/value");
 			goto error;
@@ -870,7 +911,7 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 	int ret = MDHIM_SUCCESS;
 	void *old_key;
 	struct timeval start, end;
-	char get_prev[256];
+	char get_prev[MYSQL_BUFFER+*key_len];
 	MYSQL_RES *key_result;
 	MYSQL_ROW key_row;
 	void *msl_data;
@@ -880,7 +921,11 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 
 	gettimeofday(&start, NULL);
 	old_key = *key;
-	
+	char *key_copy;
+	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
+		mstore_opts->key_type == MDHIM_BYTE_KEY) {
+		if (old_key != NULL)key_copy = sb_key_copy((char*)old_key, *key_len);
+	}
 	//Start with Keys/data being null 
 	*key = NULL;
 	*key_len = 0;
@@ -903,7 +948,7 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 	//Get the Key/Value from the tables and if there was no old key, use the last one.
 
 	if (!old_key){
-		sprintf(get_prev, "Select * from %s where Id = (Select max(Id) From %s)", table_name,table_name);
+		snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * from %s where Id = (Select max(Id) From %s)", table_name,table_name);
 		if(mysql_query(db, get_prev)) { 
 			mlog(MDHIM_SERVER_DBG2, "Could not get the previous key/value");
 			goto error;
@@ -913,25 +958,27 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 
 		switch(mstore_opts -> key_type){
 			case MDHIM_STRING_KEY:
-				sprintf(get_prev, "Select * From %s where Id = (Select max(Id) from %s where Id < '%s')", table_name,table_name, (char*)old_key);
+				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select max(Id) from %s where Id < '%s')", table_name,table_name, key_copy);
+			free(key_copy);
 			break;
        			case MDHIM_FLOAT_KEY:
-				sprintf(get_prev, "Select * From %s where Id = (Select max(Id) from %s where Id <%f)", table_name,table_name, *((float*)old_key));
+				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%f)", table_name,table_name, *((float*)old_key));
 				break;
    			case MDHIM_DOUBLE_KEY:
-				sprintf(get_prev, "Select * From %s where Id = (Select max(Id) from %s where Id <%lf)", table_name,table_name, *((double*)old_key));
+				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%lf)", table_name,table_name, *((double*)old_key));
 			break;
       			case MDHIM_INT_KEY: 
-				sprintf(get_prev, "Select * From %s where Id = (Select max(Id) from %s where Id <%d)", table_name,table_name, *((int*)old_key));
+				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%d)", table_name,table_name, *((int*)old_key));
 			break;
 			case MDHIM_LONG_INT_KEY:
-				sprintf(get_prev, "Select * From %s where Id = (Select max(Id) from %s where Id <%ld)", table_name,table_name, *((long*)old_key));
+				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%ld)", table_name,table_name, *((long*)old_key));
 			break;
 			case MDHIM_BYTE_KEY:
-				sprintf(get_prev, "Select * From %s where Id = (Select max(Id) from %s where Id < '%s')", table_name,table_name,  (char*)old_key);
+				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id < '%s')", table_name,table_name,  key_copy);
+			free(key_copy);
 			break; 
 		}
-		//sprintf(get_prev, "Select * From mdhim where Id = (Select max(Id) from mdhim where Id <%d)", *(int*)old_key);
+
 	
 	//Query the database 
 	if(mysql_query(db, get_prev)) {  

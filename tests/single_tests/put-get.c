@@ -26,12 +26,13 @@ int main(int argc, char **argv) {
         }
         
         db_opts = mdhim_options_init();
-        mdhim_options_set_db_path(db_opts, "mdhim_t/");
+        mdhim_options_set_db_path(db_opts, "./");
         mdhim_options_set_db_name(db_opts, "mdhim");
         mdhim_options_set_db_type(db_opts, MYSQLDB);
         mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY); //Key_type = 1 (int)
 	mdhim_options_set_debug_level(db_opts, MLOG_CRIT);
 	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
+        mdhim_options_set_server_factor(db_opts, 1);
 
 	md = mdhimInit(MPI_COMM_WORLD, db_opts);
 	
