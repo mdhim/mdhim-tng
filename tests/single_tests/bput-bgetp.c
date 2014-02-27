@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 	long get_time = 0;
 	int total_keys = 0;
 	int round = 0;
+	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -89,7 +90,8 @@ int main(int argc, char **argv) {
         }
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);

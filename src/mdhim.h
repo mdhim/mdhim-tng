@@ -64,7 +64,7 @@ struct mdhim_t {
 	struct mdhim_stat *stats;
 };
 
-struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts);
+struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts);
 int mdhimClose(struct mdhim_t *md);
 int mdhimCommit(struct mdhim_t *md);
 int mdhimStatFlush(struct mdhim_t *md);

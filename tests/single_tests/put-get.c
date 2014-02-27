@@ -13,6 +13,7 @@ int main(int argc, char **argv) {
 	struct mdhim_rm_t *rm;
 	struct mdhim_getrm_t *grm;
         mdhim_options_t *db_opts;
+	MPI_Comm comm;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
@@ -32,7 +33,8 @@ int main(int argc, char **argv) {
         mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY); //Key_type = 1 (int)
 	mdhim_options_set_debug_level(db_opts, MLOG_CRIT);
 
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
