@@ -42,10 +42,16 @@ struct mdhim_char {
     UT_hash_handle hh; /* makes this structure hashable */
 };
 
+typedef struct rangesrv_list rangesrv_list;
+struct rangesrv_list {
+	rangesrv_info *ri;
+	rangesrv_info *next;
+};
+
 int max_rangesrvs;
 void partitioner_init();
 void partitioner_release();
-rangesrv_info *get_range_server(struct mdhim_t *md, struct index_t *index,
+rangesrv_list *get_range_server(struct mdhim_t *md, struct index_t *index,
 				void *key, int key_len);
 rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, 
 					 struct index_t *index, int slice);
@@ -55,7 +61,7 @@ long double get_str_num(void *key, uint32_t key_len);
 long double get_byte_num(void *key, uint32_t key_len);
 int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_len);
 int is_float_key(int type);
-rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, struct index_t *index, 
+rangesrv_list *get_range_server_from_stats(struct mdhim_t *md, struct index_t *index, 
 					   void *key, int key_len, int op);
 
 #endif

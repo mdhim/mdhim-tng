@@ -233,28 +233,17 @@ int mdhimCommit(struct mdhim_t *md, struct index_t *index) {
 	return ret;
 }
 
-/**
- * Inserts a single record into MDHIM
- *
- * @param md main MDHIM struct
- * @param key       pointer to key to store
- * @param key_len   the length of the key
- * @param value     pointer to the value to store
- * @param value_len the length of the value
- * @return mdhim_rm_t * or NULL on error
- */
-struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index, 
-			    void *key, int key_len,  
-			    void *value, int value_len) {
-	int ret;
-	struct mdhim_putm_t *pm;
+struct mdhim_rm_t *_put_record(struct index_t *index, void *key, int key_len, 
+			       void *value, int value_len) {
 	struct mdhim_rm_t *rm = NULL;
 	rangesrv_info *ri;
+	int ret;
+	struct mdhim_putm_t *pm;
 
 	//Get the range server this key will be sent to
 	if ((ri = get_range_server(md, index, key, key_len)) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Error while determining range server in mdhimPut", 
+		     "Error while determining range server in _put_record", 
 		     md->mdhim_rank);
 		return NULL;
 	}
@@ -262,7 +251,7 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index,
 	pm = malloc(sizeof(struct mdhim_putm_t));
 	if (!pm) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Error while allocating memory in mdhimPut", 
+		     "Error while allocating memory in _put_record", 
 		     md->mdhim_rank);
 		return NULL;
 	}
@@ -276,6 +265,7 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index,
 	pm->server_rank = ri->rank;
 	pm->index = index->id;
 	pm->index_type = index->type;
+
 	//Test if I'm a range server
 	ret = im_range_server(index);
 
@@ -287,8 +277,87 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index,
 		rm = client_put(md, pm);
 		free(pm);
 	}
+}
 
-	return rm;
+/* Creates a linked list of mdhim_rm_t messages */
+struct mdhim_brm_t *_create_brm(struct mdhim_rm_t *rm) {
+	struct mdhim_brm_t *brm;
+
+	if (!rm) {
+		return NULL;
+	}
+
+	brm = malloc(sizeof(struct mdhim_brm_t));
+	memset(brm, 0, sizeof(struct mdhim_brm_t));
+	brm->error = rm->error;
+	brm->mtype = rm->mtype;
+	brm->server_rank = rm->server_rank;
+
+	return brm;
+}
+
+/**
+ * Inserts a single record into MDHIM
+ *
+ * @param md main MDHIM struct
+ * @param key       pointer to key to store
+ * @param key_len   the length of the key
+ * @param value     pointer to the value to store
+ * @param value_len the length of the value
+ * @return mdhim_brm_t * or NULL on error
+ */
+struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
+			    /*Primary key */
+			    void *primary_key, int primary_key_len,  
+			    void *value, int value_len,
+			    /* Optional secondary global and local keys */
+			    struct secondary_info *sec_info) {
+
+	//Primary index return message
+	struct mdhim_brm_t *head, *head_next;
+	struct mdhim_rm_t *rm;
+	rm = head = head_next = NULL;
+	if (!primary_key || !primary_key_len ||
+	    !value || !value_len) {
+		return NULL;
+	}
+
+	rm = _put_record(md->primary_index, primary_key, primary_key_len, value, value_len);
+	head = head_next = create_brm(rm);
+	if (!rm || rm->error) {
+		return head;
+	}
+	mdhim_full_release_msg(rm);
+
+	//Insert the secondary local key if it was given
+	if (sec_info->secondary_local_index && sec_info->secondary_local_key && 
+	    sec_info->secondary_local_key_len) {
+		rm = _put_record(sec_info->secondary_local_index, secondary_local_key, 
+				 secondary_local_key_len, primary_key, primary_key_len);
+		head_next->next = create_brm(rm);
+		if (!rm) {
+			return head;
+		}
+		if (rm->error) {
+			mdhim_full_release_msg(rm);
+			return head;
+		}
+
+		head_next = head->next;
+	}
+
+	//Insert the secondary global key if it was given
+	if (sec_info->secondary_global_index && sec_info->secondary_global_key && 
+	    sec_info->secondary_global_key_len) {
+		rm = _put_record(sec_info->secondary_global_index, secondary_global_key, 
+				 secondary_global_key_len, primary_key, primary_key_len);
+		head_next->next = create_brm(rm);
+		if (rm) {
+			mdhim_full_release_msg(rm);
+		}
+	}	
+
+	return head;
 }
 
 /**
@@ -305,13 +374,14 @@ struct mdhim_rm_t *mdhimPut(struct mdhim_t *md, struct index_t *index,
 struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index, 
 			      void **keys, int *key_lens, 
 			      void **values, int *value_lens, 
-			      int num_records) {
-	struct mdhim_bputm_t **bpm_list;
-	struct mdhim_bputm_t *bpm, *lbpm;
+			      int num_records,
+			      struct secondary_bulk_info *sec_info) {
+	struct mdhim_bputm_t **bpm_list, *lbpm_list;
+	struct mdhim_bputm_t *bpm;
 	struct mdhim_brm_t *brm, *brm_head;
 	struct mdhim_rm_t *rm;
 	int i;
-	rangesrv_info *ri;
+	rangesrv_list *rl;
 
 	//Check to see that we were given a sane amount of records
 	if (num_records > MAX_BULK_OPS) {
@@ -335,7 +405,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index,
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_records && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((ri = get_range_server(md, index, keys[i], key_lens[i])) == 
+		if ((rl = get_range_server(md, index, keys[i], key_lens[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBPut", 
@@ -343,6 +413,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index,
 			continue;
 		}
        
+		while (rl) {
 		if (ri->rank != md->mdhim_rank) {
 			//Set the message in the list for this range server
 			bpm = bpm_list[ri->rangesrv_num - 1];
@@ -369,7 +440,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index,
 				lbpm = bpm;
 			}
 		}
-
+		
 		//Add the key, lengths, and data to the message
 		bpm->keys[bpm->num_records] = keys[i];
 		bpm->key_lens[bpm->num_records] = key_lens[i];
@@ -422,9 +493,9 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index,
  * @param op        the operation type
  * @return mdhim_getrm_t * or NULL on error
  */
-struct mdhim_getrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
-			       void *key, int key_len, 
-			       int op) {
+struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
+				     void *key, int key_len, 
+				     int op) {
 	int ret;
 	struct mdhim_getm_t *gm;
 	struct mdhim_getrm_t *grm;
@@ -758,7 +829,7 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
  * @param key_len   the length of the key
  * @return mdhim_rm_t * or NULL on error
  */
-struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, struct index_t *index, 
+struct mdhim_brm_t *mdhimDelete(struct mdhim_t *md, struct index_t *index, 
 			       void *key, int key_len) {
 	struct mdhim_delm_t *dm;
 	struct mdhim_rm_t *rm = NULL;
@@ -931,4 +1002,80 @@ int mdhimStatFlush(struct mdhim_t *md, struct index_t *index) {
 	MPI_Barrier(md->mdhim_client_comm);	
 
 	return ret;
+}
+
+/**
+ * Sets the secondary_info structure used in mdhimPut and mdhimBPut
+ *
+ */
+struct secondary_info *mdhimCreateSecondaryInfo(struct index_t *secondary_global_index,
+					 void *secondary_global_key, int secondary_global_key_len,
+					 struct_index_t *secondary_local_index,
+					 void *secondary_local_key, int secondary_local_key_len) {
+	struct secondary_info *sinfo;
+	
+	//Initialize the struct
+	sinfo = malloc(sizeof(struct secondary_info));
+	memset(sinfo, 0, sizeof(struct secondary_info));
+	
+	//Set the global index fields 
+	if (secondary_global_index && secondary_global_key && secondary_global_key_len) {
+		sinfo->secondary_global_index = secondary_global_index;
+		sinfo->secondary_global_key = secondary_global_key;
+		sinfo->secondary_global_key_len = secondary_global_key_len;
+	}
+
+	//Set the local index fields 
+	if (secondary_local_index && secondary_local_key && secondary_local_key_len) {
+		sinfo->secondary_local_index = secondary_local_index;
+		sinfo->secondary_local_key = secondary_local_key;
+		sinfo->secondary_local_key_len = secondary_local_key_len;
+	}
+
+	return sinfo;
+}
+
+void mdhimReleaseSecondaryInfo(struct secondary_info *si) {
+	free(si);
+
+	return;
+}
+
+/**
+ * Sets the secondary_info structure used in mdhimPut and mdhimBPut
+ *
+ */
+struct secondary_info *mdhimCreateSecondaryBulkInfo(struct index_t *secondary_global_index,
+						    void **secondary_global_keys, 
+						    int *secondary_global_key_lens,
+						    struct_index_t *secondary_local_index,
+						    void **secondary_local_keys, 
+						    int *secondary_local_key_lens) {
+	struct secondary_bulk_info *sinfo;
+	
+	//Initialize the struct
+	sinfo = malloc(sizeof(struct secondary_bulk_info));
+	memset(sinfo, 0, sizeof(struct secondary_bulk_info));
+	
+	//Set the global index fields 
+	if (secondary_global_index && secondary_global_keys && secondary_global_key_lens) {
+		sinfo->secondary_global_index = secondary_global_index;
+		sinfo->secondary_global_keys = secondary_global_keys;
+		sinfo->secondary_global_key_lens = secondary_global_key_lens;
+	}
+
+	//Set the local index fields 
+	if (secondary_local_index && secondary_local_keys && secondary_local_key_lens) {
+		sinfo->secondary_local_index = secondary_local_index;
+		sinfo->secondary_local_keys = secondary_local_keys;
+		sinfo->secondary_local_key_lens = secondary_local_key_lens;
+	}
+
+	return sinfo;
+}
+
+void mdhimReleaseSecondaryBulkInfo(struct secondary_bulk_info *si) {
+	free(si);
+
+	return;
 }

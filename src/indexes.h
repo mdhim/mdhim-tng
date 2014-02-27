@@ -55,7 +55,7 @@ struct index_t {
 	int range_server_factor;
 	
         //Maximum size of a slice. A range server may serve several slices.
-	uint64_t mdhim_max_recs_per_slice; 
+	int mdhim_max_recs_per_slice; 
 
 	//This communicator is for range servers only to talk to each other
 	MPI_Comm rs_comm;   
@@ -80,6 +80,7 @@ typedef struct index_manifest_t {
 	int index_type; /* The type of index 
 			   (PRIMARY_INDEX, SECONDARY_INDEX) */
 	int index_id; /* The id of the index in the hash table */
+	int primary_id;
 	int db_type;
 	uint32_t num_rangesrvs;
 	int rangesrv_factor;
@@ -91,15 +92,15 @@ typedef struct index_manifest_t {
 int update_all_stats(struct mdhim_t *md, struct index_t *bi, void *key, uint32_t key_len);
 int load_stats(struct mdhim_t *md, struct index_t *bi);
 int write_stats(struct mdhim_t *md, struct index_t *bi);
-int open_db_store(struct mdhim_t *md, struct index_t *rindex);
-uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex);
-struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, 
-				   int server_rank, int primary_index_id);
+int open_db_store(struct mdhim_t *md, struct index_t *index);
+uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *index);
+struct index_t *create_local_index(struct mdhim_t *md, int max_recs_per_slice, int db_type, 
+				   int key_type);
 struct index_t *create_remote_index(struct mdhim_t *md, int server_factor, 
-				    uint64_t max_recs_per_slice, int db_type, 
+				    int max_recs_per_slice, int db_type, 
 				    int key_type, int primary_index_id);
-int get_rangesrvs(struct mdhim_t *md, struct index_t *rindex);
-uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *rindex);
+int get_rangesrvs(struct mdhim_t *md, struct index_t *index);
+uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, struct index_t *index);
 struct index_t *get_index(struct mdhim_t *md, int index_id);

@@ -136,6 +136,27 @@ void build_alphabet() {
 	return;
 }
 
+void _add_to_rangesrv_list(rangesrv_list **list, rangesrv_info *ri) {
+	rangesrv_list *list_p, *entry;
+
+	ri = NULL;
+	entry = malloc(sizeof(rangesrv_list));
+	entry->ri = ri;
+	entry->next = NULL;
+	if (!*list) {
+		*list = entry;		
+	} else {
+		list_p = *list;
+		while (list_p->next) {
+			list_p = list_p->next;
+		}
+
+		list_p->next = entry;
+	}
+
+	return;
+}
+
 /**
  * verify_key
  * Determines whether the given key is a valid key or not
@@ -367,21 +388,24 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, struct index_t *ind
  * @param key_len   length of the key
  * @return the rank of the range server or NULL on error
  */
-rangesrv_info *get_range_server(struct mdhim_t *md, struct index_t *index, 
+rangesrv_list *get_range_server(struct mdhim_t *md, struct index_t *index, 
 				void *key, int key_len) {
 	//The number that maps a key to range server (dependent on key type)
 	int slice_num;
 	//The range server number that we return
 	rangesrv_info *ret_rp;
+	rangesrv_list *rl;
 
 	if ((slice_num = get_slice_num(md, index, key, key_len)) == MDHIM_ERROR) {
 		return NULL;
 	}
 
-	ret_rp = get_range_server_by_slice(md, index, slice_num);
-       
-	//Return the rank
-	return ret_rp;
+	ret_rp = get_range_server_by_slice(md, index, slice_num);       
+	*rl = NULL;
+	_add_to_rangesrv_list(&rl, ret_rp);
+
+	//Return the range server list
+	return rl;
 }
 
 struct mdhim_stat *get_next_slice_stat(struct mdhim_t *md, struct index_t *index, 
@@ -591,6 +615,84 @@ new_stat:
 	}
 }
 
+rangesrv_list *get_rangesrvs_from_istat(struct mdhim_t *md, struct index_t *index, 
+					uint64_t istat) {
+	struct mdhim_stat *cur_stat, *tmp;
+	rangesrv_list *head, *lp, *entry;
+
+	if (!index->stats) {
+		return 0;
+	}
+
+	cur_stat = NULL;
+	head = lp = entry = NULL;
+	HASH_ITER(hh, index->stats, cur_stat, tmp) {
+		if (cur_stat->num <= 0) {
+			continue;
+		}
+
+		if (*(uint64_t *)cur_stat->min > istat || 
+		    *(uint64_t *)cur_stat->max < istat) {
+			continue;
+		}
+
+		entry = malloc(sizeof(rangesrv_list));
+		HASH_FIND_INT(index->rangesrvs_by_rank, &cur_stat->key, entry->ri);
+		if (!entry->ri) {
+			free(entry);
+			continue;
+		}
+
+		if (!head) {
+			lp = head = entry;				
+		} else {
+			lp->next = entry;
+			lp = lp->next;
+		}
+	}
+
+	return head;
+}
+
+rangesrv_list *get_rangesrvs_from_fstat(struct mdhim_t *md, struct index_t *index, 
+					long double fstat) {
+	struct mdhim_stat *cur_stat, *tmp;
+	rangesrv_list *head, *lp, *entry;
+
+	if (!index->stats) {
+		return 0;
+	}
+
+	cur_stat = NULL;
+	head = lp = entry = NULL;
+	HASH_ITER(hh, index->stats, cur_stat, tmp) {
+		if (cur_stat->num <= 0) {
+			continue;
+		}
+
+		if (*(long double *)cur_stat->min > fstat || 
+		    *(long double *)cur_stat->max < fstat) {
+			continue;
+		}
+
+		entry = malloc(sizeof(rangesrv_list));
+		HASH_FIND_INT(index->rangesrvs_by_rank, &cur_stat->key, entry->ri);
+		if (!entry->ri) {
+			free(entry);
+			continue;
+		}
+
+		if (!head) {
+			lp = head = entry;				
+		} else {
+			lp->next = entry;
+			lp = lp->next;
+		}
+	}
+
+	return head;
+}
+
 /**
  * get_range_server_from_stats
  *
@@ -601,41 +703,17 @@ new_stat:
  * @param op        operation type (
  * @return the rank of the range server or NULL on error
  */
-rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, struct index_t *index,
+rangesrv_list *get_range_server_from_stats(struct mdhim_t *md, struct index_t *index,
 					   void *key, int key_len, int op) {
 	//The number that maps a key to range server (dependent on key type)
 	int slice_num, cur_slice;
 	//The range server number that we return
 	rangesrv_info *ret_rp;
+	rangesrv_list *rl;
 	int float_type = 0;
 	long double fstat = 0;
 	uint64_t istat = 0;
 
-	cur_slice = slice_num = 0;
-	//If we don't have any stats info, then return null
-	if (!index->stats) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - No statistics data available" 
-		     " to do a cursor based operation.  Perform a mdhimStatFlush first.", 
-		     md->mdhim_rank);
-		return NULL;
-	}
-
-	float_type = is_float_key(index->key_type);
-
-	//Get the current slice number of our key
-	if (key && key_len) {
-		cur_slice = get_slice_num(md, index, key, key_len);
-		if (cur_slice == MDHIM_ERROR) {
-			mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error: could not determine a" 
-			     " valid a slice number", 
-			     md->mdhim_rank);
-			return NULL;
-		}	
-	} else if (op != MDHIM_GET_FIRST && op != MDHIM_GET_LAST) {
-		//If the op is not first or last, then we expect a key
-		return NULL;
-	}
-		
 	if (key && key_len) {
 		//Find the slice based on the operation and key value
 		if (index->key_type == MDHIM_STRING_KEY) {
@@ -653,25 +731,61 @@ rangesrv_info *get_range_server_from_stats(struct mdhim_t *md, struct index_t *i
 		} 
 	}
 
-	if (float_type) {
-		slice_num = get_slice_from_fstat(md, index, cur_slice, fstat, op);
-	} else {	
-		slice_num = get_slice_from_istat(md, index, cur_slice, istat, op);
-	}
+	if (index->type != LOCAL_INDEX) {
+		cur_slice = slice_num = 0;
+		//If we don't have any stats info, then return null
+		if (!index->stats) {
+			mlog(MDHIM_CLIENT_CRIT, "Rank: %d - No statistics data available" 
+			     " to do a cursor based operation.  Perform a mdhimStatFlush first.", 
+			     md->mdhim_rank);
+			return NULL;
+		}
 
-	if (slice_num == MDHIM_ERROR) {
-		return NULL;
-	}
+		float_type = is_float_key(index->key_type);
 
-	ret_rp = get_range_server_by_slice(md, index, slice_num);
-	if (!ret_rp) {
-		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Did not get a valid range server from" 
-		     " get_range_server_by_size", 
-		     md->mdhim_rank);
-		return NULL;
-	}
+		//Get the current slice number of our key
+		if (key && key_len) {
+			cur_slice = get_slice_num(md, index, key, key_len);
+			if (cur_slice == MDHIM_ERROR) {
+				mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error: could not determine a" 
+				     " valid a slice number", 
+				     md->mdhim_rank);
+				return NULL;
+			}	
+		} else if (op != MDHIM_GET_FIRST && op != MDHIM_GET_LAST) {
+			//If the op is not first or last, then we expect a key
+			return NULL;
+		}
+		
+		if (float_type) {
+			slice_num = get_slice_from_fstat(md, index, cur_slice, fstat, op);
+		} else {	
+			slice_num = get_slice_from_istat(md, index, cur_slice, istat, op);
+		}
+
+		if (slice_num == MDHIM_ERROR) {
+			return NULL;
+		}
+
+		ret_rp = get_range_server_by_slice(md, index, slice_num);
+		if (!ret_rp) {
+			mlog(MDHIM_CLIENT_INFO, "Rank: %d - Did not get a valid range server from" 
+			     " get_range_server_by_size", 
+			     md->mdhim_rank);
+			return NULL;
+		}
        
+		*rl = NULL;
+		_add_to_rangesrv_list(&rl, ret_rp);
+	} else {
+		if (float_type) {
+			rl = get_rangesrvs_from_fstat(md, index, fstat);
+		} else {	
+			rl = get_rangesrvs_from_istat(md, index, istat);
+		}	       
+	}
+
 	//Return the range server information
-	return ret_rp;
+	return rl;
 }
 
