@@ -37,4 +37,4 @@ clean:
 	rm -rf put-get bput-bget put-del bput-bdel\
                put-getn put-getp \
                puts-gets bput-bgetn \
-               bput-bgetp
+               bput-bgetp plfs-put-get
