@@ -60,7 +60,7 @@ typedef struct _Mdhim_Ptr {
     fptrMdhimBDelete mdhimBDelete;      // Delete multiple key, value pairs from Database
     fptrMdhim_Release_Recv_Msg mdhim_Release_Recv_Msg;
 
-} Mdhim_Ptr;
+}_Mdhim_Ptr;
 
 Mdhim_Ptr * new_MDHIM(); // Constructor w/ out arguments
 
@@ -78,3 +78,5 @@ void Mdhim_BGetOp(Mdhim_Ptr *pmdhim, void *pkey, int key_len, int num_records, i
 void Mdhim_Delete(Mdhim_Ptr *pmdhim, void *pkey, int key_len);
 void Mdhim_BDelete(Mdhim_Ptr *pmdhim, void **pkeys, int *pkey_len, int num_keys);
 void MdhimReleaseRecvMsg(void *pmsg);
+
+#endif

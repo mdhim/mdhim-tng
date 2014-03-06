@@ -1,5 +1,5 @@
 include ../Makefile.cfg
-OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o
+OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim-abridge.o
 
 
 ifeq ($(LEVELDB),1)
@@ -51,6 +51,9 @@ range_server.o: range_server.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 mdhim_options.o : mdhim_options.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+mdhim-abridge.o : mdhim-abridge.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 lib:	

@@ -19,6 +19,7 @@
 #include "mdhim-abridge.h"
 #include "mdhim.h"
 #include "mdhim_options.h"
+#include "data_store.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -214,7 +215,25 @@ void
 Mdhim_BGet ( Mdhim_Ptr *pmdhim, void **pkeys, int *pkey_lens, int num_records )
 {
     pmdhim->mdhim_bgetrm = (void *)mdhimBGet((struct mdhim_t *)pmdhim->mdhim, pkeys, pkey_lens, num_records);
-}		/* -----  end of function Mdhim_BGet  ----- */
+}	/* -----  end of function Mdhim_BGet  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Mdhim_BGetOp
+ *  Description:  Get multiple key, value pairs from the database by option
+ *                @pdmhim : pointer to a Mdhim_Ptr
+ *                @pkey   : pointer to the keys to be search on
+ *                @pkey_len : pointer to length of keys
+ *                @num_records : number of records to retrieve
+ *                @op : option to search on
+ * =====================================================================================
+ */
+void
+Mdhim_BGetOp ( Mdhim_Ptr *pmdhim, void *pkey, int key_len, int num_records, int op )
+{
+    pmdhim->mdhim_bgetrm = (void *)mdhimBGetOp((struct mdhim_t *)pmdhim->mdhim, pkey, key_len, num_records, op);
+}		/* -----  end of function Mdhim_BGetOp  ----- */
 
 
 /* 
@@ -260,5 +279,5 @@ Mdhim_BDelete ( Mdhim_Ptr *pmdhim, void **pkeys, int *pkey_len, int num_keys )
 void
 MdhimReleaseRecvMsg ( void *pmsg )
 {
-    mdhim_release_recv_msg(pmsg);
+    //mdhim_release_recv_msg(pmsg);
 }		/* -----  end of function MdhimReleaseRecvMsg  ----- */
