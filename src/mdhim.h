@@ -18,6 +18,7 @@
 #include "Mlog/mlogfacs.h"
 #include "mdhim_options.h"
 #include "indexes.h"
+#include "mdhim-private.h"
 
 #define MDHIM_SUCCESS 0
 #define MDHIM_ERROR -1
