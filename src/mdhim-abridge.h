@@ -11,7 +11,6 @@
  *       Revision:  None
  *       Compiler:
  *
- *
  *         Author: Aaron Caldwell
  *
  * =====================================================================================
@@ -63,10 +62,7 @@ typedef struct _Mdhim_Ptr {
 
 } Mdhim_Ptr;
 
-Mdhim_Ptr * new_MDHIM(char *path, char **paths, int num_paths, char *name,
-                      int db_type, int key_type, int create_new, int dbug_lvl, 
-                      int append, int server_fact, uint64_t max_recs_per_slice,
-                      int num_wthreads); // Constructor
+Mdhim_Ptr * new_MDHIM(); // Constructor w/ out arguments
 
 void delete_MDHIM(Mdhim_Ptr* const pMdhimAbObj); // Destructor
 
@@ -75,7 +71,7 @@ int Mdhim_Close(Mdhim_Ptr *pmdhim);
 int Mdhim_Commit(Mdhim_Ptr *pmdhim);
 int Mdhim_StatFlush(Mdhim_Ptr *pmdhim);
 void Mdhim_Put(Mdhim_Ptr *pmdhim, void *pkey, int key_len, void *pvalue, int val_len);
-void Mdhim_BPut(Mdhim_Ptr *pmdhim, void **pkeys, int *pkey_lens, void **pvalues, int *pvalue_lens);
+void Mdhim_BPut(Mdhim_Ptr *pmdhim, void **pkeys, int *pkey_lens, void **pvalues, int *pvalue_lens, int num_rec);
 void Mdhim_Get(Mdhim_Ptr *pmdhim, void *pkey, int key_len, int op);
 void Mdhim_BGet(Mdhim_Ptr *pmdhim, void **pkeys, int *pkey_lens, int num_records);
 void Mdhim_BGetOp(Mdhim_Ptr *pmdhim, void *pkey, int key_len, int num_records, int op);
