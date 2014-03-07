@@ -40,4 +40,4 @@ clean:
 	rm -rf put-get bput-bget put-del bput-bdel\
                put-getn put-getp \
                puts-gets bput-bgetn \
-               bput-bgetp plfs-put-get
+               bput-bgetp plfs-put-get plfs-put-get-abstract

@@ -20,10 +20,21 @@
 #define __MDHIMAB_H
 
 #include <stdint.h>
+#include <stdio.h>
+#include "mdhim_options.h"
+#include "partitioner_define.h"
+#include "messages_define.h"
+#include "mdhim_define.h"
+#include "data_store_define.h"
+#include "Mlog/mlog.h"
+#include "Mlog/mlogfacs.h"
 
 typedef struct _Mdhim_Ptr Mdhim_Ptr;
 
+struct mdhim_t;
+
 // pointers to functions
+// MDHIM FUNCTIONS
 typedef void  (*fptrMdhimInit)(Mdhim_Ptr *, void *, void *);
 typedef int   (*fptrMdhimClose)(Mdhim_Ptr *);
 typedef int   (*fptrMdhimCommit)(Mdhim_Ptr *);
@@ -37,16 +48,42 @@ typedef void  (*fptrMdhimDelete)(Mdhim_Ptr *, void *, int);
 typedef void  (*fptrMdhimBDelete)(Mdhim_Ptr *, void **, int *, int);
 typedef void  (*fptrMdhim_Release_Recv_Msg)(void *);
 
+// MDHIM_T ACCESSOR FUNCTIONS
+typedef int      (*fptrGetMdhimRank)(Mdhim_Ptr *);
+typedef int      (*fptrGetMdhimCommSize)(Mdhim_Ptr *);
+typedef int      (*fptrGetKeyType)(Mdhim_Ptr *);
+typedef uint32_t (*fptrGetNumRangeServers)(Mdhim_Ptr *);
+typedef void    *(*fptrGetRangeServers)(Mdhim_Ptr *);
+typedef int      (*fptrGetRangeServerMaster)(Mdhim_Ptr *);
+typedef void    *(*fptrGetMdhimRs)(Mdhim_Ptr *);
+
+// MDHIM_RM_T ACCESSOR FUNCTIONS
+typedef int  (*fptrGetRmMType)(Mdhim_Ptr *);
+typedef int  (*fptrGetRmServerRank)(Mdhim_Ptr *);
+typedef int  (*fptrGetRmSize)(Mdhim_Ptr *);
+typedef int  (*fptrGetRmError)(Mdhim_Ptr *);
+
+// MDHIM_GETRM_T ACCESSOR FUNCTIONS
+typedef int   (*fptrGetGrmMType)(Mdhim_Ptr *);
+typedef int   (*fptrGetGrmServerRank)(Mdhim_Ptr *);
+typedef int   (*fptrGetGrmSize)(Mdhim_Ptr *);
+typedef int   (*fptrGetGrmError)(Mdhim_Ptr *);
+typedef void *(*fptrGetGrmKey)(Mdhim_Ptr *);
+typedef int   (*fptrGetGrmKeyLen)(Mdhim_Ptr *);
+typedef void *(*fptrGetGrmValue)(Mdhim_Ptr *);
+typedef int   (*fptrGetGrmValueLen)(Mdhim_Ptr *);
+
 typedef struct _Mdhim_Ptr {
 
-    void *pDerivedObj;    // pointer to itself as base object
-    void *mdhim;          // pointer to the mdhim_t struct
-    void *mdhim_rm;       // pointer to the mdhim_rm_t struct
-    void *mdhim_brm;      // pointer to the mdhim_brm_t struct
-    void *mdhim_getrm;    // pointer to the mdhim_getrm_t struct
-    void *mdhim_bgetrm;   // pointer to the mdhim_bgetrm_t struct
-    void *mdhim_options;  // pointer to the mdhim_options_t struct
-    
+    void *pDerivedObj;              //  pointer to itself as base object
+    struct mdhim_t *mdhim;          //  pointer to the mdhim_t struct
+    void *mdhim_rm;                 //  pointer to the mdhim_rm_t struct
+    void *mdhim_brm;                //  pointer to the mdhim_brm_t struct
+    void *mdhim_getrm;              //  pointer to the mdhim_getrm_t struct
+    void *mdhim_bgetrm;             //  pointer to the mdhim_bgetrm_t struct
+    mdhim_options_t *mdhim_options; //  pointer to the mdhim_options_t struct
+ 
+    // MDHIM Functions
     fptrMdhimInit mdhimInit;            // Initialize MDHIM
     fptrMdhimClose mdhimClose;          // Close MDHIM
     fptrMdhimCommit mdhimCommit;        // Commit changes in MDHIM to Database
@@ -59,6 +96,20 @@ typedef struct _Mdhim_Ptr {
     fptrMdhimDelete mdhimDelete;        // Delete key, value from Database
     fptrMdhimBDelete mdhimBDelete;      // Delete multiple key, value pairs from Database
     fptrMdhim_Release_Recv_Msg mdhim_Release_Recv_Msg;
+
+    //  MDHIM_T Accessors
+    fptrGetMdhimRank getMdhimRank;                 //  Get the rank from mpi
+    fptrGetMdhimCommSize getMdhimCommSize;         //  Get the comm size from mpi
+    fptrGetKeyType getKeyType;                     //  get the key type
+    fptrGetNumRangeServers getNumRangeServers;     //  get the number of range servers
+    fptrGetRangeServerMaster getRangeServerMaster; //  get the master range server
+
+    //  MDHIM_RM_T Accessors
+    fptrGetRmMType getRmMType;           //  get the return messages mtype
+    fptrGetRmServerRank getRmServerRank; //  get the range server rank returning this message
+    fptrGetRmSize getRmSize;             //  get the size of the message
+    fptrGetRmError getRmError;           //  get the error of the message
+
 
 }_Mdhim_Ptr;
 
@@ -78,5 +129,16 @@ void Mdhim_BGetOp(Mdhim_Ptr *pmdhim, void *pkey, int key_len, int num_records, i
 void Mdhim_Delete(Mdhim_Ptr *pmdhim, void *pkey, int key_len);
 void Mdhim_BDelete(Mdhim_Ptr *pmdhim, void **pkeys, int *pkey_len, int num_keys);
 void MdhimReleaseRecvMsg(void *pmsg);
+
+int Get_Mdhim_Rank(Mdhim_Ptr *pmdhim);
+int Get_Mdhim_Comm_Size(Mdhim_Ptr *pmdhim);
+int Get_Key_Type(Mdhim_Ptr *pmdhim);
+uint32_t Get_Num_Range_Servers(Mdhim_Ptr *pmdhim);
+int Get_Range_Server_Master(Mdhim_Ptr *pmdhim);
+
+int Get_Rm_Mtype(Mdhim_Ptr *);
+int Get_Rm_Server_Rank(Mdhim_Ptr *);
+int Get_Rm_Size(Mdhim_Ptr *);
+int Get_Rm_Error(Mdhim_Ptr *);
 
 #endif

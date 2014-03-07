@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <linux/limits.h>
+#include <string.h>
 #include "mpi.h"
-#include "mdhim.h"
 #include "mdhim-abridge.h"
 #include "mdhim_options.h"
 
@@ -72,9 +72,9 @@ long long get_key(unsigned long long int lo) {
 int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
-	struct mdhim_t *o_md;
+	//struct mdhim_t *o_md;
 	struct mdhim_rm_t *rm;
-    struct mdhim_getrm_t *grm;
+    //struct mdhim_getrm_t *grm;
     //    mdhim_options_t *db_opts;
     Mdhim_Ptr *md = new_MDHIM();
 	struct plfs_record *rec = NULL;
@@ -94,15 +94,15 @@ int main(int argc, char **argv) {
         }
 
 	//Set MDHIM options
-        //db_opts = mdhim_options_init();
-        mdhim_options_set_db_path((mdhim_options_t *)md->mdhim_options, "./");
-        mdhim_options_set_db_name((mdhim_options_t *)md->mdhim_options, "mdhimTstDB");
-        mdhim_options_set_db_type((mdhim_options_t *)md->mdhim_options, LEVELDB);
-        mdhim_options_set_key_type((mdhim_options_t *)md->mdhim_options, MDHIM_LONG_INT_KEY);
-	mdhim_options_set_debug_level((mdhim_options_t *)md->mdhim_options, MLOG_CRIT);
-	mdhim_options_set_max_recs_per_slice((mdhim_options_t *)md->mdhim_options, SLICE_SIZE);
-        mdhim_options_set_server_factor((mdhim_options_t *)md->mdhim_options, 10);
-	mdhim_options_set_value_append((mdhim_options_t *)md->mdhim_options, 1);
+    //db_opts = mdhim_options_init();
+    mdhim_options_set_db_path(md->mdhim_options, "./");
+    mdhim_options_set_db_name(md->mdhim_options, "mdhimTstDB");
+    mdhim_options_set_db_type(md->mdhim_options, LEVELDB);
+    mdhim_options_set_key_type(md->mdhim_options, MDHIM_LONG_INT_KEY);
+	mdhim_options_set_debug_level(md->mdhim_options, MLOG_CRIT);
+	mdhim_options_set_max_recs_per_slice(md->mdhim_options, SLICE_SIZE);
+    mdhim_options_set_server_factor(md->mdhim_options, 10);
+	mdhim_options_set_value_append(md->mdhim_options, 1);
 
 	//Initialize MDHIM
 	comm = MPI_COMM_WORLD;
@@ -112,8 +112,7 @@ int main(int argc, char **argv) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
 	}	
-    o_md = (struct mdhim_t *)md->mdhim;
-	file = open_output(o_md->mdhim_rank);
+	file = open_output(md->getMdhimRank(md));
 	if (!file) {
 		printf("Error opening file\n");
 		goto done;
@@ -130,7 +129,7 @@ int main(int argc, char **argv) {
 	  //        rec, sizeof(struct plfs_record));
 	md->mdhimPut(md, &key, sizeof(key), rec, sizeof(struct plfs_record));
 	rm = (struct mdhim_rm_t *)md->mdhim_rm;
-	if (!md->mdhim_rm || rm->error) {
+	if (!md->mdhim_rm || md->getRmError(md)) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
 		printf("Successfully inserted key/value into MDHIM\n");
@@ -149,7 +148,7 @@ int main(int argc, char **argv) {
 	//Get the values
 	//grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
 	md->mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
-	grm = (struct mdhim_getrm_t *)md->mdhim_getrm;
+	//grm = (struct mdhim_getrm_t *)md->mdhim_getrm;
 	if (!md->mdhim_getrm || grm->error) {
 		printf("Error getting value for key: %llu from MDHIM\n", key);
 	} else {

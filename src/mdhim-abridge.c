@@ -20,7 +20,6 @@
 #include "mdhim.h"
 #include "mdhim_options.h"
 #include "data_store.h"
-#include <stdio.h>
 #include <stdlib.h>
 
 
@@ -48,7 +47,7 @@ new_MDHIM()
 
     // allocate memory 
 
-    mdhimObj->mdhim_options = (void *)mdhim_options_init();
+    mdhimObj->mdhim_options = mdhim_options_init();
 
     // Initialize Interface
     mdhimObj->mdhimInit =               Mdhim_Initialize;
@@ -63,6 +62,12 @@ new_MDHIM()
     mdhimObj->mdhimDelete =             Mdhim_Delete;
     mdhimObj->mdhimBDelete =            Mdhim_BDelete;
     mdhimObj->mdhim_Release_Recv_Msg =  MdhimReleaseRecvMsg;
+
+    mdhimObj->getMdhimRank =          Get_Mdhim_Rank;
+    mdhimObj->getMdhimCommSize =      Get_Mdhim_Comm_Size;
+    mdhimObj->getKeyType =            Get_Key_Type;
+    mdhimObj->getNumRangeServers =    Get_Num_Range_Servers;
+    mdhimObj->getRangeServerMaster =  Get_Range_Server_Master;
 
     return mdhimObj;
 }		/* -----  end of function new_MDHIM  ----- */
@@ -110,7 +115,7 @@ int
 Mdhim_Close ( Mdhim_Ptr *pmdhim )
 {
     int ret;
-    ret = mdhimClose((struct mdhim_t *)pmdhim->mdhim);
+    ret = mdhimClose(pmdhim->mdhim);
     return ret;
 }		/* -----  end of function Mdhim_Close  ----- */
 
@@ -126,7 +131,7 @@ int
 Mdhim_Commit ( Mdhim_Ptr *pmdhim )
 {
     int ret;
-    ret = mdhimCommit((struct mdhim_t *)pmdhim->mdhim);
+    ret = mdhimCommit(pmdhim->mdhim);
     return ret;
 }		/* -----  end of function Mdhim_Commit  ----- */
 
@@ -281,3 +286,116 @@ MdhimReleaseRecvMsg ( void *pmsg )
 {
     //mdhim_release_recv_msg(pmsg);
 }		/* -----  end of function MdhimReleaseRecvMsg  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Mdhim_Rank
+ *  Description:  Get rank from mpi
+ *                @pmdhim : Pointer to a Mdhim_Ptr
+ *                @return : Rank of current node
+ * =====================================================================================
+ */
+int
+Get_Mdhim_Rank ( Mdhim_Ptr *pmdhim )
+{
+    return pmdhim->mdhim->mdhim_rank;
+}		/* -----  end of function Get_Mdhim_Rank  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Mdhim_Comm_Size
+ *  Description:  Get comm size from mpi
+ *                @pmdhim : Pointer to a Mdhim_Ptr
+ *                @return : comm size 
+ * =====================================================================================
+ */
+int
+Get_Mdhim_Comm_Size ( Mdhim_Ptr *pmdhim )
+{
+    return pmdhim->mdhim->mdhim_comm_size;
+}		/* -----  end of function Get_Mdhim_Comm_Size  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Key_Type
+ *  Description:  Get rank from mpi
+ *                @pmdhim : Pointer to a Mdhim_Ptr
+ *                @return : Key type
+ * =====================================================================================
+ */
+int
+Get_Key_Type ( Mdhim_Ptr *pmdhim )
+{
+    return pmdhim->mdhim->key_type;
+}		/* -----  end of function Get_Key_Type  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Num_Range_Servers
+ *  Description:  Get rank from mpi
+ *                @pmdhim : Pointer to a Mdhim_Ptr
+ *                @return : Rank of current node
+ * =====================================================================================
+ */
+uint32_t
+Get_Num_Range_Servers ( Mdhim_Ptr *pmdhim )
+{
+    return pmdhim->mdhim->num_rangesrvs;
+}		/* -----  end of function Get_Num_Range_Servers  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Range_Master
+ *  Description:  Get rank from mpi
+ *                @pmdhim : Pointer to a Mdhim_Ptr
+ *                @return : Rank of current node
+ * =====================================================================================
+ */
+int
+Get_Range_Server_Master ( Mdhim_Ptr *pmdhim )
+{
+    return pmdhim->mdhim->rangesrv_master;
+}		/* -----  end of function Get_Range_Master  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Rm_Mtype
+ *  Description:  Return the MType of the return type
+ * =====================================================================================
+ */
+int
+Get_Rm_Mtype ( Mdhim_Ptr *pmdhim )
+{
+    struct mdhim_rm_t *rm;
+    rm = pmdhim->mdhim_rm;
+    return rm->mtype;
+}		/* -----  end of function Get_Rm_Mtype  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Rm_Server_Rank
+ *  Description:  Return the Server_Rank of the return type
+ * =====================================================================================
+ */
+int
+Get_Rm_Server_Rank ( Mdhim_Ptr *pmdhim )
+{
+    struct mdhim_rm_t *rm;
+    rm = pmdhim->mdhim_rm;
+    return rm->server_rank;
+}		/* -----  end of function Get_Rm_Server_Rank  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Rm_Server_Rank
+ *  Description:  Return the Server_Rank of the return type
+ * =====================================================================================
+ */
+int
+Get_Rm_Server_Rank ( Mdhim_Ptr *pmdhim )
+{
+    struct mdhim_rm_t *rm;
+    rm = pmdhim->mdhim_rm;
+    return rm->server_rank;
+}		/* -----  end of function Get_Rm_Server_Rank  ----- */
