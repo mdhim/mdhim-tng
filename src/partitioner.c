@@ -380,7 +380,7 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, struct index_t *ind
 }
 
 /**
- * get_range_server
+ * get_range_servers
  *
  * gets the range server that handles the key given
  * @param md        main MDHIM struct
@@ -388,8 +388,8 @@ rangesrv_info *get_range_server_by_slice(struct mdhim_t *md, struct index_t *ind
  * @param key_len   length of the key
  * @return the rank of the range server or NULL on error
  */
-rangesrv_list *get_range_server(struct mdhim_t *md, struct index_t *index, 
-				void *key, int key_len) {
+rangesrv_list *get_range_servers(struct mdhim_t *md, struct index_t *index, 
+				 void *key, int key_len) {
 	//The number that maps a key to range server (dependent on key type)
 	int slice_num;
 	//The range server number that we return
@@ -401,7 +401,7 @@ rangesrv_list *get_range_server(struct mdhim_t *md, struct index_t *index,
 	}
 
 	ret_rp = get_range_server_by_slice(md, index, slice_num);       
-	*rl = NULL;
+	rl = NULL;
 	_add_to_rangesrv_list(&rl, ret_rp);
 
 	//Return the range server list
@@ -775,7 +775,7 @@ rangesrv_list *get_range_server_from_stats(struct mdhim_t *md, struct index_t *i
 			return NULL;
 		}
        
-		*rl = NULL;
+		rl = NULL;
 		_add_to_rangesrv_list(&rl, ret_rp);
 	} else {
 		if (float_type) {

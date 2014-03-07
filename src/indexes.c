@@ -651,8 +651,9 @@ done:
  */
 
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
-				    uint64_t max_recs_per_slice, 
-				    int db_type, int key_type, int primary_index_id) {
+				    int max_recs_per_slice, 
+				    int db_type, int key_type, 
+				    int primary_index_id) {
 	struct index_t *gi;
 	uint32_t rangesrv_num;
 	int ret;
@@ -818,7 +819,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index) {
 
 	//If a local index, check to see if the rank is a range server for the primary index
 	if (index->type == LOCAL_INDEX) {
-		primary_index = get_index(index->primary_id);
+		primary_index = get_index(md, index->primary_id);
 		rangesrv_num = is_range_server(md, rank, primary_index);
 
 		return rangesrv_num;

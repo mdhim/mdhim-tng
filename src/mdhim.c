@@ -12,7 +12,7 @@
 #include "partitioner.h"
 #include "mdhim_options.h"
 #include "indexes.h"
-#include "mdhim-private.h"
+#include "mdhim_private.h"
 
 /*! \mainpage MDHIM TNG
  *
@@ -119,7 +119,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	}
 
 	//Create the default remote primary index
-	primary_index = create_remote_index(md, opts->rserver_factor, opts->max_recs_per_slice, 
+	primary_index = create_global_index(md, opts->rserver_factor, opts->max_recs_per_slice, 
 					    opts->db_type, opts->db_key_type, 0);
 	if (!primary_index) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
@@ -264,7 +264,7 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 		return NULL;
 	}
 
-	rm = _put_record(md->primary_index, primary_key, primary_key_len, value, value_len);
+	rm = _put_record(md, md->primary_index, primary_key, primary_key_len, value, value_len);
 	if (!rm || rm->error) {
 		return head;
 	}
@@ -275,8 +275,8 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 	//Insert the secondary local key if it was given
 	if (sec_info->secondary_local_index && sec_info->secondary_local_key && 
 	    sec_info->secondary_local_key_len) {
-		rm = _put_record(sec_info->secondary_local_index, secondary_local_key, 
-				 secondary_local_key_len);
+		rm = _put_record(md, sec_info->secondary_local_index, sec_info->secondary_local_key, 
+				 sec_info->secondary_local_key_len, primary_key, primary_key_len);
 		if (!rm) {
 			return head;
 		}
@@ -292,8 +292,8 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 	//Insert the secondary global key if it was given
 	if (sec_info->secondary_global_index && sec_info->secondary_global_key && 
 	    sec_info->secondary_global_key_len) {
-		rm = _put_record(sec_info->secondary_global_index, secondary_global_key, 
-				 secondary_global_key_len);
+		rm = _put_record(md, sec_info->secondary_global_index, sec_info->secondary_global_key, 
+				 sec_info->secondary_global_key_len, primary_key, primary_key_len);
 		if (rm) {
 			mdhim_full_release_msg(rm);
 		}
@@ -322,44 +322,38 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index,
 			      int num_records,
 			      struct secondary_bulk_info *sec_info) {
 	struct mdhim_brm_t *head, *new;
-	struct mdhim_rm_t *rm;
-	rm = NULL;
+
 	head = new = NULL;
-	if (!primary_key || !primary_key_len ||
-	    !value || !value_len) {
+	if (!primary_keys || !primary_key_lens ||
+	    !primary_values || !primary_value_lens) {
 		return NULL;
 	}
 
-	rm = _bput_records(md->primary_index, primary_keys, primary_key_lens, 
-			  primary_values, primary_value_lens);
-	if (!rm || rm->error) {
+	head = _bput_records(md, md->primary_index, primary_keys, primary_key_lens, 
+			     primary_values, primary_value_lens, num_records);
+	if (!head || head->error) {
 		return head;
 	}
-
-	head = _create_brm(rm);
-	mdhim_full_release_msg(rm);
 
 	//Insert the secondary local keys if they were given
 	if (sec_info->secondary_local_index && sec_info->secondary_local_keys && 
 	    sec_info->secondary_local_key_lens) {
-		rm = _bput_records(sec_info->secondary_local_index, sec_info->secondary_local_keys, 
-				   sec_info->secondary_local_key_lens);
-		if (rm) {
-			new = _create_brm(rm);
+		new = _bput_records(md, sec_info->secondary_local_index, sec_info->secondary_local_keys, 
+				    sec_info->secondary_local_key_lens, primary_keys, primary_key_lens, 
+				    num_records);
+		if (new) {
 			_concat_brm(head, new);
-			mdhim_full_release_msg(rm);
 		}
 	}
 
 	//Insert the secondary global keys if they were given
 	if (sec_info->secondary_global_index && sec_info->secondary_global_keys && 
 	    sec_info->secondary_global_key_lens) {
-		rm = _bput_records(sec_info->secondary_global_index, secondary_global_keys, 
-				   secondary_global_key_lens);
-		if (rm) {
-			new = _create_brm(rm);
+		new = _bput_records(md, sec_info->secondary_global_index, sec_info->secondary_global_keys, 
+				    sec_info->secondary_global_key_lens, primary_keys, primary_key_lens, 
+				    num_records);
+		if (new) {
 			_concat_brm(head, new);
-			mdhim_full_release_msg(rm);
 		}
 	}	
 
@@ -419,11 +413,11 @@ struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 				 void **keys, int *key_lens, 
 				 int num_records, int op) {
-	struct mdhim_bgetm_t *bgm, *lbgm;
 	struct mdhim_bgetrm_t *bgrm_head, *lbgrm;
 	void **primary_keys;
 	int *primary_key_lens, plen;
 	struct index_t *primary_index;
+	int i;
 
 	if (op != MDHIM_GET_EQ && op != MDHIM_GET_PRIMARY_EQ) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
@@ -521,9 +515,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
 				   void *key, int key_len, 
 				   int num_records, int op) {
-	int ret;
 	struct mdhim_bgetrm_t *bgrm_head;
-	rangesrv_list *rl = NULL;
 	void **keys;
 	int *key_lens;
 
@@ -634,7 +626,7 @@ int mdhimStatFlush(struct mdhim_t *md, struct index_t *index) {
  */
 struct secondary_info *mdhimCreateSecondaryInfo(struct index_t *secondary_global_index,
 					 void *secondary_global_key, int secondary_global_key_len,
-					 struct_index_t *secondary_local_index,
+					 struct index_t *secondary_local_index,
 					 void *secondary_local_key, int secondary_local_key_len) {
 	struct secondary_info *sinfo;
 	
@@ -669,10 +661,10 @@ void mdhimReleaseSecondaryInfo(struct secondary_info *si) {
  * Sets the secondary_info structure used in mdhimPut and mdhimBPut
  *
  */
-struct secondary_info *mdhimCreateSecondaryBulkInfo(struct index_t *secondary_global_index,
+struct secondary_bulk_info *mdhimCreateSecondaryBulkInfo(struct index_t *secondary_global_index,
 						    void **secondary_global_keys, 
 						    int *secondary_global_key_lens,
-						    struct_index_t *secondary_local_index,
+						    struct index_t *secondary_local_index,
 						    void **secondary_local_keys, 
 						    int *secondary_local_key_lens) {
 	struct secondary_bulk_info *sinfo;

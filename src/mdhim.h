@@ -18,7 +18,7 @@
 #include "Mlog/mlogfacs.h"
 #include "mdhim_options.h"
 #include "indexes.h"
-#include "mdhim-private.h"
+#include "mdhim_private.h"
 
 #define MDHIM_SUCCESS 0
 #define MDHIM_ERROR -1
@@ -90,9 +90,10 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 			    void *key, int key_len,  
 			    void *value, int value_len,  
 			    struct secondary_info *sec_info);
-struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, 
-			      void **keys, int *key_lens,
-			      void **values, int *value_lens, int num_records,
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index, 
+			      void **primary_keys, int *primary_key_lens, 
+			      void **primary_values, int *primary_value_lens, 
+			      int num_records,
 			      struct secondary_bulk_info *sec_info);
 struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 			       void *key, int key_len, 
@@ -111,8 +112,16 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, struct index_t *index,
 void mdhim_release_recv_msg(void *msg);
 struct secondary_info *mdhimCreateSecondaryInfo(struct index_t *secondary_global_index,
 						void *secondary_global_key, int secondary_global_key_len,
-						struct_index_t *secondary_local_index,
+						struct index_t *secondary_local_index,
 						void *secondary_local_key, int secondary_local_key_len);
 void mdhimReleaseSecondaryInfo(struct secondary_info *si);
+struct secondary_bulk_info *mdhimCreateSecondaryBulkInfo(struct index_t *secondary_global_index,
+							 void **secondary_global_keys, 
+							 int *secondary_global_key_lens,
+							 struct index_t *secondary_local_index,
+							 void **secondary_local_keys, 
+							 int *secondary_local_key_lens);
+void mdhimReleaseSecondaryBulkInfo(struct secondary_bulk_info *si);
+
 #endif
 
