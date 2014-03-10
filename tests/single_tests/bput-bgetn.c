@@ -111,9 +111,8 @@ int main(int argc, char **argv) {
 		//Populate the keys and values to insert
 		gen_keys_values(md->mdhim_rank, total_keys);
 		//Insert the keys into MDHIM
-		brm = mdhimBPut(md, md->primary_index, 
-				(void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS);
+		brm = mdhimBPut(md, (void **) keys, key_lens,  
+				(void **) values, value_lens, KEYS, NULL);
 		//		MPI_Barrier(MPI_COMM_WORLD);
 
 		//Iterate through the return messages to see if there is an error and to free it

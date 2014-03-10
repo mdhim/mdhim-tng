@@ -13,10 +13,11 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	uint32_t key, secondary_key;
 	int value, secondary_value;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
 	struct index_t *secondary_index;
+	struct secondary_info *secondary_info;
 
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
@@ -42,20 +43,34 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 
-	//Put the primary keys and values
+	//Set the primary keys and values
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
-	rm = mdhimPut(md, md->primary_index, 
-		      &key, sizeof(key), 
-		      &value, sizeof(value));
-	if (!rm || rm->error) {
+	//Set the secondary keys and values
+	secondary_key = md->mdhim_rank + 1;
+	secondary_value = key;
+
+	//Create the secondary remote index
+	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
+					      MDHIM_INT_KEY, 
+					      md->primary_index->id);
+	//Create the secondary info struct
+	secondary_info = mdhimCreateSecondaryInfo(secondary_index,
+						  &secondary_key, sizeof(secondary_key),
+						  NULL, NULL, 0);
+	//Put the primary and secondary keys
+	brm = mdhimPut(md, 
+		       &key, sizeof(key), 
+		       &value, sizeof(value), secondary_info);
+	
+	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
-
+	
 	//Release the received message
-	mdhim_full_release_msg(rm);
+	mdhim_full_release_msg(brm);
 
 	//Commit the database
 	ret = mdhimCommit(md, md->primary_index);
@@ -63,36 +78,19 @@ int main(int argc, char **argv) {
 		printf("Error committing MDHIM database\n");
 	} else {
 		printf("Committed MDHIM database\n");
-	}
-
-	//Create the secondary remote index
-	secondary_index = create_remote_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
-					      MDHIM_INT_KEY, 
-					      md->primary_index->id);
-
-	//Put the primary keys and values
-	secondary_key = md->mdhim_rank + 1;
-	secondary_value = key;
-	rm = mdhimPut(md, secondary_index, 
-		      &secondary_key, sizeof(secondary_key), 
-		      &secondary_value, sizeof(secondary_value));
-	if (!rm || rm->error) {
-		printf("Error inserting key/value into MDHIM\n");
-	} else {
-		printf("Successfully inserted key/value into MDHIM\n");
-	}
+	}	
 
 	//Get the primary key values from the secondary key
 	value = 0;
-	grm = mdhimGet(md, secondary_index, &secondary_key, sizeof(secondary_key), 
-		       MDHIM_GET_PRIMARY_EQ);
-	if (!grm || grm->error) {
+	bgrm = mdhimGet(md, secondary_index, &secondary_key, sizeof(secondary_key), 
+			MDHIM_GET_PRIMARY_EQ);
+	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
-	} else if (grm->value_len) {
-		printf("Successfully got value: %d from MDHIM\n", *((int *) grm->value));
+	} else if (bgrm->value_lens[0]) {
+		printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
 	}
 
-	mdhim_full_release_msg(grm);
+	mdhim_full_release_msg(bgrm);
 	ret = mdhimClose(md);
 	mdhim_options_destroy(db_opts);
 	if (ret != MDHIM_SUCCESS) {

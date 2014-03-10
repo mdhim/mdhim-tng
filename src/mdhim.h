@@ -90,7 +90,7 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 			    void *key, int key_len,  
 			    void *value, int value_len,  
 			    struct secondary_info *sec_info);
-struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index, 
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md,
 			      void **primary_keys, int *primary_key_lens, 
 			      void **primary_values, int *primary_value_lens, 
 			      int num_records,

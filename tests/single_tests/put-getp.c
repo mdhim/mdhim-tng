@@ -9,8 +9,8 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	int key;
 	int value;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
 	int i;
 	int keys_per_rank = 5;
 	char     *db_path = "./";
@@ -48,9 +48,9 @@ int main(int argc, char **argv) {
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
-		rm = mdhimPut(md, md->primary_index, &key, sizeof(key), 
-			      &value, sizeof(value));
-		if (!rm || rm->error) {
+		brm = mdhimPut(md, &key, sizeof(key), 
+			       &value, sizeof(value), NULL);
+		if (!brm || brm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
 			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
@@ -77,14 +77,14 @@ int main(int argc, char **argv) {
 	for (i = keys_per_rank; i > 0; i--) {
 		value = 0;
 		key = keys_per_rank * md->mdhim_rank + i;
-		grm = mdhimGet(md, md->primary_index, &key, sizeof(int), MDHIM_GET_PREV);				
-		if (!grm || grm->error) {
+		bgrm = mdhimGet(md, md->primary_index, &key, sizeof(int), MDHIM_GET_PREV);				
+		if (!bgrm || bgrm->error) {
 			printf("Error getting value for key: %d from MDHIM\n", key);
-		} else if (grm->key && grm->value) {
+		} else if (bgrm->keys[0] && bgrm->values[0]) {
 			printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
 			       md->mdhim_rank,
-			       *((int *) grm->key),
-			       *((int *) grm->value));
+			       *((int *) bgrm->keys[0]),
+			       *((int *) bgrm->values[0]));
 		}
 	}
 

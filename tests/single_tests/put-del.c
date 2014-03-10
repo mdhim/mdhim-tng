@@ -9,8 +9,8 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	int key;
 	int value;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
 	int      dbug = MLOG_CRIT;
@@ -44,16 +44,16 @@ int main(int argc, char **argv) {
 	//Put the keys and values
 	key = 20 * (md->mdhim_rank + 1);
 	value = 1000 * (md->mdhim_rank + 1);
-	rm = mdhimPut(md, md->primary_index, &key, sizeof(key), 
-		       &value, sizeof(value));
-	if (!rm || rm->error) {
+	brm = mdhimPut(md, &key, sizeof(key), 
+		       &value, sizeof(value), NULL);
+	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
 
-	rm = mdhimDelete(md, md->primary_index, &key, sizeof(key));
-	if (!rm || rm->error) {
+	brm = mdhimDelete(md, md->primary_index, &key, sizeof(key));
+	if (!brm || brm->error) {
 		printf("Error deleting key/value from MDHIM\n");
 	} else {
 		printf("Successfully deleted key/value into MDHIM\n");
@@ -61,11 +61,11 @@ int main(int argc, char **argv) {
 
 	//Get the values
 	value = 0;
-	grm = mdhimGet(md, md->primary_index, &key, sizeof(key), MDHIM_GET_EQ);
-	if (!grm || grm->error) {
+	bgrm = mdhimGet(md, md->primary_index, &key, sizeof(key), MDHIM_GET_EQ);
+	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
-	} else if (grm->value_len) {
-		printf("Successfully got value: %d from MDHIM\n", *((int *) grm->value));
+	} else if (bgrm->value_lens[0]) {
+		printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
 	}
 
 	ret = mdhimClose(md);

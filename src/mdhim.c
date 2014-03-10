@@ -316,7 +316,7 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
  * @param num_records  the number of records to store (i.e., the number of keys in keys array)
  * @return mdhim_brm_t * or NULL on error
  */
-struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, struct index_t *index, 
+struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md, 
 			      void **primary_keys, int *primary_key_lens, 
 			      void **primary_values, int *primary_value_lens, 
 			      int num_records,
@@ -621,13 +621,13 @@ int mdhimStatFlush(struct mdhim_t *md, struct index_t *index) {
 }
 
 /**
- * Sets the secondary_info structure used in mdhimPut and mdhimBPut
+ * Sets the secondary_info structure used in mdhimPut
  *
  */
 struct secondary_info *mdhimCreateSecondaryInfo(struct index_t *secondary_global_index,
-					 void *secondary_global_key, int secondary_global_key_len,
-					 struct index_t *secondary_local_index,
-					 void *secondary_local_key, int secondary_local_key_len) {
+						void *secondary_global_key, int secondary_global_key_len,
+						struct index_t *secondary_local_index,
+						void *secondary_local_key, int secondary_local_key_len) {
 	struct secondary_info *sinfo;
 	
 	//Initialize the struct
@@ -658,15 +658,15 @@ void mdhimReleaseSecondaryInfo(struct secondary_info *si) {
 }
 
 /**
- * Sets the secondary_info structure used in mdhimPut and mdhimBPut
+ * Sets the secondary_info structure used in mdhimBPut
  *
  */
 struct secondary_bulk_info *mdhimCreateSecondaryBulkInfo(struct index_t *secondary_global_index,
-						    void **secondary_global_keys, 
-						    int *secondary_global_key_lens,
-						    struct index_t *secondary_local_index,
-						    void **secondary_local_keys, 
-						    int *secondary_local_key_lens) {
+							 void **secondary_global_keys, 
+							 int *secondary_global_key_lens,
+							 struct index_t *secondary_local_index,
+							 void **secondary_local_keys, 
+							 int *secondary_local_key_lens) {
 	struct secondary_bulk_info *sinfo;
 	
 	//Initialize the struct
