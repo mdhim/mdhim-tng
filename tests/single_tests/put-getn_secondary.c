@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 		if (!brm || brm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
-			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
+			printf("Rank: %d put secondary key: %d with value: %d\n", md->mdhim_rank, secondary_key, key);
 		}
 
 		mdhimReleaseSecondaryInfo(secondary_info);
@@ -106,8 +106,8 @@ int main(int argc, char **argv) {
 	for (i = 0; i < keys_per_rank; i++) {
 		value = 0;
 		key = md->mdhim_rank + i;
-		bgrm = mdhimGet(md, secondary_index, 
-			       &key, sizeof(int), MDHIM_GET_NEXT);				
+		bgrm = mdhimBGetOp(md, secondary_index, 
+				   &key, sizeof(int), 1, MDHIM_GET_NEXT);				
 		if (!bgrm || bgrm->error) {
 			printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
 			       md->mdhim_rank, key);

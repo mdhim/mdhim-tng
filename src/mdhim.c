@@ -273,7 +273,7 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 	mdhim_full_release_msg(rm);
 
 	//Insert the secondary local key if it was given
-	if (sec_info->secondary_local_index && sec_info->secondary_local_key && 
+	if (sec_info &&sec_info->secondary_local_index && sec_info->secondary_local_key && 
 	    sec_info->secondary_local_key_len) {
 		rm = _put_record(md, sec_info->secondary_local_index, sec_info->secondary_local_key, 
 				 sec_info->secondary_local_key_len, primary_key, primary_key_len);
@@ -290,7 +290,7 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 	}
 
 	//Insert the secondary global key if it was given
-	if (sec_info->secondary_global_index && sec_info->secondary_global_key && 
+	if (sec_info && sec_info->secondary_global_index && sec_info->secondary_global_key && 
 	    sec_info->secondary_global_key_len) {
 		rm = _put_record(md, sec_info->secondary_global_index, sec_info->secondary_global_key, 
 				 sec_info->secondary_global_key_len, primary_key, primary_key_len);
@@ -336,7 +336,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md,
 	}
 
 	//Insert the secondary local keys if they were given
-	if (sec_info->secondary_local_index && sec_info->secondary_local_keys && 
+	if (sec_info && sec_info->secondary_local_index && sec_info->secondary_local_keys && 
 	    sec_info->secondary_local_key_lens) {
 		new = _bput_records(md, sec_info->secondary_local_index, sec_info->secondary_local_keys, 
 				    sec_info->secondary_local_key_lens, primary_keys, primary_key_lens, 
@@ -347,7 +347,7 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md,
 	}
 
 	//Insert the secondary global keys if they were given
-	if (sec_info->secondary_global_index && sec_info->secondary_global_keys && 
+	if (sec_info && sec_info->secondary_global_index && sec_info->secondary_global_keys && 
 	    sec_info->secondary_global_key_lens) {
 		new = _bput_records(md, sec_info->secondary_global_index, sec_info->secondary_global_keys, 
 				    sec_info->secondary_global_key_lens, primary_keys, primary_key_lens, 

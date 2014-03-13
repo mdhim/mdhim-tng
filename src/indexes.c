@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <errno.h>
 #include "mdhim.h"
 #include "indexes.h"
 
@@ -190,10 +191,8 @@ int update_all_stats(struct mdhim_t *md, struct index_t *index, void *key, uint3
 	struct mdhim_stat *os, *stat;
 
 	//Acquire the lock to update the stats
-	if (pthread_rwlock_wrlock(index->mdhim_store->mdhim_store_stats_lock) != 0) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the mdhim_store_stats_lock", 
-		     md->mdhim_rank);
-		return MDHIM_ERROR;
+	while (pthread_rwlock_wrlock(index->mdhim_store->mdhim_store_stats_lock) == EBUSY) {
+		usleep(10);
 	}
 
 	if ((float_type = is_float_key(index->key_type)) == 1) {
@@ -542,10 +541,8 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 	}
 
 	//Acquire the lock to update indexes
-	if (pthread_rwlock_wrlock(md->indexes_lock) != 0) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
-		     md->mdhim_rank);
-		return NULL;
+	while (pthread_rwlock_wrlock(md->indexes_lock) == EBUSY) {
+		usleep(10);
 	}		
 
 	//Create a new global_index to hold our index entry
@@ -667,10 +664,8 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 	}
 
 	//Acquire the lock to update indexes
-	if (pthread_rwlock_wrlock(md->indexes_lock) != 0) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
-		     md->mdhim_rank);
-		return NULL;
+	while (pthread_rwlock_wrlock(md->indexes_lock) == EBUSY) {
+		usleep(10);
 	}		
 
 	//Create a new global_index to hold our index entry
@@ -815,12 +810,10 @@ uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index) {
 	int size;
 	int ret;
 	uint64_t rangesrv_num = 0;
-	struct index_t *primary_index;
 
 	//If a local index, check to see if the rank is a range server for the primary index
 	if (index->type == LOCAL_INDEX) {
-		primary_index = get_index(md, index->primary_id);
-		rangesrv_num = is_range_server(md, rank, primary_index);
+		rangesrv_num = is_range_server(md, rank, md->primary_index);
 
 		return rangesrv_num;
 	}
@@ -943,10 +936,8 @@ struct index_t *get_index(struct mdhim_t *md, int index_id) {
 	struct index_t *index;
 
 	//Acquire the lock to update indexes	
-	if (pthread_rwlock_wrlock(md->indexes_lock) != 0) {
-		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error acquiring the indexes_lock", 
-		     md->mdhim_rank);
-		return NULL;
+	while (pthread_rwlock_wrlock(md->indexes_lock) == EBUSY) {
+		usleep(10);
 	}		
 	
 	index = NULL;

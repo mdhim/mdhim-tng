@@ -139,7 +139,6 @@ void build_alphabet() {
 void _add_to_rangesrv_list(rangesrv_list **list, rangesrv_info *ri) {
 	rangesrv_list *list_p, *entry;
 
-	ri = NULL;
 	entry = malloc(sizeof(rangesrv_list));
 	entry->ri = ri;
 	entry->next = NULL;
