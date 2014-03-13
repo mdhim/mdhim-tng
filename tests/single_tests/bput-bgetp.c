@@ -107,9 +107,10 @@ int main(int argc, char **argv) {
 		//record the start time
 		start_record(&start_tv);
 		//Insert the keys into MDHIM
-		brm = mdhimBPut(md, md->primary_index, 
+		brm = mdhimBPut(md,
 				(void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS);
+				(void **) values, value_lens, 
+				KEYS, NULL);
 		//		MPI_Barrier(MPI_COMM_WORLD);
 		//record the end time
 		end_record(&end_tv);			       

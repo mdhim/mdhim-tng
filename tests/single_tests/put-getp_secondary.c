@@ -4,14 +4,16 @@
 #include "mpi.h"
 #include "mdhim.h"
 
+#define SECONDARY_SLICE_SIZE 5
+
 int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	int key;
+	uint32_t key, secondary_key;
 	int value;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
 	int i;
 	int keys_per_rank = 100;
 	char     *db_path = "./";
@@ -22,6 +24,7 @@ int main(int argc, char **argv) {
 	struct timeval start_tv, end_tv;
 	unsigned totaltime;
 	struct index_t *secondary_index;
+	struct secondary_info *secondary_info;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -49,41 +52,26 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 
+	//Create a secondary index
+	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
+					      MDHIM_INT_KEY, 
+					      md->primary_index->id);
+	secondary_info = mdhimCreateSecondaryInfo(secondary_index, &secondary_key, 
+						  sizeof(secondary_key),
+						  NULL, NULL, 0);
 	//Put the keys and values
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
-		rm = mdhimPut(md, md->primary_index, 
-			      &key, sizeof(key), 
-			      &value, sizeof(value));
-		if (!rm || rm->error) {
+		brm = mdhimPut(md, &key, sizeof(key), 
+			       &value, sizeof(value), secondary_info);
+		if (!brm || brm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
 //			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
 		}
 
-		mdhim_full_release_msg(rm);
-	}
-
-	//Create the secondary remote index
-	secondary_index = create_remote_index(md, 2, 10, LEVELDB, 
-					      MDHIM_INT_KEY, 
-					      md->primary_index->id);
-
-	//Put the secondary keys and values
-	for (i = 0; i < keys_per_rank; i++) {
-		key = md->mdhim_rank + i + 1;
-		value = keys_per_rank * md->mdhim_rank + i;		
-		rm = mdhimPut(md, secondary_index, 
-			      &key, sizeof(key), 
-			      &value, sizeof(value));
-		
-		if (!rm || rm->error) {
-			printf("Error inserting key/value into MDHIM\n");
-		} else {
-			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
-			//printf("Successfully inserted key/value into MDHIM\n");
-		}
+		mdhim_full_release_msg(brm);
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -118,19 +106,19 @@ int main(int argc, char **argv) {
 	for (i = keys_per_rank; i > 0; i--) {
 		value = 0;
 		key = md->mdhim_rank + i + 2;
-		grm = mdhimGet(md, secondary_index, 
+		bgrm = mdhimGet(md, secondary_index, 
 			       &key, sizeof(int), MDHIM_GET_PREV);				
-		if (!grm || grm->error) {
+		if (!bgrm || bgrm->error) {
 			printf("Rank: %d, Error getting prev key/value given key: %d from MDHIM\n", 
 			       md->mdhim_rank, key);
-		} else if (grm->key && grm->value) {
-			printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
-			       md->mdhim_rank,
-			       *((int *) grm->key),
-			       *((int *) grm->value));
+		} else if (bgrm->keys[0] && bgrm->values[0]) {
+		  printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
+			 md->mdhim_rank,
+			 *((int *) bgrm->keys[0]),
+			 *((int *) bgrm->values[0]));
 		}
 
-		mdhim_full_release_msg(grm);
+		mdhim_full_release_msg(bgrm);
 	}
 
 	ret = mdhimClose(md);

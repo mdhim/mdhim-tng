@@ -29,10 +29,6 @@ int send_rangesrv_work(struct mdhim_t *md, int dest, void *message) {
 		return_code = pack_bput_message(md, (struct mdhim_bputm_t *)message, &sendbuf, 
 						&sendsize);
 		break;
-	case MDHIM_GET:
-		return_code = pack_get_message(md, (struct mdhim_getm_t *)message, &sendbuf, 
-					       &sendsize);
-		break;
 	case MDHIM_BULK_GET:
 		return_code = pack_bget_message(md, (struct mdhim_bgetm_t *)message, &sendbuf, 
 						&sendsize);
@@ -333,9 +329,6 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	case MDHIM_BULK_PUT:
 		return_code = unpack_bput_message(md, recvbuf, msg_size, message);
 		break;
-	case MDHIM_GET:
-		return_code = unpack_get_message(md, recvbuf, msg_size, message);
-		break;
 	case MDHIM_BULK_GET:
 		return_code = unpack_bget_message(md, recvbuf, msg_size, message);
 		break;
@@ -393,10 +386,6 @@ int send_client_response(struct mdhim_t *md, int dest, void *message, void **sen
 	case MDHIM_RECV:
 		return_code = pack_return_message(md, (struct mdhim_rm_t *)message, sendbuf, 
 						  &sendsize);
-		break;
-	case MDHIM_RECV_GET:
-		return_code = pack_getrm_message(md, (struct mdhim_getrm_t *)message, sendbuf, 
-						 &sendsize);
 		break;
 	case MDHIM_RECV_BULK_GET:
 		return_code = pack_bgetrm_message(md, (struct mdhim_bgetrm_t *)message, sendbuf, 
@@ -495,9 +484,6 @@ int receive_client_response(struct mdhim_t *md, int src, void **message) {
 	switch(mtype) {
 	case MDHIM_RECV:
 		return_code = unpack_return_message(md, recvbuf, message);
-		break;
-	case MDHIM_RECV_GET:
-		return_code = unpack_getrm_message(md, recvbuf, msg_size, message);
 		break;
 	case MDHIM_RECV_BULK_GET:
 		return_code = unpack_bgetrm_message(md, recvbuf, msg_size, message);
@@ -660,10 +646,6 @@ int receive_all_client_responses(struct mdhim_t *md, int *srcs, int nsrcs,
 		case MDHIM_RECV:
 			return_code = unpack_return_message(md, recvbuf, 
 							    (*messages + i));
-			break;
-		case MDHIM_RECV_GET:
-			return_code = unpack_getrm_message(md, recvbuf, msg_size, 
-							   (*messages + i));
 			break;
 		case MDHIM_RECV_BULK_GET:
 			return_code = unpack_bgetrm_message(md, recvbuf, msg_size, 
@@ -1296,77 +1278,6 @@ int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void *
 	return MDHIM_SUCCESS;
 }
 
-///------------------------
-
-/**
- * pack_getrm_message
- * Packs a get return message structure into contiguous memory for message passing
- *
- * @param md       in   main MDHIM struct
- * @param grm      in   structure get_return_message which will be packed into the message 
- * @param sendbuf  out  double pointer for packed message to send
- * @param sendsize out  pointer to sendbuf's size
- * @return MDHIM_SUCCESS or MDHIM_ERROR on error
- * 
- * struct mdhim_getrm_t {
- int mtype;
- int error;
- void *key;
- int key_len;
- void *value;
- int value_len;
- };
-*/
-int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void **sendbuf, int *sendsize) {
-
-	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
-        int64_t m_size = sizeof(struct mdhim_getrm_t); // Generous variable for size calculation
-        int mesg_size;  // Variable to be used as parameter for MPI_pack of safe size
-    	int mesg_idx = 0;  // Variable for incremental pack
-        void *outbuf;
-
-        // Add to size the length of the key and data fields
-        m_size += grm->key_len + grm->value_len;
-        
-        if (m_size > MDHIM_MAX_MSG_SIZE) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: getrm message too large. Get return "
-                     "message is over Maximum size allowed of %d.", md->mdhim_rank, MDHIM_MAX_MSG_SIZE);
-		return MDHIM_ERROR; 
-        }
-        mesg_size = m_size;
-        *sendsize = mesg_size;
-	grm->size = mesg_size;
-
-        // Is the computed message size of a safe value? (less than a max message size?)
-        if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
-                     "memory to pack get return message.", md->mdhim_rank);
-		return MDHIM_ERROR; 
-        }
-        
-	outbuf = *sendbuf;
-        // pack the message first with the structure and then followed by key and data values.
-	return_code = MPI_Pack(grm, sizeof(struct mdhim_getrm_t), MPI_CHAR, outbuf, mesg_size, 
-			       &mesg_idx, md->mdhim_comm);
-	if (grm->key_len) {
-		return_code += MPI_Pack(grm->key, grm->key_len, MPI_CHAR, outbuf, mesg_size, 
-					&mesg_idx, md->mdhim_comm);
-	}
-	if (grm->value_len) {
-		return_code += MPI_Pack(grm->value, grm->value_len, MPI_CHAR, outbuf, mesg_size, 
-					&mesg_idx, md->mdhim_comm);
-	}
-
-	// If the pack did not succeed then log the error and return the error code
-	if ( return_code != MPI_SUCCESS ) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to pack "
-                     "the get return message.", md->mdhim_rank);
-		return MDHIM_ERROR; 
-        }
-
-	return MDHIM_SUCCESS;
-}
-
 /**
  * pack_bgetrm_message
  * Packs a bulk get return message structure into contiguous memory for message passing
@@ -1449,77 +1360,6 @@ int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void **
 	if ( return_code != MPI_SUCCESS ) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to pack "
                      "the bulk get return message.", md->mdhim_rank);
-		return MDHIM_ERROR; 
-        }
-
-	return MDHIM_SUCCESS;
-}
-
-/**
- * unpack_getrm_message
- * Unpacks a get return message structure into contiguous memory for message passing
- *
- * @param md         in   main MDHIM struct
- * @param message    in   pointer for packed message we received
- * @param mesg_size  in   size of the incoming message
- * @param getrm      out  structure getrm_message which will be unpacked from the message 
- * @return MDHIM_SUCCESS or MDHIM_ERROR on error
- * 
- * struct mdhim_getrm_t {
- int mtype;
- int error;
- void *key;
- int key_len;
- void *value;
- int value_len;
- };
-*/
-int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, void **getrm) {
-
-	int return_code = MPI_SUCCESS;  // MPI_SUCCESS = 0
-    	int mesg_idx = 0;  // Variable for incremental unpack
-        struct mdhim_getrm_t *grm;
-
-        if ((*((struct mdhim_getrm_t **) getrm) = malloc(sizeof(struct mdhim_getrm_t))) == NULL) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
-                     "memory to unpack put message.", md->mdhim_rank);
-		return MDHIM_ERROR; 
-        }
-        
-        grm = *((struct mdhim_getrm_t **) getrm);
-        // Unpack the message first with the structure and then followed by key and data values.
-        return_code = MPI_Unpack(message, mesg_size, &mesg_idx, grm, sizeof(struct mdhim_getrm_t), 
-				 MPI_CHAR, md->mdhim_comm);
-        
-        // Unpack key by first allocating memory and then extracting the values from message
-	grm->key = NULL;
-        if (grm->key_len && (grm->key = (char *)malloc(grm->key_len * sizeof(char))) == NULL) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
-                     "memory to unpack get return message.", md->mdhim_rank);
-		return MDHIM_ERROR; 
-        }
-	if (grm->key) {
-		return_code += MPI_Unpack(message, mesg_size, &mesg_idx, grm->key, grm->key_len, 
-					  MPI_CHAR, md->mdhim_comm);
-	}
-        
-        // Unpack data by first allocating memory and then extracting the values from message
-	grm->value = NULL;
-        if (grm->value_len && 
-	    (grm->value = (char *)malloc(grm->value_len * sizeof(char))) == NULL) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
-                     "memory to unpack get return message.", md->mdhim_rank);
-		return MDHIM_ERROR; 
-        }
-	if (grm->value) {
-		return_code += MPI_Unpack(message, mesg_size, &mesg_idx, grm->value, grm->value_len,
-					  MPI_CHAR, md->mdhim_comm);
-	}
-
-	// If the unpack did not succeed then log the error and return the error code
-	if ( return_code != MPI_SUCCESS ) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to unpack "
-                     "the get return message.", md->mdhim_rank);
 		return MDHIM_ERROR; 
         }
 
@@ -2077,19 +1917,6 @@ void mdhim_full_release_msg(void *msg) {
 	case MDHIM_RECV:
 		free((struct mdhim_rm_t *) msg);
 		break;
-	case MDHIM_RECV_GET:
-		if (((struct mdhim_getrm_t *) msg)->key_len && 
-		    ((struct mdhim_getrm_t *) msg)->key) {
-			free(((struct mdhim_getrm_t *) msg)->key);
-		}	
-
-		if (((struct mdhim_getrm_t *) msg)->value_len && 
-		    ((struct mdhim_getrm_t *) msg)->value) {
-			free(((struct mdhim_getrm_t *) msg)->value);
-		}	
-
-		free((struct mdhim_getrm_t *) msg);
-		break;
 	case MDHIM_RECV_BULK_GET:
 		for (i = 0; i < ((struct mdhim_bgetrm_t *) msg)->num_records; i++) {
 			if (((struct mdhim_bgetrm_t *) msg)->key_lens[i] && 
@@ -2144,12 +1971,6 @@ void mdhim_full_release_msg(void *msg) {
 
 		free((struct mdhim_bputm_t *) msg);
 		break;
-	case MDHIM_GET:
-		if (((struct mdhim_getm_t *) msg)->key) {
-			free(((struct mdhim_getm_t *) msg)->key);
-		}
-		free((struct mdhim_getm_t *) msg);
-		break;
 	default:
 		break;
 	}
@@ -2173,9 +1994,6 @@ void mdhim_partial_release_msg(void *msg) {
 	switch(mtype) {
 	case MDHIM_RECV:
 		free((struct mdhim_rm_t *) msg);
-		break;
-	case MDHIM_RECV_GET:
-		free((struct mdhim_getrm_t *) msg);
 		break;
 	case MDHIM_RECV_BULK_GET:			
 		if (((struct mdhim_bgetrm_t *) msg)->key_lens) {
@@ -2208,9 +2026,6 @@ void mdhim_partial_release_msg(void *msg) {
 		}
 
 		free((struct mdhim_bputm_t *) msg);
-		break;
-	case MDHIM_GET:
-		free((struct mdhim_getm_t *) msg);
 		break;
 	default:
 		break;

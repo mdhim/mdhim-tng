@@ -28,7 +28,7 @@ void add_timing(struct timeval start, struct timeval end, int num,
 	if (mtype == MDHIM_PUT || mtype == MDHIM_BULK_PUT) {
 		md->mdhim_rs->put_time += elapsed;
 		md->mdhim_rs->num_put += num;
-	} else if (mtype == MDHIM_GET || mtype == MDHIM_BULK_GET) {
+	} else if (mtype == MDHIM_BULK_GET) {
 		md->mdhim_rs->get_time += elapsed;
 		md->mdhim_rs->num_get += num;
 	}
@@ -615,169 +615,6 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
 }
 
 /**
- * range_server_get
- * Handles the get message, retrieves the data from the database, and sends the results back
- * 
- * @param md        Pointer to the main MDHIM struct
- * @param gm        pointer to the get message to handle
- * @param source    source of the message
- * @param op        Operation to perform (MDHIM_GET_EQ, MDHIM_GET_NEXT, etc...)
- * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
- */
-int range_server_get(struct mdhim_t *md, struct mdhim_getm_t *gm, int source, int op) {
-	int error = 0;
-	void **value;
-	void **key;
-	int32_t *value_len, key_len;
-	struct mdhim_getrm_t *grm;
-	int ret;
-	struct timeval start, end;
-	int num_retrieved = 0;
-	struct index_t *index;	
-
-	//Initialize pointers and lengths
-	value = malloc(sizeof(void *));
-	value_len = malloc(sizeof(int32_t));
-	*value = NULL;
-	key = malloc(sizeof(void *));
-	*key = NULL;
-	key_len = 0;
-	*value_len = 0;
-
-	//Get the index referenced the message
-	index = find_index(md, (struct mdhim_basem_t *) gm);
-	if (!index) {
-		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, gm->index);
-		error = MDHIM_ERROR;
-		goto done;
-	}
-
-	//Set our local pointer to the key and length
-	if (gm->key_len) {
-		*key = gm->key;
-		key_len = gm->key_len;
-	}
-
-	gettimeofday(&start, NULL);
-	//Get a record from the database
-	switch(op) {
-		// Gets the value for the given key
-	case MDHIM_GET_EQ:
-		if ((ret = 
-		     index->mdhim_store->get(index->mdhim_store->db_handle, 
-					     *key, key_len, value, 
-					     value_len)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get a record", 
-			     md->mdhim_rank);
-			error = ret;
-		}
-	
-		break;
-		/* Gets the next key and value that is in order after the passed in key */
-	case MDHIM_GET_NEXT:	
-		if ((ret = 
-		     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
-						  key, &key_len, value, 
-						  value_len)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
-			     md->mdhim_rank);
-			error = ret;
-		}	
-		break;
-		/* Gets the previous key and value that is in order before the passed in key
-		   or the last key if no key was passed in */
-	case MDHIM_GET_PREV:
-		if ((ret = 
-		     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
-						  key, &key_len, value, 
-						  value_len)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get previous record", 
-			     md->mdhim_rank);
-			error = ret;
-		}
-		break;
-		/* Gets the first key/value */
-	case MDHIM_GET_FIRST:
-		key_len = 0;
-		if ((ret = 
-		     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
-						  key, &key_len, value, 
-						  value_len)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
-			     md->mdhim_rank);
-			error = ret;
-		}
-		break;
-		/* Gets the last key/value */
-	case MDHIM_GET_LAST:
-		key_len = 0;
-		if ((ret = 
-		     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
-						  key, &key_len, value, 
-						  value_len)) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
-			     md->mdhim_rank);
-			error = ret;
-		}
-		break;
-	default:
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Invalid operation: %d given in range_server_get", 
-		     md->mdhim_rank, op);
-		break;
-	}
-
-	if (error == MDHIM_SUCCESS) {
-		num_retrieved = 1;
-	}
-
-	gettimeofday(&end, NULL);
-	add_timing(start, end, num_retrieved, md, MDHIM_GET);
-
-done:
-	//Create the response message
-	grm = malloc(sizeof(struct mdhim_getrm_t));
-	//Set the type
-	grm->mtype = MDHIM_RECV_GET;
-	//Set the operation return code as the error
-	grm->error = error;
-	//Set the server's rank
-	grm->server_rank = md->mdhim_rank;
-	//Set the key and value
-
-	//If we are responding to ourselves, copy the passed in key
-	if (source == md->mdhim_rank && gm->key_len && op == MDHIM_GET_EQ) {
-		//If this message is coming from myself and a key was sent, copy the key
-		grm->key = malloc(key_len);
-		memcpy(grm->key, *key, key_len);
-	}  else {
-		/* Otherwise, just set the pointer to be the key passed in or found 
-		   (depends on the op) */
-		grm->key = *key;
-	}
-
-	//If we aren't responding to ourselves and the op isn't MDHIM_GET_EQ, free the passed in key
-	if (source != md->mdhim_rank && gm->key_len && op != MDHIM_GET_EQ) {
-		free(gm->key);
-		gm->key = NULL;
-		gm->key_len = 0;
-	}
-	
-	grm->key_len = key_len;
-	grm->value = *value;
-	grm->value_len = *value_len;
-
-	//Send response
-	ret = send_locally_or_remote(md, source, grm);
-	free(gm);
-	free(value_len);
-	free(value);
-	free(key);
-
-	return MDHIM_SUCCESS;
-}
-
-/**
  * range_server_bget
  * Handles the bulk get message, retrieves the data from the database, and sends the results back
  * 
@@ -1112,8 +949,6 @@ void *worker_thread(void *data) {
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	work_item *item;
 	int mtype;
-	int op;
-	int num_records;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -1157,21 +992,6 @@ void *worker_thread(void *data) {
 				range_server_bput(md, 
 						  item->message, 
 						  item->source);
-				break;
-			case MDHIM_GET:
-				//Determine the operation passed and call the appropriate function
-				op = ((struct mdhim_getm_t *) item->message)->op;
-				num_records = ((struct mdhim_getm_t *) item->message)->num_records;
-				if (num_records > 1) {
-					range_server_bget_op(md, 
-							 item->message, 
-							 item->source, op);
-				} else {
-					range_server_get(md, 
-							 item->message, 
-							 item->source, op);
-				}
-			
 				break;
 			case MDHIM_BULK_GET:
 				//Determine the operation passed and call the appropriate function

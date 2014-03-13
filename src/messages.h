@@ -9,24 +9,22 @@
 #define MDHIM_PUT 1
 //Put multiple keys in the data store at one time
 #define MDHIM_BULK_PUT 2
-//Get a single key from the data store
-#define MDHIM_GET 3
 //Get multiple keys from the data store at one time
-#define MDHIM_BULK_GET 4
+#define MDHIM_BULK_GET 3
 //Delete a single key from the data store
-#define MDHIM_DEL 5
+#define MDHIM_DEL 4
 //Delete multiple keys from the data store at once
-#define MDHIM_BULK_DEL 6
+#define MDHIM_BULK_DEL 5
 //Close message
-#define MDHIM_CLOSE 7
+#define MDHIM_CLOSE 6
 //Generic receive message
-#define MDHIM_RECV 8
+#define MDHIM_RECV 7
 //Receive message for a get request
-#define MDHIM_RECV_GET 9
+#define MDHIM_RECV_GET 8
 //Receive message for a bulk get request
-#define MDHIM_RECV_BULK_GET 10
+#define MDHIM_RECV_BULK_GET 9
 //Commit message
-#define MDHIM_COMMIT 11
+#define MDHIM_COMMIT 10
 
 /* Operations for getting a key/value */
 //Get the value for the specified key
@@ -166,20 +164,6 @@ struct mdhim_rm_t {
 	int error;
 };
 
-/* Get receive message */
-struct mdhim_getrm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
-	int error;
-	void *key;
-	int key_len;
-	void *value;
-	int value_len;
-};
-
 /* Bulk get receive message */
 struct mdhim_bgetrm_t {
 	int mtype;
@@ -226,9 +210,7 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **send
 int unpack_get_message(struct mdhim_t *md, void *message, int mesg_size, void **gm);
 int unpack_bget_message(struct mdhim_t *md, void *message, int mesg_size, void **bgm);
 
-int pack_getrm_message(struct mdhim_t *md, struct mdhim_getrm_t *grm, void **sendbuf, int *sendsize);
 int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void **sendbuf, int *sendsize);
-int unpack_getrm_message(struct mdhim_t *md, void *message, int mesg_size, void **grm);
 int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, void **bgrm);
 
 int pack_del_message(struct mdhim_t *md, struct mdhim_delm_t *dm, void **sendbuf, int *sendsize);

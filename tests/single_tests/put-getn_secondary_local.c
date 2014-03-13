@@ -4,14 +4,16 @@
 #include "mpi.h"
 #include "mdhim.h"
 
+#define SECONDARY_SLICE_SIZE 5
+
 int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	int key;
+	int key, secondary_key;
 	int value;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
 	int i;
 	int keys_per_rank = 100;
 	char     *db_path = "./";
@@ -21,7 +23,8 @@ int main(int argc, char **argv) {
 	int db_type = LEVELDB; //(data_store.h) 
 	struct timeval start_tv, end_tv;
 	unsigned totaltime;
-	struct index_t *secondary_index;
+	struct index_t *secondary_local_index;
+	struct secondary_info *secondary_info;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -49,41 +52,31 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 
+
 	//Put the keys and values
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
-		rm = mdhimPut(md, md->primary_index, 
-			      &key, sizeof(key), 
-			      &value, sizeof(value));
-		if (!rm || rm->error) {
+		secondary_key = md->mdhim_rank + i + 1;
+
+		//Create a secondary index on only one range server
+		secondary_local_index = create_local_index(md, LEVELDB, 
+							   MDHIM_INT_KEY);
+		secondary_info = mdhimCreateSecondaryInfo(NULL, NULL, 0,
+							  secondary_local_index, &secondary_key, 
+							  sizeof(secondary_key));
+		brm = mdhimPut(md, &key, sizeof(key), 
+			       &value, sizeof(value), secondary_info);
+		if (!brm || brm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
 			printf("Rank: %d put key: %d with value: %d\n", md->mdhim_rank, key, value);
 		}
 
-		mdhim_full_release_msg(rm);
+		mdhim_full_release_msg(brm);
 	}
 
-	//Create a secondary index on only one range server
-	secondary_index = create_local_index(md, LEVELDB, 
-					     MDHIM_INT_KEY, 2, 
-					     md->primary_index->id);
 
-	//Put the secondary keys and values
-	for (i = 0; i < keys_per_rank; i++) {
-		key = md->mdhim_rank + i + 1;
-		value = keys_per_rank * md->mdhim_rank + i;		
-		rm = mdhimPut(md, secondary_index, 
-			      &key, sizeof(key), 
-			      &value, sizeof(value));
-		
-		if (!rm || rm->error) {
-			printf("Error inserting key/value into MDHIM\n");
-		} else {
-			printf("Successfully inserted key/value into MDHIM\n");
-		}
-	}
 
 	//Commit the database
 	ret = mdhimCommit(md, md->primary_index);
@@ -102,7 +95,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Get the stats for the secondary index
-	ret = mdhimStatFlush(md, secondary_index);
+	ret = mdhimStatFlush(md, secondary_local_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error getting stats\n");
 	} else {
@@ -113,19 +106,19 @@ int main(int argc, char **argv) {
 	for (i = 0; i < keys_per_rank; i++) {
 		value = 0;
 		key = md->mdhim_rank + i;
-		grm = mdhimGet(md, secondary_index, 
+		bgrm = mdhimGet(md, secondary_local_index, 
 			       &key, sizeof(int), MDHIM_GET_NEXT);				
-		if (!grm || grm->error) {
+		if (!bgrm || bgrm->error) {
 			printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
 			       md->mdhim_rank, key);
-		} else if (grm->key && grm->value) {
+		} else if (bgrm->keys[0] && bgrm->values[0]) {
 			printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
 			       md->mdhim_rank,
-			       *((int *) grm->key),
-			       *((int *) grm->value));
+			       *((int *) bgrm->keys[0]),
+			       *((int *) bgrm->values[0]));
 		}
 
-		mdhim_full_release_msg(grm);
+		mdhim_full_release_msg(bgrm);
 	}
 
 	ret = mdhimClose(md);
