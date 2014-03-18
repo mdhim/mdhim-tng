@@ -48,8 +48,6 @@ struct index_t {
 					    serving this index.  Key is range server number */
 	rangesrv_info *rangesrvs_by_rank; /* Hash table of the range servers 
 					     serving this index.  Key is the rank */
-	rangesrv_info *local_server;      /* Range server serving a local index - 
-					     Only used for a local index */
         //Used to determine the number of range servers which is based in  
         //if myrank % RANGE_SERVER_FACTOR == 0, then myrank is a server
 	int range_server_factor;

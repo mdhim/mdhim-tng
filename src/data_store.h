@@ -43,11 +43,13 @@ typedef int (*mdhim_store_commit_fn_t)(void *db_handle);
 typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats);
 
 //Used for storing stats in a hash table
+struct mdhim_stat;
 struct mdhim_stat {
 	int key;                   //Key (slice number)
 	void *max;                 //Max key
 	void *min;                 //Min key
 	uint64_t num;              //Number of keys in this slice
+	struct mdhim_stat *stats;  //Used for local index stats to create a multi-level hash table
 	UT_hash_handle hh;         /* makes this structure hashable */
 };
 

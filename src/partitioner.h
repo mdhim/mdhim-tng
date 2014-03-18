@@ -61,7 +61,7 @@ long double get_str_num(void *key, uint32_t key_len);
 long double get_byte_num(void *key, uint32_t key_len);
 int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_len);
 int is_float_key(int type);
-rangesrv_list *get_range_server_from_stats(struct mdhim_t *md, struct index_t *index, 
-					   void *key, int key_len, int op);
+rangesrv_list *get_range_servers_from_stats(struct mdhim_t *md, struct index_t *index, 
+					    void *key, int key_len, int op);
 
 #endif

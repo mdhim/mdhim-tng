@@ -49,7 +49,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 	}
 
 	//Set the key type for this database from the options passed
-        md->db_opts = opts;
+	md->db_opts = opts;
 
 	//Dup the communicator passed in for the communicator used for communication 
 	//to and from the range servers
@@ -57,7 +57,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}
-  	//Dup the communicator passed in for barriers between clients
+	//Dup the communicator passed in for barriers between clients
 	if ((ret = MPI_Comm_dup(appComm, &md->mdhim_client_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
@@ -69,7 +69,7 @@ struct mdhim_t *mdhimInit(MPI_Comm appComm, struct mdhim_options_t *opts) {
 		return NULL;
 	}
  
-        //Get the size of the main MDHIM communicator
+	//Get the size of the main MDHIM communicator
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &md->mdhim_comm_size)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error getting the size of the " 
 		     "comm while initializing", 
@@ -187,7 +187,7 @@ int mdhimClose(struct mdhim_t *md) {
 	}
 	free(md->indexes_lock);
 
-       	MPI_Barrier(md->mdhim_client_comm);
+	MPI_Barrier(md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_comm);
 	free(md);
@@ -245,11 +245,11 @@ int mdhimCommit(struct mdhim_t *md, struct index_t *index) {
  * @return mdhim_brm_t * or NULL on error
  */
 struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
-			    /*Primary key */
-			    void *primary_key, int primary_key_len,  
-			    void *value, int value_len,
-			    /* Optional secondary global and local keys */
-			    struct secondary_info *sec_info) {
+			     /*Primary key */
+			     void *primary_key, int primary_key_len,  
+			     void *value, int value_len,
+			     /* Optional secondary global and local keys */
+			     struct secondary_info *sec_info) {
 
 	//Return message list
 	struct mdhim_brm_t *head, *new;
@@ -365,14 +365,14 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md,
  *
  * @param md main MDHIM struct
  * @param key       pointer to key to get value of or last key to start from if op is 
-                    (MDHIM_GET_NEXT or MDHIM_GET_PREV)
+ (MDHIM_GET_NEXT or MDHIM_GET_PREV)
  * @param key_len   the length of the key
  * @param op        the operation type
  * @return mdhim_getrm_t * or NULL on error
  */
 struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
-				     void *key, int key_len, 
-				     int op) {
+				void *key, int key_len, 
+				int op) {
 
 	void **keys;
 	int *key_lens;
@@ -392,7 +392,7 @@ struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 	key_lens[0] = key_len;
 
 	//Get the linked list of return messages from mdhimBGet
-	bgrm_head = _bget_records(md, index, keys, key_lens, 1, op);
+	bgrm_head = _bget_records(md, index, keys, key_lens, 1, 1, op);
 
 	//Clean up
 	free(keys);
@@ -412,7 +412,7 @@ struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
  */
 struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 				 void **keys, int *key_lens, 
-				 int num_records, int op) {
+				 int num_keys, int op) {
 	struct mdhim_bgetrm_t *bgrm_head, *lbgrm;
 	void **primary_keys;
 	int *primary_key_lens, plen;
@@ -427,7 +427,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 	}
 
 	//Check to see that we were given a sane amount of records
-	if (num_records > MAX_BULK_OPS) {
+	if (num_keys > MAX_BULK_OPS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Too many bulk operations requested in mdhimBGet", 
 		     md->mdhim_rank);
@@ -441,26 +441,25 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 		return NULL;
 	}
 
-
-	bgrm_head = _bget_records(md, index, keys, key_lens, num_records, op);
+	bgrm_head = _bget_records(md, index, keys, key_lens, num_keys, 1, op);
 	if (!bgrm_head) {
 		return NULL;
 	}
 
 	if (op == MDHIM_GET_PRIMARY_EQ) {
-		primary_keys = malloc(sizeof(void *) * num_records);
-		primary_key_lens = malloc(sizeof(int) * num_records);
+		primary_keys = malloc(sizeof(void *) * num_keys);
+		primary_key_lens = malloc(sizeof(int) * num_keys);
 		plen = 0;
 
 		//Initialize the primary keys array and key lens array
-		for (i = 0; i < num_records; i++) {
+		for (i = 0; i < num_keys; i++) {
 			primary_keys[i] = NULL;
 		}
-		memset(primary_key_lens, 0, sizeof(int) * num_records);
+		memset(primary_key_lens, 0, sizeof(int) * num_keys);
 		
 		//Get the primary keys from the previously received messages' values
 		while (bgrm_head) {
-			for (i = 0; i < bgrm_head->num_records; i++) {
+			for (i = 0; i < bgrm_head->num_keys; i++) {
 				primary_keys[plen] = malloc(bgrm_head->value_lens[i]);
 				memcpy(primary_keys[plen], bgrm_head->values[i], 
 				       bgrm_head->value_lens[i]);
@@ -477,7 +476,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 		//Get the primary key values
 		bgrm_head = _bget_records(md, primary_index,
 					  primary_keys, primary_key_lens, 
-					  num_records, MDHIM_GET_EQ);
+					  num_keys, 1, MDHIM_GET_EQ);
 
 		//Free up the primary keys and lens arrays
 		for (i = 0; i < plen; i++) {
@@ -491,6 +490,7 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 	//Return the head of the list
 	return bgrm_head;
 }
+
 
 /**
  * Retrieves multiple sequential records from a single range server if they exist
@@ -512,19 +512,12 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
  * @param op           the operation to perform (i.e., MDHIM_GET_NEXT or MDHIM_GET_PREV)
  * @return mdhim_bgetrm_t * or NULL on error
  */
-struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
+struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index, 
 				   void *key, int key_len, 
 				   int num_records, int op) {
-	struct mdhim_bgetrm_t *bgrm_head;
 	void **keys;
 	int *key_lens;
-
-	if (op == MDHIM_GET_EQ || op == MDHIM_GET_PRIMARY_EQ) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Invalid operation for mdhimBGetOp", 
-		     md->mdhim_rank);
-		return NULL;
-	}
+	struct mdhim_bgetrm_t *bgrm_head;
 
 	if (num_records > MAX_BULK_OPS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
@@ -533,12 +526,23 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
 		return NULL;
 	}
 
+	if (op == MDHIM_GET_EQ || op == MDHIM_GET_PRIMARY_EQ) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Invalid op specified for mdhimGet", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	//Create an a array with the single key and key len passed in
 	keys = malloc(sizeof(void *));
 	key_lens = malloc(sizeof(int));
 	keys[0] = key;
 	key_lens[0] = key_len;
-	bgrm_head = _bget_records(md, index, keys, key_lens, 
-				  1, op);
+
+	//Get the linked list of return messages from mdhimBGet
+	bgrm_head = _bget_records(md, index, keys, key_lens, 1, num_records, op);
+
+	//Clean up
 	free(keys);
 	free(key_lens);
 
@@ -554,7 +558,7 @@ struct mdhim_bgetrm_t *mdhimBGetOp(struct mdhim_t *md, struct index_t *index,
  * @return mdhim_rm_t * or NULL on error
  */
 struct mdhim_brm_t *mdhimDelete(struct mdhim_t *md, struct index_t *index, 
-			       void *key, int key_len) {
+				void *key, int key_len) {
 	struct mdhim_brm_t *brm_head;
 	void **keys;
 	int *key_lens;

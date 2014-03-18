@@ -4,7 +4,7 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define SECONDARY_SLICE_SIZE 5
+#define SECONDARY_SLICE_SIZE 6
 
 int main(int argc, char **argv) {
 	int ret;
@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 	int keys_per_rank = 100;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_CRIT;
+	int      dbug = MLOG_DBG;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; //(data_store.h) 
 	struct timeval start_tv, end_tv;
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
 		//Create the secondary info struct
-		secondary_key = md->mdhim_rank + i;
+		secondary_key = md->mdhim_rank + i + 1;
 		secondary_info = mdhimCreateSecondaryInfo(secondary_index,
 							  &secondary_key, sizeof(secondary_key),
 							  NULL, NULL, 0);

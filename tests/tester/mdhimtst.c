@@ -974,8 +974,8 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 			ret = 1;
 		}
 
-		totRecds += bgrmp->num_records;
-		for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++)
+		totRecds += bgrmp->num_keys;
+		for (i = 0; i < bgrmp->num_keys && bgrmp->error >= 0; i++)
 		{
 			if ( v_value != NULL ) 
 				sprintf(buffer, "%s_%d", v_value, i + 1); //Value to verify
@@ -1109,7 +1109,7 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 	}
 	else if (verbose)
 	{
-		for (i = 0; i < bgrm->num_records && !bgrm->error; i++)
+		for (i = 0; i < bgrm->num_keys && !bgrm->error; i++)
 		{			
 			tst_say(0, "Rank: %d - Got value[%d]: %s for start key: %s from MDHIM\n", 
 				md->mdhim_rank, i, expand_escapes(bgrm->values[i], bgrm->value_lens[i]), 
@@ -1119,7 +1119,7 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 	else
 	{
 		tst_say(0, "Rank: %d - Successfully got %d values for start key: %s from MDHIM\n", 
-			md->mdhim_rank, bgrm->num_records, key_string);
+			md->mdhim_rank, bgrm->num_keys, key_string);
 	}
     
 	//Free the message received

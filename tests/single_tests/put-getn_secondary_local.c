@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 	int keys_per_rank = 100;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_CRIT;
+	int      dbug = MLOG_DBG;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; //(data_store.h) 
 	struct timeval start_tv, end_tv;

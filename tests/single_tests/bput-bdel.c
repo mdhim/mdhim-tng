@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
 			printf("Rank: %d - Error retrieving values\n", md->mdhim_rank);
 		}
 
-		for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++) {
+		for (i = 0; i < bgrmp->num_keys && bgrmp->error >= 0; i++) {
 		
 			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
 			       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);

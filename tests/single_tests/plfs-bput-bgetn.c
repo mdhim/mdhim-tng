@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
 		}
 	
 		//Validate that the data retrieved is the correct data
-		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {						
+		for (i = 0; i < bgrm->num_keys && !bgrm->error; i++) {						
 			assert(*(uint64_t *)bgrm->keys[i] == *keys[i]);
 			assert(*(int *)bgrm->values[i] == *values[i]);
 		}

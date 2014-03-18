@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
 			}
 	
 			//Validate that the data retrieved is the correct data
-			for (i = 0; i < bgrmp->num_records && !bgrmp->error; i++) {   				
+			for (i = 0; i < bgrmp->num_keys && !bgrmp->error; i++) {   				
 				if (!bgrmp->value_lens[i]) {
 					printf("Rank: %d - Got an empty value for key: %llu", 
 					       md->mdhim_rank, *(long long unsigned int *)bgrmp->keys[i]);

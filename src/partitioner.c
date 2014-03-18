@@ -571,10 +571,12 @@ int get_slice_from_istat(struct mdhim_t *md, struct index_t *index,
 	case MDHIM_GET_NEXT:
 		if (cur_stat && *(uint64_t *)cur_stat->max > istat && 
 		    *(uint64_t *)cur_stat->min <= istat) {
+			mlog(MDHIM_CLIENT_CRIT, "istat is: %lu and slice is: %d\n", istat, cur_slice);
 			slice_num = cur_slice;
 			goto done;
 		} else {		
 			new_stat = get_next_slice_stat(md, index, cur_slice);
+			mlog(MDHIM_CLIENT_CRIT, "istat is: %lu and new slice is: %d\n", istat, new_stat->key);
 			goto new_stat;
 		}
 
@@ -614,78 +616,160 @@ new_stat:
 	}
 }
 
+/* Iterate through the multi-level hash table in index->stats to find the range servers
+   that could have the key */
 rangesrv_list *get_rangesrvs_from_istat(struct mdhim_t *md, struct index_t *index, 
-					uint64_t istat) {
-	struct mdhim_stat *cur_stat, *tmp;
+					uint64_t istat, int op) {
+	struct mdhim_stat *cur_rank, *cur_stat, *tmp, *tmp2;
 	rangesrv_list *head, *lp, *entry;
+	int slice_num = 0;
+	unsigned int num_slices;
+	unsigned int i;
 
 	if (!index->stats) {
 		return 0;
 	}
 
-	cur_stat = NULL;
+	cur_stat = cur_rank = NULL;
 	head = lp = entry = NULL;
-	HASH_ITER(hh, index->stats, cur_stat, tmp) {
-		if (cur_stat->num <= 0) {
-			continue;
-		}
+	HASH_ITER(hh, index->stats, cur_rank, tmp) {
+		num_slices = HASH_COUNT(cur_rank->stats);
+		i = 0;
+		HASH_ITER(hh, cur_rank->stats, cur_stat, tmp2) {
+			if (cur_stat->num <= 0) {
+				continue;
+			}
+			
+			slice_num = -1;
+			switch(op) {
+			case MDHIM_GET_NEXT:
+				if (cur_stat && *(uint64_t *)cur_stat->max > istat && 
+				    *(uint64_t *)cur_stat->min <= istat) {
+					slice_num = cur_stat->key;
+				} 
+				break;
+			case MDHIM_GET_PREV:
+				if (cur_stat && *(uint64_t *)cur_stat->min < istat && 
+				    *(uint64_t *)cur_stat->max >= istat ) {
+					slice_num = cur_stat->key;
+				} 
+				
+				break;
+			case MDHIM_GET_FIRST:
+				if (!i) {
+					slice_num = cur_stat->key;
+				}
+				break;
+			case MDHIM_GET_LAST:
+				if (i == num_slices - 1) {
+					slice_num = cur_stat->key;
+				}
+				break;
+			default:
+				slice_num = 0;
+				break;
+			}
+			
+			if (slice_num < 0) {
+				continue;
+			}
 
-		if (*(uint64_t *)cur_stat->min > istat || 
-		    *(uint64_t *)cur_stat->max < istat) {
-			continue;
-		}
+			entry = malloc(sizeof(rangesrv_list));
+			memset(entry, 0, sizeof(rangesrv_list));
+			HASH_FIND_INT(index->rangesrvs_by_rank, &cur_rank->key, entry->ri);
+			if (!entry->ri) {
+				free(entry);
+				continue;
+			}
 
-		entry = malloc(sizeof(rangesrv_list));
-		HASH_FIND_INT(index->rangesrvs_by_rank, &cur_stat->key, entry->ri);
-		if (!entry->ri) {
-			free(entry);
-			continue;
-		}
+			printf("Got rank: %d\n", entry->ri->rank);
+			if (!head) {
+				lp = head = entry;				
+			} else {
+				lp->next = entry;
+				lp = lp->next;
+			}
 
-		if (!head) {
-			lp = head = entry;				
-		} else {
-			lp->next = entry;
-			lp = lp->next;
+			break;
 		}
 	}
 
 	return head;
 }
 
+/* Iterate through the multi-level hash table in index->stats to find the range servers 
+   that could have the key */
 rangesrv_list *get_rangesrvs_from_fstat(struct mdhim_t *md, struct index_t *index, 
-					long double fstat) {
-	struct mdhim_stat *cur_stat, *tmp;
+					long double fstat, int op) {
+	struct mdhim_stat *cur_rank, *cur_stat, *tmp, *tmp2;
 	rangesrv_list *head, *lp, *entry;
+	int slice_num = 0;
+	unsigned int num_slices;
+	unsigned int i;
 
 	if (!index->stats) {
 		return 0;
 	}
 
-	cur_stat = NULL;
+	cur_stat = cur_rank = NULL;
 	head = lp = entry = NULL;
-	HASH_ITER(hh, index->stats, cur_stat, tmp) {
-		if (cur_stat->num <= 0) {
-			continue;
-		}
+	HASH_ITER(hh, index->stats, cur_rank, tmp) {
+		num_slices = HASH_COUNT(cur_rank->stats);
+		i = 0;
+		HASH_ITER(hh, cur_rank->stats, cur_stat, tmp2) {
+			if (cur_stat->num <= 0) {
+				continue;
+			}
+			
+			slice_num = -1;
+			switch(op) {
+			case MDHIM_GET_NEXT:
+				if (cur_stat && *(long double *)cur_stat->max > fstat && 
+				    *(long double *)cur_stat->min <= fstat) {
+					slice_num = cur_stat->key;
+				} 
+				break;
+			case MDHIM_GET_PREV:
+				if (cur_stat && *(long double *)cur_stat->min < fstat && 
+				    *(long double *)cur_stat->max >= fstat ) {
+					slice_num = cur_stat->key;
+				} 
+				
+				break;
+			case MDHIM_GET_FIRST:
+				if (!i) {
+					slice_num = cur_stat->key;
+				}
+				break;
+			case MDHIM_GET_LAST:
+				if (i == num_slices - 1) {
+					slice_num = cur_stat->key;
+				}
+				break;
+			default:
+				slice_num = 0;
+				break;
+			}
+			
+			if (slice_num < 0) {
+				continue;
+			}
 
-		if (*(long double *)cur_stat->min > fstat || 
-		    *(long double *)cur_stat->max < fstat) {
-			continue;
-		}
+			entry = malloc(sizeof(rangesrv_list));
+			HASH_FIND_INT(index->rangesrvs_by_rank, &cur_rank->key, entry->ri);
+			if (!entry->ri) {
+				free(entry);
+				continue;
+			}
 
-		entry = malloc(sizeof(rangesrv_list));
-		HASH_FIND_INT(index->rangesrvs_by_rank, &cur_stat->key, entry->ri);
-		if (!entry->ri) {
-			free(entry);
-			continue;
-		}
+			if (!head) {
+				lp = head = entry;				
+			} else {
+				lp->next = entry;
+				lp = lp->next;
+			}
 
-		if (!head) {
-			lp = head = entry;				
-		} else {
-			lp->next = entry;
-			lp = lp->next;
+			break;
 		}
 	}
 
@@ -702,8 +786,8 @@ rangesrv_list *get_rangesrvs_from_fstat(struct mdhim_t *md, struct index_t *inde
  * @param op        operation type (
  * @return the rank of the range server or NULL on error
  */
-rangesrv_list *get_range_server_from_stats(struct mdhim_t *md, struct index_t *index,
-					   void *key, int key_len, int op) {
+rangesrv_list *get_range_servers_from_stats(struct mdhim_t *md, struct index_t *index,
+					    void *key, int key_len, int op) {
 	//The number that maps a key to range server (dependent on key type)
 	int slice_num, cur_slice;
 	//The range server number that we return
@@ -778,9 +862,9 @@ rangesrv_list *get_range_server_from_stats(struct mdhim_t *md, struct index_t *i
 		_add_to_rangesrv_list(&rl, ret_rp);
 	} else {
 		if (float_type) {
-			rl = get_rangesrvs_from_fstat(md, index, fstat);
+			rl = get_rangesrvs_from_fstat(md, index, fstat, op);
 		} else {	
-			rl = get_rangesrvs_from_istat(md, index, istat);
+			rl = get_rangesrvs_from_istat(md, index, istat, op);
 		}	       
 	}
 

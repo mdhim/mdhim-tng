@@ -345,9 +345,9 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	struct index_t *index;
 
 	gettimeofday(&start, NULL);
-	exists = malloc(bim->num_records * sizeof(int));
-	new_values = malloc(bim->num_records * sizeof(void *));
-	new_value_lens = malloc(bim->num_records * sizeof(int));
+	exists = malloc(bim->num_keys * sizeof(int));
+	new_values = malloc(bim->num_keys * sizeof(void *));
+	new_value_lens = malloc(bim->num_keys * sizeof(int));
 	value = malloc(sizeof(void *));
 	value_len = malloc(sizeof(int32_t));
 
@@ -361,7 +361,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	}
 
 	//Iterate through the arrays and insert each record
-	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {	
+	for (i = 0; i < bim->num_keys && i < MAX_BULK_OPS; i++) {	
 		*value = NULL;
 		*value_len = 0;
 
@@ -404,15 +404,15 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	if ((ret = 
 	     index->mdhim_store->batch_put(index->mdhim_store->db_handle, 
 					   bim->keys, bim->key_lens, new_values, 
-					   new_value_lens, bim->num_records)) != MDHIM_SUCCESS) {
+					   new_value_lens, bim->num_keys)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error batch putting records", 
 		     md->mdhim_rank);
 		error = ret;
 	} else {
-		num_put = bim->num_records;
+		num_put = bim->num_keys;
 	}
 
-	for (i = 0; i < bim->num_records && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bim->num_keys && i < MAX_BULK_OPS; i++) {
 		//Update the stats if this key didn't exist before
 		if (!exists[i] && error == MDHIM_SUCCESS) {
 			update_all_stats(md, index, bim->keys[i], bim->key_lens[i]);
@@ -535,7 +535,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	}
 
 	//Iterate through the arrays and delete each record
-	for (i = 0; i < bdm->num_records && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < bdm->num_keys && i < MAX_BULK_OPS; i++) {
 		//Put the record in the database
 		if ((ret = 
 		     index->mdhim_store->del(index->mdhim_store->db_handle, 
@@ -635,9 +635,9 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	struct index_t *index;
 
 	gettimeofday(&start, NULL);
-	values = malloc(sizeof(void *) * bgm->num_records);
-	value_lens = malloc(sizeof(int32_t) * bgm->num_records);
-	memset(value_lens, 0, sizeof(int32_t) * bgm->num_records);
+	values = malloc(sizeof(void *) * bgm->num_keys);
+	value_lens = malloc(sizeof(int32_t) * bgm->num_keys);
+	memset(value_lens, 0, sizeof(int32_t) * bgm->num_keys);
 
 	//Get the index referenced the message
 	index = find_index(md, (struct mdhim_basem_t *) bgm);
@@ -649,20 +649,87 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	}
 
 	//Iterate through the arrays and get each record
-	for (i = 0; i < bgm->num_records && i < MAX_BULK_OPS; i++) {
-	  //Get records from the database
-		if ((ret = 
-		     index->mdhim_store->get(index->mdhim_store->db_handle, 
-					     bgm->keys[i], bgm->key_lens[i], &values[i], 
-					     &value_lens[i])) != MDHIM_SUCCESS) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
-			error = ret;
-			value_lens[i] = 0;
-			values[i] = NULL;
-			continue;
-		}
+	for (i = 0; i < bgm->num_keys && i < MAX_BULK_OPS; i++) {
+		switch(bgm->op) {
+			// Gets the value for the given key
+		case MDHIM_GET_EQ:
+			//Get records from the database
+			if ((ret = 
+			     index->mdhim_store->get(index->mdhim_store->db_handle, 
+						     bgm->keys[i], bgm->key_lens[i], &values[i], 
+						     &value_lens[i])) != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
+				error = ret;
+				value_lens[i] = 0;
+				values[i] = NULL;
+				continue;
+			}
+			
+			break;
+			/* Gets the next key and value that is in order after the passed in key */
+		case MDHIM_GET_NEXT:	
+			if ((ret = 
+			     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
+							  &bgm->keys[i], &bgm->key_lens[i], &values[i], 
+							  &value_lens[i])) != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
+				error = ret;
+				value_lens[i] = 0;
+				values[i] = NULL;
+				continue;
+			}
+			
+			break;
+			/* Gets the previous key and value that is in order before the passed in key
+			   or the last key if no key was passed in */
+		case MDHIM_GET_PREV:
+			if ((ret = 
+			     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
+							  &bgm->keys[i], &bgm->key_lens[i], &values[i], 
+							  &value_lens[i])) != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
+				error = ret;
+				value_lens[i] = 0;
+				values[i] = NULL;
+				continue;
+			}
 
-		num_retrieved++;
+			break;
+			/* Gets the first key/value */
+		case MDHIM_GET_FIRST:
+			if ((ret = 
+			     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
+							  &bgm->keys[i], 0, &values[i], 
+							  &value_lens[i])) != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
+				error = ret;
+				value_lens[i] = 0;
+				values[i] = NULL;
+				continue;
+			}
+
+			break;
+			/* Gets the last key/value */
+		case MDHIM_GET_LAST:
+			if ((ret = 
+			     index->mdhim_store->get_prev(index->mdhim_store->db_handle, 
+							  &bgm->keys[i], 0, &values[i], 
+							  &value_lens[i])) != MDHIM_SUCCESS) {
+				mlog(MDHIM_SERVER_DBG, "Rank: %d - Error getting record", md->mdhim_rank);
+				error = ret;
+				value_lens[i] = 0;
+				values[i] = NULL;
+				continue;
+			}
+
+			break;
+		default:
+			mlog(MDHIM_SERVER_DBG, "Rank: %d - Invalid operation: %d given in range_server_get", 
+			     md->mdhim_rank, bgm->op);
+			continue;
+		}	  
+
+		num_retrieved++;			
 	}
 
 	gettimeofday(&end, NULL);
@@ -680,9 +747,9 @@ done:
 	//Set the key and value
 	if (source == md->mdhim_rank) {
 		//If this message is coming from myself, copy the keys
-		bgrm->key_lens = malloc(bgm->num_records * sizeof(int));		
-		bgrm->keys = malloc(bgm->num_records * sizeof(void *));
-		for (i = 0; i < bgm->num_records; i++) {
+		bgrm->key_lens = malloc(bgm->num_keys * sizeof(int));		
+		bgrm->keys = malloc(bgm->num_keys * sizeof(void *));
+		for (i = 0; i < bgm->num_keys; i++) {
 			bgrm->key_lens[i] = bgm->key_lens[i];
 			bgrm->keys[i] = malloc(bgrm->key_lens[i]);
 			memcpy(bgrm->keys[i], bgm->keys[i], bgrm->key_lens[i]);
@@ -697,7 +764,7 @@ done:
 
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
-	bgrm->num_records = bgm->num_records;
+	bgrm->num_keys = bgm->num_keys;
 	bgrm->index = index->id;
 	bgrm->index_type = index->type;
 
@@ -738,13 +805,13 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 	struct index_t *index;
 
 	//Initialize pointers and lengths
-	values = malloc(sizeof(void *) * gm->num_records);
-	value_lens = malloc(sizeof(int32_t) * gm->num_records);
-	memset(value_lens, 0, sizeof(int32_t) * gm->num_records);
-	keys = malloc(sizeof(void *) * gm->num_records);
-	memset(keys, 0, sizeof(void *) * gm->num_records);
-	key_lens = malloc(sizeof(int32_t) * gm->num_records);
-	memset(key_lens, 0, sizeof(int32_t) * gm->num_records);
+	values = malloc(sizeof(void *) * gm->num_keys);
+	value_lens = malloc(sizeof(int32_t) * gm->num_keys);
+	memset(value_lens, 0, sizeof(int32_t) * gm->num_keys);
+	keys = malloc(sizeof(void *) * gm->num_keys);
+	memset(keys, 0, sizeof(void *) * gm->num_keys);
+	key_lens = malloc(sizeof(int32_t) * gm->num_keys);
+	memset(key_lens, 0, sizeof(int32_t) * gm->num_keys);
 	get_key = malloc(sizeof(void *));
 	*get_key = NULL;
 	get_key_len = malloc(sizeof(int32_t));
@@ -764,7 +831,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_getm_t *gm, int source
 
 	gettimeofday(&start, NULL);
 	//Iterate through the arrays and get each record
-	for (i = 0; i < gm->num_records && i < MAX_BULK_OPS; i++) {
+	for (i = 0; i < gm->num_keys && i < MAX_BULK_OPS; i++) {
 		keys[i] = NULL;
 		key_lens[i] = 0;
 
@@ -875,7 +942,7 @@ respond:
 	//Set the key and value
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
-	bgrm->num_records = num_records;
+	bgrm->num_keys = num_records;
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
 
@@ -949,6 +1016,7 @@ void *worker_thread(void *data) {
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	work_item *item;
 	int mtype;
+	int op, num_records, num_keys;
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -994,10 +1062,20 @@ void *worker_thread(void *data) {
 						  item->source);
 				break;
 			case MDHIM_BULK_GET:
-				//Determine the operation passed and call the appropriate function
-				range_server_bget(md, 
-						  item->message, 
-						  item->source);
+				op = ((struct mdhim_bgetm_t *) item->message)->op;
+				num_records = ((struct mdhim_bgetm_t *) item->message)->num_recs;
+				num_keys = ((struct mdhim_bgetm_t *) item->message)->num_keys;
+				//The client is sending one key, but requesting the retrieval of more than one
+				if (num_records > 1 && num_keys == 1) {
+					range_server_bget_op(md, 
+							     item->message, 
+							     item->source, op);
+				} else {
+					range_server_bget(md, 
+							  item->message, 
+							  item->source);
+				}
+
 				break;
 			case MDHIM_DEL:
 				range_server_del(md, item->message, item->source);

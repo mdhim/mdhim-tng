@@ -89,7 +89,7 @@ struct mdhim_bputm_t {
 	int *key_lens;
 	void **values;
 	int *value_lens;
-	int num_records;
+	int num_keys;
 };
 
 /* Get record message */
@@ -107,7 +107,7 @@ struct mdhim_getm_t {
 	void *key;
 	//The length of the key
 	int key_len;
-	int num_records;
+	int num_keys;
 };
 
 /* Bulk get record message */
@@ -121,8 +121,10 @@ struct mdhim_bgetm_t {
 	int op;
 	void **keys;
 	int *key_lens;
-        //Number of records to retrieve
-	int num_records;
+        int num_keys;
+
+        //Number of records to retrieve per key given
+	int num_recs;
 };
 
 /* Delete message */
@@ -145,7 +147,7 @@ struct mdhim_bdelm_t {
 	int index_type;
 	void **keys;
 	int *key_lens;
-	int num_records;
+	int num_keys;
 };
 
 /* Range server info message */
@@ -176,7 +178,7 @@ struct mdhim_bgetrm_t {
 	int *key_lens;
 	void **values;
 	int *value_lens;
-	int num_records;
+	int num_keys;
 	struct mdhim_bgetrm_t *next;
 };
 
