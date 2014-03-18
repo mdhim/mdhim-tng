@@ -1758,7 +1758,7 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->num_put = 0;
 	md->mdhim_rs->num_get = 0;
 	//Initialize work queue
-	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
+	md->mdhim_rs->work_queue = malloc(sizeof(work_queue_t));
 	md->mdhim_rs->work_queue->head = NULL;
 	md->mdhim_rs->work_queue->tail = NULL;
 

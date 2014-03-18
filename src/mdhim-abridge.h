@@ -26,12 +26,14 @@
 #include "messages_define.h"
 #include "mdhim_define.h"
 #include "data_store_define.h"
-#include "Mlog/mlog.h"
-#include "Mlog/mlogfacs.h"
+#include "Mlog2/mlog2.h"
+#include "Mlog2/mlogfacs2.h"
 
 typedef struct _Mdhim_Ptr Mdhim_Ptr;
 
 struct mdhim_t;
+struct mdhim_rm_t;
+struct mdhim_grm_t;
 
 // pointers to functions
 // MDHIM FUNCTIONS

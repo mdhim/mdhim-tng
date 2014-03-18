@@ -16,10 +16,10 @@ struct work_item {
 	int source;
 };
 
-typedef struct work_queue {
+typedef struct work_queue_t {
 	work_item *head;
 	work_item *tail;
-} work_queue;
+} work_queue_t;
 
 typedef struct rangesrv_info rangesrv_info;
 /* 
@@ -52,7 +52,7 @@ typedef struct mdhim_rs_t {
 	MPI_Comm rs_comm;   
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
-	work_queue *work_queue;
+	work_queue_t *work_queue;
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;
 	pthread_t listener;

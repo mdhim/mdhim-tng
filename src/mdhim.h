@@ -13,16 +13,19 @@
 #include "data_store.h"
 #include "range_server.h"
 #include "messages.h"
-#include "partitioner.h"
-#include "Mlog/mlog.h"
-#include "Mlog/mlogfacs.h"
+//#include "partitioner.h"
+#include "Mlog2/mlog2.h"
+#include "Mlog2/mlogfacs2.h"
 #include "mdhim_options.h"
 
 #define MDHIM_SUCCESS 0
 #define MDHIM_ERROR -1
 #define MDHIM_DB_ERROR -2
 
-
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 /* 
  * mdhim data 
  * Contains client communicator
@@ -82,5 +85,8 @@ struct mdhim_rm_t *mdhimDelete(struct mdhim_t *md, void *key, int key_len);
 struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, void **keys, int *key_lens,
 				 int num_keys);
 void mdhim_release_recv_msg(void *msg);
+#ifdef __cplusplus
+}
+#endif
 #endif
 

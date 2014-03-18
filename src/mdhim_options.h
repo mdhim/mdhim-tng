@@ -8,6 +8,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 /* Append option */
 #define MDHIM_DB_OVERWRITE 0
 #define MDHIM_DB_APPEND 1
@@ -75,5 +79,7 @@ void mdhim_options_set_server_factor(struct mdhim_options_t* opts, int server_fa
 void mdhim_options_set_max_recs_per_slice(struct mdhim_options_t* opts, uint64_t max_recs_per_slice);
 void mdhim_options_set_num_worker_threads(struct mdhim_options_t* opts, int num_wthreads);
 void mdhim_options_destroy(struct mdhim_options_t *opts);
-
+#ifdef __cplusplus
+}
+#endif
 #endif

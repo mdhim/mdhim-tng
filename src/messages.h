@@ -1,6 +1,10 @@
 #ifndef      __MESSAGES_H
 #define      __MESSAGES_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "range_server.h"
 
 /* Message Types */
@@ -220,5 +224,7 @@ void mdhim_partial_release_msg(void *message);
 
 struct rangesrv_info *get_rangesrvs(struct mdhim_t *md);
 int get_stat_flush(struct mdhim_t *md);
-
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,4 +1,5 @@
 #include "mdhim.h"
+#include "partitioner.h"
 #include "data_store.h"
 
 int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, 

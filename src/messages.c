@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <math.h>
 #include "mdhim.h"
+#include "partitioner.h"
 #include "messages.h"
 
 /**

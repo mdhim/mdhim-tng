@@ -3,6 +3,7 @@
 #include <linux/limits.h>
 #include <string.h>
 #include "mpi.h"
+#include "mdhim.h"
 #include "mdhim-abridge.h"
 #include "mdhim_options.h"
 
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
 	int provided = 0;
 	//struct mdhim_t *o_md;
 	struct mdhim_rm_t *rm;
-    //struct mdhim_getrm_t *grm;
+    struct mdhim_getrm_t *grm;
     //    mdhim_options_t *db_opts;
     Mdhim_Ptr *md = new_MDHIM();
 	struct plfs_record *rec = NULL;
@@ -148,7 +149,7 @@ int main(int argc, char **argv) {
 	//Get the values
 	//grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
 	md->mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
-	//grm = (struct mdhim_getrm_t *)md->mdhim_getrm;
+	grm = (struct mdhim_getrm_t *)md->mdhim_getrm;
 	if (!md->mdhim_getrm || grm->error) {
 		printf("Error getting value for key: %llu from MDHIM\n", key);
 	} else {

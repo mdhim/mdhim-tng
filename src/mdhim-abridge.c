@@ -69,6 +69,11 @@ new_MDHIM()
     mdhimObj->getNumRangeServers =    Get_Num_Range_Servers;
     mdhimObj->getRangeServerMaster =  Get_Range_Server_Master;
 
+    mdhimObj->getRmMType =       Get_Rm_Mtype;
+    mdhimObj->getRmServerRank =  Get_Rm_Server_Rank;
+    mdhimObj->getRmSize =        Get_Rm_Size;
+    mdhimObj->getRmError =       Get_Rm_Error;
+
     return mdhimObj;
 }		/* -----  end of function new_MDHIM  ----- */
 
@@ -368,7 +373,7 @@ int
 Get_Rm_Mtype ( Mdhim_Ptr *pmdhim )
 {
     struct mdhim_rm_t *rm;
-    rm = pmdhim->mdhim_rm;
+    rm = (struct mdhim_rm_t *)pmdhim->mdhim_rm;
     return rm->mtype;
 }		/* -----  end of function Get_Rm_Mtype  ----- */
 
@@ -382,20 +387,34 @@ int
 Get_Rm_Server_Rank ( Mdhim_Ptr *pmdhim )
 {
     struct mdhim_rm_t *rm;
-    rm = pmdhim->mdhim_rm;
+    rm = (struct mdhim_rm_t *)pmdhim->mdhim_rm;
     return rm->server_rank;
 }		/* -----  end of function Get_Rm_Server_Rank  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  Get_Rm_Server_Rank
- *  Description:  Return the Server_Rank of the return type
+ *         Name:  Get_Rm_Size
+ *  Description:  Return the Size of the return type
  * =====================================================================================
  */
 int
-Get_Rm_Server_Rank ( Mdhim_Ptr *pmdhim )
+Get_Rm_Size ( Mdhim_Ptr *pmdhim )
+{
+    struct mdhim_rm_t *rm;
+    rm = (struct mdhim_rm_t *)pmdhim->mdhim_rm;
+    return rm->size;
+}		/* -----  end of function Get_Rm_Size  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Get_Rm_Error
+ *  Description:  Return the Error of the return type
+ * =====================================================================================
+ */
+int
+Get_Rm_Error ( Mdhim_Ptr *pmdhim )
 {
     struct mdhim_rm_t *rm;
     rm = pmdhim->mdhim_rm;
-    return rm->server_rank;
-}		/* -----  end of function Get_Rm_Server_Rank  ----- */
+    return rm->error;
+}		/* -----  end of function Get_Rm_Error  ----- */
