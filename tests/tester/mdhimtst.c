@@ -131,6 +131,22 @@ static void tst_say(
     
 }
 
+int check_rank_range(int rank, int init, int final) {
+
+	if (rank >= init && rank <= final) { //printf("\nRank %d is in range between %d and %d\n", rank, init, final); 
+	return 0;}
+	else {//printf("\nRank %d is NOT in range between %d and %d\n", rank, init, final); 
+	return 1;}
+}
+
+int check_rank_mod(int rank, int rmod){
+
+	if ((rank % rmod) ==0){ //printf("\nRank %d is divisible by %d\n", rank, rmod); 
+		return 0;}
+	else{ //printf("\nRank %d is NOT divisible by %d\n", rank, rmod); 
+		return 1; }
+}
+
 static void putChar( int c )
 {
 	static int last = 0;
@@ -415,7 +431,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	char buffer2 [ TEST_BUFLEN ];
 	char key_string [ TEST_BUFLEN ];
 	char value [ TEST_BUFLEN ];
-	int ret;
+	//int ret;
  
 	if (verbose) tst_say(0, "# put key data\n" );
 	charIdx = getWordFromString( command, str_key, charIdx);
@@ -477,7 +493,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	}
     
 	//Commit the database
-	ret = mdhimCommit(md);
+	/*ret = mdhimCommit(md);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "ERROR: rank %d committing put key: %s to MDHIM database\n", 
@@ -486,7 +502,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	else
 	{
 		if (verbose) tst_say(0, "Committed put to MDHIM database\n");
-	}
+	} */
 
 }
 
@@ -803,7 +819,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	}
 
 	//Commit the database
-	ret = mdhimCommit(md);
+	/*ret = mdhimCommit(md);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "ERROR: rank %d committing bput to MDHIM database\n", md->mdhim_rank);
@@ -811,7 +827,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	else
 	{
 		if (verbose) tst_say(0, "Committed bput to MDHIM database\n");
-	}
+	} */
     
 	// Release memory
 	freeKeyValueMem(nkeys, keys, key_lens, values, value_lens);
@@ -1363,11 +1379,11 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 	char *key_string; 
 	char *value;
 	int n_iter, key_len, value_len, rand_str_size;
-	int ret, i;
-
+	int  i;
+	int ret;
 	rm = NULL;
 	key_string = malloc(sizeof(char) * TEST_BUFLEN);
-	ret = 0;
+	//ret = 0;
     
 	if (verbose) tst_say(0, "# nput n key_length data_length exact_size\n" );
     
@@ -1461,7 +1477,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 	}
     
 	//Commit the database
-	ret = mdhimCommit(md);
+	/*ret = mdhimCommit(md);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "ERROR: rank %d committing N put key/value(s) to MDHIM database\n",
@@ -1470,7 +1486,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 	else
 	{
 		if (verbose) tst_say(0, "Committed N put to MDHIM database\n");
-	}
+	} */
 
 }
 
@@ -1557,6 +1573,7 @@ static void execNgetn(char *command, struct mdhim_t *md, int charIdx)
 		else
 			key_string = random_string(key_len, rand_str_size);
 		if (verbose) tst_say(0, "# mdhimGet( %s ) [string|byte]\n", key_string );
+
 		grm = mdhimGet(md, (void *)key_string, strlen(key_string), MDHIM_GET_NEXT);
 		break;
 
@@ -1699,6 +1716,13 @@ int main( int argc, char * argv[] )
     
 	int db_type = LEVELDB; //(data_store.h) 
 
+	//Variables to get range for 
+		char *rs, *rso;  //Holders for strsep 
+		int ri, rf; //Rank range initial and rank range final
+		int rd; //Rank divider
+		//int rdc = 1; //Rank divider control
+		int rrc = 0; //Rank range control
+
 
 	// Process arguments
 	infile = stdin;
@@ -1769,7 +1793,17 @@ int main( int argc, char * argv[] )
 				printf("Quiet to_log file mode || ");
 			}
 			break;
-                
+		case 'r':
+			rs=strdup(&argv[1][2]); 
+			rso = strsep(&rs, "~");
+			ri = atoi(rso);
+			rf = atoi(rs);
+			printf("Range: %d to %d || ", ri, rf);
+			break;
+		case 'w':
+                	rd=atoi(&argv[1][2]); 
+			printf("Range divider : %d ||", rd);
+			break;
 		default:
 			printf("Wrong Argument (it will be ignored): %s\n", argv[1]);
 			usage();
@@ -1835,7 +1869,8 @@ int main( int argc, char * argv[] )
 	/* initialization for random string generation */
 	srand( time( NULL ) + md->mdhim_rank);
 	sc_len = strlen( sourceChars );
-    
+
+	sleep(15);
 	/*
 	 * open the log file (one per rank if in verbose mode, otherwise write to stderr)
 	 */
@@ -1877,6 +1912,7 @@ int main( int argc, char * argv[] )
 	// Main command execute loop
 	for(cmdIdx=0; cmdIdx < cmdTot; cmdIdx++)
 	{
+	
 		memset( command, 0, sizeof( command ));
 		errno = 0;
         
@@ -1884,31 +1920,31 @@ int main( int argc, char * argv[] )
 
 		if (verbose) tst_say(0, "\n##exec command: %s\n", command );
 		gettimeofday(&begin, NULL);
-        
 		// execute the command given
 		if( !strcmp( command, "put" ))
 		{
-			execPut(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execPut(commands[cmdIdx], md, charIdx);
 		}
 		else if( !strcmp( command, "get" ))
 		{
-			execGet(commands[cmdIdx], md, charIdx);
+			
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc)execGet(commands[cmdIdx], md, charIdx);
 		}
 		else if ( !strcmp( command, "bput" ))
 		{
-			execBput(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execBput(commands[cmdIdx], md, charIdx);
 		}
 		else if ( !strcmp( command, "bget" ))
 		{
-			execBget(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execBget(commands[cmdIdx], md, charIdx);
 		}
 		else if( !strcmp( command, "del" ))
 		{
-			execDel(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execDel(commands[cmdIdx], md, charIdx);
 		}
 		else if( !strcmp( command, "bdel" ))
 		{
-			execBdel(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execBdel(commands[cmdIdx], md, charIdx);
 		}
 		else if( !strcmp( command, "flush" ))
 		{
@@ -1916,15 +1952,15 @@ int main( int argc, char * argv[] )
 		}
 		else if( !strcmp( command, "nput" ))
 		{
-			execNput(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execNput(commands[cmdIdx], md, charIdx);
 		}
 		else if( !strcmp( command, "ngetn" ))
 		{
-			execNgetn(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execNgetn(commands[cmdIdx], md, charIdx);
 		}
 		else if( !strcmp( command, "bgetop" ))
 		{
-			execBgetOp(commands[cmdIdx], md, charIdx);
+			if (check_rank_range(md->mdhim_rank, ri, rf)==rrc) execBgetOp(commands[cmdIdx], md, charIdx);
 		}
 		else
 		{
@@ -1950,8 +1986,11 @@ int main( int argc, char * argv[] )
 		tst_say(0, "Seconds to %s : %Lf\n\n", commands[cmdIdx], time_spent);
 	}
     
+	
 	if (errMsgIdx)
 	{
+		
+	
 		int i, errsInCmds = errMsgIdx; // Only list the errors up to now
 		for (i=0; i<MAX_ERR_REPORT && i<errsInCmds; i++)
 			tst_say(1, "==%s", errMsgs[i]);
@@ -1964,7 +2003,7 @@ int main( int argc, char * argv[] )
 	}
     
 	// Calls to finalize mdhim session and close MPI-communication
-	ret = mdhimClose(md);
+	/*if (check_rank_range(md->mdhim_rank, ri, rf) ==rrc)*/ ret = mdhimClose(md);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "Error closing MDHIM\n");

@@ -12,10 +12,11 @@
 #define MYSQLDB_HANDLE 1
 #define MYSQLDB_STAT_HANDLE 2
 
-char *sb_key_copy(char *key_t, int key_len_t) {
-	char *k_copy =  malloc(key_len_t+1);
+char *sb_key_copy(MYSQL *d, char *key_t, int key_len_t) {
+	if (key_len_t ==0) key_len_t = strlen(key_t);
+	char *k_copy =  malloc(2+key_len_t+1);
 		memset(k_copy, 0, key_len_t+1);
-		memcpy(k_copy, key_t, key_len_t);
+	mysql_real_escape_string(d, k_copy, key_t, key_len_t);
 
 	return k_copy;
 	}
@@ -48,6 +49,7 @@ char chunk[2*d_len+1];
 	char *r_query=NULL, *st;
 	switch(pk_type){
 			case MDHIM_STRING_KEY:
+			  //mysql_real_escape_string(pdb, k_chunk, key_t, k_len);
   				st = "Insert INTO %s (Id, Value) VALUES ('%s', '%s');";
  		 		st_len = strlen(st);
   				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
@@ -87,6 +89,7 @@ char chunk[2*d_len+1];
 				snprintf(r_query, st_len + size, st, t_name, *((long*)key_t), chunk);
 			break;
 			case MDHIM_BYTE_KEY:
+				//mysql_real_escape_string(pdb, k_chunk, key_t, k_len);
   				st = "Insert INTO %s (Id, Value) VALUES ('%s', '%s');";
  		 		st_len = strlen(st);
   				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
@@ -383,6 +386,8 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
 	mstore_opts -> db_ptr5 = db_mysql_table;
 	mstore_opts -> db_ptr6 = sdb_mysql_table;
 
+	
+
 	return MDHIM_SUCCESS;
 
 }
@@ -519,7 +524,7 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
 			if (check_er == 1062){
 				memset(query, 0, sizeof(char)*strlen(query));
 				query = update_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, mstore_opts->key_type);
-				printf("\nThis is the query: \n%s\n", query);
+				//printf("\nThis is the query: \n%s\n", query);
 
 			if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
 				//printf("This is the query: %s\n", query);
@@ -594,7 +599,7 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	*data = NULL;
 	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
 		mstore_opts->key_type == MDHIM_BYTE_KEY) {
-		key_copy = sb_key_copy(key, key_len);
+		key_copy = sb_key_copy(db, key, key_len);
 	}
 	
 //Create statement to go through and get the value based upon the key
@@ -637,7 +642,7 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	*data_len = sizeof(row[0]);
 	*data = malloc(*data_len);
 	msl_data = row[0];
-	printf("\nThis is the value: \n%s\n", (char*)msl_data);
+	//printf("\nThis is the value: \n%s\n", (char*)msl_data);
 	memcpy(*data, msl_data, *data_len);
 	mysql_free_result(data_res);
 	return ret;
@@ -777,12 +782,21 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	MYSQL_ROW key_row;
 	char *table_name;
 
+	    /*int i = 0;
+    char hostname[256];
+    gethostname(hostname, sizeof(hostname));
+    printf("PID %d on %s ready for attach\n", getpid(), hostname);
+    fflush(stdout);
+    while (0 == i)
+        sleep(5); */
+
+
 	switch(x->msqht){
 	case MYSQLDB_HANDLE:
 		table_name = (char*)mstore_opts -> db_ptr5;
 		break;
 	case MYSQLDB_STAT_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr6;
+		table_name = "mdhim";//(char*)mstore_opts -> db_ptr6;
 		break;
 	default:
 		goto error;
@@ -794,13 +808,13 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 		char *key_copy;
 	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
 		mstore_opts->key_type == MDHIM_BYTE_KEY ) {
-		if (old_key !=NULL) key_copy = sb_key_copy((char*)old_key, *key_len);
-	}
+		if (old_key) key_copy = sb_key_copy(db, (char*)old_key, *key_len);
+	} 
 	*key = NULL;
 	*key_len = 0;
 	*data = NULL;
 	*data_len = 0;
-
+	
 	//Get the Key from the tables and if there was no old key, use the first one.
 	if (!old_key){
 		snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select min(Id) from %s)", table_name, table_name);
@@ -856,16 +870,20 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 
 	//Allocate data and key to mdhim program
 	if (key_row && *key_row) {
-		*key = malloc(*key_len);
-		memcpy(*key, msl_key, 4);
-		*data = malloc(*data_len);
+		*key = malloc(*key_len+1);
+		memset(*key, 0, *key_len+1);
+		memcpy(*key, msl_key, *key_len);
+		*data = malloc(*data_len+1);
+		memset(*data, 0, *data_len+1);
 		memcpy(*data, msl_data, *data_len);
+		//printf("\nCopied here\n");
 		
 	} else {
 		*key = NULL;
 		*key_len = 0;
 		*data = NULL;
 		*data_len = 0;
+		printf("\nNot Copied here\n");
 	}
 	gettimeofday(&end, NULL);
 	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to get the next record", 
@@ -918,13 +936,12 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 	void *msl_key;
 	char *table_name;
 	//Init the data to return
-
 	gettimeofday(&start, NULL);
 	old_key = *key;
 	char *key_copy;
 	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
 		mstore_opts->key_type == MDHIM_BYTE_KEY) {
-		if (old_key != NULL)key_copy = sb_key_copy((char*)old_key, *key_len);
+		if (old_key) key_copy = sb_key_copy(db, (char*)old_key, *key_len);
 	}
 	//Start with Keys/data being null 
 	*key = NULL;
@@ -1005,9 +1022,11 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 
 	//Allocate data and key to mdhim program
 	if (key_row && *key_row) {
-		*key = malloc(*key_len);
+		*key = malloc(*key_len+1);
+		memset(*key, 0, *key_len+1);
 		memcpy(*key, msl_key,*key_len);
-		*data = malloc(*data_len);
+		*data = malloc(*data_len+1);
+		memset(*data, 0, *data_len+1);
 		memcpy(*data, msl_data, *data_len);
 	} else {
 		*key = NULL;

@@ -29,3 +29,7 @@ Building the Tests
 2. Type: make
 3. If all went well, you have all the tests compiled
 
+Issues
+---------------
+
+With mysql you must remove the manifest file before running mdhim with a new set of paramters.
