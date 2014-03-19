@@ -307,7 +307,7 @@ struct mdhim_bgetrm_t *_bget_records(struct mdhim_t *md, struct index_t *index,
 				bgm->num_recs = num_records;
 				bgm->server_rank = rl->ri->rank;
 				bgm->mtype = MDHIM_BULK_GET;
-				bgm->op = op;
+				bgm->op = (op == MDHIM_GET_PRIMARY_EQ) ? MDHIM_GET_EQ : op;
 				bgm->index = index->id;
 				bgm->index_type = index->type;
 				if (rl->ri->rank != md->mdhim_rank) {

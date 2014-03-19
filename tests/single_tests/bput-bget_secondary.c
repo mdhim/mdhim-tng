@@ -5,10 +5,10 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 1000000
-#define TOTAL_KEYS 1000000
-#define SLICE_SIZE 1000
-#define SECONDARY_SLICE_SIZE 5
+#define KEYS 10000
+#define TOTAL_KEYS 10000
+#define SLICE_SIZE 100000
+#define SECONDARY_SLICE_SIZE 100000
 #define PRIMARY 1
 #define SECONDARY 2
 
@@ -43,12 +43,13 @@ void gen_keys_values(int rank, int total_keys) {
 		/* If we are generating keys for the secondary index, then they should be distributed differently
 		   across the range servers */
 		secondary_keys[i] = malloc(sizeof(uint64_t));
-		*secondary_keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys + SECONDARY_SLICE_SIZE;
+		*secondary_keys[i] = i + rank;
 		key_lens[i] = sizeof(uint64_t);
 		secondary_key_lens[i] = sizeof(uint64_t);
 		values[i] = malloc(sizeof(uint64_t));
 		value_lens[i] = sizeof(uint64_t);
 		*values[i] = rank;
+		secondary_values[i] = malloc(sizeof(uint64_t));
 		//The secondary key's values should be the primary key they refer to
 		*secondary_values[i] =  i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
 	}
@@ -60,6 +61,8 @@ void free_key_values() {
 	for (i = 0; i < KEYS; i++) {
 		free(keys[i]);
 		free(values[i]);
+		free(secondary_keys[i]);
+		free(secondary_values[i]);
 	}
 }
 
@@ -142,7 +145,7 @@ int main(int argc, char **argv) {
 		start_record(&start_tv);	
 		//Insert the primary keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS, NULL);
+				(void **) values, value_lens, KEYS, secondary_info);
 		//Record the end time
 		end_record(&end_tv);
 		//Add the final time
@@ -191,7 +194,6 @@ int main(int argc, char **argv) {
 				 KEYS, MDHIM_GET_PRIMARY_EQ);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
-		free_key_values();
 		bgrmp = bgrm;
 		while (bgrmp) {
 			if (!bgrmp || bgrmp->error) {
@@ -222,7 +224,10 @@ int main(int argc, char **argv) {
 	free(keys);
 	free(values);
 	free(value_lens);
-
+	free(secondary_key_lens);
+	free(secondary_keys);
+	free(secondary_values);
+	free(secondary_value_lens);
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	//Quit MDHIM

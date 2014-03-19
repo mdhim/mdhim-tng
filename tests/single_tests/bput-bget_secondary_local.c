@@ -5,10 +5,10 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 1000000
-#define TOTAL_KEYS 1000000
-#define SLICE_SIZE 1000
-#define SECONDARY_SLICE_SIZE 5
+#define KEYS 10000
+#define TOTAL_KEYS 10000
+#define SLICE_SIZE 100000
+#define SECONDARY_SLICE_SIZE 10000
 #define PRIMARY 1
 #define SECONDARY 2
 
@@ -50,6 +50,7 @@ void gen_keys_values(int rank, int total_keys) {
 		value_lens[i] = sizeof(uint64_t);
 		*values[i] = rank;
 		//The secondary key's values should be the primary key they refer to
+		secondary_values[i] = malloc(sizeof(uint64_t));
 		*secondary_values[i] =  i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
 	}
 }
@@ -60,6 +61,8 @@ void free_key_values() {
 	for (i = 0; i < KEYS; i++) {
 		free(keys[i]);
 		free(values[i]);
+		free(secondary_keys[i]);
+		free(secondary_values[i]);
 	}
 }
 
@@ -217,7 +220,10 @@ int main(int argc, char **argv) {
 	free(keys);
 	free(values);
 	free(value_lens);
-
+	free(secondary_key_lens);
+	free(secondary_keys);
+	free(secondary_values);
+	free(secondary_value_lens);
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	//Quit MDHIM
