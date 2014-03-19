@@ -4,7 +4,7 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define SECONDARY_SLICE_SIZE 5
+#define SLICE_SIZE 10
 
 int main(int argc, char **argv) {
 	int ret;
@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 	int key, secondary_key;
 	int value;
 	struct mdhim_brm_t *brm;
-	struct mdhim_bgetrm_t *bgrm;
+	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 	int i;
 	int keys_per_rank = 100;
 	char     *db_path = "./";
@@ -33,6 +33,8 @@ int main(int argc, char **argv) {
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY);
 	mdhim_options_set_debug_level(db_opts, dbug);
+	mdhim_options_set_max_recs_per_slice(db_opts, SLICE_SIZE);
+        mdhim_options_set_server_factor(db_opts, 4);
 
 	gettimeofday(&start_tv, NULL);
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
@@ -108,17 +110,21 @@ int main(int argc, char **argv) {
 		bgrm = mdhimBGetOp(md, secondary_local_index, 
 				   &key, sizeof(int), 1, 
 				   MDHIM_GET_NEXT);
-		if (!bgrm || bgrm->error) {
-			printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
-			       md->mdhim_rank, key);
-		} else if (bgrm->keys[0] && bgrm->values[0]) {
-			printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
-			       md->mdhim_rank,
-			       *((int *) bgrm->keys[0]),
-			       *((int *) bgrm->values[0]));
-		}
+		while (bgrm) {
+			if (!bgrm || bgrm->error) {
+				printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
+				       md->mdhim_rank, key);
+			} else if (bgrm->keys[0] && bgrm->values[0]) {
+				printf("Rank: %d successfully got key: %d with value: %d from MDHIM\n", 
+				       md->mdhim_rank,
+				       *((int *) bgrm->keys[0]),
+				       *((int *) bgrm->values[0]));
+			}
 
-		mdhim_full_release_msg(bgrm);
+			bgrmp = bgrm;
+			bgrm = bgrm->next;
+			mdhim_full_release_msg(bgrmp);
+		}
 	}
 
 	ret = mdhimClose(md);

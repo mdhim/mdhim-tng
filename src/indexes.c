@@ -1341,6 +1341,9 @@ int get_stat_flush_local(struct mdhim_t *md, struct index_t *index) {
 
 		HASH_FIND_INT(index->stats, &i, tmp);
 		if (!tmp) {
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Adding rank: %d to local index stat data", 
+			     md->mdhim_rank, i);
 			rank_stat = malloc(sizeof(struct mdhim_stat));
 			memset(rank_stat, 0, sizeof(struct mdhim_stat));
 			rank_stat->key = i;
@@ -1379,6 +1382,11 @@ int get_stat_flush_local(struct mdhim_t *md, struct index_t *index) {
 				stat->num = ((struct mdhim_db_istat *)tstat)->num;
 			}
 		  
+			mlog(MPI_CRIT, "Rank: %d - " 
+			     "Adding rank: %d with stat min: %lu, stat max: %lu, stat key: %u num: %lu" 
+			     "to local index stat data", 
+			     md->mdhim_rank, i, *(uint64_t *)stat->min, *(uint64_t *)stat->max, 
+			     stat->key, stat->num);
 			HASH_FIND_INT(rank_stat->stats, &stat->key, tmp);
 			if (!tmp) {
 				HASH_ADD_INT(rank_stat->stats, key, stat); 

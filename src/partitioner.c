@@ -571,12 +571,10 @@ int get_slice_from_istat(struct mdhim_t *md, struct index_t *index,
 	case MDHIM_GET_NEXT:
 		if (cur_stat && *(uint64_t *)cur_stat->max > istat && 
 		    *(uint64_t *)cur_stat->min <= istat) {
-			mlog(MDHIM_CLIENT_CRIT, "istat is: %lu and slice is: %d\n", istat, cur_slice);
 			slice_num = cur_slice;
 			goto done;
 		} else {		
 			new_stat = get_next_slice_stat(md, index, cur_slice);
-			mlog(MDHIM_CLIENT_CRIT, "istat is: %lu and new slice is: %d\n", istat, new_stat->key);
 			goto new_stat;
 		}
 
@@ -644,13 +642,14 @@ rangesrv_list *get_rangesrvs_from_istat(struct mdhim_t *md, struct index_t *inde
 			switch(op) {
 			case MDHIM_GET_NEXT:
 				if (cur_stat && *(uint64_t *)cur_stat->max > istat && 
-				    *(uint64_t *)cur_stat->min <= istat) {
+				    *(uint64_t *)cur_stat->min - 1 <= istat) {
 					slice_num = cur_stat->key;
 				} 
+
 				break;
 			case MDHIM_GET_PREV:
 				if (cur_stat && *(uint64_t *)cur_stat->min < istat && 
-				    *(uint64_t *)cur_stat->max >= istat ) {
+				    *(uint64_t *)cur_stat->max + 1 >= istat ) {
 					slice_num = cur_stat->key;
 				} 
 				
@@ -682,7 +681,6 @@ rangesrv_list *get_rangesrvs_from_istat(struct mdhim_t *md, struct index_t *inde
 				continue;
 			}
 
-			printf("Got rank: %d\n", entry->ri->rank);
 			if (!head) {
 				lp = head = entry;				
 			} else {
@@ -725,13 +723,13 @@ rangesrv_list *get_rangesrvs_from_fstat(struct mdhim_t *md, struct index_t *inde
 			switch(op) {
 			case MDHIM_GET_NEXT:
 				if (cur_stat && *(long double *)cur_stat->max > fstat && 
-				    *(long double *)cur_stat->min <= fstat) {
+				    *(long double *)cur_stat->min - 1.0L <= fstat) {
 					slice_num = cur_stat->key;
 				} 
 				break;
 			case MDHIM_GET_PREV:
 				if (cur_stat && *(long double *)cur_stat->min < fstat && 
-				    *(long double *)cur_stat->max >= fstat ) {
+				    *(long double *)cur_stat->max + 1.0L >= fstat ) {
 					slice_num = cur_stat->key;
 				} 
 				
