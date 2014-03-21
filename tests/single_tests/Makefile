@@ -6,7 +6,7 @@ all:	put-get bput-bget put-del bput-bdel put-getn \
 	bput-bget_secondary put-get_secondary \
 	put-get_secondary_local bput-bget_secondary_local \
 	put-getn_secondary put-getn_secondary_local \
-	put-del_secondary put-getp_secondary
+	put-del_secondary put-getp_secondary put-get_2secondary_local
 
 put-get: put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
@@ -15,6 +15,9 @@ put-get_secondary: put-get_secondary.c
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 put-get_secondary_local: put-get_secondary_local.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
+put-get_2secondary_local: put-get_2secondary_local.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 puts-gets: puts-gets.c 
@@ -67,4 +70,4 @@ clean:
 		bput-bgetp bput-bget_secondary \
 		put-get_secondary put-get_secondary_local \
 		bput-bget_secondary_local put-getn_secondary_local \
-		put-getn_secondary put-del_secondary put-getp_secondary
+		put-getn_secondary put-del_secondary put-getp_secondary put-get_2secondary_local
