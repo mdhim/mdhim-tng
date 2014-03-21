@@ -274,19 +274,23 @@ struct mdhim_bgetrm_t *_bget_records(struct mdhim_t *md, struct index_t *index,
 	for (i = 0; i < num_keys && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
 		if ((op == MDHIM_GET_EQ || op == MDHIM_GET_PRIMARY_EQ) && 
+		    index->type != LOCAL_INDEX &&
 		    (rl = get_range_servers(md, index, keys[i], key_lens[i])) == 
 		    NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBget", 
 			     md->mdhim_rank);
-			continue;
-		} else if (op != MDHIM_GET_EQ && op != MDHIM_GET_PRIMARY_EQ &&
+			free(bgm_list);
+			return NULL;
+		} else if ((index->type == LOCAL_INDEX || 
+			   (op != MDHIM_GET_EQ && op != MDHIM_GET_PRIMARY_EQ)) &&
 			   (rl = get_range_servers_from_stats(md, index, keys[i], key_lens[i], op)) == 
 			   NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBget", 
 			     md->mdhim_rank);
-			continue;
+			free(bgm_list);
+			return NULL;
 		}	   	
 
 		while (rl) {
@@ -316,7 +320,7 @@ struct mdhim_bgetrm_t *_bget_records(struct mdhim_t *md, struct index_t *index,
 					lbgm = bgm;
 				}
 			}
-
+		
 			//Add the key, lengths, and data to the message
 			bgm->keys[bgm->num_keys] = keys[i];
 			bgm->key_lens[bgm->num_keys] = key_lens[i];

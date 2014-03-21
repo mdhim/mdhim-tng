@@ -447,19 +447,35 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 	}
 
 	if (op == MDHIM_GET_PRIMARY_EQ) {
-		primary_keys = malloc(sizeof(void *) * num_keys);
-		primary_key_lens = malloc(sizeof(int) * num_keys);
+		//Get the number of keys/values we received
 		plen = 0;
-
-		//Initialize the primary keys array and key lens array
-		for (i = 0; i < num_keys; i++) {
-			primary_keys[i] = NULL;
+		while (bgrm_head) {
+			for (i = 0; i < bgrm_head->num_keys; i++) {	      
+				plen++;					
+			}
+			
+			bgrm_head = bgrm_head->next;
 		}
-		memset(primary_key_lens, 0, sizeof(int) * num_keys);
+
+		if (plen > MAX_BULK_OPS) {
+			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+			     "Too many bulk operations would be performed " 
+			     "with the MDHIM_GET_PRIMARY_EQ operation.  Limiting "
+			     "request to : %u key/values", 
+			     md->mdhim_rank, MAX_BULK_OPS);
+			plen = MAX_BULK_OPS - 1;
+		}
+
+		primary_keys = malloc(sizeof(void *) * plen);
+		primary_key_lens = malloc(sizeof(int) * plen);
+		//Initialize the primary keys array and key lens array
+		memset(primary_keys, 0, sizeof(void *) * plen);
+		memset(primary_key_lens, 0, sizeof(int) * plen);
 		
 		//Get the primary keys from the previously received messages' values
+		plen = 0;
 		while (bgrm_head) {
-			for (i = 0; i < bgrm_head->num_keys; i++) {
+			for (i = 0; i < bgrm_head->num_keys && plen < MAX_BULK_OPS ; i++) {
 				primary_keys[plen] = malloc(bgrm_head->value_lens[i]);
 				memcpy(primary_keys[plen], bgrm_head->values[i], 
 				       bgrm_head->value_lens[i]);
@@ -473,10 +489,10 @@ struct mdhim_bgetrm_t *mdhimBGet(struct mdhim_t *md, struct index_t *index,
 		}
 
 		primary_index = get_index(md, index->primary_id);	
-		//Get the primary key values
+		//Get the primary keys' values
 		bgrm_head = _bget_records(md, primary_index,
 					  primary_keys, primary_key_lens, 
-					  num_keys, 1, MDHIM_GET_EQ);
+					  plen, 1, MDHIM_GET_EQ);
 
 		//Free up the primary keys and lens arrays
 		for (i = 0; i < plen; i++) {

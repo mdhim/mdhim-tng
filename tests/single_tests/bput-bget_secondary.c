@@ -210,10 +210,10 @@ int main(int argc, char **argv) {
 				}
 			}
 
+			bgrm = bgrmp;
 			bgrmp = bgrmp->next;
 			//Free the message received
 			mdhim_full_release_msg(bgrm);
-			bgrm = bgrmp;
 		}
 
 		free_key_values();

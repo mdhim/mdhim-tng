@@ -74,6 +74,13 @@ int main(int argc, char **argv) {
 		printf("Committed MDHIM database\n");
 	}
 
+	//Get the stats for the secondary index so the client figures out who to query
+	ret = mdhimStatFlush(md, secondary_local_index);
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error getting stats\n");
+	} else {
+		printf("Got stats\n");
+	}
 
 	//Get the primary key values from the secondary local key
 	value = 0;

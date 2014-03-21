@@ -264,7 +264,7 @@ int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_
 
 	//Make sure this key is valid
 	if ((ret = verify_key(index, key, key_len, key_type)) != MDHIM_SUCCESS) {
-		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given to get_range_server()", 
+		mlog(MDHIM_CLIENT_INFO, "Rank: %d - Invalid key given", 
 		     md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
@@ -812,16 +812,16 @@ rangesrv_list *get_range_servers_from_stats(struct mdhim_t *md, struct index_t *
 		} 
 	}
 
+	//If we don't have any stats info, then return null	
+	if (!index->stats) {
+		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - No statistics data available." 
+		     "Perform a mdhimStatFlush first.", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
 	if (index->type != LOCAL_INDEX) {
 		cur_slice = slice_num = 0;
-		//If we don't have any stats info, then return null
-		if (!index->stats) {
-			mlog(MDHIM_CLIENT_CRIT, "Rank: %d - No statistics data available" 
-			     " to do a cursor based operation.  Perform a mdhimStatFlush first.", 
-			     md->mdhim_rank);
-			return NULL;
-		}
-
 		float_type = is_float_key(index->key_type);
 
 		//Get the current slice number of our key

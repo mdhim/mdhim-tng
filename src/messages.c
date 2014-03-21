@@ -1410,6 +1410,7 @@ int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, void
 		     "memory to unpack bgetrm message.", md->mdhim_rank);
 		return MDHIM_ERROR; 
         }	
+	memset(bgrm->keys, 0, sizeof(void *) * bgrm->num_keys);
 
         // Allocate memory for key_lens, to be populated later.
         if ((bgrm->key_lens = malloc(bgrm->num_keys * sizeof(int))) == NULL) {
@@ -1417,13 +1418,15 @@ int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, void
                      "memory to unpack bget return message.", md->mdhim_rank);
 		return MDHIM_ERROR; 
         }
-        
+	memset(bgrm->key_lens, 0, sizeof(int) * bgrm->num_keys);
+
 	// Allocate memory for value pointers, to be populated later.
         if ((bgrm->values = malloc(bgrm->num_keys * sizeof(void *))) == NULL) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
 		     "memory to unpack bgetrm message.", md->mdhim_rank);
 		return MDHIM_ERROR; 
         }
+	memset(bgrm->values, 0, sizeof(void *) * bgrm->num_keys);
 
         // Allocate memory for value_lens, to be populated later.
         if ((bgrm->value_lens = (int *)malloc(bgrm->num_keys * sizeof(int))) == NULL) {
@@ -1431,7 +1434,8 @@ int unpack_bgetrm_message(struct mdhim_t *md, void *message, int mesg_size, void
                      "memory to unpack bget return message.", md->mdhim_rank);
 		return MDHIM_ERROR; 
         }
-        
+	memset(bgrm->value_lens, 0, sizeof(int) * bgrm->num_keys);
+
         // For the each of the keys and data unpack the chars plus two ints for key_lens[i] and data_lens[i].
         for (i=0; i < bgrm->num_keys; i++) {
 		// Unpack the key_lens[i]

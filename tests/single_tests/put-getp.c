@@ -77,7 +77,8 @@ int main(int argc, char **argv) {
 	for (i = keys_per_rank; i > 0; i--) {
 		value = 0;
 		key = keys_per_rank * md->mdhim_rank + i;
-		bgrm = mdhimGet(md, md->primary_index, &key, sizeof(int), MDHIM_GET_PREV);				
+		bgrm = mdhimBGetOp(md, md->primary_index, 
+				   &key, sizeof(int), 1, MDHIM_GET_PREV);
 		if (!bgrm || bgrm->error) {
 			printf("Error getting value for key: %d from MDHIM\n", key);
 		} else if (bgrm->keys[0] && bgrm->values[0]) {

@@ -18,8 +18,6 @@ uint64_t **values;
 int *value_lens;
 uint64_t **secondary_keys;
 int *secondary_key_lens;
-uint64_t **secondary_values;
-int *secondary_value_lens;
 
 void start_record(struct timeval *start) {
 	gettimeofday(start, NULL);
@@ -43,15 +41,13 @@ void gen_keys_values(int rank, int total_keys) {
 		/* If we are generating keys for the secondary index, then they should be distributed differently
 		   across the range servers */
 		secondary_keys[i] = malloc(sizeof(uint64_t));
-		*secondary_keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys + SECONDARY_SLICE_SIZE;
+		*secondary_keys[i] = i + rank;
 		key_lens[i] = sizeof(uint64_t);
 		secondary_key_lens[i] = sizeof(uint64_t);
 		values[i] = malloc(sizeof(uint64_t));
 		value_lens[i] = sizeof(uint64_t);
 		*values[i] = rank;
 		//The secondary key's values should be the primary key they refer to
-		secondary_values[i] = malloc(sizeof(uint64_t));
-		*secondary_values[i] =  i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
 	}
 }
 
@@ -62,7 +58,6 @@ void free_key_values() {
 		free(keys[i]);
 		free(values[i]);
 		free(secondary_keys[i]);
-		free(secondary_values[i]);
 	}
 }
 
@@ -77,7 +72,7 @@ int main(int argc, char **argv) {
 	struct timeval start_tv, end_tv;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_DBG; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; //(data_store.h) 
 	long double put_time = 0;
@@ -122,9 +117,7 @@ int main(int argc, char **argv) {
 	keys = malloc(sizeof(uint64_t *) * KEYS);
 	values = malloc(sizeof(uint64_t *) * KEYS);
 	secondary_key_lens = malloc(sizeof(int) * KEYS);
-	secondary_value_lens = malloc(sizeof(int) * KEYS);
 	secondary_keys = malloc(sizeof(uint64_t *) * KEYS);
-	secondary_values = malloc(sizeof(uint64_t *) * KEYS);
 
 	/* Primary and secondary key entries */
 	MPI_Barrier(MPI_COMM_WORLD);	
@@ -146,16 +139,15 @@ int main(int argc, char **argv) {
 		end_record(&end_tv);
 		//Add the final time
 		add_time(&start_tv, &end_tv, &put_time);
-		brmp = brm;
-                if (!brmp || brmp->error) {
+                if (!brm || brm->error) {
                         printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
                 } 
-		while (brmp) {
-			if (brmp->error < 0) {
+		while (brm) {
+			if (brm->error < 0) {
 				printf("Rank: %d - Error inserting key/values info MDHIM\n", md->mdhim_rank);
 			}
 	
-			brmp = brmp->next;
+			brmp = brm->next;
 			//Free the message
 			mdhim_full_release_msg(brm);
 			brm = brmp;
@@ -179,6 +171,15 @@ int main(int argc, char **argv) {
 		printf("Committed MDHIM database\n");
 	}
 
+	//Get the stats for the secondary index so the client figures out who to query
+	ret = mdhimStatFlush(md, secondary_local_index);
+	if (ret != MDHIM_SUCCESS) {
+		printf("Error getting stats\n");
+	} else {
+		printf("Got stats\n");
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
 	//Retrieve the primary key's values from the secondary key
 	total = 0;
 	while (total != TOTAL_KEYS) {
@@ -190,26 +191,24 @@ int main(int argc, char **argv) {
 				 KEYS, MDHIM_GET_PRIMARY_EQ);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
-		bgrmp = bgrm;
-		while (bgrmp) {
-			if (!bgrmp || bgrmp->error) {
+		while (bgrm) {
+			/*	if (!bgrm || bgrm->error) {
 				printf("Rank: %d - Error retrieving values starting at: %llu", 
 				       md->mdhim_rank, (long long unsigned int) *keys[0]);
-			}
+				       } */
 	
 			//Validate that the data retrieved is the correct data
-			for (i = 0; i < bgrmp->num_keys && !bgrmp->error; i++) {   				
-				if (!bgrmp->value_lens[i]) {
+			for (i = 0; i < bgrm->num_keys && !bgrm->error; i++) {   				
+				if (!bgrm->value_lens[i]) {
 					printf("Rank: %d - Got an empty value for key: %llu", 
-					       md->mdhim_rank, *(long long unsigned int *)bgrmp->keys[i]);
+					       md->mdhim_rank, *(long long unsigned int *)bgrm->keys[i]);
 					continue;
 				}
 			}
 
-			bgrmp = bgrmp->next;
-			//Free the message received
-			mdhim_full_release_msg(bgrm);
-			bgrm = bgrmp;
+			bgrmp = bgrm;
+			bgrm = bgrm->next;
+			mdhim_full_release_msg(bgrmp);
 		}
 
 		free_key_values();
@@ -222,8 +221,6 @@ int main(int argc, char **argv) {
 	free(value_lens);
 	free(secondary_key_lens);
 	free(secondary_keys);
-	free(secondary_values);
-	free(secondary_value_lens);
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	//Quit MDHIM

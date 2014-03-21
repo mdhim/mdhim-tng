@@ -56,13 +56,15 @@ int main(int argc, char **argv) {
 	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
 					      MDHIM_INT_KEY, 
 					      md->primary_index->id);
-	secondary_info = mdhimCreateSecondaryInfo(secondary_index, &secondary_key, 
-						  sizeof(secondary_key),
-						  NULL, NULL, 0);
+
 	//Put the keys and values
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
+		secondary_key = md->mdhim_rank + i + 1;
+		secondary_info = mdhimCreateSecondaryInfo(secondary_index, &secondary_key, 
+							  sizeof(secondary_key),
+							  NULL, NULL, 0);
 		brm = mdhimPut(md, &key, sizeof(key), 
 			       &value, sizeof(value), secondary_info);
 		if (!brm || brm->error) {
@@ -106,8 +108,8 @@ int main(int argc, char **argv) {
 	for (i = keys_per_rank; i > 0; i--) {
 		value = 0;
 		key = md->mdhim_rank + i + 2;
-		bgrm = mdhimGet(md, secondary_index, 
-			       &key, sizeof(int), MDHIM_GET_PREV);				
+		bgrm = mdhimBGetOp(md, secondary_index, 
+				   &key, sizeof(int), 1, MDHIM_GET_PREV);				
 		if (!bgrm || bgrm->error) {
 			printf("Rank: %d, Error getting prev key/value given key: %d from MDHIM\n", 
 			       md->mdhim_rank, key);

@@ -84,15 +84,8 @@ int main(int argc, char **argv) {
 	for (i = 0; i < keys_per_rank; i++) {
 		value = 0;
 		key = keys_per_rank * md->mdhim_rank + i - 1;
-		if (key < 0) {
-			key = 0;
-			bgrm = mdhimGet(md, md->primary_index, &key, 
-				       sizeof(int), MDHIM_GET_FIRST);				
-		} else {
-			bgrm = mdhimGet(md, md->primary_index, 
-				       &key, sizeof(int), MDHIM_GET_NEXT);				
-		}
-
+		bgrm = mdhimBGetOp(md, md->primary_index, 
+				   &key, sizeof(int), 1, MDHIM_GET_NEXT);
 		if (!bgrm || bgrm->error) {
 			printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
 			       md->mdhim_rank, key);
