@@ -373,7 +373,6 @@ struct mdhim_brm_t *_bdel_records(struct mdhim_t *md, struct index_t *index,
 	int i;
 	rangesrv_list *rl;
 
-
 	//The message to be sent to ourselves if necessary
 	lbdm = NULL;
 	//Create an array of bulk del messages that holds one bulk message per range server
@@ -388,8 +387,17 @@ struct mdhim_brm_t *_bdel_records(struct mdhim_t *md, struct index_t *index,
 	   then it is created.  Otherwise, the data is added to the existing message in the array.*/
 	for (i = 0; i < num_keys && i < MAX_BULK_OPS; i++) {
 		//Get the range server this key will be sent to
-		if ((rl = get_range_servers(md, index, keys[i], key_lens[i])) == 
+		if (index->type != LOCAL_INDEX && 
+		    (rl = get_range_servers(md, index, keys[i], key_lens[i])) == 
 		    NULL) {
+			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+			     "Error while determining range server in mdhimBdel", 
+			     md->mdhim_rank);
+			continue;
+		} else if (index->type == LOCAL_INDEX && 
+			   (rl = get_range_servers_from_stats(md, index, keys[i], 
+							      key_lens[i], MDHIM_GET_EQ)) == 
+			   NULL) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 			     "Error while determining range server in mdhimBdel", 
 			     md->mdhim_rank);

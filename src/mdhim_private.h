@@ -1,3 +1,5 @@
+#include "mdhim.h"
+
 struct mdhim_rm_t *_put_record(struct mdhim_t *md, struct index_t *index, 
 			       void *key, int key_len, 
 			       void *value, int value_len);

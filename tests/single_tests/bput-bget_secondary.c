@@ -16,10 +16,8 @@ uint64_t **keys;
 int *key_lens;
 uint64_t **values;
 int *value_lens;
-uint64_t **secondary_keys;
-int *secondary_key_lens;
-uint64_t **secondary_values;
-int *secondary_value_lens;
+uint64_t ***secondary_keys;
+int **secondary_key_lens;
 
 void start_record(struct timeval *start) {
 	gettimeofday(start, NULL);
@@ -42,16 +40,15 @@ void gen_keys_values(int rank, int total_keys) {
 		*keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
 		/* If we are generating keys for the secondary index, then they should be distributed differently
 		   across the range servers */
-		secondary_keys[i] = malloc(sizeof(uint64_t));
-		*secondary_keys[i] = i + rank;
+		secondary_keys[i] = malloc(sizeof(uint64_t *));
+		*secondary_keys[i] = malloc(sizeof(uint64_t));
+		**secondary_keys[i] = i + rank;
 		key_lens[i] = sizeof(uint64_t);
-		secondary_key_lens[i] = sizeof(uint64_t);
+		secondary_key_lens[i] = malloc(sizeof(uint64_t));
+		*secondary_key_lens[i] = sizeof(uint64_t);
 		values[i] = malloc(sizeof(uint64_t));
 		value_lens[i] = sizeof(uint64_t);
 		*values[i] = rank;
-		secondary_values[i] = malloc(sizeof(uint64_t));
-		//The secondary key's values should be the primary key they refer to
-		*secondary_values[i] =  i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
 	}
 }
 
@@ -61,8 +58,9 @@ void free_key_values() {
 	for (i = 0; i < KEYS; i++) {
 		free(keys[i]);
 		free(values[i]);
+		free(*secondary_keys[i]);
 		free(secondary_keys[i]);
-		free(secondary_values[i]);
+		free(secondary_key_lens[i]);
 	}
 }
 
@@ -84,6 +82,7 @@ int main(int argc, char **argv) {
 	long double get_time = 0;
 	struct index_t *secondary_index;
 	struct secondary_bulk_info *secondary_info;
+	int num_keys[KEYS];
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -121,10 +120,9 @@ int main(int argc, char **argv) {
 	value_lens = malloc(sizeof(int) * KEYS);
 	keys = malloc(sizeof(uint64_t *) * KEYS);
 	values = malloc(sizeof(uint64_t *) * KEYS);
-	secondary_key_lens = malloc(sizeof(int) * KEYS);
-	secondary_value_lens = malloc(sizeof(int) * KEYS);
-	secondary_keys = malloc(sizeof(uint64_t *) * KEYS);
-	secondary_values = malloc(sizeof(uint64_t *) * KEYS);
+	secondary_key_lens = malloc(sizeof(int *) * KEYS);
+	secondary_keys = malloc(sizeof(uint64_t **) * KEYS);
+	memset(secondary_keys, 0, sizeof(uint64_t **) * KEYS);
 
 	/* Secondary key entries */
 	//Create the secondary global index
@@ -134,18 +132,23 @@ int main(int argc, char **argv) {
 	/* Primary key and secondary key entries */
 	MPI_Barrier(MPI_COMM_WORLD);	
 	total = 0;
+
+	for (i = 0; i < KEYS; i++) {
+		num_keys[i] = 1;
+	}
 	while (total != TOTAL_KEYS) {
 		//Populate the primary keys and values to insert
 		gen_keys_values(md->mdhim_rank, total);
 		secondary_info = mdhimCreateSecondaryBulkInfo(secondary_index,
-							      (void **) secondary_keys, 
-							      secondary_key_lens,
-							      NULL, NULL, 0);
+							      (void ***) secondary_keys, 
+							      secondary_key_lens, num_keys, 
+							      SECONDARY_GLOBAL_INFO);
 		//record the start time
 		start_record(&start_tv);	
 		//Insert the primary keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS, secondary_info);
+				(void **) values, value_lens, KEYS, NULL,
+				secondary_info);
 		//Record the end time
 		end_record(&end_tv);
 		//Add the final time
@@ -226,8 +229,6 @@ int main(int argc, char **argv) {
 	free(value_lens);
 	free(secondary_key_lens);
 	free(secondary_keys);
-	free(secondary_values);
-	free(secondary_value_lens);
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	//Quit MDHIM

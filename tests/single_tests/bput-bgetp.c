@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
 		brm = mdhimBPut(md,
 				(void **) keys, key_lens,  
 				(void **) values, value_lens, 
-				KEYS, NULL);
+				KEYS, NULL, NULL);
 		//		MPI_Barrier(MPI_COMM_WORLD);
 		//record the end time
 		end_record(&end_tv);			       

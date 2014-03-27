@@ -238,25 +238,31 @@ int mdhimCommit(struct mdhim_t *md, struct index_t *index) {
  * Inserts a single record into MDHIM
  *
  * @param md main MDHIM struct
- * @param key       pointer to key to store
- * @param key_len   the length of the key
- * @param value     pointer to the value to store
- * @param value_len the length of the value
- * @return mdhim_brm_t * or NULL on error
+ * @param primary_key        pointer to key to store
+ * @param primary_key_len    the length of the key
+ * @param value              pointer to the value to store
+ * @param value_len          the length of the value
+ * @param secondary_info     secondary global and local information for 
+                             inserting secondary global and local keys
+ * @return                   mdhim_brm_t * or NULL on error
  */
 struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 			     /*Primary key */
 			     void *primary_key, int primary_key_len,  
 			     void *value, int value_len,
 			     /* Optional secondary global and local keys */
-			     struct secondary_info *sec_info) {
-
+			     struct secondary_info *secondary_global_info,
+			     struct secondary_info *secondary_local_info) {
+	int i;
 	//Return message list
-	struct mdhim_brm_t *head, *new;
-
+	struct mdhim_brm_t *head;
+	void **primary_keys;
+	int *primary_key_lens;
 	//Return message from each _put_record casll
+	struct mdhim_brm_t *brm;
 	struct mdhim_rm_t *rm;
 
+	brm = NULL;
 	rm = NULL;
 	head = NULL;
 	if (!primary_key || !primary_key_len ||
@@ -273,34 +279,137 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 	mdhim_full_release_msg(rm);
 
 	//Insert the secondary local key if it was given
-	if (sec_info &&sec_info->secondary_local_index && sec_info->secondary_local_key && 
-	    sec_info->secondary_local_key_len) {
-		rm = _put_record(md, sec_info->secondary_local_index, sec_info->secondary_local_key, 
-				 sec_info->secondary_local_key_len, primary_key, primary_key_len);
-		if (!rm) {
-			return head;
-		}
-		if (rm->error) {
-			mdhim_full_release_msg(rm);
-			return head;
+	if (secondary_local_info && secondary_local_info->secondary_index && 
+	    secondary_local_info->secondary_keys && 
+	    secondary_local_info->secondary_key_lens && 
+	    secondary_local_info->num_keys) {
+		primary_keys = malloc(sizeof(void *) * secondary_local_info->num_keys);
+		primary_key_lens = malloc(sizeof(int) * secondary_local_info->num_keys);
+		for (i = 0; i < secondary_local_info->num_keys; i++) {
+			primary_keys[i] = primary_key;
+			primary_key_lens[i] = primary_key_len;
 		}
 
-		new = _create_brm(rm);
-		_concat_brm(head, new);		
+		brm = _bput_records(md, secondary_local_info->secondary_index, 
+				    secondary_local_info->secondary_keys, 
+				    secondary_local_info->secondary_key_lens, 
+				    primary_keys, primary_key_lens, 
+				    secondary_local_info->num_keys);
+
+		free(primary_keys);
+		free(primary_key_lens);
+		if (!brm) {
+			return head;
+		}
+		
+		_concat_brm(head, brm);
 	}
 
 	//Insert the secondary global key if it was given
-	if (sec_info && sec_info->secondary_global_index && sec_info->secondary_global_key && 
-	    sec_info->secondary_global_key_len) {
-		rm = _put_record(md, sec_info->secondary_global_index, sec_info->secondary_global_key, 
-				 sec_info->secondary_global_key_len, primary_key, primary_key_len);
-		if (rm) {
-			mdhim_full_release_msg(rm);
+	if (secondary_global_info && secondary_global_info->secondary_index && 
+	    secondary_global_info->secondary_keys && 
+	    secondary_global_info->secondary_key_lens &&
+	    secondary_global_info->num_keys) {
+		primary_keys = malloc(sizeof(void *) * secondary_global_info->num_keys);
+		primary_key_lens = malloc(sizeof(int) * secondary_global_info->num_keys);		
+		for (i = 0; i < secondary_global_info->num_keys; i++) {
+			brm = _bput_records(md, secondary_global_info->secondary_index, 
+					    secondary_global_info->secondary_keys, 
+					    secondary_global_info->secondary_key_lens, 
+					    primary_keys, primary_key_lens,
+					    secondary_global_info->num_keys);
+
+			free(primary_keys);
+			free(primary_key_lens);
+			if (!brm) {
+				return head;
+			}
+
+			_concat_brm(head, brm);
+		}
+	}	
+
+	return head;
+}
+
+/**
+ * Inserts a single record into an MDHIM secondary index
+ *
+ * @param md main MDHIM struct
+ * @param secondary_key       pointer to key to store
+ * @param secondary_key_len   the length of the key
+ * @param primary_key     pointer to the primary_key 
+ * @param primary_key_len the length of the value
+ * @return mdhim_brm_t * or NULL on error
+ */
+struct mdhim_brm_t *mdhimPutSecondary(struct mdhim_t *md, 
+				      struct index_t *secondary_index,
+				      /*Secondary key */
+				      void *secondary_key, int secondary_key_len,  
+				      /* Primary key */
+				      void *primary_key, int primary_key_len) {
+
+	//Return message list
+	struct mdhim_brm_t *head;
+
+	//Return message from each _put_record casll
+	struct mdhim_rm_t *rm;
+
+	rm = NULL;
+	head = NULL;
+	if (!secondary_key || !secondary_key_len ||
+	    !primary_key || !primary_key_len) {
+		return NULL;
+	}
+
+	rm = _put_record(md, secondary_index, secondary_key, secondary_key_len, 
+			 primary_key, primary_key_len);
+	if (!rm || rm->error) {
+		return head;
+	}
+
+	head = _create_brm(rm);
+	mdhim_full_release_msg(rm);
+
+	return head;
+}
+
+struct mdhim_brm_t *_bput_secondary_keys_from_info(struct mdhim_t *md, 
+						   struct secondary_bulk_info *secondary_info, 
+						   void **primary_keys, int *primary_key_lens, 
+						   int num_records) {
+	int i, j;
+	void **primary_keys_to_send;
+	int *primary_key_lens_to_send;
+	struct mdhim_brm_t *head, *new;
+
+	head = new = NULL;
+	for (i = 0; i < num_records; i++) {
+		primary_keys_to_send = 
+			malloc(secondary_info->num_keys[i] * sizeof(void *));
+		primary_key_lens_to_send = 
+			malloc(secondary_info->num_keys[i] * sizeof(int));
+			
+		for (j = 0; j < secondary_info->num_keys[i]; j++) {
+			primary_keys_to_send[j] = primary_keys[i];
+			primary_key_lens_to_send[j] = primary_key_lens[i];
+		}
+		for (j = 0; j < secondary_info->num_keys[i]; j++) {
+			new = _bput_records(md, secondary_info->secondary_index, 
+					    secondary_info->secondary_keys[j], 
+					    secondary_info->secondary_key_lens[j], 
+					    primary_keys_to_send, primary_key_lens_to_send, 
+					    num_records);
+			if (!head) {
+				head = new;
+			} else if (new) {
+				_concat_brm(head, new);
+			}
 		}
 
-		new = _create_brm(rm);
-		_concat_brm(head, new);
-	}	
+		free(primary_keys_to_send);
+		free(primary_key_lens_to_send);
+	}
 
 	return head;
 }
@@ -320,7 +429,8 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md,
 			      void **primary_keys, int *primary_key_lens, 
 			      void **primary_values, int *primary_value_lens, 
 			      int num_records,
-			      struct secondary_bulk_info *sec_info) {
+			      struct secondary_bulk_info *secondary_global_info,
+			      struct secondary_bulk_info *secondary_local_info) {
 	struct mdhim_brm_t *head, *new;
 
 	head = new = NULL;
@@ -336,26 +446,59 @@ struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md,
 	}
 
 	//Insert the secondary local keys if they were given
-	if (sec_info && sec_info->secondary_local_index && sec_info->secondary_local_keys && 
-	    sec_info->secondary_local_key_lens) {
-		new = _bput_records(md, sec_info->secondary_local_index, sec_info->secondary_local_keys, 
-				    sec_info->secondary_local_key_lens, primary_keys, primary_key_lens, 
-				    num_records);
+	if (secondary_local_info && secondary_local_info->secondary_index && 
+	    secondary_local_info->secondary_keys && 
+	    secondary_local_info->secondary_key_lens) {
+		new = _bput_secondary_keys_from_info(md, secondary_local_info, primary_keys, 
+						     primary_key_lens, num_records);
 		if (new) {
 			_concat_brm(head, new);
-		}
+		}	       
+	}
+	
+	//Insert the secondary global keys if they were given
+	if (secondary_global_info && secondary_global_info->secondary_index && 
+	    secondary_global_info->secondary_keys && 
+	    secondary_global_info->secondary_key_lens) {
+		new = _bput_secondary_keys_from_info(md, secondary_global_info, primary_keys, 
+						     primary_key_lens, num_records);
+		if (new) {
+			_concat_brm(head, new);
+		}	     
+	}	
+
+	return head;
+}
+
+/**
+ * Inserts multiple records into an MDHIM secondary index
+ * 
+ * @param md           main MDHIM struct
+ * @param index        the secondary index to use
+ * @param keys         pointer to array of keys to store
+ * @param key_lens     array with lengths of each key in keys
+ * @param values       pointer to array of values to store
+ * @param value_lens   array with lengths of each value
+ * @param num_records  the number of records to store (i.e., the number of keys in keys array)
+ * @return mdhim_brm_t * or NULL on error
+ */
+struct mdhim_brm_t *mdhimBPutSecondary(struct mdhim_t *md, struct index_t *secondary_index,
+				       void **secondary_keys, int *secondary_key_lens, 
+				       void **primary_keys, int *primary_key_lens, 
+				       int num_records) {
+	struct mdhim_brm_t *head, *new;
+
+	head = new = NULL;
+	if (!secondary_keys || !secondary_key_lens || 
+	    !primary_keys || !primary_key_lens) {
+		return NULL;
 	}
 
-	//Insert the secondary global keys if they were given
-	if (sec_info && sec_info->secondary_global_index && sec_info->secondary_global_keys && 
-	    sec_info->secondary_global_key_lens) {
-		new = _bput_records(md, sec_info->secondary_global_index, sec_info->secondary_global_keys, 
-				    sec_info->secondary_global_key_lens, primary_keys, primary_key_lens, 
-				    num_records);
-		if (new) {
-			_concat_brm(head, new);
-		}
-	}	
+	head = _bput_records(md, secondary_index, secondary_keys, secondary_key_lens, 
+			     primary_keys, primary_key_lens, num_records);
+	if (!head || head->error) {
+		return head;
+	}
 
 	return head;
 }
@@ -644,29 +787,32 @@ int mdhimStatFlush(struct mdhim_t *md, struct index_t *index) {
  * Sets the secondary_info structure used in mdhimPut
  *
  */
-struct secondary_info *mdhimCreateSecondaryInfo(struct index_t *secondary_global_index,
-						void *secondary_global_key, int secondary_global_key_len,
-						struct index_t *secondary_local_index,
-						void *secondary_local_key, int secondary_local_key_len) {
+struct secondary_info *mdhimCreateSecondaryInfo(struct index_t *secondary_index,
+						void **secondary_keys, int *secondary_key_lens,
+						int num_keys, int info_type) {
 	struct secondary_info *sinfo;
 	
+
+	if (!secondary_index || !secondary_keys || 
+	    !secondary_key_lens || !num_keys) {
+		return NULL;
+	}
+
+	if (info_type != SECONDARY_GLOBAL_INFO && 
+	    info_type != SECONDARY_LOCAL_INFO) {
+		return NULL;
+	}
+
 	//Initialize the struct
 	sinfo = malloc(sizeof(struct secondary_info));
 	memset(sinfo, 0, sizeof(struct secondary_info));
 	
-	//Set the global index fields 
-	if (secondary_global_index && secondary_global_key && secondary_global_key_len) {
-		sinfo->secondary_global_index = secondary_global_index;
-		sinfo->secondary_global_key = secondary_global_key;
-		sinfo->secondary_global_key_len = secondary_global_key_len;
-	}
-
-	//Set the local index fields 
-	if (secondary_local_index && secondary_local_key && secondary_local_key_len) {
-		sinfo->secondary_local_index = secondary_local_index;
-		sinfo->secondary_local_key = secondary_local_key;
-		sinfo->secondary_local_key_len = secondary_local_key_len;
-	}
+	//Set the index fields 
+	sinfo->secondary_index = secondary_index;
+	sinfo->secondary_keys = secondary_keys;
+	sinfo->secondary_key_lens = secondary_key_lens;
+	sinfo->num_keys = num_keys;
+	sinfo->info_type = info_type;
 
 	return sinfo;
 }
@@ -681,31 +827,33 @@ void mdhimReleaseSecondaryInfo(struct secondary_info *si) {
  * Sets the secondary_info structure used in mdhimBPut
  *
  */
-struct secondary_bulk_info *mdhimCreateSecondaryBulkInfo(struct index_t *secondary_global_index,
-							 void **secondary_global_keys, 
-							 int *secondary_global_key_lens,
-							 struct index_t *secondary_local_index,
-							 void **secondary_local_keys, 
-							 int *secondary_local_key_lens) {
+struct secondary_bulk_info *mdhimCreateSecondaryBulkInfo(struct index_t *secondary_index,
+							 void ***secondary_keys, 
+							 int **secondary_key_lens,
+							 int *num_keys, int info_type) {
+
 	struct secondary_bulk_info *sinfo;
 	
+	if (!secondary_index || !secondary_keys || 
+	    !secondary_key_lens || !num_keys) {
+		return NULL;
+	}
+
+	if (info_type != SECONDARY_GLOBAL_INFO && 
+	    info_type != SECONDARY_LOCAL_INFO) {
+		return NULL;
+	}
+
 	//Initialize the struct
 	sinfo = malloc(sizeof(struct secondary_bulk_info));
 	memset(sinfo, 0, sizeof(struct secondary_bulk_info));
 	
-	//Set the global index fields 
-	if (secondary_global_index && secondary_global_keys && secondary_global_key_lens) {
-		sinfo->secondary_global_index = secondary_global_index;
-		sinfo->secondary_global_keys = secondary_global_keys;
-		sinfo->secondary_global_key_lens = secondary_global_key_lens;
-	}
-
-	//Set the local index fields 
-	if (secondary_local_index && secondary_local_keys && secondary_local_key_lens) {
-		sinfo->secondary_local_index = secondary_local_index;
-		sinfo->secondary_local_keys = secondary_local_keys;
-		sinfo->secondary_local_key_lens = secondary_local_key_lens;
-	}
+	//Set the index fields 
+	sinfo->secondary_index = secondary_index;
+	sinfo->secondary_keys = secondary_keys;
+	sinfo->secondary_key_lens = secondary_key_lens;
+	sinfo->num_keys = num_keys;
+	sinfo->info_type = info_type;
 
 	return sinfo;
 }

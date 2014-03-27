@@ -664,6 +664,13 @@ rangesrv_list *get_rangesrvs_from_istat(struct mdhim_t *md, struct index_t *inde
 					slice_num = cur_stat->key;
 				}
 				break;
+			case MDHIM_GET_EQ:
+				if (cur_stat && *(uint64_t *)cur_stat->max >= istat && 
+				    *(uint64_t *)cur_stat->min <= istat) {
+					slice_num = cur_stat->key;
+				} 
+
+				break;
 			default:
 				slice_num = 0;
 				break;
@@ -743,6 +750,13 @@ rangesrv_list *get_rangesrvs_from_fstat(struct mdhim_t *md, struct index_t *inde
 				if (i == num_slices - 1) {
 					slice_num = cur_stat->key;
 				}
+				break;
+			case MDHIM_GET_EQ:
+				if (cur_stat && *(long double *)cur_stat->max >= fstat && 
+				    *(long double *)cur_stat->min <= fstat) {
+					slice_num = cur_stat->key;
+				} 
+				
 				break;
 			default:
 				slice_num = 0;

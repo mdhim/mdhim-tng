@@ -11,15 +11,14 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	uint32_t key, secondary_keys[1][2];
-	int secondary_key_lens[1][2];
+	uint32_t key, secondary_key;
 	int value;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
 	struct index_t *secondary_local_index;
 	struct secondary_info *secondary_info;
-	
+
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");
@@ -51,12 +50,13 @@ int main(int argc, char **argv) {
 	//Create a secondary index on only one range server
 	secondary_local_index = create_local_index(md, LEVELDB, 
 						   MDHIM_INT_KEY);
-	secondary_keys[0][0] = md->mdhim_rank + 1;
-	secondary_keys[0][1] = md->mdhim_rank + 2;
-	secondary_key_lens[0][0] = secondary_key_lens[0][1] = sizeof(uint32_t);
 	secondary_info = mdhimCreateSecondaryInfo(NULL, NULL, 0,
-						  secondary_local_index, secondary_keys, 
-						  secondary_key_lens);
+						  secondary_local_index, &secondary_key, 
+						  sizeof(secondary_key));
+	secondary_info2 = mdhimCreateSecondaryInfo(NULL, NULL, 0,
+						   secondary_local_index, &secondary_key2, 
+						   sizeof(secondary_key2));
+	secondary_key = md->mdhim_rank + 1;
 	brm = mdhimPut(md, 
 		       &key, sizeof(key), 
 		       &value, sizeof(value), secondary_info);
@@ -98,7 +98,6 @@ int main(int argc, char **argv) {
 	mdhim_full_release_msg(bgrm);
 	ret = mdhimClose(md);
 	mdhim_options_destroy(db_opts);
-	mdhimReleaseSecondaryInfo(secondary_info);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error closing MDHIM\n");
 	}

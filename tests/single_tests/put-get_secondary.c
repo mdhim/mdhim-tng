@@ -11,8 +11,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	uint32_t key, secondary_key;
-	int value, secondary_value;
+	uint32_t key, **secondary_keys;
+	int value, *secondary_key_lens;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
@@ -47,8 +47,12 @@ int main(int argc, char **argv) {
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
 	//Set the secondary keys and values
-	secondary_key = md->mdhim_rank + 1;
-	secondary_value = key;
+	secondary_keys = malloc(sizeof(uint32_t *));
+	
+	secondary_keys[0] = malloc(sizeof(uint32_t));
+	*secondary_keys[0] = md->mdhim_rank + 1;
+	secondary_key_lens = malloc(sizeof(int));
+	secondary_key_lens[0] = sizeof(uint32_t);
 
 	//Create the secondary remote index
 	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
@@ -56,12 +60,15 @@ int main(int argc, char **argv) {
 					      md->primary_index->id);
 	//Create the secondary info struct
 	secondary_info = mdhimCreateSecondaryInfo(secondary_index,
-						  &secondary_key, sizeof(secondary_key),
-						  NULL, NULL, 0);
+						  (void **) secondary_keys, 
+						  secondary_key_lens, 
+						  1, SECONDARY_GLOBAL_INFO);
 	//Put the primary and secondary keys
 	brm = mdhimPut(md, 
 		       &key, sizeof(key), 
-		       &value, sizeof(value), secondary_info);
+		       &value, sizeof(value), 
+		       secondary_info,
+		       NULL);
 	
 	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
@@ -82,7 +89,9 @@ int main(int argc, char **argv) {
 
 	//Get the primary key values from the secondary key
 	value = 0;
-	bgrm = mdhimGet(md, secondary_index, &secondary_key, sizeof(secondary_key), 
+	
+	bgrm = mdhimGet(md, secondary_index, 
+			secondary_keys[0], secondary_key_lens[0], 
 			MDHIM_GET_PRIMARY_EQ);
 	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);

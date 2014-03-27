@@ -71,7 +71,8 @@ int main(int argc, char **argv) {
 
 		//Insert the keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS, NULL);
+				(void **) values, value_lens, KEYS, 
+				NULL, NULL);
 		brmp = brm;
                 if (!brmp || brmp->error) {
                         printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);

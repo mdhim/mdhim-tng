@@ -45,7 +45,8 @@ int main(int argc, char **argv) {
 	key = 20 * (md->mdhim_rank + 1);
 	value = 1000 * (md->mdhim_rank + 1);
 	brm = mdhimPut(md, &key, sizeof(key), 
-		       &value, sizeof(value), NULL);
+		       &value, sizeof(value), 
+		       NULL, NULL);
 	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
