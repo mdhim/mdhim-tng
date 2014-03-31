@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	int key, secondary_key;
-	int value;
+	uint32_t key, **secondary_keys;
+	int value, *secondary_key_lens;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
 	int i;
@@ -61,21 +61,32 @@ int main(int argc, char **argv) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
 		//Create the secondary info struct
-		secondary_key = md->mdhim_rank + i + 1;
+		secondary_keys = malloc(sizeof(uint32_t *));		
+		secondary_keys[0] = malloc(sizeof(uint32_t));
+		*secondary_keys[0] = md->mdhim_rank + i;
+		secondary_key_lens = malloc(sizeof(int));
+		secondary_key_lens[0] = sizeof(uint32_t);
+
 		secondary_info = mdhimCreateSecondaryInfo(secondary_index,
-							  &secondary_key, sizeof(secondary_key),
-							  NULL, NULL, 0);
+							  (void **) secondary_keys, 
+							  secondary_key_lens,
+							  1, SECONDARY_GLOBAL_INFO);
 		brm = mdhimPut(md,  
 			       &key, sizeof(key), 
-			       &value, sizeof(value), secondary_info);
+			       &value, sizeof(value), 
+			       secondary_info, NULL);
 		if (!brm || brm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
-			printf("Rank: %d put secondary key: %d with value: %d\n", md->mdhim_rank, secondary_key, key);
+			printf("Rank: %d put secondary key: %u with value: %d\n", md->mdhim_rank, 
+			       *secondary_keys[0], key);
 		}
 
 		mdhimReleaseSecondaryInfo(secondary_info);
 		mdhim_full_release_msg(brm);
+		free(secondary_keys[0]);
+		free(secondary_keys);
+		free(secondary_key_lens);
 	}
 
 	//Commit the database
@@ -107,7 +118,7 @@ int main(int argc, char **argv) {
 		value = 0;
 		key = md->mdhim_rank + i;
 		bgrm = mdhimBGetOp(md, secondary_index, 
-				   &key, sizeof(int), 1, MDHIM_GET_NEXT);				
+				   &key, sizeof(uint32_t), 1, MDHIM_GET_NEXT);				
 		if (!bgrm || bgrm->error) {
 			printf("Rank: %d, Error getting next key/value given key: %d from MDHIM\n", 
 			       md->mdhim_rank, key);

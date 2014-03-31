@@ -106,6 +106,9 @@ int main(int argc, char **argv) {
 		printf("Error closing MDHIM\n");
 	}
 
+	free(secondary_keys[0]);
+	free(secondary_keys);
+	free(secondary_key_lens);
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 

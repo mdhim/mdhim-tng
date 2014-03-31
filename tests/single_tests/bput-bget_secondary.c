@@ -188,13 +188,17 @@ int main(int argc, char **argv) {
 
 	//Retrieve the primary key's values from the secondary key
 	total = 0;
+       
 	while (total != TOTAL_KEYS) {
 		//Populate the keys and values to retrieve
 		gen_keys_values(md->mdhim_rank, total);
 		start_record(&start_tv);
 		//Get the values back for each key inserted
-		bgrm = mdhimBGet(md, secondary_index, (void **) secondary_keys, secondary_key_lens, 
-				 KEYS, MDHIM_GET_PRIMARY_EQ);
+		for (i = 0; i < KEYS; i++) {
+			bgrm = mdhimBGet(md, secondary_index, (void **) secondary_keys[i], 
+					 secondary_key_lens[i],
+					 KEYS, MDHIM_GET_PRIMARY_EQ);
+		}
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
 		bgrmp = bgrm;

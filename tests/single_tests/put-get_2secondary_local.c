@@ -11,8 +11,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	uint32_t key, secondary_key, secondary_key2, key2;
-	int value;
+	uint32_t key, key2, **secondary_keys, **secondary_keys2;
+	int value, *secondary_key_lens, *secondary_key_lens2;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
@@ -47,22 +47,35 @@ int main(int argc, char **argv) {
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
 	
+	secondary_keys = malloc(sizeof(uint32_t *));		
+	secondary_keys[0] = malloc(sizeof(uint32_t));
+	*secondary_keys[0] = md->mdhim_rank + 1;
+	secondary_key_lens = malloc(sizeof(int));
+	secondary_key_lens[0] = sizeof(uint32_t);
+	
+	secondary_keys2 = malloc(sizeof(uint32_t *));		
+	secondary_keys2[0] = malloc(sizeof(uint32_t));
+	*secondary_keys2[0] = md->mdhim_rank + 1;
+	secondary_key_lens2 = malloc(sizeof(int));
+	secondary_key_lens2[0] = sizeof(uint32_t);
+
 	//Create a secondary index on only one range server
-	secondary_key = md->mdhim_rank + 1;
 	secondary_local_index = create_local_index(md, LEVELDB, 
 						   MDHIM_INT_KEY);
 	secondary_local_index2 = create_local_index(md, LEVELDB, 
 						    MDHIM_INT_KEY);
-	secondary_info = mdhimCreateSecondaryInfo(NULL, NULL, 0,
-						  secondary_local_index, &secondary_key, 
-						  sizeof(secondary_key));
-	secondary_key2 = md->mdhim_rank + 2;
-	secondary_info2 = mdhimCreateSecondaryInfo(NULL, NULL, 0,
-						   secondary_local_index2, &secondary_key2, 
-						   sizeof(secondary_key2));
+	secondary_info = mdhimCreateSecondaryInfo(secondary_local_index, 
+						  (void **) secondary_keys, 
+						  secondary_key_lens, 1, 
+						  SECONDARY_LOCAL_INFO);
+	secondary_info2 = mdhimCreateSecondaryInfo(secondary_local_index2, 
+						   (void **) secondary_keys2, 
+						   secondary_key_lens2, 1, 
+						   SECONDARY_LOCAL_INFO);
 	brm = mdhimPut(md, 
 		       &key, sizeof(key), 
-		       &value, sizeof(value), secondary_info);
+		       &value, sizeof(value), 
+		       NULL, secondary_info);
 	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
@@ -76,7 +89,8 @@ int main(int argc, char **argv) {
 	key2 = 200 * (md->mdhim_rank + 1);
 	brm = mdhimPut(md, 
 		       &key2, sizeof(key2), 
-		       &value, sizeof(value), secondary_info2);
+		       &value, sizeof(value), 
+		       NULL, secondary_info2);
 	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
@@ -111,7 +125,9 @@ int main(int argc, char **argv) {
 
 	//Get the primary key values from the secondary local key
 	value = 0;
-	bgrm = mdhimGet(md, secondary_local_index, &secondary_key, sizeof(secondary_key), 
+	bgrm = mdhimGet(md, secondary_local_index, 
+			secondary_keys[0], 
+			secondary_key_lens[0], 
 			MDHIM_GET_PRIMARY_EQ);
 	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
@@ -123,7 +139,8 @@ int main(int argc, char **argv) {
 
 	//Get the primary key values from the secondary local key
 	value = 0;
-	bgrm = mdhimGet(md, secondary_local_index2, &secondary_key2, sizeof(secondary_key2), 
+	bgrm = mdhimGet(md, secondary_local_index2, secondary_keys2[0], 
+			secondary_key_lens2[0], 
 			MDHIM_GET_PRIMARY_EQ);
 	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
@@ -134,6 +151,12 @@ int main(int argc, char **argv) {
 	mdhim_full_release_msg(bgrm);
 
 	ret = mdhimClose(md);
+	free(secondary_keys[0]);
+	free(secondary_keys);
+	free(secondary_key_lens);
+	free(secondary_keys2[0]);
+	free(secondary_keys2);
+	free(secondary_key_lens2);
 	mdhim_options_destroy(db_opts);
 	mdhimReleaseSecondaryInfo(secondary_info);
 	mdhimReleaseSecondaryInfo(secondary_info2);

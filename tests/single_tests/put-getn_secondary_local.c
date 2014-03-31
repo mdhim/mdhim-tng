@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	int key, secondary_key;
-	int value;
+	uint32_t key, **secondary_keys;
+	int value, *secondary_key_lens;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 	int i;
@@ -62,19 +62,31 @@ int main(int argc, char **argv) {
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
-		secondary_key = md->mdhim_rank + i + 1;       
-		secondary_info = mdhimCreateSecondaryInfo(NULL, NULL, 0,
-							  secondary_local_index, &secondary_key, 
-							  sizeof(secondary_key));
+		//Create the secondary info struct
+		secondary_keys = malloc(sizeof(uint32_t *));		
+		secondary_keys[0] = malloc(sizeof(uint32_t));
+		*secondary_keys[0] = md->mdhim_rank + i + 1;
+		secondary_key_lens = malloc(sizeof(int));
+		secondary_key_lens[0] = sizeof(uint32_t);
+		secondary_info = mdhimCreateSecondaryInfo(secondary_local_index, 
+							  (void **) secondary_keys, 
+							  secondary_key_lens, 1, 
+							  SECONDARY_LOCAL_INFO);
 		brm = mdhimPut(md, &key, sizeof(key), 
-			       &value, sizeof(value), secondary_info);
+			       &value, sizeof(value), NULL,
+			       secondary_info);
 		if (!brm || brm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
-			printf("Rank: %d put secondary key: %d with value: %d\n", md->mdhim_rank, secondary_key, key);
+			printf("Rank: %d put secondary key: %d with value: %d\n", md->mdhim_rank, 
+			       *secondary_keys[0], key);
 		}
 
 		mdhim_full_release_msg(brm);
+		mdhimReleaseSecondaryInfo(secondary_info);
+		free(secondary_keys[0]);
+		free(secondary_keys);
+		free(secondary_key_lens);
 	}
 
 
@@ -108,7 +120,7 @@ int main(int argc, char **argv) {
 		value = 0;
 		key = md->mdhim_rank + i;
 		bgrm = mdhimBGetOp(md, secondary_local_index, 
-				   &key, sizeof(int), 1, 
+				   &key, sizeof(uint32_t), 1, 
 				   MDHIM_GET_NEXT);
 		while (bgrm) {
 			if (!bgrm || bgrm->error) {

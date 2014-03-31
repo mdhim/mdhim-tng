@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	int provided = 0;
 	struct mdhim_t *md;
 	uint32_t key, secondary_keys[1][2];
-	int secondary_key_lens[1][2];
+	int secondary_key_lens[2];
 	int value;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
@@ -53,13 +53,14 @@ int main(int argc, char **argv) {
 						   MDHIM_INT_KEY);
 	secondary_keys[0][0] = md->mdhim_rank + 1;
 	secondary_keys[0][1] = md->mdhim_rank + 2;
-	secondary_key_lens[0][0] = secondary_key_lens[0][1] = sizeof(uint32_t);
-	secondary_info = mdhimCreateSecondaryInfo(NULL, NULL, 0,
-						  secondary_local_index, secondary_keys, 
-						  secondary_key_lens);
-	brm = mdhimPut(md, 
-		       &key, sizeof(key), 
-		       &value, sizeof(value), secondary_info);
+	secondary_key_lens[0] = secondary_key_lens[1] = sizeof(uint32_t);
+	secondary_info = mdhimCreateSecondaryInfo(secondary_local_index, 
+						  (void **) secondary_keys, 
+						  secondary_key_lens, 1, 
+						  SECONDARY_LOCAL_INFO);
+	brm = mdhimPut(md, &key, sizeof(key), 
+		       &value, sizeof(value), 
+		       NULL, secondary_info);
 	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
@@ -87,7 +88,9 @@ int main(int argc, char **argv) {
 
 	//Get the primary key values from the secondary local key
 	value = 0;
-	bgrm = mdhimGet(md, secondary_local_index, &secondary_key, sizeof(secondary_key), 
+	bgrm = mdhimGet(md, secondary_local_index, 
+			&secondary_keys[0][0], 
+			secondary_key_lens[0], 
 			MDHIM_GET_PRIMARY_EQ);
 	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);

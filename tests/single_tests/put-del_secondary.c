@@ -11,8 +11,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	uint32_t key, secondary_key;
-	int value;
+	uint32_t key, **secondary_keys;
+	int value, *secondary_key_lens;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
@@ -46,17 +46,23 @@ int main(int argc, char **argv) {
 	//Put the primary keys and secondary keys
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
-	secondary_key = md->mdhim_rank + 1;
+	secondary_keys = malloc(sizeof(uint32_t *));		
+	secondary_keys[0] = malloc(sizeof(uint32_t));
+	*secondary_keys[0] = md->mdhim_rank + 1;
+	secondary_key_lens = malloc(sizeof(int));
+	secondary_key_lens[0] = sizeof(uint32_t);
 	//Create a secondary index
-	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
+	secondary_index = create_global_index(md, 2, 
+					      SECONDARY_SLICE_SIZE, LEVELDB, 
 					      MDHIM_INT_KEY, 
 					      md->primary_index->id);
-	secondary_info = mdhimCreateSecondaryInfo(secondary_index, &secondary_key, 
-						  sizeof(secondary_key),
-						  NULL, NULL, 0);
+	secondary_info = mdhimCreateSecondaryInfo(secondary_index, 
+						  (void **) secondary_keys, 
+						  secondary_key_lens, 1, 
+						  SECONDARY_GLOBAL_INFO);
 	brm = mdhimPut(md, &key, sizeof(key), 
 		       &value, sizeof(value), 
-		       secondary_info);
+		       secondary_info, NULL);
 	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
@@ -79,7 +85,7 @@ int main(int argc, char **argv) {
 					      MDHIM_INT_KEY, 
 					      md->primary_index->id);
 
-	brm = mdhimDelete(md, secondary_index, &secondary_key, sizeof(secondary_key));
+	brm = mdhimDelete(md, secondary_index, secondary_keys[0], secondary_key_lens[0]);
 	if (!brm || brm->error) {
 		printf("Error deleting key/value from MDHIM\n");
 	} else {
@@ -88,7 +94,7 @@ int main(int argc, char **argv) {
 
 	//Get the primary key values from the secondary key - this should fail
 	value = 0;
-	bgrm = mdhimGet(md, secondary_index, &secondary_key, sizeof(secondary_key), 
+	bgrm = mdhimGet(md, secondary_index, secondary_keys[0], secondary_key_lens[0], 
 		       MDHIM_GET_PRIMARY_EQ);
 	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
@@ -97,6 +103,9 @@ int main(int argc, char **argv) {
 	}
 
 	mdhim_full_release_msg(bgrm);
+	free(secondary_keys[0]);
+	free(secondary_keys);
+	free(secondary_key_lens);
 	ret = mdhimClose(md);
 	mdhim_options_destroy(db_opts);
 	if (ret != MDHIM_SUCCESS) {

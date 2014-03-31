@@ -10,10 +10,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	uint32_t key;
-	uint32_t secondary_keys[1][2];
-	int secondary_key_lens[1][2];
-	int value;
+	uint32_t key, **secondary_keys;
+	int value, *secondary_key_lens;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
 	int i;
@@ -63,14 +61,17 @@ int main(int argc, char **argv) {
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;
 		value = md->mdhim_rank + i;
-		secondary_keys[0][0] = md->mdhim_rank + 1;
-		secondary_keys[0][1] = md->mdhim_rank + 2;
-		secondary_key_lens[0][0] = secondary_key_lens[0][1] = sizeof(uint32_t);
-		secondary_info = mdhimCreateSecondaryInfo(secondary_index, secondary_keys, 
-							  secondary_key_lens,
-							  NULL, NULL, 0);
+		secondary_keys = malloc(sizeof(uint32_t *));		
+		secondary_keys[0] = malloc(sizeof(uint32_t));
+		*secondary_keys[0] = md->mdhim_rank + i + 1;
+		secondary_key_lens = malloc(sizeof(int));
+		secondary_key_lens[0] = sizeof(uint32_t);
+		secondary_info = mdhimCreateSecondaryInfo(secondary_index, (void **) secondary_keys, 
+							  secondary_key_lens, 1, 
+							  SECONDARY_GLOBAL_INFO);
 		brm = mdhimPut(md, &key, sizeof(key), 
-			       &value, sizeof(value), secondary_info);
+			       &value, sizeof(value), 
+			       secondary_info, NULL);
 		if (!brm || brm->error) {
 			printf("Error inserting key/value into MDHIM\n");
 		} else {
@@ -79,6 +80,9 @@ int main(int argc, char **argv) {
 
 		mdhimReleaseSecondaryInfo(secondary_info);
 		mdhim_full_release_msg(brm);
+		free(secondary_keys[0]);
+		free(secondary_keys);
+		free(secondary_key_lens);
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);

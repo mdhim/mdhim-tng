@@ -431,7 +431,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s) [int]\n", key_string, value );
 		brm = mdhimPut(md, &i_key, 
 			       sizeof(i_key), value, 
-			       strlen(value)+1, NULL);
+			       strlen(value)+1, NULL, NULL);
 		break;
              
         case MDHIM_LONG_INT_KEY:
@@ -440,7 +440,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s) [long]\n", key_string, value );
 		brm = mdhimPut(md, &l_key, sizeof(l_key), 
 			       value, strlen(value)+1, 
-			       NULL);
+			       NULL, NULL);
 		break;
 
         case MDHIM_FLOAT_KEY:
@@ -449,7 +449,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", key_string, value );
 		brm = mdhimPut(md, &f_key, 
 			       sizeof(f_key), value, 
-			       strlen(value)+1, NULL);
+			       strlen(value)+1, NULL, NULL);
 		break;
             
 	case MDHIM_DOUBLE_KEY:
@@ -458,7 +458,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", key_string, value );
 		brm = mdhimPut(md, &d_key, 
 			       sizeof(d_key), value, 
-			       strlen(value)+1, NULL);
+			       strlen(value)+1, NULL, NULL);
 		break;
                                      
         case MDHIM_STRING_KEY:
@@ -467,7 +467,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 		if (verbose) tst_say(0, "# mdhimPut( %s, %s) [string|byte]\n", key_string, value );
 		brm = mdhimPut(md, (void *)key_string, 
 			       strlen(key_string), value, 
-			       strlen(value)+1, NULL);
+			       strlen(value)+1, NULL, NULL);
 		break;
              
         default:
@@ -783,7 +783,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 
 	//Insert the keys into MDHIM
 	brm = mdhimBPut(md, keys, key_lens, (void **) values, 
-			value_lens, nkeys, NULL);
+			value_lens, nkeys, NULL, NULL);
 	brmp = brm;
 	ret = 0;
 	if (!brm || brm->error)
@@ -1418,7 +1418,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 					     key_string, value );
 			brm = mdhimPut(md, &i_key, 
 				       sizeof(i_key), value, 
-				       strlen(value)+1, NULL);
+				       strlen(value)+1, NULL, NULL);
 			break;
 
 		case MDHIM_LONG_INT_KEY:
@@ -1427,7 +1427,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [long]\n", 
 					     key_string, value );
 			brm = mdhimPut(md, &l_key, sizeof(l_key), value, 
-				       strlen(value)+1, NULL);
+				       strlen(value)+1, NULL, NULL);
 			break;
 
 		case MDHIM_FLOAT_KEY:
@@ -1436,7 +1436,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [float]\n", 
 					     key_string, value );
 			brm = mdhimPut(md, &f_key, sizeof(f_key), value, 
-				       strlen(value)+1, NULL);
+				       strlen(value)+1, NULL, NULL);
 			break;
 
 		case MDHIM_DOUBLE_KEY:
@@ -1445,7 +1445,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			if (verbose) tst_say(0, "# mdhimPut( %s, %s ) [double]\n", 
 					     key_string, value );
 			brm = mdhimPut(md, &d_key, sizeof(d_key), value, 
-				       strlen(value)+1, NULL);
+				       strlen(value)+1, NULL, NULL);
 			break;
 
 		case MDHIM_STRING_KEY:
@@ -1457,7 +1457,7 @@ static void execNput(char *command, struct mdhim_t *md, int charIdx)
 			brm = mdhimPut(md, (void *)key_string, 
 				       strlen(key_string), 
 				       value, strlen(value)+1, 
-				       NULL);
+				       NULL, NULL);
 			break;
 
 		default:
