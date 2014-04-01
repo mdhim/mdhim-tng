@@ -27,7 +27,7 @@ FILE *open_output(int rank) {
 	memset(file_str, 0, 4);
 	memset(file_str, 'a', 3);
 	j = strlen(file_str) - 1;
-	for (i = strlen(rank_str) - 1; i >= 0; i--) {
+	for (i = strlen(rank_str)-1; i >= 0; i--) {
 		sprintf(char_str, "%c", rank_str[i]);
 		file_str[j] = strtol(char_str, NULL, 10) + 'a';
 		j--;
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 
 	//Set MDHIM options
         db_opts = mdhim_options_init();
-        mdhim_options_set_db_path(db_opts, "./");
+        mdhim_options_set_db_path(db_opts, "/users/acaldwell/projects/sources/mdhim/mdhim-tng/tests/single_tests/");
         mdhim_options_set_db_name(db_opts, "mdhimTstDB");
         mdhim_options_set_db_type(db_opts, LEVELDB);
         mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);

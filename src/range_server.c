@@ -579,7 +579,7 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 	
 	/* Wait for the threads to finish */
-	pthread_join(md->mdhim_rs->listener, NULL);
+	//pthread_join(md->mdhim_rs->listener, NULL);
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
 		pthread_join(*md->mdhim_rs->workers[i], NULL);
 	}
@@ -638,6 +638,7 @@ int range_server_stop(struct mdhim_t *md) {
 	free(md->mdhim_rs);
 	md->mdhim_rs = NULL;
 	
+	free(md);
 	return MDHIM_SUCCESS;
 }
 
@@ -1450,6 +1451,7 @@ void *listener_thread(void *data) {
 
 		//We received a close message - so quit
 		if (ret == MDHIM_CLOSE) {
+            range_server_stop(md);
 			break;
 		}
 		
@@ -1557,7 +1559,8 @@ void *worker_thread(void *data) {
 			case MDHIM_CLOSE:
 				free(item);
 				pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
-				goto done;
+			
+			    goto done;
 				break;
 			default:
 				printf("Rank: %d - Got unknown work type: %d" 

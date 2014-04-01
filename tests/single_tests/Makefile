@@ -3,15 +3,20 @@ CLIBS += -L../../src
 CINC += -I../../src -I../../src/uthash
 all:	put-get bput-bget put-del bput-bdel put-getn \
 	put-getp puts-gets bput-bgetn bput-bgetp plfs-put-get \
-	plfs-put-get-abstract
+	plfs-put-get-abstract init_close
 
 put-get: put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 plfs-put-get: plfs-put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
 plfs-put-get-abstract: plfs-put-get-abstract.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
+init_close: init_close.c
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+
 puts-gets: puts-gets.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
@@ -40,4 +45,4 @@ clean:
 	rm -rf put-get bput-bget put-del bput-bdel\
                put-getn put-getp \
                puts-gets bput-bgetn \
-               bput-bgetp plfs-put-get plfs-put-get-abstract
+               bput-bgetp plfs-put-get plfs-put-get-abstract init_close
