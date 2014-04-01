@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
 		for (i = 0; i < KEYS; i++) {
 			bgrm = mdhimBGet(md, secondary_index, (void **) secondary_keys[i], 
 					 secondary_key_lens[i],
-					 KEYS, MDHIM_GET_PRIMARY_EQ);
+					 1, MDHIM_GET_PRIMARY_EQ);
 		}
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);

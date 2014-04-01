@@ -130,6 +130,9 @@ int main(int argc, char **argv) {
 	total = 0;
 	secondary_local_index = create_local_index(md, LEVELDB, 
 						   MDHIM_LONG_INT_KEY);
+	for (i = 0; i < KEYS; i++) {
+		num_keys[i] = 1;
+	}
 	while (total != TOTAL_KEYS) {
 		//Populate the primary keys and values to insert
 		gen_keys_values(md->mdhim_rank, total);

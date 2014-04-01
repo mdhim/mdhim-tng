@@ -11,9 +11,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	uint32_t key, secondary_keys[1][2];
-	int secondary_key_lens[2];
-	int value;
+	uint32_t key, **secondary_keys;
+	int value, *secondary_key_lens;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
@@ -51,12 +50,17 @@ int main(int argc, char **argv) {
 	//Create a secondary index on only one range server
 	secondary_local_index = create_local_index(md, LEVELDB, 
 						   MDHIM_INT_KEY);
-	secondary_keys[0][0] = md->mdhim_rank + 1;
-	secondary_keys[0][1] = md->mdhim_rank + 2;
-	secondary_key_lens[0] = secondary_key_lens[1] = sizeof(uint32_t);
+	secondary_keys = malloc(sizeof(uint32_t *));	
+	secondary_keys[0] = malloc(sizeof(uint32_t));
+	*secondary_keys[0] = md->mdhim_rank + 1;
+	secondary_keys[1] = malloc(sizeof(uint32_t));
+	*secondary_keys[1] = md->mdhim_rank + 2;
+	secondary_key_lens = malloc(sizeof(int) * 2);
+	secondary_key_lens[0] = sizeof(uint32_t);
+	secondary_key_lens[1] = sizeof(uint32_t);
 	secondary_info = mdhimCreateSecondaryInfo(secondary_local_index, 
 						  (void **) secondary_keys, 
-						  secondary_key_lens, 1, 
+						  secondary_key_lens, 2, 
 						  SECONDARY_LOCAL_INFO);
 	brm = mdhimPut(md, &key, sizeof(key), 
 		       &value, sizeof(value), 
@@ -106,6 +110,10 @@ int main(int argc, char **argv) {
 		printf("Error closing MDHIM\n");
 	}
 
+	free(secondary_keys[0]);
+	free(secondary_keys[1]);
+	free(secondary_keys);
+	free(secondary_key_lens);
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 

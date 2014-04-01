@@ -311,22 +311,24 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 	    secondary_global_info->secondary_key_lens &&
 	    secondary_global_info->num_keys) {
 		primary_keys = malloc(sizeof(void *) * secondary_global_info->num_keys);
-		primary_key_lens = malloc(sizeof(int) * secondary_global_info->num_keys);		
+		primary_key_lens = malloc(sizeof(int) * secondary_global_info->num_keys);
 		for (i = 0; i < secondary_global_info->num_keys; i++) {
-			brm = _bput_records(md, secondary_global_info->secondary_index, 
-					    secondary_global_info->secondary_keys, 
-					    secondary_global_info->secondary_key_lens, 
-					    primary_keys, primary_key_lens,
-					    secondary_global_info->num_keys);
-
-			free(primary_keys);
-			free(primary_key_lens);
-			if (!brm) {
-				return head;
-			}
-
-			_concat_brm(head, brm);
+			primary_keys[i] = primary_key;
+			primary_key_lens[i] = primary_key_len;
 		}
+		brm = _bput_records(md, secondary_global_info->secondary_index, 
+				    secondary_global_info->secondary_keys, 
+				    secondary_global_info->secondary_key_lens, 
+				    primary_keys, primary_key_lens,
+				    secondary_global_info->num_keys);
+
+		free(primary_keys);
+		free(primary_key_lens);
+		if (!brm) {
+		  return head;
+		}
+
+		_concat_brm(head, brm);
 	}	
 
 	return head;
@@ -394,17 +396,16 @@ struct mdhim_brm_t *_bput_secondary_keys_from_info(struct mdhim_t *md,
 			primary_keys_to_send[j] = primary_keys[i];
 			primary_key_lens_to_send[j] = primary_key_lens[i];
 		}
-		for (j = 0; j < secondary_info->num_keys[i]; j++) {
-			new = _bput_records(md, secondary_info->secondary_index, 
-					    secondary_info->secondary_keys[j], 
-					    secondary_info->secondary_key_lens[j], 
-					    primary_keys_to_send, primary_key_lens_to_send, 
-					    num_records);
-			if (!head) {
-				head = new;
-			} else if (new) {
-				_concat_brm(head, new);
-			}
+		
+		new = _bput_records(md, secondary_info->secondary_index, 
+				    secondary_info->secondary_keys[i], 
+				    secondary_info->secondary_key_lens[i], 
+				    primary_keys_to_send, primary_key_lens_to_send, 
+				    secondary_info->num_keys[i]);
+		if (!head) {
+			head = new;
+		} else if (new) {
+			_concat_brm(head, new);
 		}
 
 		free(primary_keys_to_send);

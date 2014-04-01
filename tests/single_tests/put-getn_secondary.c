@@ -114,9 +114,9 @@ int main(int argc, char **argv) {
 	}
 
 	//Get the secondary keys and values using get_next
-	for (i = 0; i < keys_per_rank; i++) {
+	for (i = 1; i < keys_per_rank; i++) {
 		value = 0;
-		key = md->mdhim_rank + i;
+		key = md->mdhim_rank + i - 1;
 		bgrm = mdhimBGetOp(md, secondary_index, 
 				   &key, sizeof(uint32_t), 1, MDHIM_GET_NEXT);				
 		if (!bgrm || bgrm->error) {
