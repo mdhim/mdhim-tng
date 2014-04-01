@@ -153,22 +153,9 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 int mdhimClose(struct mdhim_t *md) {
 	int ret;
 	struct rangesrv_info *rsrv, *trsrv;
-	struct mdhim_basem_t *cm;
 	struct mdhim_stat *stat, *tmp;
 
 	MPI_Barrier(md->mdhim_client_comm);
-	//If I'm rank 0, send a close message to every range server to it can stop its thread
-	if (!md->mdhim_rank) {
-		cm = malloc(sizeof(struct mdhim_basem_t));
-		cm->mtype = MDHIM_CLOSE;
-		cm->size = sizeof(struct mdhim_basem_t);
-		cm->server_rank = md->mdhim_rank;
-		
-		//Have rank 0 send close to all range servers
-		client_close(md, cm);
-		free(cm);
-	}
-	
 	//Stop range server if I'm a range server	
 	/* if (im_range_server(md) && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;

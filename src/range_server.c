@@ -570,6 +570,9 @@ int range_server_stop(struct mdhim_t *md) {
 	int ret, i;	
 	struct mdhim_store_opts_t opts;
 
+	//Signal to the listener thread that it needs to shutdown
+	md->shutdown = 1;
+
 	//Cancel the worker threads
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
 		if ((ret = pthread_cancel(*md->mdhim_rs->workers[i])) != 0) {
@@ -1439,7 +1442,11 @@ void *listener_thread(void *data) {
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
-	while (1) {		
+	while (1) {
+		if (md->shutdown) {
+			break;
+		}
+
 		//Receive messages sent to this server
 		ret = receive_rangesrv_work(md, &source, &message);
 		if (ret < MDHIM_SUCCESS) {		
@@ -1449,13 +1456,7 @@ void *listener_thread(void *data) {
 //		printf("Rank: %d - Received message from rank: %d of type: %d", 
 //		     md->mdhim_rank, source, mtype);
 
-		//We received a close message - so quit
-		if (ret == MDHIM_CLOSE) {
-            range_server_stop(md);
-			break;
-		}
-		
-                //Create a new work item
+        //Create a new work item
 		item = malloc(sizeof(work_item));
 		memset(item, 0, sizeof(work_item));
 		             
@@ -1555,13 +1556,7 @@ void *worker_thread(void *data) {
 				break;
 			case MDHIM_COMMIT:
 				range_server_commit(md, item->message, item->source);
-				break;
-			case MDHIM_CLOSE:
-				free(item);
-				pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
-			
-			    goto done;
-				break;
+				break;		
 			default:
 				printf("Rank: %d - Got unknown work type: %d" 
 				       " from: %d", md->mdhim_rank, mtype, item->source);
@@ -1574,9 +1569,6 @@ void *worker_thread(void *data) {
 		
 		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 	}
-	
-done:
-	return NULL;
 }
 
 int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {

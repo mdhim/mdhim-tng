@@ -65,6 +65,7 @@ struct mdhim_t {
         mdhim_options_t *db_opts;
 	//Statistics retrieved from the mdhimStatFlush operation
 	struct mdhim_stat *stats;
+	int shutdown;
 };
 
 struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts);
