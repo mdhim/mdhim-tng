@@ -267,6 +267,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	}
 
 	while (!flag) {
+		if (md->shutdown) {
+			return MDHIM_ERROR;
+		}
 		return_code = MPI_Test(&req, &flag, &status);	
 		if (return_code == MPI_ERR_REQUEST) {
 			return MDHIM_ERROR;
@@ -292,6 +295,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 		return MDHIM_ERROR;
 	}
 	while (!flag) {
+		if (md->shutdown) {
+			return MDHIM_ERROR;
+		}
 		return_code = MPI_Test(&req, &flag, &status);	
 		if (return_code == MPI_ERR_REQUEST) {
 			return MDHIM_ERROR;
