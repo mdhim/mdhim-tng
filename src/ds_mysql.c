@@ -630,20 +630,28 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	//printf("\nThis is the query: \n%s\n", get_value);
 	if (mysql_query(db,get_value)) {
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in mysql");
+		printf("This is the error, get_value failed\n");
 		goto error;
 	}
 	data_res = mysql_store_result(db);
 	if (data_res->row_count == 0){
 		//mlog(MDHIM_SERVER_CRIT, "No row data selected");
+		//printf("This is the error, store row has nothing.\n");
 		goto error;
 	}
 	
 	row = mysql_fetch_row(data_res);
-	*data_len = sizeof(row[0]);
+	unsigned long *rl = mysql_fetch_lengths(data_res); 
+	*data_len = *rl;
 	*data = malloc(*data_len);
 	msl_data = row[0];
-	//printf("\nThis is the value: \n%s\n", (char*)msl_data);
-	memcpy(*data, msl_data, *data_len);
+	//printf("\nThis is the row : \n%s\n", (char*)row[0]);
+	if (!memcpy(*data, msl_data, *data_len)) {
+		mlog(MDHIM_SERVER_CRIT, "Error failed memory copy");
+		printf("This is the error, get_value failed\n");
+		goto error;
+
+}
 	mysql_free_result(data_res);
 	return ret;
 
@@ -679,6 +687,7 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len,
 	char key_delete[MYSQL_BUFFER+key_len];
 	//Delete the Key
 	char *table_name;
+	char *key_copy;
 	switch(x->msqht){
 	case MYSQLDB_HANDLE:
 		table_name = (char*)mstore_opts -> db_ptr5;
@@ -690,9 +699,15 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len,
 		return MDHIM_DB_ERROR;
 		break;
 	}
+
+		if (mstore_opts->key_type == MDHIM_STRING_KEY || 
+		mstore_opts->key_type == MDHIM_BYTE_KEY) {
+		key_copy = sb_key_copy(db, key, key_len);
+	}
+
 			switch(mstore_opts -> key_type){
 			case MDHIM_STRING_KEY:
-				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = '%s'",table_name, (char*)key);
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = '%s'",table_name, (char*)key_copy);
 			break;
        			case MDHIM_FLOAT_KEY:
 				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %f",table_name, *((float*)key));
@@ -707,10 +722,9 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len,
 				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %ld",table_name, *((long*)key));
 			break;
 			case MDHIM_BYTE_KEY:
-				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len), "Delete FROM %s WHERE Id = '%s'",table_name,  (char*)key);
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len), "Delete FROM %s WHERE Id = '%s'",table_name,  (char*)key_copy);
 			break; 
 		}
-	//snprintf(key_delete, "Delete FROM %s WHERE Id = %d",table_name, *((int*)key));
 	if (mysql_query(db,key_delete)) {
 		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
 		return MDHIM_DB_ERROR;
@@ -862,10 +876,11 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 		goto error;
  			 }
 	key_row = mysql_fetch_row(key_result);
+	unsigned long *dl = mysql_fetch_lengths(key_result);
 	int r_size;
 	msl_key = str_to_key(key_row, mstore_opts->key_type, &r_size);
 	*key_len = r_size; 
-	*data_len = sizeof(key_row[1]);
+	*data_len = dl[1];
 	msl_data = key_row[1];
 
 	//Allocate data and key to mdhim program
@@ -873,8 +888,8 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 		*key = malloc(*key_len+1);
 		memset(*key, 0, *key_len+1);
 		memcpy(*key, msl_key, *key_len);
-		*data = malloc(*data_len+1);
-		memset(*data, 0, *data_len+1);
+		*data = malloc(*data_len);
+		memset(*data, 0, *data_len);
 		memcpy(*data, msl_data, *data_len);
 		//printf("\nCopied here\n");
 		
@@ -1012,23 +1027,24 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
  			 }
 	//Fetch row and get data from database
 	key_row = mysql_fetch_row(key_result);
+	unsigned long *dl = mysql_fetch_lengths(key_result);
 	int r_size;
 	msl_key = str_to_key(key_row, mstore_opts->key_type, &r_size);
-	//key_t =  strtol(key_row[0],NULL,10);
-	*key_len = r_size; //sizeof(strtol(key_row[0],NULL,10));
-	*data_len = sizeof(key_row[1]);
-	//msl_key = &key_t;
+	*key_len = r_size; 
+	*data_len = dl[1];
 	msl_data = key_row[1];
 
 	//Allocate data and key to mdhim program
 	if (key_row && *key_row) {
 		*key = malloc(*key_len+1);
 		memset(*key, 0, *key_len+1);
-		memcpy(*key, msl_key,*key_len);
-		*data = malloc(*data_len+1);
-		memset(*data, 0, *data_len+1);
+		memcpy(*key, msl_key, *key_len);
+		*data = malloc(*data_len);
+		memset(*data, 0, *data_len);
 		memcpy(*data, msl_data, *data_len);
-	} else {
+		//printf("\nCopied here\n");
+		
+	}  else {
 		*key = NULL;
 		*key_len = 0;
 		*data = NULL;

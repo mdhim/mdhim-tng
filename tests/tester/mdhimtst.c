@@ -60,6 +60,7 @@ char * mdhimTst_c_id = "$Id: mdhimTst.c,v 1.00 2013/07/08 20:56:50 JHR Exp $";
 
 static FILE * logfile;
 static FILE * infile;
+static FILE * datafile;
 int verbose = 1;   // By default generate lots of feedback status lines
 int dbOptionAppend = MDHIM_DB_OVERWRITE;
 int to_log = 0;
@@ -431,14 +432,28 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	char buffer2 [ TEST_BUFLEN ];
 	char key_string [ TEST_BUFLEN ];
 	char value [ TEST_BUFLEN ];
+	char fhandle [TEST_BUFLEN]; //Filename handle
+	int data_index =0; //Index for reading data.
+	char data_read[TEST_BUFLEN];
+	memset(fhandle, 0, sizeof(fhandle));
+	memset(data_read, 0, sizeof(data_read));
 	//int ret;
  
 	if (verbose) tst_say(0, "# put key data\n" );
-	charIdx = getWordFromString( command, str_key, charIdx);
+	charIdx = getWordFromString( command, fhandle, charIdx);
+	datafile = fopen( fhandle, "r" );
+			if( !datafile )
+			{
+				fprintf( stderr, "Failed to open data file %s, %s\n", 
+					 fhandle, strerror( errno ));
+				exit( -1 );
+			}
+	fgets(data_read, TEST_BUFLEN, datafile);
+	data_index = getWordFromString( data_read, str_key, data_index);
 	// Get value to store
-	charIdx = getWordFromString( command, buffer2, charIdx);
+	
+	charIdx = getWordFromString( data_read, buffer2, data_index);
 	sprintf(value, "%s_%d", buffer2, (md->mdhim_rank + 1));
-    
 	// Based on key type generate a key using rank 
 	switch (key_type)
 	{
@@ -504,6 +519,8 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 		if (verbose) tst_say(0, "Committed put to MDHIM database\n");
 	} */
 
+	fclose(datafile);
+
 }
 
 //======================================GET============================
@@ -523,11 +540,25 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
 	char key_string [ TEST_BUFLEN ];
 	char returned_key [ TEST_BUFLEN ];
 	int getOp, newIdx;
-    
+ 	char fhandle [TEST_BUFLEN]; //Filename handle
+	int data_index =0; //Index for reading data.
+	char data_read[TEST_BUFLEN];
+	memset(fhandle, 0, sizeof(fhandle));
+	memset(data_read, 0, sizeof(data_read));   
 	if (verbose) tst_say(0, "# get key <getOperator verfication_value>\n" );
 
-	charIdx = getWordFromString( command, str_key, charIdx);
-	newIdx = getWordFromString( command, buffer2, charIdx);
+	charIdx = getWordFromString( command, fhandle, charIdx);
+	datafile = fopen( fhandle, "r" );
+			if( !datafile )
+			{
+				fprintf( stderr, "Failed to open data file %s, %s\n", 
+					 fhandle, strerror( errno ));
+				exit( -1 );
+			}
+	fgets(data_read, TEST_BUFLEN, datafile);
+
+	charIdx = getWordFromString( data_read, str_key, data_index);
+	newIdx = getWordFromString( data_read, buffer2, data_index);
     
 	if (newIdx != charIdx)
 	{
@@ -546,7 +577,7 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
 	{
 		getOp = MDHIM_GET_EQ;  //Default a get with an equal operator
 	}
-    
+    	
 	// Based on key type generate a key using rank 
 	switch (key_type)
 	{
@@ -646,6 +677,7 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
 	}
 
 	if (v_value) free(v_value);
+	fclose(datafile);
 }
 
 //======================================BPUT============================
@@ -662,9 +694,12 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	int *key_lens;
 	char **values;
 	int *value_lens;    
+	 	char fhandle [TEST_BUFLEN]; //Filename handle
+	int data_index; //Index for reading data.
+	char data_read[TEST_BUFLEN];
+
 
 	if (verbose) tst_say(0, "# bput n key data\n" );
-
 
 
 	//Initialize variables
@@ -674,15 +709,27 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 	// Number of keys to generate
 	charIdx = getWordFromString( command, buffer1, charIdx);
 	nkeys = atoi( buffer1 );
+
+	memset(fhandle, 0, sizeof(fhandle));
+	memset(data_read, 0, sizeof(data_read));   
+
+	charIdx = getWordFromString( command, fhandle, charIdx);
+	datafile = fopen( fhandle, "r" );
+			if( !datafile )
+			{
+				fprintf( stderr, "Failed to open data file %s, %s\n", 
+					 fhandle, strerror( errno ));
+				exit( -1 );
+			}
     
 	key_lens = malloc(sizeof(int) * nkeys);
 	value_lens = malloc(sizeof(int) * nkeys);
     
 	// starting key value
-	charIdx = getWordFromString( command, str_key, charIdx);
+	//charIdx = getWordFromString( command, str_key, charIdx);
 
 	// starting data value
-	charIdx = getWordFromString( command, value, charIdx);
+//	charIdx = getWordFromString( command, value, charIdx);
 
 	if (verbose) tst_say(0, "# mdhimBPut(%d, %s, %s )\n", nkeys, str_key, value );
 
@@ -718,9 +765,17 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 		break;
 	}    
 
+	//int q =0;
+	//while (q==0) sleep(5);
 	// Create the keys and values to store
 	for (i = 0; i < nkeys; i++)
 	{
+		data_index = 0;
+		fgets(data_read, TEST_BUFLEN, datafile);
+		memset(str_key, 0, TEST_BUFLEN);
+		memset(value, 0, TEST_BUFLEN);
+		data_index = getWordFromString( data_read, str_key, data_index);
+		data_index = getWordFromString( data_read, value, data_index);
 		keys[i] = malloc(size_of);
 		key_lens[i] = size_of;
 		values[i] = malloc(sizeof(char) * TEST_BUFLEN);
@@ -831,6 +886,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     
 	// Release memory
 	freeKeyValueMem(nkeys, keys, key_lens, values, value_lens);
+	fclose(datafile);
 }
         
 //======================================BGET============================
@@ -842,30 +898,46 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 	char *v_value = NULL;
 	if (verbose) tst_say(0, "# bget n key <verfication_value>\n" );
 	struct mdhim_bgetrm_t *bgrm, *bgrmp;
-	int i, size_of, ret, newIdx;
+	int i, size_of, ret;
 	void **keys;
 	int *key_lens;
 	int totRecds;
-
+	char fhandle[TEST_BUFLEN];
+	char data_read[TEST_BUFLEN];
+	int data_index;
 	size_of = 0;
 	keys = NULL;
 
-	// Get the number of records to create for bget
+	memset(fhandle, 0, sizeof(fhandle));
+	memset(data_read, 0, sizeof(data_read));   
+
+
+		// Get the number of records to create for bget
 	charIdx = getWordFromString( command, buffer, charIdx);
 	nkeys = atoi( buffer );
     
+	charIdx = getWordFromString( command, fhandle, charIdx);
+	datafile = fopen( fhandle, "r" );
+			if( !datafile )
+			{
+				fprintf( stderr, "Failed to open data file %s, %s\n", 
+					 fhandle, strerror( errno ));
+				exit( -1 );
+			}
+
+
 	key_lens = malloc(sizeof(int) * nkeys);
     
 	// Get the key to use as starting point
-	charIdx = getWordFromString( command, str_key, charIdx);
+	//charIdx = getWordFromString( command, str_key, charIdx);
     
 	// Is there a verification value?
-	newIdx = getWordFromString( command, buffer, charIdx);
-	if (newIdx != charIdx)
+	//newIdx = getWordFromString( command, buffer, charIdx);
+	/*if (newIdx != charIdx)
 	{
 		v_value = malloc(sizeof(char) * TEST_BUFLEN);
 		sprintf(v_value, "%s_%d", buffer, (md->mdhim_rank + 1)); //Value to verify
-	}
+	}  */
 
 	if (verbose) tst_say(0, "# mdhimBGet(%d, %s)\n", nkeys, str_key );
 
@@ -900,9 +972,14 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 		break;
 	}
     
+
 	// Generate the keys as set above
 	for (i = 0; i < nkeys; i++)
 	{   
+		data_index = 0;
+		fgets(data_read, TEST_BUFLEN, datafile);
+		memset(str_key, 0, TEST_BUFLEN);
+		data_index = getWordFromString( data_read, str_key, data_index);
 		keys[i] = malloc(size_of);
 		key_lens[i] = size_of;
         
@@ -964,12 +1041,14 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
             		
 	}
     
-	//Get the values back for each key retrieved
+	//Get the values back for each key retrieved;
 	bgrm = mdhimBGet(md, keys, key_lens, nkeys);
 	ret = 0; // Used to determine if any errors are encountered
     
 	totRecds = 0;
 	bgrmp = bgrm;
+	//int q = 0;
+	//while (q==0) sleep(5);
 	while (bgrmp) {
 		if (bgrmp->error < 0)
 		{
@@ -985,12 +1064,14 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
             
 			if ( v_value == NULL )  // No verification value, anything is OK.
 			{
+
 				if (verbose) tst_say(0, "Rank: %d successfully get[%d] value: %s from MDHIM\n", 
 						     md->mdhim_rank, i, expand_escapes(bgrmp->values[i], 
 										       bgrmp->value_lens[i]));
 			}
 			else if (memcmp(expand_escapes(bgrmp->values[i], bgrmp->value_lens[i]), buffer, bgrmp->value_lens[i]))
 			{
+				
 				tst_say(1, "ERROR: rank %d incorrect get[%d] value: %s from MDHIM expecting %s\n", 
 					md->mdhim_rank, i, expand_escapes(bgrmp->values[i], bgrmp->value_lens[i]), buffer);
 			}
@@ -1021,6 +1102,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 	// Release memory
 	freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
 	free(v_value);
+	fclose(datafile);
 }
 
 //======================================BGETOP============================
@@ -1134,11 +1216,26 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
 	char str_key [ TEST_BUFLEN ];
 	char key_string [ TEST_BUFLEN ];
 	struct mdhim_rm_t *rm;
+ 	char fhandle [TEST_BUFLEN]; //Filename handle
+	int data_index =0; //Index for reading data.
+	char data_read[TEST_BUFLEN];
+	memset(fhandle, 0, sizeof(fhandle));
+	memset(data_read, 0, sizeof(data_read));   
+
+	charIdx = getWordFromString( command, fhandle, charIdx);
+	datafile = fopen( fhandle, "r" );
+			if( !datafile )
+			{
+				fprintf( stderr, "Failed to open data file %s, %s\n", 
+					 fhandle, strerror( errno ));
+				exit( -1 );
+			}
+	fgets(data_read, TEST_BUFLEN, datafile);
 
 	if (verbose) tst_say(0, "# del key\n" );
 
 	rm = NULL;
-	charIdx = getWordFromString( command, str_key, charIdx);
+	charIdx = getWordFromString( data_read, str_key, data_index);
     
 	switch (key_type)
 	{
@@ -1193,16 +1290,21 @@ static void execDel(char *command, struct mdhim_t *md, int charIdx)
 
 }
 
-//======================================NDEL============================
+//======================================BDEL============================
 static void execBdel(char *command, struct mdhim_t *md, int charIdx)
 {
-	int nkeys = 100;
+int nkeys = 100;
 	char buffer1 [ TEST_BUFLEN ];
 	char str_key [ TEST_BUFLEN ];
 	void **keys;
 	int *key_lens;
 	struct mdhim_brm_t *brm, *brmp;
 	int i, size_of, ret;
+ 	char fhandle [TEST_BUFLEN]; //Filename handle
+	int data_index; //Index for reading data.
+	char data_read[TEST_BUFLEN];
+	memset(fhandle, 0, sizeof(fhandle));
+	memset(data_read, 0, sizeof(data_read)); 
     
 	if (verbose) tst_say(0, "# bdel n key\n" );
     
@@ -1215,7 +1317,15 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
 	key_lens = malloc(sizeof(int) * nkeys);
 
 	// Starting key value
-	charIdx = getWordFromString( command, str_key, charIdx);
+	charIdx = getWordFromString( command, fhandle, charIdx);
+	datafile = fopen( fhandle, "r" );
+			if( !datafile )
+			{
+				fprintf( stderr, "Failed to open data file %s, %s\n", 
+					 fhandle, strerror( errno ));
+				exit( -1 );
+			}
+
 
 	if (verbose) tst_say(0, "# mdhimBDelete(%d, %s )\n", nkeys, str_key );
     
@@ -1252,6 +1362,10 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
 
 	for (i = 0; i < nkeys; i++)
 	{
+		data_index =0;
+		fgets(data_read, TEST_BUFLEN, datafile);
+		memset(str_key, 0, TEST_BUFLEN);
+		getWordFromString(data_read, str_key,  data_index);
 		keys[i] = malloc(size_of);
 		key_lens[i] = size_of;
 
@@ -1314,6 +1428,8 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
 	}
 
 	//Delete the records
+	//int q = 0;
+	//while (q==0) sleep(5);
 	brm = mdhimBDelete(md, (void **) keys, key_lens, nkeys);
 	brmp = brm;
 	if (!brm || brm->error) {
@@ -1345,6 +1461,7 @@ static void execBdel(char *command, struct mdhim_t *md, int charIdx)
 
 	// Release memory
 	freeKeyValueMem(nkeys, keys, key_lens, NULL, NULL);
+	fclose(datafile);
 }
 
 // Generate a random string of up to max_len
@@ -1870,7 +1987,6 @@ int main( int argc, char * argv[] )
 	srand( time( NULL ) + md->mdhim_rank);
 	sc_len = strlen( sourceChars );
 
-	sleep(15);
 	/*
 	 * open the log file (one per rank if in verbose mode, otherwise write to stderr)
 	 */
@@ -2015,3 +2131,4 @@ int main( int argc, char * argv[] )
 
 	return( 0 );
 }
+
