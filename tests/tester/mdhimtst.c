@@ -379,14 +379,16 @@ void usage(void)
 {
 	printf("Usage:\n");
 	printf(" -f<BatchInputFileName> (file with batch commands)\n");
-	printf(" -d<DataBaseType> (Type of DB to use: levelDB=1)\n");
+	printf(" -d<DataBaseType> (Type of DB to use: levelDB=1 mysql=3)\n");
         printf(" -t<IndexKeyType> (Type of keys: int=1, longInt=2, float=3, "
                "double=4, longDouble=5, string=6, byte=7)\n");
         printf(" -p<pathForDataBase> (path where DB will be created)\n");
         printf(" -n<DataBaseName> (Name of DataBase file or directory)\n");
         printf(" -b<DebugLevel> (MLOG_CRIT=1, MLOG_DBG=2)\n");
         printf(" -a (DB store append mode. By default records with same key are "
-               "overwritten. This flag turns on the option to append to existing values.");
+               "overwritten. This flag turns on the option to append to existing values.\n");
+ 	printf(" -w<Rank modlus> This flag turns on the option to either allow or deny threads to do command based on if it is dividiable by the modlus of the modulus number\n");
+ printf(" -r<lowest rank number> ~ <highest rank number>This flag turns on the option to either allow or deny threads to do command based on if the rank falls inclusively inbetween the rank ranges.  NOTE: You must use the '~' inbetween the numbers.  Example: -r0~2\n");
         printf(" -q<0|1> (Quiet mode, default is verbose) 1=write out to log file\n");
 	exit (8);
 }
@@ -1920,6 +1922,9 @@ int main( int argc, char * argv[] )
 		case 'w':
                 	rd=atoi(&argv[1][2]); 
 			printf("Range divider : %d ||", rd);
+			break;
+		case 'h':
+			usage();
 			break;
 		default:
 			printf("Wrong Argument (it will be ignored): %s\n", argv[1]);
