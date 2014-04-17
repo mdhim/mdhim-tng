@@ -42,23 +42,26 @@ typedef struct {
 char *put_value(MYSQL *pdb, void *key_t, int k_len, void *data_t, int d_len, char *t_name, int pk_type){
 
 char chunk[2*d_len+1];
+char kchunk[2*k_len+1];
   mysql_real_escape_string(pdb, chunk, data_t, d_len);
+  mysql_real_escape_string(pdb, kchunk, key_t, k_len);
  // mysql_real_escape_string(db, key_t_insert,key_t,k_len);
-	char *key_copy;
+	//char *key_copy;
 	size_t st_len, size=0;
 	char *r_query=NULL, *st;
 	switch(pk_type){
+			case MDHIM_BYTE_KEY:
 			case MDHIM_STRING_KEY:
 			  //mysql_real_escape_string(pdb, k_chunk, key_t, k_len);
   				st = "Insert INTO %s (Id, Value) VALUES ('%s', '%s');";
  		 		st_len = strlen(st);
   				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
   				r_query=malloc(sizeof(char)*(size)); 
-				key_copy = malloc(k_len+1);
-				memset(key_copy, 0, k_len+1);
-				memcpy(key_copy, key_t, k_len);
-  				snprintf(r_query, st_len + size, st, t_name, key_copy, chunk);
-				free(key_copy);
+				//key_copy = malloc(2*k_len+1);
+				//memset(key_copy, 0, 2*k_len+1);
+				//memcpy(key_copy, kchunk, 2*k_len+1);
+  				snprintf(r_query, st_len + size, st, t_name, kchunk, chunk);
+				//free(key_copy);
 			break;
        			case MDHIM_FLOAT_KEY:
 				st = "Insert INTO %s (Id, Value) VALUES (%f, '%s');";
@@ -88,19 +91,6 @@ char chunk[2*d_len+1];
   				r_query=malloc(sizeof(char)*(size)); 
 				snprintf(r_query, st_len + size, st, t_name, *((long*)key_t), chunk);
 			break;
-			case MDHIM_BYTE_KEY:
-				//mysql_real_escape_string(pdb, k_chunk, key_t, k_len);
-  				st = "Insert INTO %s (Id, Value) VALUES ('%s', '%s');";
- 		 		st_len = strlen(st);
-  				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
-  				r_query=malloc(sizeof(char)*(size)); 
-				memset(r_query, 0, size);
-				key_copy = malloc(k_len+1);
-				memset(key_copy, 0, k_len+1);
-				memcpy(key_copy, key_t, k_len);
-  				snprintf(r_query, size, st, t_name, key_copy, chunk);
-				free(key_copy);
-			break; 
 		}	
 	return r_query;
 
@@ -121,18 +111,19 @@ char chunk[2*d_len+1];
 char *update_value(MYSQL *pdb, void *key_t, int k_len, void *data_t, int d_len, char *t_name, int pk_type){
 
 char chunk[2*d_len+1];
+char kchunk[2*k_len+1];
   mysql_real_escape_string(pdb, chunk, data_t, d_len);
- // mysql_real_escape_string(db, key_t_insert,key_t,k_len);
-
+  mysql_real_escape_string(pdb, kchunk, key_t, k_len);
 	size_t st_len, size=0;
 	char *r_query=NULL, *st;
 	switch(pk_type){
+			case MDHIM_BYTE_KEY:
 			case MDHIM_STRING_KEY:
   				st = "Update %s set Value = '%s' where Id = '%s';";
  		 		st_len = strlen(st);
   				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
   				r_query=malloc(sizeof(char)*(size)); 
-  				snprintf(r_query, st_len + size, st, t_name,  chunk, (char*)key_t);
+  				snprintf(r_query, st_len + size, st, t_name,  chunk, kchunk);
 			break;
        			case MDHIM_FLOAT_KEY:
 				st = "Update %s set Value = '%s' where Id = %f;";
@@ -162,13 +153,7 @@ char chunk[2*d_len+1];
   				r_query=malloc(sizeof(char)*(size)); 
 				snprintf(r_query, st_len + size, st, t_name, chunk, *((long*)key_t));
 			break;
-			case MDHIM_BYTE_KEY:
-  				st = "Update %s set Value = '%s' where Id = '%s';";
- 		 		st_len = strlen(st);
-  				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
-  				r_query=malloc(sizeof(char)*(size)); 
-  				snprintf(r_query, size, st, t_name, chunk, (char*)key_t);
-			break; 
+			
 		}	
 	return r_query;
 
@@ -456,7 +441,7 @@ int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_
 		//else printf("Sucessfully updated key/value in mdhim\n");
 		}
 	else {
-		mlog(MDHIM_SERVER_CRIT, "Error putting key/value in mysql\n");
+		mlog(MDHIM_SERVER_CRIT, "Error putting key/value in mysql\nHere is the command:%s\n",query);
 		    fprintf(stderr, "%s\n", mysql_error(db));
 			return MDHIM_DB_ERROR;
 			}
@@ -636,7 +621,7 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	data_res = mysql_store_result(db);
 	if (data_res->row_count == 0){
 		//mlog(MDHIM_SERVER_CRIT, "No row data selected");
-		//printf("This is the error, store row has nothing.\n");
+		//printf("This is the error, store row has nothing.\nHEre is query:%s\n", get_value);
 		goto error;
 	}
 	
@@ -795,15 +780,6 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	MYSQL_RES *key_result;
 	MYSQL_ROW key_row;
 	char *table_name;
-
-	    /*int i = 0;
-    char hostname[256];
-    gethostname(hostname, sizeof(hostname));
-    printf("PID %d on %s ready for attach\n", getpid(), hostname);
-    fflush(stdout);
-    while (0 == i)
-        sleep(5); */
-
 
 	switch(x->msqht){
 	case MYSQLDB_HANDLE:

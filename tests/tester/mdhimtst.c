@@ -455,7 +455,7 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	// Get value to store
 	
 	charIdx = getWordFromString( data_read, buffer2, data_index);
-	sprintf(value, "%s_%d", buffer2, (md->mdhim_rank + 1));
+	sprintf(value, "%s", buffer2);
 	// Based on key type generate a key using rank 
 	switch (key_type)
 	{
@@ -508,18 +508,6 @@ static void execPut(char *command, struct mdhim_t *md, int charIdx)
 	{
 		tst_say(0, "Successfully put key/value into MDHIM\n");
 	}
-    
-	//Commit the database
-	/*ret = mdhimCommit(md);
-	if (ret != MDHIM_SUCCESS)
-	{
-		tst_say(1, "ERROR: rank %d committing put key: %s to MDHIM database\n", 
-			md->mdhim_rank, key_string);
-	}
-	else
-	{
-		if (verbose) tst_say(0, "Committed put to MDHIM database\n");
-	} */
 
 	fclose(datafile);
 
@@ -559,22 +547,14 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
 			}
 	fgets(data_read, TEST_BUFLEN, datafile);
 
-	charIdx = getWordFromString( data_read, str_key, data_index);
+	data_index= getWordFromString( data_read, str_key, data_index);
 	newIdx = getWordFromString( data_read, buffer2, data_index);
     
-	if (newIdx != charIdx)
+	if (newIdx != data_index)
 	{
 		getOp = atoi(buffer2); // Get operation type
-		charIdx = newIdx;
-        
-		// Is there a verification value?
-		newIdx = getWordFromString( command, buffer2, charIdx);
-		if (newIdx != charIdx)
-		{
-			v_value = malloc(sizeof(char) * TEST_BUFLEN);
-			sprintf(v_value, "%s_%d", buffer2, (md->mdhim_rank + 1));//Value to verify
-		}
-	}
+		data_index = newIdx;
+        }
 	else
 	{
 		getOp = MDHIM_GET_EQ;  //Default a get with an equal operator
@@ -726,12 +706,6 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
     
 	key_lens = malloc(sizeof(int) * nkeys);
 	value_lens = malloc(sizeof(int) * nkeys);
-    
-	// starting key value
-	//charIdx = getWordFromString( command, str_key, charIdx);
-
-	// starting data value
-//	charIdx = getWordFromString( command, value, charIdx);
 
 	if (verbose) tst_say(0, "# mdhimBPut(%d, %s, %s )\n", nkeys, str_key, value );
 
@@ -778,10 +752,11 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 		memset(value, 0, TEST_BUFLEN);
 		data_index = getWordFromString( data_read, str_key, data_index);
 		data_index = getWordFromString( data_read, value, data_index);
+		
 		keys[i] = malloc(size_of);
 		key_lens[i] = size_of;
 		values[i] = malloc(sizeof(char) * TEST_BUFLEN);
-		sprintf(values[i], "%s_%d_%d", value, (md->mdhim_rank + 1), (i + 1));
+		sprintf(values[i], "%s", value);
 		value_lens[i] = strlen(values[i]) + 1;
 
 		// Based on key type, rank and index number generate a key
@@ -790,7 +765,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 		case MDHIM_INT_KEY:
                 {
 			int **i_keys = (int **)keys;
-			*i_keys[i] = (atoi( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
+			*i_keys[i] = (atoi( str_key ) * (md->mdhim_rank + 1));
 			if (verbose) tst_say(0, "Rank: %d - Creating int key (to insert): "
 					     "%d with value: %s\n", 
 					     md->mdhim_rank, *i_keys[i], values[i]);
@@ -800,7 +775,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 		case MDHIM_LONG_INT_KEY:
                 {
 			long **l_keys = (long **)keys;
-			*l_keys[i] = (atol( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
+			*l_keys[i] = (atol( str_key ) * (md->mdhim_rank + 1));
 			if (verbose) tst_say(0, "Rank: %d - Creating long key (to insert): "
 					     "%ld with value: %s\n", 
 					     md->mdhim_rank, *l_keys[i], values[i]);
@@ -820,7 +795,7 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
 		case MDHIM_DOUBLE_KEY:
                 {
 			double **d_keys = (double **)keys;
-			*d_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
+			*d_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1));
 			if (verbose) tst_say(0, "Rank: %d - Creating double key (to insert): "
 					     "%e with value: %s\n", 
 					     md->mdhim_rank, *d_keys[i], values[i]);
@@ -875,17 +850,6 @@ static void execBput(char *command, struct mdhim_t *md, int charIdx)
                         md->mdhim_rank);
 	}
 
-	//Commit the database
-	/*ret = mdhimCommit(md);
-	if (ret != MDHIM_SUCCESS)
-	{
-		tst_say(1, "ERROR: rank %d committing bput to MDHIM database\n", md->mdhim_rank);
-	}
-	else
-	{
-		if (verbose) tst_say(0, "Committed bput to MDHIM database\n");
-	} */
-    
 	// Release memory
 	freeKeyValueMem(nkeys, keys, key_lens, values, value_lens);
 	fclose(datafile);
@@ -917,8 +881,10 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 		// Get the number of records to create for bget
 	charIdx = getWordFromString( command, buffer, charIdx);
 	nkeys = atoi( buffer );
+	printf("Here is the nkeys: %d\n", nkeys);
     
 	charIdx = getWordFromString( command, fhandle, charIdx);
+	printf("Here is the file name: %s\n", fhandle);
 	datafile = fopen( fhandle, "r" );
 			if( !datafile )
 			{
@@ -929,17 +895,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 
 
 	key_lens = malloc(sizeof(int) * nkeys);
-    
-	// Get the key to use as starting point
-	//charIdx = getWordFromString( command, str_key, charIdx);
-    
-	// Is there a verification value?
-	//newIdx = getWordFromString( command, buffer, charIdx);
-	/*if (newIdx != charIdx)
-	{
-		v_value = malloc(sizeof(char) * TEST_BUFLEN);
-		sprintf(v_value, "%s_%d", buffer, (md->mdhim_rank + 1)); //Value to verify
-	}  */
+ 
 
 	if (verbose) tst_say(0, "# mdhimBGet(%d, %s)\n", nkeys, str_key );
 
@@ -991,7 +947,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 		case MDHIM_INT_KEY:
                 {
 			int **i_keys = (int **)keys;
-			*i_keys[i] = (atoi( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
+			*i_keys[i] = (atoi( str_key ) * (md->mdhim_rank + 1));
 			if (verbose) tst_say(0, "Rank: %d - Creating int key (to get): %d\n", 
 					     md->mdhim_rank, *i_keys[i]);
                 }
@@ -1000,7 +956,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 		case MDHIM_LONG_INT_KEY:
                 {
 			long **l_keys = (long **)keys;
-			*l_keys[i] = (atol( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
+			*l_keys[i] = (atol( str_key ) * (md->mdhim_rank + 1));
 			if (verbose) tst_say(0, "Rank: %d - Creating long key (to get): %ld\n", 
 					     md->mdhim_rank, *l_keys[i]);
                 }
@@ -1009,7 +965,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 		case MDHIM_FLOAT_KEY:
                 {
 			float **f_keys = (float **)keys;
-			*f_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
+			*f_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)); 
 			if (verbose) tst_say(0, "Rank: %d - Creating float key (to get): %f\n", 
 					     md->mdhim_rank, *f_keys[i]);
                 }
@@ -1018,7 +974,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 		case MDHIM_DOUBLE_KEY:
                 {
 			double **d_keys = (double **)keys;
-			*d_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1)) + (i + 1);
+			*d_keys[i] = (atof( str_key ) * (md->mdhim_rank + 1));
 			if (verbose) tst_say(0, "Rank: %d - Creating double key (to get): "
 					     " %e\n", md->mdhim_rank, *d_keys[i]);
                 }
@@ -1049,8 +1005,7 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
     
 	totRecds = 0;
 	bgrmp = bgrm;
-	//int q = 0;
-	//while (q==0) sleep(5);
+
 	while (bgrmp) {
 		if (bgrmp->error < 0)
 		{
@@ -1061,9 +1016,9 @@ static void execBget(char *command, struct mdhim_t *md, int charIdx)
 		totRecds += bgrmp->num_records;
 		for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++)
 		{
-			if ( v_value != NULL ) 
-				sprintf(buffer, "%s_%d", v_value, i + 1); //Value to verify
-            
+			//if ( v_value != NULL ) 
+//				sprintf(buffer, "%s_%d", v_value, i + 1); //Value to verify
+//            
 			if ( v_value == NULL )  // No verification value, anything is OK.
 			{
 
@@ -1430,8 +1385,6 @@ int nkeys = 100;
 	}
 
 	//Delete the records
-	//int q = 0;
-	//while (q==0) sleep(5);
 	brm = mdhimBDelete(md, (void **) keys, key_lens, nkeys);
 	brmp = brm;
 	if (!brm || brm->error) {
@@ -1983,11 +1936,6 @@ int main( int argc, char * argv[] )
 		exit(1);
 	}
    
-/*	i = md->mdhim_rank;
-	while (i == 0) {
-		sleep(1);
-	} 
-*/
 	/* initialization for random string generation */
 	srand( time( NULL ) + md->mdhim_rank);
 	sc_len = strlen( sourceChars );
@@ -2124,7 +2072,7 @@ int main( int argc, char * argv[] )
 	}
     
 	// Calls to finalize mdhim session and close MPI-communication
-	/*if (check_rank_range(md->mdhim_rank, ri, rf) ==rrc)*/ ret = mdhimClose(md);
+	ret = mdhimClose(md);
 	if (ret != MDHIM_SUCCESS)
 	{
 		tst_say(1, "Error closing MDHIM\n");

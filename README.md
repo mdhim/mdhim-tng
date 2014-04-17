@@ -37,7 +37,13 @@ With mysql you must remove the manifest file before running mdhim with a new set
 
 mdhimtst (mdhimtst.c)
 ---------------
-Typical setup to run file: ./mdhimtst -finTestBasic2.txt -q -t5 -d3 -r0~2 -w1 -p ./
+Typical setup to run file: ./mdhimtst -ftest.txt -q -t5 -d3 -r0~2 -w1 -p ./
+
+Typical batch file setup:
+
+put single_insert.txt
+get single_insertget.txt
+del single_insertdel.txt
 
 Batch command file setup:
 
