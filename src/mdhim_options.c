@@ -11,7 +11,7 @@
 // Default path to a local path and name, levelDB=2, int_key_type=1, yes_create_new=1
 // and debug=1 (MLOG_CRIT)
 
-#define MANIFEST_FILE_NAME "/mdhim.manifest"
+#define MANIFEST_FILE_NAME "/mdhim_manifest_"
 
 struct mdhim_options_t *mdhim_options_init()
 {
@@ -20,7 +20,7 @@ struct mdhim_options_t *mdhim_options_init()
     
 	opts->db_path = "./";
 	opts->db_name = "mdhimTstDB-";
-	opts->manifest_path ="./mdhim.manifest";
+	opts->manifest_path ="./mdhim_manifest_";
 	opts->db_type = 2;
 	opts->db_key_type = 1;
 	opts->db_create_new = 1;

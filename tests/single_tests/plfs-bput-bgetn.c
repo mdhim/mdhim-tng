@@ -5,12 +5,14 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 100000
-#define TOTAL_KEYS 100000
+#define KEYS 1000000
+//#define TOTAL_KEYS 2083334
+#define TOTAL_KEYS 1000000
+#define SLICE_SIZE 1000000
 
-int **keys;
+uint64_t **keys;
 int *key_lens;
-int **values;
+uint64_t **values;
 int *value_lens;
 
 void start_record(struct timeval *start) {
@@ -21,19 +23,20 @@ void end_record(struct timeval *end) {
 	gettimeofday(end, NULL);
 }
 
-void add_time(struct timeval *start, struct timeval *end, long *time) {
-	*time += end->tv_sec - start->tv_sec;
+void add_time(struct timeval *start, struct timeval *end, long double *time) {
+  	long double elapsed = (long double) (end->tv_sec - start->tv_sec) + 
+		((long double) (end->tv_usec - start->tv_usec)/1000000.0);
+	*time += elapsed;
 }
 
 void gen_keys_values(int rank, int total_keys) {
 	int i = 0;
 	for (i = 0; i < KEYS; i++) {
-		keys[i] = malloc(sizeof(int));	
-		//Keys are chosen to fit in one slice
-		*keys[i] = i + (rank * TOTAL_KEYS) + total_keys;
-		key_lens[i] = sizeof(int);
+		keys[i] = malloc(sizeof(uint64_t));	
+		*keys[i] = i + (uint64_t) ((uint64_t) rank * (uint64_t)TOTAL_KEYS) + total_keys;
+		key_lens[i] = sizeof(uint64_t);
 		values[i] = malloc(sizeof(int));
-		*values[i] = *keys[i];
+		*values[i] = 1;
 		value_lens[i] = sizeof(int);
 	}
 }
@@ -55,25 +58,27 @@ int main(int argc, char **argv) {
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm;
 	struct timeval start_tv, end_tv;
-	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 
 	int size;
-	long flush_time = 0;
-	long put_time = 0;
-	long get_time = 0;
+	long double flush_time = 0;
+	long double put_time = 0;
+	long double get_time = 0;
 	int total_keys = 0;
 	int round = 0;
+	char *paths[] = {"/tmp/"};
 	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
-	mdhim_options_set_db_path(db_opts, db_path);
+	mdhim_options_set_db_paths(db_opts, paths, 1);
 	mdhim_options_set_db_name(db_opts, db_name);
 	mdhim_options_set_db_type(db_opts, db_type);
-	mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY);
+	mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);
+	mdhim_options_set_max_recs_per_slice(db_opts, SLICE_SIZE);
+        mdhim_options_set_server_factor(db_opts, 1);
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
@@ -98,26 +103,21 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 	
-	key_lens = malloc(sizeof(int) * KEYS);
+	key_lens = malloc(sizeof(uint64_t) * KEYS);
 	value_lens = malloc(sizeof(int) * KEYS);
-	keys = malloc(sizeof(int *) * KEYS);
+	keys = malloc(sizeof(uint64_t *) * KEYS);
 	values = malloc(sizeof(int *) * KEYS);
-	MPI_Comm_size(md->mdhim_comm, &size);	
+	MPI_Comm_size(md->mdhim_comm, &size);
+	MPI_Barrier(MPI_COMM_WORLD);	
+	//record the start time
+	start_record(&start_tv);
 	while (total_keys != TOTAL_KEYS) {
 		//Populate the keys and values to insert
 		gen_keys_values(md->mdhim_rank, total_keys);
-		//record the start time
-		start_record(&start_tv);
 		//Insert the keys into MDHIM
-		brm = mdhimBPut(md,
-				(void **) keys, key_lens,  
-				(void **) values, value_lens, 
-				KEYS, NULL, NULL);
+		brm = mdhimBPut(md, md->primary_index, (void **) keys, key_lens,  
+				(void **) values, value_lens, KEYS);
 		//		MPI_Barrier(MPI_COMM_WORLD);
-		//record the end time
-		end_record(&end_tv);			       
-		//add the time
-		add_time(&start_tv, &end_tv, &put_time);
 
 		//Iterate through the return messages to see if there is an error and to free it
 		brmp = brm;
@@ -141,6 +141,11 @@ int main(int argc, char **argv) {
 		round++;
 	}
 	
+	//Record the end time
+	end_record(&end_tv);
+	//Add the final time
+	add_time(&start_tv, &end_tv, &put_time);
+	MPI_Barrier(MPI_COMM_WORLD);
 	//Get the stats
 	start_record(&start_tv);
 	ret = mdhimStatFlush(md, md->primary_index);
@@ -160,25 +165,22 @@ int main(int argc, char **argv) {
 		gen_keys_values(md->mdhim_rank, total_keys);
 		start_record(&start_tv);
 		//Get the keys and values back starting from and including key[0]
-		bgrm = mdhimBGetOp(md, md->primary_index, 
-				   keys[KEYS - 1], sizeof(int), 
-				   KEYS, MDHIM_GET_PREV);
+		bgrm = mdhimBGetOp(md, md->primary_index, keys[0], sizeof(uint64_t), 
+				   KEYS, MDHIM_GET_NEXT);
 		//	        MPI_Barrier(MPI_COMM_WORLD);
 		end_record(&end_tv);
 		add_time(&start_tv, &end_tv, &get_time);
 		//Check if there is an error
-		if (!bgrm) {
-			printf("Rank: %d - Empty bgrm: %d\n", md->mdhim_rank, *keys[KEYS-1]);
-		}
 		if (!bgrm || bgrm->error) {
-			printf("Rank: %d - Error retrieving values starting at: %d\n", md->mdhim_rank, *keys[KEYS-1]);
+			printf("Rank: %d - Error retrieving values starting at: %llu", 
+			       md->mdhim_rank, (long long unsigned int) *keys[0]);
 			goto done;
 		}
 	
 		//Validate that the data retrieved is the correct data
 		for (i = 0; i < bgrm->num_keys && !bgrm->error; i++) {						
-			assert(*(int *)bgrm->keys[i] == *keys[KEYS - 1 - i]);
-			assert(*(int *)bgrm->values[i] == *values[KEYS - 1 - i]);
+			assert(*(uint64_t *)bgrm->keys[i] == *keys[i]);
+			assert(*(int *)bgrm->values[i] == *values[i]);
 		}
 	
 		//Free the message received
@@ -193,6 +195,7 @@ int main(int argc, char **argv) {
 	free(values);
 	free(value_lens);
 done:
+	MPI_Barrier(MPI_COMM_WORLD);
 	//Quit MDHIM
 	ret = mdhimClose(md);
 	mdhim_options_destroy(db_opts);
@@ -205,13 +208,12 @@ done:
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 
-	printf("Took: %ld seconds to put %d keys\n", 
+	printf("Took: %Lf seconds to put %d keys\n", 
 	       put_time, TOTAL_KEYS);
-	printf("Took: %ld seconds to get %d keys/values\n", 
+	printf("Took: %Lf seconds to get %d keys/values\n", 
 	       get_time, TOTAL_KEYS);
-	printf("Took: %ld seconds to stat flush\n", 
+	printf("Took: %Lf seconds to stat flush\n", 
 	       flush_time);
-
 
 	return 0;
 }

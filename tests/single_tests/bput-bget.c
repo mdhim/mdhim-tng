@@ -74,7 +74,8 @@ int main(int argc, char **argv) {
 
 		//Insert the keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS);
+				(void **) values, value_lens, KEYS, 
+				NULL, NULL);
 		brmp = brm;
                 if (!brmp || brmp->error) {
                         printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
@@ -94,7 +95,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
@@ -104,15 +105,15 @@ int main(int argc, char **argv) {
 	total = 0;
 	while (total != TOTAL) {
 		//Get the values back for each key inserted
-		bgrm = mdhimBGet(md, (void **) keys, key_lens, 
-				 KEYS);
+		bgrm = mdhimBGet(md, md->primary_index, (void **) keys, key_lens, 
+				 KEYS, MDHIM_GET_EQ);
 		bgrmp = bgrm;
 		while (bgrmp) {
 			if (bgrmp->error < 0) {
 				printf("Rank: %d - Error retrieving values", md->mdhim_rank);
 			}
 
-			for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++) {
+			for (i = 0; i < bgrmp->num_keys && bgrmp->error >= 0; i++) {
 		
 				printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
 				       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);

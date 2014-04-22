@@ -1,5 +1,5 @@
 include ../Makefile.cfg
-OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o
+OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
 
 
 ifeq ($(LEVELDB),1)
@@ -20,6 +20,9 @@ all:	mdhim.o lib
 mdhim.o: mdhim.c $(OBJS)
 	$(CC) -c $< $(CINC) $(CLIBS)
 
+mdhim_private.o: mdhim_private.c
+	$(CC) -c $< $(CINC) $(CLIBS)
+
 mlog.o: Mlog/mlog.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
@@ -33,6 +36,9 @@ messages.o: messages.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 partitioner.o: partitioner.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+indexes.o: indexes.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 data_store.o: data_store.c
