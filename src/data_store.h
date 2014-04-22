@@ -119,7 +119,13 @@ struct mdhim_store_t {
 	mdhim_store_del_fn_t del;
 	mdhim_store_commit_fn_t commit;
 	mdhim_store_close_fn_t close;
-
+	
+	//Login credentials
+	char *db_user;
+	char *db_upswd;
+	char *dbs_user;
+	char *dbs_upswd;		
+	
         //Hashtable for stats
 	struct mdhim_stat *mdhim_store_stats;
 };

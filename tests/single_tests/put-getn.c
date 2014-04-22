@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 	struct mdhim_getrm_t *grm;
 	int i;
 	int keys_per_rank = 100;
-	char     *db_path = " ";
+	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB";
 	int      dbug = MLOG_CRIT;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY);
 	mdhim_options_set_debug_level(db_opts, dbug);
+	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
 
 	gettimeofday(&start_tv, NULL);
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);

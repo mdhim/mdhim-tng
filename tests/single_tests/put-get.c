@@ -27,11 +27,13 @@ int main(int argc, char **argv) {
         }
         
         db_opts = mdhim_options_init();
-        mdhim_options_set_db_path(db_opts, "");
+        mdhim_options_set_db_path(db_opts, "./");
         mdhim_options_set_db_name(db_opts, "mdhim");
         mdhim_options_set_db_type(db_opts, MYSQLDB);
         mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY); //Key_type = 1 (int)
 	mdhim_options_set_debug_level(db_opts, MLOG_CRIT);
+	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
+        mdhim_options_set_server_factor(db_opts, 1);
 
 	comm = MPI_COMM_WORLD;
 	md = mdhimInit(&comm, db_opts);
@@ -39,7 +41,7 @@ int main(int argc, char **argv) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
 	}	
-
+	
 	//Put the keys and values
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
