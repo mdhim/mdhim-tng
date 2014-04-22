@@ -158,6 +158,7 @@ work_item *get_work(struct mdhim_t *md) {
 int range_server_stop(struct mdhim_t *md) {
 	work_item *head, *temp_item;
 	int ret;	
+	int i;
 
 	//Signal to the listener thread that it needs to shutdown
 	md->shutdown = 1;
@@ -1203,6 +1204,7 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
  */
 int range_server_init(struct mdhim_t *md) {
 	int ret;
+	int i;
 
 	//Allocate memory for the mdhim_rs_t struct
 	md->mdhim_rs = malloc(sizeof(struct mdhim_rs_t));

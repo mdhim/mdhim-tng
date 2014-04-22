@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
 	unsigned totaltime;
 	struct index_t *secondary_index;
 	struct secondary_info *secondary_info;
+	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -46,7 +47,8 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);

@@ -35,7 +35,9 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	int ret;
 	struct mdhim_t *md;
 	struct index_t *primary_index;
+	MPI_Comm comm;
 
+	comm = *((MPI_Comm *) appComm);
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
 			opts->debug_level, opts->debug_level, NULL, 0, MLOG_LOGPID, 0);
@@ -51,15 +53,13 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	//Set the key type for this database from the options passed
 	md->db_opts = opts;
 
-	//Dup the communicator passed in for the communicator used for communication 
-	//to and from the range servers
 	if ((ret = MPI_Comm_dup(comm, &md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}
 	
 	//Dup the communicator passed in for barriers between clients
-	if ((ret = MPI_Comm_dup(appComm, &md->mdhim_client_comm)) != MPI_SUCCESS) {
+	if ((ret = MPI_Comm_dup(comm, &md->mdhim_client_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}
@@ -145,7 +145,6 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
  */
 int mdhimClose(struct mdhim_t *md) {
 	int ret;
-	struct mdhim_basem_t *cm;
 
 	MPI_Barrier(md->mdhim_client_comm);
 	//Stop range server if I'm a range server	

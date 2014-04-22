@@ -84,6 +84,7 @@ int main(int argc, char **argv) {
 	struct index_t *secondary_local_index;
 	struct secondary_bulk_info *secondary_info;
 	int num_keys[KEYS];
+	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -109,8 +110,10 @@ int main(int argc, char **argv) {
         }
 
 	gettimeofday(&start_tv, NULL);
+
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);

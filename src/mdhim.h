@@ -44,7 +44,8 @@ struct mdhim_t {
 	int mdhim_rank;
 	//The size of mdhim_comm
 	int mdhim_comm_size;
-
+	//Flag to indicate mdhimClose was called
+	int shutdown;
 	//A pointer to the primary index
 	struct index_t *primary_index;
 	//A linked list of range servers

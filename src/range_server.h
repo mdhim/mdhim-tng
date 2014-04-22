@@ -37,7 +37,7 @@ typedef struct mdhim_rs_t {
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;
 	pthread_t listener;
-	pthread_t worker;
+	pthread_t **workers;
 	struct index *indexes; /* A linked list of remote indexes that is served 
 				  (partially for fully) by this range server */
 	//Records seconds spent on putting records
