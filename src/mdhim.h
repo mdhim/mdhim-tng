@@ -91,6 +91,12 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 			     void *value, int value_len,  
 			     struct secondary_info *secondary_global_info,
 			     struct secondary_info *secondary_local_info);
+struct mdhim_brm_t *mdhimPutSecondary(struct mdhim_t *md, 
+				      struct index_t *secondary_index,
+				      /*Secondary key */
+				      void *secondary_key, int secondary_key_len,  
+				      /* Primary key */
+				      void *primary_key, int primary_key_len);
 struct mdhim_brm_t *mdhimBPut(struct mdhim_t *md,
 			      void **primary_keys, int *primary_key_lens, 
 			      void **primary_values, int *primary_value_lens, 

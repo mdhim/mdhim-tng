@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
 	int provided = 0;
 	struct mdhim_t *md;
 	uint32_t key, **secondary_keys;
+	uint32_t skey;
 	int value, *secondary_key_lens;
 	struct mdhim_brm_t *brm;
 	struct mdhim_bgetrm_t *bgrm;
@@ -75,7 +76,23 @@ int main(int argc, char **argv) {
 	} else {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
+	mdhim_full_release_msg(brm);
 	
+	//Put another secondary key
+	skey = 2 * (md->mdhim_rank + 1);
+	brm = mdhimPutSecondary(md, 
+				secondary_index,
+				/*Secondary key */
+				&skey, sizeof(skey),  
+				/* Primary key */
+				&key, sizeof(key));
+	
+	if (!brm || brm->error) {
+		printf("Error inserting key/value into MDHIM\n");
+	} else {
+		printf("Successfully inserted key/value into MDHIM\n");
+	}
+
 	//Release the received message
 	mdhim_full_release_msg(brm);
 
