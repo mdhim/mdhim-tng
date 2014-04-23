@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 	char     *db_name = "mdhimTstDB";
 	int      dbug = MLOG_CRIT;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
-	int db_type = MYSQLDB; //(data_store.h) 
+	int db_type = LEVELDB; //(data_store.h) 
 	struct timeval start_tv, end_tv;
 	unsigned totaltime;
 	MPI_Comm comm;

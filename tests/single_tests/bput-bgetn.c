@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 	long double get_time = 0;
 	int total_keys = 0;
 	int round = 0;
-	char *paths[] = {"/tmp/"};
+	char *paths[] = {"./"};
 	MPI_Comm comm;
 
 	// Create options for DB initialization
