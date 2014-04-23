@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "data_store.h"
 #ifdef      LEVELDB_SUPPORT
 #include "ds_leveldb.h"
@@ -15,6 +16,11 @@
 #ifdef      SOPHIADB_SUPPORT
 #include "ds_sophia.h"
 #endif
+#ifdef      MYSQLDB_SUPPORT
+#include "ds_mysql.h"
+#endif
+
+
 /**
  * mdhim_db_init
  * Initializes mdhim_store_t structure based on type
@@ -29,21 +35,14 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	store = malloc(sizeof(struct mdhim_store_t));
 	store->type = type;
 	store->db_handle = NULL;
-	store->db_ptr1 = NULL;
-	store->db_ptr2 = NULL;
-	store->db_ptr3 = NULL;
-	store->db_ptr4 = NULL;
-	store->db_ptr5 = NULL;
-	store->db_ptr6 = NULL;
-	store->db_ptr7 = NULL;
-	store->db_ptr8 = NULL;
-	store->db_ptr9 = NULL;
-	store->db_ptr10 = NULL;
-	store->db_ptr11 = NULL;
-	store->db_ptr12 = NULL;
-	store->db_ptr13 = NULL;
-	store->db_ptr14 = NULL;
+	store->db_stats = NULL;
 	store->mdhim_store_stats = NULL;
+	store->mdhim_store_stats_lock = malloc(sizeof(pthread_rwlock_t));
+	if (pthread_rwlock_init(store->mdhim_store_stats_lock, NULL) != 0) {	
+		free(store->mdhim_store_stats_lock);
+		return NULL;
+	}
+
 	switch(type) {
 
 #ifdef      LEVELDB_SUPPORT
@@ -74,6 +73,22 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 		store->close = mdhim_leveldb_close;
 		break;
 #endif
+
+#ifdef      MYSQLDB_SUPPORT
+	case	MYSQLDB:
+		store->open = mdhim_mysql_open;
+		store->put = mdhim_mysql_put;
+		store->batch_put = mdhim_mysql_batch_put;
+		store->get = mdhim_mysql_get;
+		store->get_next = mdhim_mysql_get_next;
+		store->get_prev = mdhim_mysql_get_prev;
+		store->del = mdhim_mysql_del;
+		store->commit = mdhim_mysql_commit;
+		store->close = mdhim_mysql_close;
+		break;
+#endif
+
+
 	default:
 		free(store);
 		store = NULL;

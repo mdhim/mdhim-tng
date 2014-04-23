@@ -6,7 +6,6 @@
 #include "mdhim.h"
 
 #define KEYS 1000000
-//#define TOTAL_KEYS 2083334
 #define TOTAL_KEYS 1000000
 #define SLICE_SIZE 1000000
 
@@ -68,7 +67,9 @@ int main(int argc, char **argv) {
 	long double get_time = 0;
 	int total_keys = 0;
 	int round = 0;
-	char *paths[] = {"/tmp/"};
+	char *paths[] = {"./"};
+	MPI_Comm comm;
+
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
 	mdhim_options_set_db_paths(db_opts, paths, 1);
@@ -93,7 +94,8 @@ int main(int argc, char **argv) {
         }
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);
@@ -113,7 +115,8 @@ int main(int argc, char **argv) {
 		gen_keys_values(md->mdhim_rank, total_keys);
 		//Insert the keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS);
+				(void **) values, value_lens, KEYS, 
+				NULL, NULL);
 		//		MPI_Barrier(MPI_COMM_WORLD);
 
 		//Iterate through the return messages to see if there is an error and to free it
@@ -145,7 +148,7 @@ int main(int argc, char **argv) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	//Get the stats
 	start_record(&start_tv);
-	ret = mdhimStatFlush(md);
+	ret = mdhimStatFlush(md, md->primary_index);
 	//	MPI_Barrier(MPI_COMM_WORLD);
 	end_record(&end_tv);
 	add_time(&start_tv, &end_tv, &flush_time);
@@ -162,7 +165,8 @@ int main(int argc, char **argv) {
 		gen_keys_values(md->mdhim_rank, total_keys);
 		start_record(&start_tv);
 		//Get the keys and values back starting from and including key[0]
-		bgrm = mdhimBGetOp(md, keys[0], sizeof(uint64_t), 
+		bgrm = mdhimBGetOp(md, md->primary_index, 
+				   keys[0], sizeof(uint64_t), 
 				   KEYS, MDHIM_GET_NEXT);
 		//	        MPI_Barrier(MPI_COMM_WORLD);
 		end_record(&end_tv);
@@ -175,7 +179,7 @@ int main(int argc, char **argv) {
 		}
 	
 		//Validate that the data retrieved is the correct data
-		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {						
+		for (i = 0; i < bgrm->num_keys && !bgrm->error; i++) {						
 			assert(*(uint64_t *)bgrm->keys[i] == *keys[i]);
 			assert(*(int *)bgrm->values[i] == *values[i]);
 		}

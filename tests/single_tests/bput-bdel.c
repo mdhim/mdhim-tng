@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
 	int      dbug = MLOG_CRIT;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; //(data_store.h) 
+	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -44,7 +45,8 @@ int main(int argc, char **argv) {
         }
 
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);
@@ -65,7 +67,8 @@ int main(int argc, char **argv) {
 
 	//Insert the records
 	brm = mdhimBPut(md, (void **) keys, key_lens,  
-			(void **) values, value_lens, KEYS);
+			(void **) values, value_lens, KEYS, 
+			NULL, NULL);
 	brmp = brm;
 	if (!brm || brm->error) {
 		printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
@@ -82,7 +85,8 @@ int main(int argc, char **argv) {
 	}
 
 	//Delete the records
-	brm = mdhimBDelete(md, (void **) keys, key_lens, 
+	brm = mdhimBDelete(md, md->primary_index, 
+			   (void **) keys, key_lens, 
 			   KEYS);
 	brmp = brm;
 	if (!brm || brm->error) {
@@ -100,15 +104,16 @@ int main(int argc, char **argv) {
 	}
 
 	//Try to get the records back - should fail
-	bgrm = mdhimBGet(md, (void **) keys, key_lens, 
-			 KEYS);
+	bgrm = mdhimBGet(md, md->primary_index, 
+			 (void **) keys, key_lens, 
+			 KEYS, MDHIM_GET_EQ);
 	bgrmp = bgrm;
 	while (bgrmp) {
 		if (bgrmp->error < 0) {
 			printf("Rank: %d - Error retrieving values\n", md->mdhim_rank);
 		}
 
-		for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++) {
+		for (i = 0; i < bgrmp->num_keys && bgrmp->error >= 0; i++) {
 		
 			printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
 			       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);

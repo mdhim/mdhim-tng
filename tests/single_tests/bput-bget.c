@@ -19,18 +19,20 @@ int main(int argc, char **argv) {
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 	struct timeval start_tv, end_tv;
-	char     *db_path = "./";
-	char     *db_name = "mdhimTstDB-";
+	char     *db_path = "test/";
+	char     *db_name = "mdhimTstDB";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; //(data_store.h) 
-
-	// Create options for DB initialization
+	MPI_Comm comm;
+	
+        // Create options for DB initialization
 	db_opts = mdhim_options_init();
 	mdhim_options_set_db_path(db_opts, db_path);
 	mdhim_options_set_db_name(db_opts, db_name);
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY);
+	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
@@ -48,7 +50,8 @@ int main(int argc, char **argv) {
 
 	gettimeofday(&start_tv, NULL);
 	//Initialize MDHIM
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		MPI_Abort(MPI_COMM_WORLD, ret);
@@ -71,7 +74,8 @@ int main(int argc, char **argv) {
 
 		//Insert the keys into MDHIM
 		brm = mdhimBPut(md, (void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS);
+				(void **) values, value_lens, KEYS, 
+				NULL, NULL);
 		brmp = brm;
                 if (!brmp || brmp->error) {
                         printf("Rank - %d: Error inserting keys/values into MDHIM\n", md->mdhim_rank);
@@ -91,7 +95,7 @@ int main(int argc, char **argv) {
 	}
 
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
@@ -101,15 +105,15 @@ int main(int argc, char **argv) {
 	total = 0;
 	while (total != TOTAL) {
 		//Get the values back for each key inserted
-		bgrm = mdhimBGet(md, (void **) keys, key_lens, 
-				 KEYS);
+		bgrm = mdhimBGet(md, md->primary_index, (void **) keys, key_lens, 
+				 KEYS, MDHIM_GET_EQ);
 		bgrmp = bgrm;
 		while (bgrmp) {
 			if (bgrmp->error < 0) {
 				printf("Rank: %d - Error retrieving values", md->mdhim_rank);
 			}
 
-			for (i = 0; i < bgrmp->num_records && bgrmp->error >= 0; i++) {
+			for (i = 0; i < bgrmp->num_keys && bgrmp->error >= 0; i++) {
 		
 				printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
 				       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);

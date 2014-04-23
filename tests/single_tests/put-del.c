@@ -9,13 +9,14 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	int key;
 	int value;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
 	char     *db_path = "./";
-	char     *db_name = "mdhimTstDB-";
+	char     *db_name = "mdhimTstDB";
 	int      dbug = MLOG_CRIT;
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 
+	MPI_Comm comm;
 
 	// Create options for DB initialization
 	db_opts = mdhim_options_init();
@@ -24,6 +25,7 @@ int main(int argc, char **argv) {
 	mdhim_options_set_db_type(db_opts, db_type);
 	mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY);
 	mdhim_options_set_debug_level(db_opts, dbug);
+	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
 	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");
@@ -35,7 +37,8 @@ int main(int argc, char **argv) {
                 exit(1);
         }
 
-	md = mdhimInit(MPI_COMM_WORLD, db_opts);
+	comm = MPI_COMM_WORLD;
+	md = mdhimInit(&comm, db_opts);
 	if (!md) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
@@ -44,16 +47,17 @@ int main(int argc, char **argv) {
 	//Put the keys and values
 	key = 20 * (md->mdhim_rank + 1);
 	value = 1000 * (md->mdhim_rank + 1);
-	rm = mdhimPut(md, &key, sizeof(key), 
-		       &value, sizeof(value));
-	if (!rm || rm->error) {
+	brm = mdhimPut(md, &key, sizeof(key), 
+		       &value, sizeof(value), 
+		       NULL, NULL);
+	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
 
-	rm = mdhimDelete(md, &key, sizeof(key));
-	if (!rm || rm->error) {
+	brm = mdhimDelete(md, md->primary_index, &key, sizeof(key));
+	if (!brm || brm->error) {
 		printf("Error deleting key/value from MDHIM\n");
 	} else {
 		printf("Successfully deleted key/value into MDHIM\n");
@@ -61,11 +65,11 @@ int main(int argc, char **argv) {
 
 	//Get the values
 	value = 0;
-	grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
-	if (!grm || grm->error) {
+	bgrm = mdhimGet(md, md->primary_index, &key, sizeof(key), MDHIM_GET_EQ);
+	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
-	} else if (grm->value_len) {
-		printf("Successfully got value: %d from MDHIM\n", *((int *) grm->value));
+	} else if (bgrm->value_lens[0]) {
+		printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
 	}
 
 	ret = mdhimClose(md);

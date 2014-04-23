@@ -1,5 +1,5 @@
 include ../Makefile.cfg
-OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o
+OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
 
 
 ifeq ($(LEVELDB),1)
@@ -10,10 +10,17 @@ else
 	endif
 endif
 
+ifeq ($(MYSQLDB),1)
+	OBJS += ds_mysql.o
+endif
+
 
 all:	mdhim.o lib
 
 mdhim.o: mdhim.c $(OBJS)
+	$(CC) -c $< $(CINC) $(CLIBS)
+
+mdhim_private.o: mdhim_private.c
 	$(CC) -c $< $(CINC) $(CLIBS)
 
 mlog.o: Mlog/mlog.c
@@ -31,7 +38,13 @@ messages.o: messages.c
 partitioner.o: partitioner.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
+indexes.o: indexes.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
 data_store.o: data_store.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+
+ds_mysql.o: ds_mysql.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 ds_leveldb.o: ds_leveldb.c
