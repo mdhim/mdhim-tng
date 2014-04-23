@@ -95,7 +95,7 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *index);
 struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type);
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    int max_recs_per_slice, int db_type, 
-				    int key_type, int primary_index_id);
+				    int key_type);
 int get_rangesrvs(struct mdhim_t *md, struct index_t *index);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);

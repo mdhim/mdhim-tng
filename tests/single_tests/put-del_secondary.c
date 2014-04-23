@@ -56,8 +56,7 @@ int main(int argc, char **argv) {
 	//Create a secondary index
 	secondary_index = create_global_index(md, 2, 
 					      SECONDARY_SLICE_SIZE, LEVELDB, 
-					      MDHIM_INT_KEY, 
-					      md->primary_index->id);
+					      MDHIM_INT_KEY);
 	secondary_info = mdhimCreateSecondaryInfo(secondary_index, 
 						  (void **) secondary_keys, 
 						  secondary_key_lens, 1, 
@@ -81,11 +80,6 @@ int main(int argc, char **argv) {
 	} else {
 		printf("Committed MDHIM database\n");
 	}
-
-	//Create the secondary remote index
-	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
-					      MDHIM_INT_KEY, 
-					      md->primary_index->id);
 
 	brm = mdhimDelete(md, secondary_index, secondary_keys[0], secondary_key_lens[0]);
 	if (!brm || brm->error) {

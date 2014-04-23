@@ -56,8 +56,7 @@ int main(int argc, char **argv) {
 
 	//Create the secondary remote index
 	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
-					      MDHIM_INT_KEY, 
-					      md->primary_index->id);	
+					      MDHIM_INT_KEY);	
 	//Put the primary keys and values
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;

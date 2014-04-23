@@ -615,8 +615,7 @@ done:
 
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    int max_recs_per_slice, 
-				    int db_type, int key_type, 
-				    int primary_index_id) {
+				    int db_type, int key_type) {
 	struct index_t *gi;
 	uint32_t rangesrv_num;
 	int ret;
@@ -650,7 +649,7 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 	gi->db_type = db_type;
 	gi->myinfo.rangesrv_num = 0;
 	gi->myinfo.rank = md->mdhim_rank;
-	gi->primary_id = gi->type == SECONDARY_INDEX ? primary_index_id : -1;
+	gi->primary_id = gi->type == SECONDARY_INDEX ? md->primary_index->id : -1;
 	gi->stats = NULL;
 
 	//Figure out how many range servers we could have based on the range server factor
