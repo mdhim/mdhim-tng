@@ -163,6 +163,9 @@ int range_server_stop(struct mdhim_t *md) {
 	//Signal to the listener thread that it needs to shutdown
 	md->shutdown = 1;
 
+	//Clean outstanding sends
+	range_server_clean_oreqs(md);
+
 	//Cancel the worker threads
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
 		if ((ret = pthread_cancel(*md->mdhim_rs->workers[i])) != 0) {
@@ -172,7 +175,6 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 	
 	/* Wait for the threads to finish */
-	pthread_join(md->mdhim_rs->listener, NULL);
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
 		pthread_join(*md->mdhim_rs->workers[i], NULL);
 	}
@@ -206,7 +208,6 @@ int range_server_stop(struct mdhim_t *md) {
 	     md->mdhim_rank, md->mdhim_rs->num_get, md->mdhim_rs->get_time);
 	
 	//Free the range server data
-	range_server_clean_oreqs(md);
 	free(md->mdhim_rs);
 	md->mdhim_rs = NULL;
 	
@@ -1003,6 +1004,9 @@ void *listener_thread(void *data) {
 			break;
 		}
 
+		//Clean outstanding sends
+		range_server_clean_oreqs(md);
+
 		//Receive messages sent to this server
 		ret = receive_rangesrv_work(md, &source, &message);
 		if (ret < MDHIM_SUCCESS) {		
@@ -1059,9 +1063,6 @@ void *worker_thread(void *data) {
 		}
 
 		while (item) {
-			//Clean outstanding sends
-			range_server_clean_oreqs(md);
-
 			//Call the appropriate function depending on the message type			
 			//Get the message type
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
@@ -1172,14 +1173,18 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
 			continue;
 		}
 		
-		if (item->next) {
-			item->next->prev = item->prev;
-		}
-		if (item->prev) {
-			item->prev->next = item->next;
-		}
 		if (item == md->mdhim_rs->out_req_list) {
 			md->mdhim_rs->out_req_list = item->next;
+			if (item->next) {
+				item->next->prev = NULL;
+			}
+		} else {
+			if (item->next) {
+				item->next->prev = item->prev;
+			}
+			if (item->prev) {
+				item->prev->next = item->next;
+			}
 		}
 
 		t = item->next;
