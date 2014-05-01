@@ -174,6 +174,7 @@ int range_server_stop(struct mdhim_t *md) {
 		}
 	}
 	
+	pthread_join(md->mdhim_rs->listener, NULL);
 	/* Wait for the threads to finish */
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
 		pthread_join(*md->mdhim_rs->workers[i], NULL);
