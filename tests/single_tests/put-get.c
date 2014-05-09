@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	int key;
 	int value;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
 	MPI_Comm comm;
 
@@ -27,11 +27,13 @@ int main(int argc, char **argv) {
         }
         
         db_opts = mdhim_options_init();
-        mdhim_options_set_db_path(db_opts, "");
+        mdhim_options_set_db_path(db_opts, "./");
         mdhim_options_set_db_name(db_opts, "mdhim");
-        mdhim_options_set_db_type(db_opts, MYSQLDB);
+        mdhim_options_set_db_type(db_opts, LEVELDB);
         mdhim_options_set_key_type(db_opts, MDHIM_INT_KEY); //Key_type = 1 (int)
 	mdhim_options_set_debug_level(db_opts, MLOG_CRIT);
+	mdhim_options_set_login_c(db_opts, "localhost", "root", "pass", "stater", "pass");
+        mdhim_options_set_server_factor(db_opts, 1);
 
 	comm = MPI_COMM_WORLD;
 	md = mdhimInit(&comm, db_opts);
@@ -39,22 +41,22 @@ int main(int argc, char **argv) {
 		printf("Error initializing MDHIM\n");
 		exit(1);
 	}	
-
+	
 	//Put the keys and values
 	key = 100 * (md->mdhim_rank + 1);
 	value = 500 * (md->mdhim_rank + 1);
-	rm = mdhimPut(md, &key, sizeof(key), 
-		       &value, sizeof(value));
-	if (!rm || rm->error) {
+	brm = mdhimPut(md, &key, sizeof(key), 
+		       &value, sizeof(value),
+		       NULL, NULL);
+	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
 
-
-	mdhim_full_release_msg(rm);
+	mdhim_full_release_msg(brm);
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
@@ -63,14 +65,14 @@ int main(int argc, char **argv) {
 
 	//Get the values
 	value = 0;
-	grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
-	if (!grm || grm->error) {
+	bgrm = mdhimGet(md, md->primary_index, &key, sizeof(key), MDHIM_GET_EQ);
+	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %d from MDHIM\n", key);
 	} else {
-		printf("Successfully got value: %d from MDHIM\n", *((int *) grm->value));
+		printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
 	}
 
-	mdhim_full_release_msg(grm);
+	mdhim_full_release_msg(bgrm);
 	ret = mdhimClose(md);
 	mdhim_options_destroy(db_opts);
 	if (ret != MDHIM_SUCCESS) {

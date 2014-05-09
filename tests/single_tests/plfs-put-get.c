@@ -27,7 +27,7 @@ FILE *open_output(int rank) {
 	memset(file_str, 0, 4);
 	memset(file_str, 'a', 3);
 	j = strlen(file_str) - 1;
-	for (i = strlen(rank_str) - 1; i >= 0; i--) {
+	for (i = strlen(rank_str)-1; i >= 0; i--) {
 		sprintf(char_str, "%c", rank_str[i]);
 		file_str[j] = strtol(char_str, NULL, 10) + 'a';
 		j--;
@@ -72,8 +72,8 @@ int main(int argc, char **argv) {
 	int ret;
 	int provided = 0;
 	struct mdhim_t *md;
-	struct mdhim_rm_t *rm;
-	struct mdhim_getrm_t *grm;
+	struct mdhim_brm_t *brm;
+	struct mdhim_bgetrm_t *bgrm;
         mdhim_options_t *db_opts;
 	struct plfs_record *rec = NULL;
 	FILE *file;
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 
 	//Set MDHIM options
         db_opts = mdhim_options_init();
-        mdhim_options_set_db_path(db_opts, "./");
+        mdhim_options_set_db_path(db_opts, "/users/acaldwell/projects/sources/mdhim/mdhim-tng/tests/single_tests/");
         mdhim_options_set_db_name(db_opts, "mdhimTstDB");
         mdhim_options_set_db_type(db_opts, LEVELDB);
         mdhim_options_set_key_type(db_opts, MDHIM_LONG_INT_KEY);
@@ -123,32 +123,32 @@ int main(int argc, char **argv) {
 	}
 	key = get_key(rec->logical_offset);
 	printf("Inserting key: %llu\n", key);
-	rm = mdhimPut(md, &key, sizeof(key), 
-		      rec, sizeof(struct plfs_record));
-	if (!rm || rm->error) {
+	brm = mdhimPut(md, &key, sizeof(key), 
+		      rec, sizeof(struct plfs_record), NULL, NULL);
+	if (!brm || brm->error) {
 		printf("Error inserting key/value into MDHIM\n");
 	} else {
 		printf("Successfully inserted key/value into MDHIM\n");
 	}
 	
-	mdhim_full_release_msg(rm);
+	mdhim_full_release_msg(brm);
 	//Commit the database
-	ret = mdhimCommit(md);
+	ret = mdhimCommit(md, md->primary_index);
 	if (ret != MDHIM_SUCCESS) {
 		printf("Error committing MDHIM database\n");
 	} else {
 		printf("Committed MDHIM database\n");
 	}
 
-	//Get the values
-	grm = mdhimGet(md, &key, sizeof(key), MDHIM_GET_EQ);
-	if (!grm || grm->error) {
+	bgrm = mdhimGet(md, md->primary_index, &key, sizeof(key), 
+			MDHIM_GET_EQ);
+	if (!bgrm || bgrm->error) {
 		printf("Error getting value for key: %llu from MDHIM\n", key);
-	} else {
-		printf("Successfully got value with size: %d from MDHIM\n", grm->value_len);
+	} else if (bgrm->value_lens[0]) {
+		printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
 	}
 
-	mdhim_full_release_msg(grm);
+	mdhim_full_release_msg(bgrm);
 
 done:
 	ret = mdhimClose(md);

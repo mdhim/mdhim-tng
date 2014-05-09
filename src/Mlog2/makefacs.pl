@@ -105,7 +105,7 @@ $_ = <<EOD;
 #ifndef _MLOGFACS_H_
 #define _MLOGFACS_H_
 
-#include "mlog.h"    /* for MLOG_ defines */
+#include "mlog2.h"    /* for MLOG_ defines */
 
 EOD
 safeprint($_);
@@ -164,7 +164,7 @@ for ($lcv = 0 ; $lcv <= $#facs ; $lcv += 2) {
 # wrap it up
 #
 safeprint("#endif /* _MLOGFACS_H_ */\n");
-if (!close P || !rename("mlogfacs.h_NEW", "mlogfacs.h")) {
+if (!close P || !rename("mlogfacs.h_NEW", "mlogfacs2.h")) {
     print "CLOSE ERROR: $!, aborting\n";
     unlink("mlogfacs.h_NEW");
     exit(1);

@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 	struct timeval start_tv, end_tv;
 	char     *db_path = "./";
 	char     *db_name = "mdhimTstDB-";
-	int      dbug = MLOG_DBG; //MLOG_CRIT=1, MLOG_DBG=2
+	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
 	int db_type = LEVELDB; // (data_store.h) 
 	int size;
@@ -109,8 +109,10 @@ int main(int argc, char **argv) {
 		//record the start time
 		start_record(&start_tv);
 		//Insert the keys into MDHIM
-		brm = mdhimBPut(md, (void **) keys, key_lens,  
-				(void **) values, value_lens, KEYS);
+		brm = mdhimBPut(md,
+				(void **) keys, key_lens,  
+				(void **) values, value_lens, 
+				KEYS, NULL, NULL);
 		//		MPI_Barrier(MPI_COMM_WORLD);
 		//record the end time
 		end_record(&end_tv);			       
@@ -141,7 +143,7 @@ int main(int argc, char **argv) {
 	
 	//Get the stats
 	start_record(&start_tv);
-	ret = mdhimStatFlush(md);
+	ret = mdhimStatFlush(md, md->primary_index);
 	//	MPI_Barrier(MPI_COMM_WORLD);
 	end_record(&end_tv);
 	add_time(&start_tv, &end_tv, &flush_time);
@@ -158,7 +160,8 @@ int main(int argc, char **argv) {
 		gen_keys_values(md->mdhim_rank, total_keys);
 		start_record(&start_tv);
 		//Get the keys and values back starting from and including key[0]
-		bgrm = mdhimBGetOp(md, keys[KEYS - 1], sizeof(int), 
+		bgrm = mdhimBGetOp(md, md->primary_index, 
+				   keys[KEYS - 1], sizeof(int), 
 				   KEYS, MDHIM_GET_PREV);
 		//	        MPI_Barrier(MPI_COMM_WORLD);
 		end_record(&end_tv);
@@ -173,7 +176,7 @@ int main(int argc, char **argv) {
 		}
 	
 		//Validate that the data retrieved is the correct data
-		for (i = 0; i < bgrm->num_records && !bgrm->error; i++) {						
+		for (i = 0; i < bgrm->num_keys && !bgrm->error; i++) {						
 			assert(*(int *)bgrm->keys[i] == *keys[KEYS - 1 - i]);
 			assert(*(int *)bgrm->values[i] == *values[KEYS - 1 - i]);
 		}

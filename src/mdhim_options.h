@@ -8,6 +8,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 /* Append option */
 #define MDHIM_DB_OVERWRITE 0
 #define MDHIM_DB_APPEND 1
@@ -60,6 +64,14 @@ typedef struct mdhim_options_t {
 	//Number of worker threads per range server
 	int num_wthreads;
 
+	//Login Credentials 
+	char *db_host;
+	char *db_user;
+	char *db_upswd;
+	char *dbs_user;
+	char *dbs_upswd;
+
+
 } mdhim_options_t;
 
 struct mdhim_options_t* mdhim_options_init();
@@ -69,11 +81,14 @@ void mdhim_options_set_db_name(struct mdhim_options_t* opts, char *name);
 void mdhim_options_set_db_type(struct mdhim_options_t* opts, int type);
 void mdhim_options_set_key_type(struct mdhim_options_t* opts, int key_type);
 void mdhim_options_set_create_new_db(struct mdhim_options_t* opts, int create_new);
+void mdhim_options_set_login_c(struct mdhim_options_t* opts, char* db_hl, char *db_ln, char *db_pw, char *dbs_ln, char *dbs_pw);
 void mdhim_options_set_debug_level(struct mdhim_options_t* opts, int dbug);
 void mdhim_options_set_value_append(struct mdhim_options_t* opts, int append);
 void mdhim_options_set_server_factor(struct mdhim_options_t* opts, int server_factor);
 void mdhim_options_set_max_recs_per_slice(struct mdhim_options_t* opts, uint64_t max_recs_per_slice);
 void mdhim_options_set_num_worker_threads(struct mdhim_options_t* opts, int num_wthreads);
 void mdhim_options_destroy(struct mdhim_options_t *opts);
-
+#ifdef __cplusplus
+}
+#endif
 #endif
