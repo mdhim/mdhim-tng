@@ -1,0 +1,88 @@
+\hypertarget{structmdhim__t}{\section{mdhim\-\_\-t Struct Reference}
+\label{structmdhim__t}\index{mdhim\-\_\-t@{mdhim\-\_\-t}}
+}
+
+
+{\ttfamily \#include $<$mdhim.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+M\-P\-I\-\_\-\-Comm \hyperlink{structmdhim__t_a9772a2d123d58e9cd3e4514b860aee97}{mdhim\-\_\-comm}
+\item 
+M\-P\-I\-\_\-\-Comm \hyperlink{structmdhim__t_aa7869e9170df4067e8ee986f5e6fda69}{mdhim\-\_\-client\-\_\-comm}
+\item 
+int \hyperlink{structmdhim__t_a501753bb85acfd853c73d3c888714b20}{mdhim\-\_\-rank}
+\item 
+int \hyperlink{structmdhim__t_ab4bf1dd32ae146382cade22a706c1380}{mdhim\-\_\-comm\-\_\-size}
+\item 
+int \hyperlink{structmdhim__t_ab38232f8b8b48edf417c87088d81d6e4}{key\-\_\-type}
+\item 
+uint32\-\_\-t \hyperlink{structmdhim__t_a41b224b41799585edf8a8b2b2f4626cc}{num\-\_\-rangesrvs}
+\item 
+\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{structmdhim__t_ae05a450ac4f312ae4bdb9c1ea52e53e0}{rangesrvs}
+\item 
+int \hyperlink{structmdhim__t_aec7f0b0a3e8bf81c839a90ec38b0809b}{rangesrv\-\_\-master}
+\item 
+\hyperlink{structmdhim__rs__t}{mdhim\-\_\-rs\-\_\-t} $\ast$ \hyperlink{structmdhim__t_ae555c224ade4584fcc3895f8ea19a302}{mdhim\-\_\-rs}
+\item 
+pthread\-\_\-mutex\-\_\-t $\ast$ \hyperlink{structmdhim__t_ae5abe6f33b5951a30f582fda42292706}{receive\-\_\-msg\-\_\-mutex}
+\item 
+pthread\-\_\-cond\-\_\-t $\ast$ \hyperlink{structmdhim__t_ac4a79eb13f34377840b924c41802f0fb}{receive\-\_\-msg\-\_\-ready\-\_\-cv}
+\item 
+void $\ast$ \hyperlink{structmdhim__t_abc3233b7d61111d19bb7ac0222a918fc}{receive\-\_\-msg}
+\item 
+\hyperlink{structmdhim__options__t}{mdhim\-\_\-options\-\_\-t} $\ast$ \hyperlink{structmdhim__t_a1e315ee5168e22e71f970eea38014375}{db\-\_\-opts}
+\item 
+struct \hyperlink{structmdhim__stat}{mdhim\-\_\-stat} $\ast$ \hyperlink{structmdhim__t_a69e06bfc0fb536ac2759b3ebb4c8cca1}{stats}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structmdhim__t_a1e315ee5168e22e71f970eea38014375}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!db\-\_\-opts@{db\-\_\-opts}}
+\index{db\-\_\-opts@{db\-\_\-opts}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{db\-\_\-opts}]{\setlength{\rightskip}{0pt plus 5cm}{\bf mdhim\-\_\-options\-\_\-t}$\ast$ mdhim\-\_\-t\-::db\-\_\-opts}}\label{structmdhim__t_a1e315ee5168e22e71f970eea38014375}
+\hypertarget{structmdhim__t_ab38232f8b8b48edf417c87088d81d6e4}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!key\-\_\-type@{key\-\_\-type}}
+\index{key\-\_\-type@{key\-\_\-type}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{key\-\_\-type}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-t\-::key\-\_\-type}}\label{structmdhim__t_ab38232f8b8b48edf417c87088d81d6e4}
+\hypertarget{structmdhim__t_aa7869e9170df4067e8ee986f5e6fda69}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!mdhim\-\_\-client\-\_\-comm@{mdhim\-\_\-client\-\_\-comm}}
+\index{mdhim\-\_\-client\-\_\-comm@{mdhim\-\_\-client\-\_\-comm}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{mdhim\-\_\-client\-\_\-comm}]{\setlength{\rightskip}{0pt plus 5cm}M\-P\-I\-\_\-\-Comm mdhim\-\_\-t\-::mdhim\-\_\-client\-\_\-comm}}\label{structmdhim__t_aa7869e9170df4067e8ee986f5e6fda69}
+\hypertarget{structmdhim__t_a9772a2d123d58e9cd3e4514b860aee97}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!mdhim\-\_\-comm@{mdhim\-\_\-comm}}
+\index{mdhim\-\_\-comm@{mdhim\-\_\-comm}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{mdhim\-\_\-comm}]{\setlength{\rightskip}{0pt plus 5cm}M\-P\-I\-\_\-\-Comm mdhim\-\_\-t\-::mdhim\-\_\-comm}}\label{structmdhim__t_a9772a2d123d58e9cd3e4514b860aee97}
+\hypertarget{structmdhim__t_ab4bf1dd32ae146382cade22a706c1380}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!mdhim\-\_\-comm\-\_\-size@{mdhim\-\_\-comm\-\_\-size}}
+\index{mdhim\-\_\-comm\-\_\-size@{mdhim\-\_\-comm\-\_\-size}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{mdhim\-\_\-comm\-\_\-size}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-t\-::mdhim\-\_\-comm\-\_\-size}}\label{structmdhim__t_ab4bf1dd32ae146382cade22a706c1380}
+\hypertarget{structmdhim__t_a501753bb85acfd853c73d3c888714b20}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!mdhim\-\_\-rank@{mdhim\-\_\-rank}}
+\index{mdhim\-\_\-rank@{mdhim\-\_\-rank}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{mdhim\-\_\-rank}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-t\-::mdhim\-\_\-rank}}\label{structmdhim__t_a501753bb85acfd853c73d3c888714b20}
+\hypertarget{structmdhim__t_ae555c224ade4584fcc3895f8ea19a302}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!mdhim\-\_\-rs@{mdhim\-\_\-rs}}
+\index{mdhim\-\_\-rs@{mdhim\-\_\-rs}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{mdhim\-\_\-rs}]{\setlength{\rightskip}{0pt plus 5cm}{\bf mdhim\-\_\-rs\-\_\-t}$\ast$ mdhim\-\_\-t\-::mdhim\-\_\-rs}}\label{structmdhim__t_ae555c224ade4584fcc3895f8ea19a302}
+\hypertarget{structmdhim__t_a41b224b41799585edf8a8b2b2f4626cc}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!num\-\_\-rangesrvs@{num\-\_\-rangesrvs}}
+\index{num\-\_\-rangesrvs@{num\-\_\-rangesrvs}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{num\-\_\-rangesrvs}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t mdhim\-\_\-t\-::num\-\_\-rangesrvs}}\label{structmdhim__t_a41b224b41799585edf8a8b2b2f4626cc}
+\hypertarget{structmdhim__t_aec7f0b0a3e8bf81c839a90ec38b0809b}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!rangesrv\-\_\-master@{rangesrv\-\_\-master}}
+\index{rangesrv\-\_\-master@{rangesrv\-\_\-master}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{rangesrv\-\_\-master}]{\setlength{\rightskip}{0pt plus 5cm}int mdhim\-\_\-t\-::rangesrv\-\_\-master}}\label{structmdhim__t_aec7f0b0a3e8bf81c839a90ec38b0809b}
+\hypertarget{structmdhim__t_ae05a450ac4f312ae4bdb9c1ea52e53e0}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!rangesrvs@{rangesrvs}}
+\index{rangesrvs@{rangesrvs}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{rangesrvs}]{\setlength{\rightskip}{0pt plus 5cm}{\bf rangesrv\-\_\-info}$\ast$ mdhim\-\_\-t\-::rangesrvs}}\label{structmdhim__t_ae05a450ac4f312ae4bdb9c1ea52e53e0}
+\hypertarget{structmdhim__t_abc3233b7d61111d19bb7ac0222a918fc}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!receive\-\_\-msg@{receive\-\_\-msg}}
+\index{receive\-\_\-msg@{receive\-\_\-msg}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{receive\-\_\-msg}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ mdhim\-\_\-t\-::receive\-\_\-msg}}\label{structmdhim__t_abc3233b7d61111d19bb7ac0222a918fc}
+\hypertarget{structmdhim__t_ae5abe6f33b5951a30f582fda42292706}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!receive\-\_\-msg\-\_\-mutex@{receive\-\_\-msg\-\_\-mutex}}
+\index{receive\-\_\-msg\-\_\-mutex@{receive\-\_\-msg\-\_\-mutex}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{receive\-\_\-msg\-\_\-mutex}]{\setlength{\rightskip}{0pt plus 5cm}pthread\-\_\-mutex\-\_\-t$\ast$ mdhim\-\_\-t\-::receive\-\_\-msg\-\_\-mutex}}\label{structmdhim__t_ae5abe6f33b5951a30f582fda42292706}
+\hypertarget{structmdhim__t_ac4a79eb13f34377840b924c41802f0fb}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!receive\-\_\-msg\-\_\-ready\-\_\-cv@{receive\-\_\-msg\-\_\-ready\-\_\-cv}}
+\index{receive\-\_\-msg\-\_\-ready\-\_\-cv@{receive\-\_\-msg\-\_\-ready\-\_\-cv}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{receive\-\_\-msg\-\_\-ready\-\_\-cv}]{\setlength{\rightskip}{0pt plus 5cm}pthread\-\_\-cond\-\_\-t$\ast$ mdhim\-\_\-t\-::receive\-\_\-msg\-\_\-ready\-\_\-cv}}\label{structmdhim__t_ac4a79eb13f34377840b924c41802f0fb}
+\hypertarget{structmdhim__t_a69e06bfc0fb536ac2759b3ebb4c8cca1}{\index{mdhim\-\_\-t@{mdhim\-\_\-t}!stats@{stats}}
+\index{stats@{stats}!mdhim_t@{mdhim\-\_\-t}}
+\subsubsection[{stats}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf mdhim\-\_\-stat}$\ast$ mdhim\-\_\-t\-::stats}}\label{structmdhim__t_a69e06bfc0fb536ac2759b3ebb4c8cca1}
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{mdhim_8h}{mdhim.\-h}\end{DoxyCompactItemize}

@@ -1,0 +1,84 @@
+\hypertarget{struct_page}{\section{Page Struct Reference}
+\label{df/d9b/struct_page}\index{Page@{Page}}
+}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+unsigned char $\ast$ \hyperlink{struct_page_a87938872ca8631cd16a3a10e6256f9ab}{z\-Data}
+\item 
+void $\ast$ \hyperlink{struct_page_aa1e91f31c9d426367c0fe43a8e4ee5b3}{p\-User\-Data}
+\item 
+\hyperlink{unqlite_8c_a90bf132c9229151f7c29e84e592907cd}{pgno} \hyperlink{struct_page_a98ebb8cf4e3f5ced9307e5d17a5a7fa9}{pgno}
+\item 
+\hyperlink{struct_pager}{Pager} $\ast$ \hyperlink{struct_page_a9c47742ca02036cd21b8bdf91a096f79}{p\-Pager}
+\item 
+int \hyperlink{struct_page_aa3e3b457d87c66b71e9b497bb44d5d43}{flags}
+\item 
+int \hyperlink{struct_page_a000e1e83db5042ff7d574299f2b0b093}{n\-Ref}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_a9fc270c447b64cd3c9af9538f0820d34}{p\-Next}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_aa7da591fa65639c5bf1155e15ce946af}{p\-Prev}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_a2c5d338f00c7d03796278b256e86f873}{p\-Dirty\-Next}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_a8446031d1392ff11e0f32bdd9f099111}{p\-Dirty\-Prev}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_aacc17fefbd9277940655438cfc31ff44}{p\-Next\-Collide}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_a95d9164851163f3d954a155fa6e41ea0}{p\-Prev\-Collide}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_a4c0d4da87f19e8df1027bdf38a75d7fb}{p\-Next\-Hot}
+\item 
+\hyperlink{struct_page}{Page} $\ast$ \hyperlink{struct_page_a3f8c2bed73ebe5c160e8166603ea3e9c}{p\-Prev\-Hot}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{struct_page_aa3e3b457d87c66b71e9b497bb44d5d43}{\index{Page@{Page}!flags@{flags}}
+\index{flags@{flags}!Page@{Page}}
+\subsubsection[{flags}]{\setlength{\rightskip}{0pt plus 5cm}int Page\-::flags}}\label{df/d9b/struct_page_aa3e3b457d87c66b71e9b497bb44d5d43}
+\hypertarget{struct_page_a000e1e83db5042ff7d574299f2b0b093}{\index{Page@{Page}!n\-Ref@{n\-Ref}}
+\index{n\-Ref@{n\-Ref}!Page@{Page}}
+\subsubsection[{n\-Ref}]{\setlength{\rightskip}{0pt plus 5cm}int Page\-::n\-Ref}}\label{df/d9b/struct_page_a000e1e83db5042ff7d574299f2b0b093}
+\hypertarget{struct_page_a2c5d338f00c7d03796278b256e86f873}{\index{Page@{Page}!p\-Dirty\-Next@{p\-Dirty\-Next}}
+\index{p\-Dirty\-Next@{p\-Dirty\-Next}!Page@{Page}}
+\subsubsection[{p\-Dirty\-Next}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page}$\ast$ Page\-::p\-Dirty\-Next}}\label{df/d9b/struct_page_a2c5d338f00c7d03796278b256e86f873}
+\hypertarget{struct_page_a8446031d1392ff11e0f32bdd9f099111}{\index{Page@{Page}!p\-Dirty\-Prev@{p\-Dirty\-Prev}}
+\index{p\-Dirty\-Prev@{p\-Dirty\-Prev}!Page@{Page}}
+\subsubsection[{p\-Dirty\-Prev}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page}$\ast$ Page\-::p\-Dirty\-Prev}}\label{df/d9b/struct_page_a8446031d1392ff11e0f32bdd9f099111}
+\hypertarget{struct_page_a98ebb8cf4e3f5ced9307e5d17a5a7fa9}{\index{Page@{Page}!pgno@{pgno}}
+\index{pgno@{pgno}!Page@{Page}}
+\subsubsection[{pgno}]{\setlength{\rightskip}{0pt plus 5cm}{\bf pgno} Page\-::pgno}}\label{df/d9b/struct_page_a98ebb8cf4e3f5ced9307e5d17a5a7fa9}
+\hypertarget{struct_page_a9fc270c447b64cd3c9af9538f0820d34}{\index{Page@{Page}!p\-Next@{p\-Next}}
+\index{p\-Next@{p\-Next}!Page@{Page}}
+\subsubsection[{p\-Next}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page}$\ast$ Page\-::p\-Next}}\label{df/d9b/struct_page_a9fc270c447b64cd3c9af9538f0820d34}
+\hypertarget{struct_page_aacc17fefbd9277940655438cfc31ff44}{\index{Page@{Page}!p\-Next\-Collide@{p\-Next\-Collide}}
+\index{p\-Next\-Collide@{p\-Next\-Collide}!Page@{Page}}
+\subsubsection[{p\-Next\-Collide}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page}$\ast$ Page\-::p\-Next\-Collide}}\label{df/d9b/struct_page_aacc17fefbd9277940655438cfc31ff44}
+\hypertarget{struct_page_a4c0d4da87f19e8df1027bdf38a75d7fb}{\index{Page@{Page}!p\-Next\-Hot@{p\-Next\-Hot}}
+\index{p\-Next\-Hot@{p\-Next\-Hot}!Page@{Page}}
+\subsubsection[{p\-Next\-Hot}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page}$\ast$ Page\-::p\-Next\-Hot}}\label{df/d9b/struct_page_a4c0d4da87f19e8df1027bdf38a75d7fb}
+\hypertarget{struct_page_a9c47742ca02036cd21b8bdf91a096f79}{\index{Page@{Page}!p\-Pager@{p\-Pager}}
+\index{p\-Pager@{p\-Pager}!Page@{Page}}
+\subsubsection[{p\-Pager}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Pager}$\ast$ Page\-::p\-Pager}}\label{df/d9b/struct_page_a9c47742ca02036cd21b8bdf91a096f79}
+\hypertarget{struct_page_aa7da591fa65639c5bf1155e15ce946af}{\index{Page@{Page}!p\-Prev@{p\-Prev}}
+\index{p\-Prev@{p\-Prev}!Page@{Page}}
+\subsubsection[{p\-Prev}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page} $\ast$ Page\-::p\-Prev}}\label{df/d9b/struct_page_aa7da591fa65639c5bf1155e15ce946af}
+\hypertarget{struct_page_a95d9164851163f3d954a155fa6e41ea0}{\index{Page@{Page}!p\-Prev\-Collide@{p\-Prev\-Collide}}
+\index{p\-Prev\-Collide@{p\-Prev\-Collide}!Page@{Page}}
+\subsubsection[{p\-Prev\-Collide}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page} $\ast$ Page\-::p\-Prev\-Collide}}\label{df/d9b/struct_page_a95d9164851163f3d954a155fa6e41ea0}
+\hypertarget{struct_page_a3f8c2bed73ebe5c160e8166603ea3e9c}{\index{Page@{Page}!p\-Prev\-Hot@{p\-Prev\-Hot}}
+\index{p\-Prev\-Hot@{p\-Prev\-Hot}!Page@{Page}}
+\subsubsection[{p\-Prev\-Hot}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Page} $\ast$ Page\-::p\-Prev\-Hot}}\label{df/d9b/struct_page_a3f8c2bed73ebe5c160e8166603ea3e9c}
+\hypertarget{struct_page_aa1e91f31c9d426367c0fe43a8e4ee5b3}{\index{Page@{Page}!p\-User\-Data@{p\-User\-Data}}
+\index{p\-User\-Data@{p\-User\-Data}!Page@{Page}}
+\subsubsection[{p\-User\-Data}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ Page\-::p\-User\-Data}}\label{df/d9b/struct_page_aa1e91f31c9d426367c0fe43a8e4ee5b3}
+\hypertarget{struct_page_a87938872ca8631cd16a3a10e6256f9ab}{\index{Page@{Page}!z\-Data@{z\-Data}}
+\index{z\-Data@{z\-Data}!Page@{Page}}
+\subsubsection[{z\-Data}]{\setlength{\rightskip}{0pt plus 5cm}unsigned char$\ast$ Page\-::z\-Data}}\label{df/d9b/struct_page_a87938872ca8631cd16a3a10e6256f9ab}
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{unqlite_8c}{unqlite.\-c}\end{DoxyCompactItemize}

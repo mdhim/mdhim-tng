@@ -1,0 +1,120 @@
+\hypertarget{db__options_8h}{\section{src/db\-\_\-options.h File Reference}
+\label{d7/d9a/db__options_8h}\index{src/db\-\_\-options.\-h@{src/db\-\_\-options.\-h}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{db__options_8h_a65ebb5b6d8720f7688f3cf2502b6efea}{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-O\-V\-E\-R\-W\-R\-I\-T\-E}~0
+\item 
+\#define \hyperlink{db__options_8h_a9d5c5cd0e562403f4c535e182d72868a}{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-A\-P\-P\-E\-N\-D}~1
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} \hyperlink{db__options_8h_a2286885df5821ebdee7aa4ce3fa504b2}{db\-\_\-options\-\_\-t}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$ \hyperlink{db__options_8h_a21a66b1268a82eb1936f1617d0bb6ddc}{db\-\_\-options\-\_\-init} ()
+\item 
+void \hyperlink{db__options_8h_ac0badbd428f679173f6afa1135368851}{db\-\_\-options\-\_\-set\-\_\-path} (struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts, char $\ast$path)
+\item 
+void \hyperlink{db__options_8h_aa2c4ad5fd655ce01726c8dd86a20ba9b}{db\-\_\-options\-\_\-set\-\_\-name} (struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts, char $\ast$name)
+\item 
+void \hyperlink{db__options_8h_a463eb092cd054daa447bfe0275b785c6}{db\-\_\-options\-\_\-set\-\_\-type} (struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts, int type)
+\item 
+void \hyperlink{db__options_8h_a61398712a58b064d9718d6656263c17b}{db\-\_\-options\-\_\-set\-\_\-key\-\_\-type} (struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts, int key\-\_\-type)
+\item 
+void \hyperlink{db__options_8h_a48083cb6980720ab3c1073438482a168}{db\-\_\-options\-\_\-set\-\_\-create\-\_\-new} (struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts, int create\-\_\-new)
+\item 
+void \hyperlink{db__options_8h_ae861537fed780f6f91e43e07c6386cd6}{db\-\_\-options\-\_\-set\-\_\-debug\-\_\-level} (struct \hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts, int dbug)
+\item 
+void \hyperlink{db__options_8h_a36ac4e5920a3a831b8559085dd69b1e5}{db\-\_\-options\-\_\-set\-\_\-append} (\hyperlink{structdb__options__t}{db\-\_\-options\-\_\-t} $\ast$opts, int append)
+\end{DoxyCompactItemize}
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{db__options_8h_a9d5c5cd0e562403f4c535e182d72868a}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-A\-P\-P\-E\-N\-D@{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-A\-P\-P\-E\-N\-D}}
+\index{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-A\-P\-P\-E\-N\-D@{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-A\-P\-P\-E\-N\-D}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-A\-P\-P\-E\-N\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-A\-P\-P\-E\-N\-D~1}}\label{d7/d9a/db__options_8h_a9d5c5cd0e562403f4c535e182d72868a}
+\hypertarget{db__options_8h_a65ebb5b6d8720f7688f3cf2502b6efea}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-O\-V\-E\-R\-W\-R\-I\-T\-E@{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-O\-V\-E\-R\-W\-R\-I\-T\-E}}
+\index{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-O\-V\-E\-R\-W\-R\-I\-T\-E@{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-O\-V\-E\-R\-W\-R\-I\-T\-E}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-O\-V\-E\-R\-W\-R\-I\-T\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-D\-B\-\_\-\-O\-V\-E\-R\-W\-R\-I\-T\-E~0}}\label{d7/d9a/db__options_8h_a65ebb5b6d8720f7688f3cf2502b6efea}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{db__options_8h_a2286885df5821ebdee7aa4ce3fa504b2}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-t@{db\-\_\-options\-\_\-t}}
+\index{db\-\_\-options\-\_\-t@{db\-\_\-options\-\_\-t}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-t}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf db\-\_\-options\-\_\-t}  {\bf db\-\_\-options\-\_\-t}}}\label{d7/d9a/db__options_8h_a2286885df5821ebdee7aa4ce3fa504b2}
+
+
+\subsection{Function Documentation}
+\hypertarget{db__options_8h_a21a66b1268a82eb1936f1617d0bb6ddc}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-init@{db\-\_\-options\-\_\-init}}
+\index{db\-\_\-options\-\_\-init@{db\-\_\-options\-\_\-init}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf db\-\_\-options\-\_\-t}$\ast$ db\-\_\-options\-\_\-init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [read]}}}\label{d7/d9a/db__options_8h_a21a66b1268a82eb1936f1617d0bb6ddc}
+\hypertarget{db__options_8h_a36ac4e5920a3a831b8559085dd69b1e5}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-set\-\_\-append@{db\-\_\-options\-\_\-set\-\_\-append}}
+\index{db\-\_\-options\-\_\-set\-\_\-append@{db\-\_\-options\-\_\-set\-\_\-append}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-set\-\_\-append}]{\setlength{\rightskip}{0pt plus 5cm}void db\-\_\-options\-\_\-set\-\_\-append (
+\begin{DoxyParamCaption}
+\item[{{\bf db\-\_\-options\-\_\-t} $\ast$}]{opts, }
+\item[{int}]{append}
+\end{DoxyParamCaption}
+)}}\label{d7/d9a/db__options_8h_a36ac4e5920a3a831b8559085dd69b1e5}
+\hypertarget{db__options_8h_a48083cb6980720ab3c1073438482a168}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-set\-\_\-create\-\_\-new@{db\-\_\-options\-\_\-set\-\_\-create\-\_\-new}}
+\index{db\-\_\-options\-\_\-set\-\_\-create\-\_\-new@{db\-\_\-options\-\_\-set\-\_\-create\-\_\-new}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-set\-\_\-create\-\_\-new}]{\setlength{\rightskip}{0pt plus 5cm}void db\-\_\-options\-\_\-set\-\_\-create\-\_\-new (
+\begin{DoxyParamCaption}
+\item[{struct {\bf db\-\_\-options\-\_\-t} $\ast$}]{opts, }
+\item[{int}]{create\-\_\-new}
+\end{DoxyParamCaption}
+)}}\label{d7/d9a/db__options_8h_a48083cb6980720ab3c1073438482a168}
+\hypertarget{db__options_8h_ae861537fed780f6f91e43e07c6386cd6}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-set\-\_\-debug\-\_\-level@{db\-\_\-options\-\_\-set\-\_\-debug\-\_\-level}}
+\index{db\-\_\-options\-\_\-set\-\_\-debug\-\_\-level@{db\-\_\-options\-\_\-set\-\_\-debug\-\_\-level}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-set\-\_\-debug\-\_\-level}]{\setlength{\rightskip}{0pt plus 5cm}void db\-\_\-options\-\_\-set\-\_\-debug\-\_\-level (
+\begin{DoxyParamCaption}
+\item[{struct {\bf db\-\_\-options\-\_\-t} $\ast$}]{opts, }
+\item[{int}]{dbug}
+\end{DoxyParamCaption}
+)}}\label{d7/d9a/db__options_8h_ae861537fed780f6f91e43e07c6386cd6}
+\hypertarget{db__options_8h_a61398712a58b064d9718d6656263c17b}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-set\-\_\-key\-\_\-type@{db\-\_\-options\-\_\-set\-\_\-key\-\_\-type}}
+\index{db\-\_\-options\-\_\-set\-\_\-key\-\_\-type@{db\-\_\-options\-\_\-set\-\_\-key\-\_\-type}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-set\-\_\-key\-\_\-type}]{\setlength{\rightskip}{0pt plus 5cm}void db\-\_\-options\-\_\-set\-\_\-key\-\_\-type (
+\begin{DoxyParamCaption}
+\item[{struct {\bf db\-\_\-options\-\_\-t} $\ast$}]{opts, }
+\item[{int}]{key\-\_\-type}
+\end{DoxyParamCaption}
+)}}\label{d7/d9a/db__options_8h_a61398712a58b064d9718d6656263c17b}
+\hypertarget{db__options_8h_aa2c4ad5fd655ce01726c8dd86a20ba9b}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-set\-\_\-name@{db\-\_\-options\-\_\-set\-\_\-name}}
+\index{db\-\_\-options\-\_\-set\-\_\-name@{db\-\_\-options\-\_\-set\-\_\-name}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-set\-\_\-name}]{\setlength{\rightskip}{0pt plus 5cm}void db\-\_\-options\-\_\-set\-\_\-name (
+\begin{DoxyParamCaption}
+\item[{struct {\bf db\-\_\-options\-\_\-t} $\ast$}]{opts, }
+\item[{char $\ast$}]{name}
+\end{DoxyParamCaption}
+)}}\label{d7/d9a/db__options_8h_aa2c4ad5fd655ce01726c8dd86a20ba9b}
+\hypertarget{db__options_8h_ac0badbd428f679173f6afa1135368851}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-set\-\_\-path@{db\-\_\-options\-\_\-set\-\_\-path}}
+\index{db\-\_\-options\-\_\-set\-\_\-path@{db\-\_\-options\-\_\-set\-\_\-path}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-set\-\_\-path}]{\setlength{\rightskip}{0pt plus 5cm}void db\-\_\-options\-\_\-set\-\_\-path (
+\begin{DoxyParamCaption}
+\item[{struct {\bf db\-\_\-options\-\_\-t} $\ast$}]{opts, }
+\item[{char $\ast$}]{path}
+\end{DoxyParamCaption}
+)}}\label{d7/d9a/db__options_8h_ac0badbd428f679173f6afa1135368851}
+\hypertarget{db__options_8h_a463eb092cd054daa447bfe0275b785c6}{\index{db\-\_\-options.\-h@{db\-\_\-options.\-h}!db\-\_\-options\-\_\-set\-\_\-type@{db\-\_\-options\-\_\-set\-\_\-type}}
+\index{db\-\_\-options\-\_\-set\-\_\-type@{db\-\_\-options\-\_\-set\-\_\-type}!db_options.h@{db\-\_\-options.\-h}}
+\subsubsection[{db\-\_\-options\-\_\-set\-\_\-type}]{\setlength{\rightskip}{0pt plus 5cm}void db\-\_\-options\-\_\-set\-\_\-type (
+\begin{DoxyParamCaption}
+\item[{struct {\bf db\-\_\-options\-\_\-t} $\ast$}]{opts, }
+\item[{int}]{type}
+\end{DoxyParamCaption}
+)}}\label{d7/d9a/db__options_8h_a463eb092cd054daa447bfe0275b785c6}

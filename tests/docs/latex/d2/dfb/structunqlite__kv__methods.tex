@@ -1,0 +1,139 @@
+\hypertarget{structunqlite__kv__methods}{\section{unqlite\-\_\-kv\-\_\-methods Struct Reference}
+\label{d2/dfb/structunqlite__kv__methods}\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}}
+}
+
+
+{\ttfamily \#include $<$unqlite.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const char $\ast$ \hyperlink{structunqlite__kv__methods_affaa0bf51b8acf365e78d0ca969f0462}{z\-Name}
+\item 
+int \hyperlink{structunqlite__kv__methods_a7ce3bc1bb75d2b89b33c6e2ba21e9b78}{sz\-Kv}
+\item 
+int \hyperlink{structunqlite__kv__methods_a1f661a27a021c83452bd5a5c7984f4a5}{sz\-Cursor}
+\item 
+int \hyperlink{structunqlite__kv__methods_ade29e7aa5bb2555ce02504e547a5c894}{i\-Version}
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a0963f71dc84b26969847a47de6612d77}{x\-Init} )(\hyperlink{structunqlite__kv__engine}{unqlite\-\_\-kv\-\_\-engine} $\ast$, int i\-Page\-Size)
+\item 
+void($\ast$ \hyperlink{structunqlite__kv__methods_a4bd71b3cc5b47971a5d97bcb6a923e14}{x\-Release} )(\hyperlink{structunqlite__kv__engine}{unqlite\-\_\-kv\-\_\-engine} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_aba801d097e9151daa9f83bd721b10856}{x\-Config} )(\hyperlink{structunqlite__kv__engine}{unqlite\-\_\-kv\-\_\-engine} $\ast$, int op, va\-\_\-list ap)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a9d9e77718c0a79e65394924b4d846581}{x\-Open} )(\hyperlink{structunqlite__kv__engine}{unqlite\-\_\-kv\-\_\-engine} $\ast$, \hyperlink{unqlite_8c_a90bf132c9229151f7c29e84e592907cd}{pgno})
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_aca537ffe7c05b16531bf17055d4505dd}{x\-Replace} )(\hyperlink{structunqlite__kv__engine}{unqlite\-\_\-kv\-\_\-engine} $\ast$, const void $\ast$p\-Key, int n\-Key\-Len, const void $\ast$p\-Data, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} n\-Data\-Len)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a84b482400e3dee633d777cca654b6aec}{x\-Append} )(\hyperlink{structunqlite__kv__engine}{unqlite\-\_\-kv\-\_\-engine} $\ast$, const void $\ast$p\-Key, int n\-Key\-Len, const void $\ast$p\-Data, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} n\-Data\-Len)
+\item 
+void($\ast$ \hyperlink{structunqlite__kv__methods_a89a88a0ec7164b2529d282a8ae1bbd21}{x\-Cursor\-Init} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a56a566a04004c87f270a12b316deb087}{x\-Seek} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$, const void $\ast$p\-Key, int n\-Byte, int i\-Pos)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a18e040ebb42c50ced03d545d48b98c72}{x\-First} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a4cf12f1965c2442575cb226397c3545c}{x\-Last} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a766810f47c6450157b01398f0d76f910}{x\-Valid} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_ae177efc5e24a54891754ef2994786228}{x\-Next} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_ae16eea9a25dc889523a9a0729cb86def}{x\-Prev} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a83aa7b58b08550a4814b4184eddb8d3c}{x\-Delete} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_ae280fe876217defc8fcdfc6c260c9620}{x\-Key\-Length} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$, int $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a3c35e9e3f75ba182847c7757164b3df1}{x\-Key} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$, int($\ast$x\-Consumer)(const void $\ast$, unsigned int, void $\ast$), void $\ast$p\-User\-Data)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a1294a3c4e87589358ba1ada4471a9c2a}{x\-Data\-Length} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$, \hyperlink{unqlite_8c_ae7dd2792142c2ec7874a56602b8f2bb8}{unqlite\-\_\-int64} $\ast$)
+\item 
+int($\ast$ \hyperlink{structunqlite__kv__methods_a15ce394652fbe105de86b93a63f04053}{x\-Data} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$, int($\ast$x\-Consumer)(const void $\ast$, unsigned int, void $\ast$), void $\ast$p\-User\-Data)
+\item 
+void($\ast$ \hyperlink{structunqlite__kv__methods_a0c5216e010e240483c1536d0d638f353}{x\-Reset} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\item 
+void($\ast$ \hyperlink{structunqlite__kv__methods_adfbe1442892b629325824f5d6293d9a8}{x\-Cursor\-Release} )(\hyperlink{structunqlite__kv__cursor}{unqlite\-\_\-kv\-\_\-cursor} $\ast$)
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structunqlite__kv__methods_ade29e7aa5bb2555ce02504e547a5c894}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!i\-Version@{i\-Version}}
+\index{i\-Version@{i\-Version}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{i\-Version}]{\setlength{\rightskip}{0pt plus 5cm}int unqlite\-\_\-kv\-\_\-methods\-::i\-Version}}\label{d2/dfb/structunqlite__kv__methods_ade29e7aa5bb2555ce02504e547a5c894}
+\hypertarget{structunqlite__kv__methods_a1f661a27a021c83452bd5a5c7984f4a5}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!sz\-Cursor@{sz\-Cursor}}
+\index{sz\-Cursor@{sz\-Cursor}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{sz\-Cursor}]{\setlength{\rightskip}{0pt plus 5cm}int unqlite\-\_\-kv\-\_\-methods\-::sz\-Cursor}}\label{d2/dfb/structunqlite__kv__methods_a1f661a27a021c83452bd5a5c7984f4a5}
+\hypertarget{structunqlite__kv__methods_a7ce3bc1bb75d2b89b33c6e2ba21e9b78}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!sz\-Kv@{sz\-Kv}}
+\index{sz\-Kv@{sz\-Kv}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{sz\-Kv}]{\setlength{\rightskip}{0pt plus 5cm}int unqlite\-\_\-kv\-\_\-methods\-::sz\-Kv}}\label{d2/dfb/structunqlite__kv__methods_a7ce3bc1bb75d2b89b33c6e2ba21e9b78}
+\hypertarget{structunqlite__kv__methods_a84b482400e3dee633d777cca654b6aec}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Append@{x\-Append}}
+\index{x\-Append@{x\-Append}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Append}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Append)({\bf unqlite\-\_\-kv\-\_\-engine} $\ast$, const void $\ast$p\-Key, int n\-Key\-Len, const void $\ast$p\-Data, {\bf unqlite\-\_\-int64} n\-Data\-Len)}}\label{d2/dfb/structunqlite__kv__methods_a84b482400e3dee633d777cca654b6aec}
+\hypertarget{structunqlite__kv__methods_aba801d097e9151daa9f83bd721b10856}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Config@{x\-Config}}
+\index{x\-Config@{x\-Config}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Config}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Config)({\bf unqlite\-\_\-kv\-\_\-engine} $\ast$, int op, va\-\_\-list ap)}}\label{d2/dfb/structunqlite__kv__methods_aba801d097e9151daa9f83bd721b10856}
+\hypertarget{structunqlite__kv__methods_a89a88a0ec7164b2529d282a8ae1bbd21}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Cursor\-Init@{x\-Cursor\-Init}}
+\index{x\-Cursor\-Init@{x\-Cursor\-Init}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Cursor\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Cursor\-Init)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a89a88a0ec7164b2529d282a8ae1bbd21}
+\hypertarget{structunqlite__kv__methods_adfbe1442892b629325824f5d6293d9a8}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Cursor\-Release@{x\-Cursor\-Release}}
+\index{x\-Cursor\-Release@{x\-Cursor\-Release}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Cursor\-Release}]{\setlength{\rightskip}{0pt plus 5cm}void($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Cursor\-Release)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_adfbe1442892b629325824f5d6293d9a8}
+\hypertarget{structunqlite__kv__methods_a15ce394652fbe105de86b93a63f04053}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Data@{x\-Data}}
+\index{x\-Data@{x\-Data}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Data}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Data)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$, int($\ast$x\-Consumer)(const void $\ast$, unsigned int, void $\ast$), void $\ast$p\-User\-Data)}}\label{d2/dfb/structunqlite__kv__methods_a15ce394652fbe105de86b93a63f04053}
+\hypertarget{structunqlite__kv__methods_a1294a3c4e87589358ba1ada4471a9c2a}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Data\-Length@{x\-Data\-Length}}
+\index{x\-Data\-Length@{x\-Data\-Length}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Data\-Length}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Data\-Length)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$, {\bf unqlite\-\_\-int64} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a1294a3c4e87589358ba1ada4471a9c2a}
+\hypertarget{structunqlite__kv__methods_a83aa7b58b08550a4814b4184eddb8d3c}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Delete@{x\-Delete}}
+\index{x\-Delete@{x\-Delete}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Delete}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Delete)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a83aa7b58b08550a4814b4184eddb8d3c}
+\hypertarget{structunqlite__kv__methods_a18e040ebb42c50ced03d545d48b98c72}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-First@{x\-First}}
+\index{x\-First@{x\-First}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-First}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-First)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a18e040ebb42c50ced03d545d48b98c72}
+\hypertarget{structunqlite__kv__methods_a0963f71dc84b26969847a47de6612d77}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Init@{x\-Init}}
+\index{x\-Init@{x\-Init}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Init}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Init)({\bf unqlite\-\_\-kv\-\_\-engine} $\ast$, int i\-Page\-Size)}}\label{d2/dfb/structunqlite__kv__methods_a0963f71dc84b26969847a47de6612d77}
+\hypertarget{structunqlite__kv__methods_a3c35e9e3f75ba182847c7757164b3df1}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Key@{x\-Key}}
+\index{x\-Key@{x\-Key}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Key}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Key)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$, int($\ast$x\-Consumer)(const void $\ast$, unsigned int, void $\ast$), void $\ast$p\-User\-Data)}}\label{d2/dfb/structunqlite__kv__methods_a3c35e9e3f75ba182847c7757164b3df1}
+\hypertarget{structunqlite__kv__methods_ae280fe876217defc8fcdfc6c260c9620}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Key\-Length@{x\-Key\-Length}}
+\index{x\-Key\-Length@{x\-Key\-Length}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Key\-Length}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Key\-Length)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$, int $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_ae280fe876217defc8fcdfc6c260c9620}
+\hypertarget{structunqlite__kv__methods_a4cf12f1965c2442575cb226397c3545c}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Last@{x\-Last}}
+\index{x\-Last@{x\-Last}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Last}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Last)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a4cf12f1965c2442575cb226397c3545c}
+\hypertarget{structunqlite__kv__methods_ae177efc5e24a54891754ef2994786228}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Next@{x\-Next}}
+\index{x\-Next@{x\-Next}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Next}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Next)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_ae177efc5e24a54891754ef2994786228}
+\hypertarget{structunqlite__kv__methods_a9d9e77718c0a79e65394924b4d846581}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Open@{x\-Open}}
+\index{x\-Open@{x\-Open}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Open}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Open)({\bf unqlite\-\_\-kv\-\_\-engine} $\ast$, {\bf pgno})}}\label{d2/dfb/structunqlite__kv__methods_a9d9e77718c0a79e65394924b4d846581}
+\hypertarget{structunqlite__kv__methods_ae16eea9a25dc889523a9a0729cb86def}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Prev@{x\-Prev}}
+\index{x\-Prev@{x\-Prev}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Prev}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Prev)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_ae16eea9a25dc889523a9a0729cb86def}
+\hypertarget{structunqlite__kv__methods_a4bd71b3cc5b47971a5d97bcb6a923e14}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Release@{x\-Release}}
+\index{x\-Release@{x\-Release}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Release}]{\setlength{\rightskip}{0pt plus 5cm}void($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Release)({\bf unqlite\-\_\-kv\-\_\-engine} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a4bd71b3cc5b47971a5d97bcb6a923e14}
+\hypertarget{structunqlite__kv__methods_aca537ffe7c05b16531bf17055d4505dd}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Replace@{x\-Replace}}
+\index{x\-Replace@{x\-Replace}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Replace}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Replace)({\bf unqlite\-\_\-kv\-\_\-engine} $\ast$, const void $\ast$p\-Key, int n\-Key\-Len, const void $\ast$p\-Data, {\bf unqlite\-\_\-int64} n\-Data\-Len)}}\label{d2/dfb/structunqlite__kv__methods_aca537ffe7c05b16531bf17055d4505dd}
+\hypertarget{structunqlite__kv__methods_a0c5216e010e240483c1536d0d638f353}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Reset@{x\-Reset}}
+\index{x\-Reset@{x\-Reset}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Reset}]{\setlength{\rightskip}{0pt plus 5cm}void($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Reset)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a0c5216e010e240483c1536d0d638f353}
+\hypertarget{structunqlite__kv__methods_a56a566a04004c87f270a12b316deb087}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Seek@{x\-Seek}}
+\index{x\-Seek@{x\-Seek}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Seek}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Seek)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$, const void $\ast$p\-Key, int n\-Byte, int i\-Pos)}}\label{d2/dfb/structunqlite__kv__methods_a56a566a04004c87f270a12b316deb087}
+\hypertarget{structunqlite__kv__methods_a766810f47c6450157b01398f0d76f910}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!x\-Valid@{x\-Valid}}
+\index{x\-Valid@{x\-Valid}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{x\-Valid}]{\setlength{\rightskip}{0pt plus 5cm}int($\ast$ unqlite\-\_\-kv\-\_\-methods\-::x\-Valid)({\bf unqlite\-\_\-kv\-\_\-cursor} $\ast$)}}\label{d2/dfb/structunqlite__kv__methods_a766810f47c6450157b01398f0d76f910}
+\hypertarget{structunqlite__kv__methods_affaa0bf51b8acf365e78d0ca969f0462}{\index{unqlite\-\_\-kv\-\_\-methods@{unqlite\-\_\-kv\-\_\-methods}!z\-Name@{z\-Name}}
+\index{z\-Name@{z\-Name}!unqlite_kv_methods@{unqlite\-\_\-kv\-\_\-methods}}
+\subsubsection[{z\-Name}]{\setlength{\rightskip}{0pt plus 5cm}const char $\ast$ unqlite\-\_\-kv\-\_\-methods\-::z\-Name}}\label{d2/dfb/structunqlite__kv__methods_affaa0bf51b8acf365e78d0ca969f0462}
+
+
+The documentation for this struct was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{unqlite_8c}{unqlite.\-c}\item 
+src/\hyperlink{unqlite_8h}{unqlite.\-h}\end{DoxyCompactItemize}

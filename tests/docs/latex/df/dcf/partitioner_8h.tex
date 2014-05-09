@@ -1,0 +1,321 @@
+\hypertarget{partitioner_8h}{\section{src/partitioner.h File Reference}
+\label{partitioner_8h}\index{src/partitioner.\-h@{src/partitioner.\-h}}
+}
+{\ttfamily \#include \char`\"{}mdhim.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}uthash.\-h\char`\"{}}\\*
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structmdhim__char}{mdhim\-\_\-char}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{partitioner_8h_a4be1c3edcc73f19b6f5f3d661d1bf219}{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-S\-E\-R\-V\-E\-R\-S}~500
+\item 
+\#define \hyperlink{partitioner_8h_ac1d6fee557b1757a4fb558dc9c4d3f8f}{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-R\-A\-N\-G\-E\-\_\-\-K\-E\-Y}~4294967296\-U\-L\-L
+\item 
+\#define \hyperlink{partitioner_8h_ac03dbdb6fcafe420b667a386ee72811f}{M\-D\-H\-I\-M\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}~1
+\item 
+\#define \hyperlink{partitioner_8h_a6ae4c7be730071e549c8f82b47842db4}{M\-D\-H\-I\-M\-\_\-\-L\-O\-N\-G\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}~2
+\item 
+\#define \hyperlink{partitioner_8h_a1c833532dc45bec9a7c7aa4bfe7f36b2}{M\-D\-H\-I\-M\-\_\-\-F\-L\-O\-A\-T\-\_\-\-K\-E\-Y}~3
+\item 
+\#define \hyperlink{partitioner_8h_a971eb320dfb7e2aeb742a74e6bd276e0}{M\-D\-H\-I\-M\-\_\-\-D\-O\-U\-B\-L\-E\-\_\-\-K\-E\-Y}~4
+\item 
+\#define \hyperlink{partitioner_8h_ac8f78a6a9d15ce49fed099908f3d4149}{M\-D\-H\-I\-M\-\_\-\-S\-T\-R\-I\-N\-G\-\_\-\-K\-E\-Y}~5
+\item 
+\#define \hyperlink{partitioner_8h_a67f9e495c9a7640124c785cfa0e693c0}{M\-D\-H\-I\-M\-\_\-\-B\-Y\-T\-E\-\_\-\-K\-E\-Y}~6
+\item 
+\#define \hyperlink{partitioner_8h_ad91bfaf106e42aa552f1605c5b8a9ef2}{M\-A\-X\-\_\-\-K\-E\-Y\-\_\-\-L\-E\-N}~262144
+\item 
+\#define \hyperlink{partitioner_8h_ab3a5399f6f1046530d22caa7bef02b25}{M\-D\-H\-I\-M\-\_\-\-A\-L\-P\-H\-A\-B\-E\-T\-\_\-\-E\-X\-P\-O\-N\-E\-N\-T}~6
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{partitioner_8h_ad4470922b555ab800793f5f56f3c8888}{partitioner\-\_\-init} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int server\-\_\-factor, int max\-\_\-recs\-\_\-per\-\_\-slice)
+\item 
+void \hyperlink{partitioner_8h_ae6dbb6c65178e0ca143fe8d10c55f98c}{partitioner\-\_\-release} ()
+\item 
+uint32\-\_\-t \hyperlink{partitioner_8h_af78375fc65d2cfe6a01bf02bd8a17253}{get\-\_\-num\-\_\-range\-\_\-servers} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md)
+\item 
+uint32\-\_\-t \hyperlink{partitioner_8h_a7e8b2c01361a47a75957d29420d76a89}{is\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int rank)
+\item 
+\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{partitioner_8h_adb863fbd1c1f660fe2d15b0dbcb47c33}{get\-\_\-range\-\_\-server} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len)
+\item 
+\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{partitioner_8h_abe79a49addedc1c8befd8282d3f4080b}{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, int slice)
+\item 
+void \hyperlink{partitioner_8h_a0faa616c6ca379c72bba6468737b99c0}{build\-\_\-alphabet} ()
+\item 
+int \hyperlink{partitioner_8h_ae6bce3dfa508cb7b92b2d4e9d991480a}{verify\-\_\-key} (void $\ast$key, int key\-\_\-len, int key\-\_\-type)
+\item 
+long double \hyperlink{partitioner_8h_aa9dc63bce159c2a7e3b7ea5850fe5f32}{get\-\_\-str\-\_\-num} (void $\ast$key, uint32\-\_\-t key\-\_\-len)
+\item 
+long double \hyperlink{partitioner_8h_a907b3ed861ab0d25141f89f765d7c29d}{get\-\_\-byte\-\_\-num} (void $\ast$key, uint32\-\_\-t key\-\_\-len)
+\item 
+int \hyperlink{partitioner_8h_aeffd996c7f7120755282194fc3cbf0ed}{get\-\_\-slice\-\_\-num} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len)
+\item 
+int \hyperlink{partitioner_8h_af88457f8ff9ff19e6f2af9f26bc9ac0c}{is\-\_\-float\-\_\-key} (int type)
+\item 
+\hyperlink{structrangesrv__info}{rangesrv\-\_\-info} $\ast$ \hyperlink{partitioner_8h_a1c7d1585bd3a23672d3e5c705d3c133e}{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats} (struct \hyperlink{structmdhim__t}{mdhim\-\_\-t} $\ast$md, void $\ast$key, int key\-\_\-len, int op)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{partitioner_8h_ad6d142f9c526f895866dfd0a68a7da25}{max\-\_\-rangesrvs}
+\end{DoxyCompactItemize}
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{partitioner_8h_ad91bfaf106e42aa552f1605c5b8a9ef2}{\index{partitioner.\-h@{partitioner.\-h}!M\-A\-X\-\_\-\-K\-E\-Y\-\_\-\-L\-E\-N@{M\-A\-X\-\_\-\-K\-E\-Y\-\_\-\-L\-E\-N}}
+\index{M\-A\-X\-\_\-\-K\-E\-Y\-\_\-\-L\-E\-N@{M\-A\-X\-\_\-\-K\-E\-Y\-\_\-\-L\-E\-N}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-A\-X\-\_\-\-K\-E\-Y\-\_\-\-L\-E\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-A\-X\-\_\-\-K\-E\-Y\-\_\-\-L\-E\-N~262144}}\label{partitioner_8h_ad91bfaf106e42aa552f1605c5b8a9ef2}
+\hypertarget{partitioner_8h_ab3a5399f6f1046530d22caa7bef02b25}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-A\-L\-P\-H\-A\-B\-E\-T\-\_\-\-E\-X\-P\-O\-N\-E\-N\-T@{M\-D\-H\-I\-M\-\_\-\-A\-L\-P\-H\-A\-B\-E\-T\-\_\-\-E\-X\-P\-O\-N\-E\-N\-T}}
+\index{M\-D\-H\-I\-M\-\_\-\-A\-L\-P\-H\-A\-B\-E\-T\-\_\-\-E\-X\-P\-O\-N\-E\-N\-T@{M\-D\-H\-I\-M\-\_\-\-A\-L\-P\-H\-A\-B\-E\-T\-\_\-\-E\-X\-P\-O\-N\-E\-N\-T}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-A\-L\-P\-H\-A\-B\-E\-T\-\_\-\-E\-X\-P\-O\-N\-E\-N\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-A\-L\-P\-H\-A\-B\-E\-T\-\_\-\-E\-X\-P\-O\-N\-E\-N\-T~6}}\label{partitioner_8h_ab3a5399f6f1046530d22caa7bef02b25}
+\hypertarget{partitioner_8h_a67f9e495c9a7640124c785cfa0e693c0}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-B\-Y\-T\-E\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-B\-Y\-T\-E\-\_\-\-K\-E\-Y}}
+\index{M\-D\-H\-I\-M\-\_\-\-B\-Y\-T\-E\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-B\-Y\-T\-E\-\_\-\-K\-E\-Y}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-B\-Y\-T\-E\-\_\-\-K\-E\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-B\-Y\-T\-E\-\_\-\-K\-E\-Y~6}}\label{partitioner_8h_a67f9e495c9a7640124c785cfa0e693c0}
+\hypertarget{partitioner_8h_a971eb320dfb7e2aeb742a74e6bd276e0}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-D\-O\-U\-B\-L\-E\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-D\-O\-U\-B\-L\-E\-\_\-\-K\-E\-Y}}
+\index{M\-D\-H\-I\-M\-\_\-\-D\-O\-U\-B\-L\-E\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-D\-O\-U\-B\-L\-E\-\_\-\-K\-E\-Y}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-D\-O\-U\-B\-L\-E\-\_\-\-K\-E\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-D\-O\-U\-B\-L\-E\-\_\-\-K\-E\-Y~4}}\label{partitioner_8h_a971eb320dfb7e2aeb742a74e6bd276e0}
+\hypertarget{partitioner_8h_a1c833532dc45bec9a7c7aa4bfe7f36b2}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-F\-L\-O\-A\-T\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-F\-L\-O\-A\-T\-\_\-\-K\-E\-Y}}
+\index{M\-D\-H\-I\-M\-\_\-\-F\-L\-O\-A\-T\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-F\-L\-O\-A\-T\-\_\-\-K\-E\-Y}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-F\-L\-O\-A\-T\-\_\-\-K\-E\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-F\-L\-O\-A\-T\-\_\-\-K\-E\-Y~3}}\label{partitioner_8h_a1c833532dc45bec9a7c7aa4bfe7f36b2}
+\hypertarget{partitioner_8h_ac03dbdb6fcafe420b667a386ee72811f}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}}
+\index{M\-D\-H\-I\-M\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y~1}}\label{partitioner_8h_ac03dbdb6fcafe420b667a386ee72811f}
+\hypertarget{partitioner_8h_a6ae4c7be730071e549c8f82b47842db4}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-L\-O\-N\-G\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-L\-O\-N\-G\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}}
+\index{M\-D\-H\-I\-M\-\_\-\-L\-O\-N\-G\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-L\-O\-N\-G\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-L\-O\-N\-G\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-L\-O\-N\-G\-\_\-\-I\-N\-T\-\_\-\-K\-E\-Y~2}}\label{partitioner_8h_a6ae4c7be730071e549c8f82b47842db4}
+\hypertarget{partitioner_8h_ac1d6fee557b1757a4fb558dc9c4d3f8f}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-R\-A\-N\-G\-E\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-R\-A\-N\-G\-E\-\_\-\-K\-E\-Y}}
+\index{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-R\-A\-N\-G\-E\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-R\-A\-N\-G\-E\-\_\-\-K\-E\-Y}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-R\-A\-N\-G\-E\-\_\-\-K\-E\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-R\-A\-N\-G\-E\-\_\-\-K\-E\-Y~4294967296\-U\-L\-L}}\label{partitioner_8h_ac1d6fee557b1757a4fb558dc9c4d3f8f}
+\hypertarget{partitioner_8h_a4be1c3edcc73f19b6f5f3d661d1bf219}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-S\-E\-R\-V\-E\-R\-S@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-S\-E\-R\-V\-E\-R\-S}}
+\index{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-S\-E\-R\-V\-E\-R\-S@{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-S\-E\-R\-V\-E\-R\-S}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-S\-E\-R\-V\-E\-R\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-M\-A\-X\-\_\-\-S\-E\-R\-V\-E\-R\-S~500}}\label{partitioner_8h_a4be1c3edcc73f19b6f5f3d661d1bf219}
+\hypertarget{partitioner_8h_ac8f78a6a9d15ce49fed099908f3d4149}{\index{partitioner.\-h@{partitioner.\-h}!M\-D\-H\-I\-M\-\_\-\-S\-T\-R\-I\-N\-G\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-S\-T\-R\-I\-N\-G\-\_\-\-K\-E\-Y}}
+\index{M\-D\-H\-I\-M\-\_\-\-S\-T\-R\-I\-N\-G\-\_\-\-K\-E\-Y@{M\-D\-H\-I\-M\-\_\-\-S\-T\-R\-I\-N\-G\-\_\-\-K\-E\-Y}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{M\-D\-H\-I\-M\-\_\-\-S\-T\-R\-I\-N\-G\-\_\-\-K\-E\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\-D\-H\-I\-M\-\_\-\-S\-T\-R\-I\-N\-G\-\_\-\-K\-E\-Y~5}}\label{partitioner_8h_ac8f78a6a9d15ce49fed099908f3d4149}
+
+
+\subsection{Function Documentation}
+\hypertarget{partitioner_8h_a0faa616c6ca379c72bba6468737b99c0}{\index{partitioner.\-h@{partitioner.\-h}!build\-\_\-alphabet@{build\-\_\-alphabet}}
+\index{build\-\_\-alphabet@{build\-\_\-alphabet}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{build\-\_\-alphabet}]{\setlength{\rightskip}{0pt plus 5cm}void build\-\_\-alphabet (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_a0faa616c6ca379c72bba6468737b99c0}
+build\-\_\-alphabet Creates our ascii based alphabet and inserts each character into a uthash table \hypertarget{partitioner_8h_a907b3ed861ab0d25141f89f765d7c29d}{\index{partitioner.\-h@{partitioner.\-h}!get\-\_\-byte\-\_\-num@{get\-\_\-byte\-\_\-num}}
+\index{get\-\_\-byte\-\_\-num@{get\-\_\-byte\-\_\-num}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{get\-\_\-byte\-\_\-num}]{\setlength{\rightskip}{0pt plus 5cm}long double get\-\_\-byte\-\_\-num (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{key, }
+\item[{uint32\-\_\-t}]{key\-\_\-len}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_a907b3ed861ab0d25141f89f765d7c29d}
+\hypertarget{partitioner_8h_af78375fc65d2cfe6a01bf02bd8a17253}{\index{partitioner.\-h@{partitioner.\-h}!get\-\_\-num\-\_\-range\-\_\-servers@{get\-\_\-num\-\_\-range\-\_\-servers}}
+\index{get\-\_\-num\-\_\-range\-\_\-servers@{get\-\_\-num\-\_\-range\-\_\-servers}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{get\-\_\-num\-\_\-range\-\_\-servers}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t get\-\_\-num\-\_\-range\-\_\-servers (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_af78375fc65d2cfe6a01bf02bd8a17253}
+get\-\_\-num\-\_\-range\-\_\-servers Gets the number of range servers
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error, otherwise the number of range servers 
+\end{DoxyReturn}
+\hypertarget{partitioner_8h_adb863fbd1c1f660fe2d15b0dbcb47c33}{\index{partitioner.\-h@{partitioner.\-h}!get\-\_\-range\-\_\-server@{get\-\_\-range\-\_\-server}}
+\index{get\-\_\-range\-\_\-server@{get\-\_\-range\-\_\-server}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{get\-\_\-range\-\_\-server}]{\setlength{\rightskip}{0pt plus 5cm}{\bf rangesrv\-\_\-info}$\ast$ get\-\_\-range\-\_\-server (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_adb863fbd1c1f660fe2d15b0dbcb47c33}
+get\-\_\-range\-\_\-server
+
+gets the range server that handles the key given 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to the key to find the range server of \\
+\hline
+{\em key\-\_\-len} & length of the key \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the rank of the range server or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8h_abe79a49addedc1c8befd8282d3f4080b}{\index{partitioner.\-h@{partitioner.\-h}!get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice@{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice}}
+\index{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice@{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice}]{\setlength{\rightskip}{0pt plus 5cm}{\bf rangesrv\-\_\-info}$\ast$ get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{slice}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_abe79a49addedc1c8befd8282d3f4080b}
+get\-\_\-range\-\_\-server\-\_\-by\-\_\-slice
+
+gets the range server that handles the key given 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em slice} & the slice number \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the rank of the range server or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8h_a1c7d1585bd3a23672d3e5c705d3c133e}{\index{partitioner.\-h@{partitioner.\-h}!get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats@{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats}}
+\index{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats@{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats}]{\setlength{\rightskip}{0pt plus 5cm}{\bf rangesrv\-\_\-info}$\ast$ get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{op}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_a1c7d1585bd3a23672d3e5c705d3c133e}
+get\-\_\-range\-\_\-server\-\_\-from\-\_\-stats
+
+gets the range server based on the stats acquired from a stat flush 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to the key to find the range server of \\
+\hline
+{\em key\-\_\-len} & length of the key \\
+\hline
+{\em op} & operation type ( \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the rank of the range server or N\-U\-L\-L on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8h_aeffd996c7f7120755282194fc3cbf0ed}{\index{partitioner.\-h@{partitioner.\-h}!get\-\_\-slice\-\_\-num@{get\-\_\-slice\-\_\-num}}
+\index{get\-\_\-slice\-\_\-num@{get\-\_\-slice\-\_\-num}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{get\-\_\-slice\-\_\-num}]{\setlength{\rightskip}{0pt plus 5cm}int get\-\_\-slice\-\_\-num (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_aeffd996c7f7120755282194fc3cbf0ed}
+get\-\_\-slice\-\_\-num
+
+gets the slice number from a key slice is a portion of the range served by M\-D\-H\-I\-M each range server servers many slices of the range 
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em key} & pointer to the key to find the range server of \\
+\hline
+{\em key\-\_\-len} & length of the key \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the slice number or 0 on error 
+\end{DoxyReturn}
+\hypertarget{partitioner_8h_aa9dc63bce159c2a7e3b7ea5850fe5f32}{\index{partitioner.\-h@{partitioner.\-h}!get\-\_\-str\-\_\-num@{get\-\_\-str\-\_\-num}}
+\index{get\-\_\-str\-\_\-num@{get\-\_\-str\-\_\-num}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{get\-\_\-str\-\_\-num}]{\setlength{\rightskip}{0pt plus 5cm}long double get\-\_\-str\-\_\-num (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{key, }
+\item[{uint32\-\_\-t}]{key\-\_\-len}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_aa9dc63bce159c2a7e3b7ea5850fe5f32}
+\hypertarget{partitioner_8h_af88457f8ff9ff19e6f2af9f26bc9ac0c}{\index{partitioner.\-h@{partitioner.\-h}!is\-\_\-float\-\_\-key@{is\-\_\-float\-\_\-key}}
+\index{is\-\_\-float\-\_\-key@{is\-\_\-float\-\_\-key}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{is\-\_\-float\-\_\-key}]{\setlength{\rightskip}{0pt plus 5cm}int is\-\_\-float\-\_\-key (
+\begin{DoxyParamCaption}
+\item[{int}]{type}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_af88457f8ff9ff19e6f2af9f26bc9ac0c}
+\hypertarget{partitioner_8h_a7e8b2c01361a47a75957d29420d76a89}{\index{partitioner.\-h@{partitioner.\-h}!is\-\_\-range\-\_\-server@{is\-\_\-range\-\_\-server}}
+\index{is\-\_\-range\-\_\-server@{is\-\_\-range\-\_\-server}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{is\-\_\-range\-\_\-server}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t is\-\_\-range\-\_\-server (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{rank}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_a7e8b2c01361a47a75957d29420d76a89}
+is\-\_\-range\-\_\-server Tests to see if the given rank is a range server or not
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em rank} & rank to find out if it is a range server \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error, 0 on false, 1 or greater to represent the range server number otherwise 
+\end{DoxyReturn}
+\hypertarget{partitioner_8h_ad4470922b555ab800793f5f56f3c8888}{\index{partitioner.\-h@{partitioner.\-h}!partitioner\-\_\-init@{partitioner\-\_\-init}}
+\index{partitioner\-\_\-init@{partitioner\-\_\-init}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{partitioner\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}void partitioner\-\_\-init (
+\begin{DoxyParamCaption}
+\item[{struct {\bf mdhim\-\_\-t} $\ast$}]{md, }
+\item[{int}]{server\-\_\-factor, }
+\item[{int}]{max\-\_\-recs\-\_\-per\-\_\-slice}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_ad4470922b555ab800793f5f56f3c8888}
+partitioner\-\_\-init Initializes portions of the \hyperlink{structmdhim__t}{mdhim\-\_\-t} struct dealing with the partitioner
+
+
+\begin{DoxyParams}{Parameters}
+{\em md} & main M\-D\-H\-I\-M struct \\
+\hline
+{\em server\-\_\-factor} & used in calculating the number of range servers \\
+\hline
+{\em max\-\_\-recs\-\_\-per\-\_\-slice} & the number of records per slice \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R on error, otherwise the number of range servers 
+\end{DoxyReturn}
+\hypertarget{partitioner_8h_ae6dbb6c65178e0ca143fe8d10c55f98c}{\index{partitioner.\-h@{partitioner.\-h}!partitioner\-\_\-release@{partitioner\-\_\-release}}
+\index{partitioner\-\_\-release@{partitioner\-\_\-release}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{partitioner\-\_\-release}]{\setlength{\rightskip}{0pt plus 5cm}void partitioner\-\_\-release (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_ae6dbb6c65178e0ca143fe8d10c55f98c}
+\hypertarget{partitioner_8h_ae6bce3dfa508cb7b92b2d4e9d991480a}{\index{partitioner.\-h@{partitioner.\-h}!verify\-\_\-key@{verify\-\_\-key}}
+\index{verify\-\_\-key@{verify\-\_\-key}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{verify\-\_\-key}]{\setlength{\rightskip}{0pt plus 5cm}int verify\-\_\-key (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{key, }
+\item[{int}]{key\-\_\-len, }
+\item[{int}]{key\-\_\-type}
+\end{DoxyParamCaption}
+)}}\label{partitioner_8h_ae6bce3dfa508cb7b92b2d4e9d991480a}
+verify\-\_\-key Determines whether the given key is a valid key or not
+
+
+\begin{DoxyParams}{Parameters}
+{\em key} & the key to check \\
+\hline
+{\em key\-\_\-len} & the length of the key \\
+\hline
+{\em key\-\_\-type} & the type of the key\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+M\-D\-H\-I\-M\-\_\-\-E\-R\-R\-O\-R if the key is not valid, otherwise the M\-D\-H\-I\-M\-\_\-\-S\-U\-C\-C\-E\-S\-S 
+\end{DoxyReturn}
+
+
+\subsection{Variable Documentation}
+\hypertarget{partitioner_8h_ad6d142f9c526f895866dfd0a68a7da25}{\index{partitioner.\-h@{partitioner.\-h}!max\-\_\-rangesrvs@{max\-\_\-rangesrvs}}
+\index{max\-\_\-rangesrvs@{max\-\_\-rangesrvs}!partitioner.h@{partitioner.\-h}}
+\subsubsection[{max\-\_\-rangesrvs}]{\setlength{\rightskip}{0pt plus 5cm}int max\-\_\-rangesrvs}}\label{partitioner_8h_ad6d142f9c526f895866dfd0a68a7da25}
