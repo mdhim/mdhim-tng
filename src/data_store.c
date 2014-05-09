@@ -35,21 +35,14 @@ struct mdhim_store_t *mdhim_db_init(int type) {
 	store = malloc(sizeof(struct mdhim_store_t));
 	store->type = type;
 	store->db_handle = NULL;
-	store->db_ptr1 = NULL;
-	store->db_ptr2 = NULL;
-	store->db_ptr3 = NULL;
-	store->db_ptr4 = NULL;
-	store->db_ptr5 = NULL;
-	store->db_ptr6 = NULL;
-	store->db_ptr7 = NULL;
-	store->db_ptr8 = NULL;
-	store->db_ptr9 = NULL;
-	store->db_ptr10 = NULL;
-	store->db_ptr11 = NULL;
-	store->db_ptr12 = NULL;
-	store->db_ptr13 = NULL;
-	store->db_ptr14 = NULL;
+	store->db_stats = NULL;
 	store->mdhim_store_stats = NULL;
+	store->mdhim_store_stats_lock = malloc(sizeof(pthread_rwlock_t));
+	if (pthread_rwlock_init(store->mdhim_store_stats_lock, NULL) != 0) {	
+		free(store->mdhim_store_stats_lock);
+		return NULL;
+	}
+
 	switch(type) {
 
 #ifdef      LEVELDB_SUPPORT

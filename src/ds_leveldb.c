@@ -1,12 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-
-#ifndef      LEVELDB_SUPPORT
-#include <rocksdb/c.h>
-#else
-#include <leveldb/c.h>
-#endif
-
 #include <stdio.h>
 #include <linux/limits.h>
 #include <sys/time.h>
@@ -177,116 +170,106 @@ static const char* cmp_name(void* arg) {
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 
-int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, 
-		       struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, int key_type) {
+	struct mdhim_leveldb_t *mdhimdb;
+	struct mdhim_leveldb_t *statsdb;
 	leveldb_t *db;
-	leveldb_options_t *options;
-	leveldb_options_t *stat_options;
 	char *err = NULL;
-	leveldb_comparator_t* cmp = NULL;
 	char stats_path[PATH_MAX];
-	leveldb_filterpolicy_t *main_filter;
-	leveldb_filterpolicy_t *stats_filter;
-	leveldb_cache_t *main_cache;
-	leveldb_cache_t *stats_cache;
-	leveldb_env_t *main_env;
-	leveldb_env_t *stats_env;
+
+	mdhimdb = malloc(sizeof(struct mdhim_leveldb_t));
+	memset(mdhimdb, 0, sizeof(struct mdhim_leveldb_t));
+	statsdb = malloc(sizeof(struct mdhim_leveldb_t));
+	memset(statsdb, 0, sizeof(struct mdhim_leveldb_t));
 
 	//Create the options for the main database
-	options = leveldb_options_create();
-	leveldb_options_set_create_if_missing(options, 1);
+	mdhimdb->options = leveldb_options_create();
+	leveldb_options_set_create_if_missing(mdhimdb->options, 1);
 	//leveldb_options_set_compression(options, 0);
-	main_filter = leveldb_filterpolicy_create_bloom(256);
-	main_cache = leveldb_cache_create_lru(5242880);
-	main_env = leveldb_create_default_env();
-	leveldb_options_set_cache(options, main_cache);
-	leveldb_options_set_filter_policy(options, main_filter);
-	leveldb_options_set_max_open_files(options, 10000);
-	leveldb_options_set_write_buffer_size(options, 50242880);
-	leveldb_options_set_env(options, main_env);
+	mdhimdb->filter = leveldb_filterpolicy_create_bloom(256);
+	mdhimdb->cache = leveldb_cache_create_lru(5242880);
+	mdhimdb->env = leveldb_create_default_env();
+	mdhimdb->write_options = leveldb_writeoptions_create();
+	leveldb_writeoptions_set_sync(mdhimdb->write_options, 0);
+	mdhimdb->read_options = leveldb_readoptions_create();
+	leveldb_options_set_cache(mdhimdb->options, mdhimdb->cache);
+	leveldb_options_set_filter_policy(mdhimdb->options, mdhimdb->filter);
+	leveldb_options_set_max_open_files(mdhimdb->options, 10000);
+	leveldb_options_set_write_buffer_size(mdhimdb->options, 50242880);
+	leveldb_options_set_env(mdhimdb->options, mdhimdb->env);
 
 	//Create the options for the stat database
-	stat_options = leveldb_options_create();
-	leveldb_options_set_create_if_missing(stat_options, 1);
+	statsdb->options = leveldb_options_create();
+	leveldb_options_set_create_if_missing(statsdb->options, 1);
 	//leveldb_options_set_compression(stat_options, 0);
-	stats_filter = leveldb_filterpolicy_create_bloom(256);       
-	stats_cache = leveldb_cache_create_lru(1024);
-	stats_env = leveldb_create_default_env();
-	leveldb_options_set_cache(stat_options, stats_cache);
-	leveldb_options_set_filter_policy(stat_options, stats_filter);
-	leveldb_options_set_write_buffer_size(stat_options, 1024);
-	leveldb_options_set_env(stat_options, stats_env);
+	statsdb->filter = leveldb_filterpolicy_create_bloom(256);       
+	statsdb->cache = leveldb_cache_create_lru(1024);
+	statsdb->env = leveldb_create_default_env();
+	statsdb->write_options = leveldb_writeoptions_create();
+	leveldb_writeoptions_set_sync(statsdb->write_options, 0);
+	statsdb->read_options = leveldb_readoptions_create();
+	leveldb_options_set_cache(statsdb->options, statsdb->cache);
+	leveldb_options_set_filter_policy(statsdb->options, statsdb->filter);
+	leveldb_options_set_write_buffer_size(statsdb->options, 1024);
+	leveldb_options_set_env(statsdb->options, statsdb->env);
 
-	switch(mstore_opts->key_type) {
+	switch(key_type) {
 	case MDHIM_INT_KEY:
-		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
+		mdhimdb->cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
+		mdhimdb->compare = cmp_int_compare;
 		break;
 	case MDHIM_LONG_INT_KEY:
-		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_lint_compare, cmp_name);
+		mdhimdb->cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_lint_compare, cmp_name);
+		mdhimdb->compare = cmp_lint_compare;
 		break;
 	case MDHIM_FLOAT_KEY:
-		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_float_compare, cmp_name);
+		mdhimdb->cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_float_compare, cmp_name);
+		mdhimdb->compare = cmp_float_compare;
 		break;
 	case MDHIM_DOUBLE_KEY:
-		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_double_compare, cmp_name);
+		mdhimdb->cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_double_compare, cmp_name);
+		mdhimdb->compare = cmp_double_compare;
 		break;
 	case MDHIM_STRING_KEY:
-		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_string_compare, cmp_name);
+		mdhimdb->cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_string_compare, cmp_name);
+		mdhimdb->compare = cmp_string_compare;
 		break;
 	default:
-		cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_byte_compare, cmp_name);
+		mdhimdb->cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_byte_compare, cmp_name);
+		mdhimdb->compare = cmp_byte_compare;
 		break;
 	}
 	
-	leveldb_options_set_comparator(options, cmp);
+	leveldb_options_set_comparator(mdhimdb->options, mdhimdb->cmp);
 	//Check to see if the given path + "_stat" and the null char will be more than the max
 	if (strlen(path) + 6 > PATH_MAX) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database - path provided is too long");
 		return MDHIM_DB_ERROR;
 	}
-	sprintf(stats_path, "%s_stats", path);
+
 	//Open the main database
-	db = leveldb_open(options, path, &err);
+	db = leveldb_open(mdhimdb->options, path, &err);
+	mdhimdb->db = db;
 	//Set the output handle
-	*((leveldb_t **) dbh) = db;
+	*((struct mdhim_leveldb_t **) dbh) = mdhimdb;
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
 
 	//Open the stats database
-	cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
-	leveldb_options_set_comparator(stat_options, cmp);
-	db = leveldb_open(stat_options, stats_path, &err);
-	*((leveldb_t **) dbs) = db;
+	sprintf(stats_path, "%s_stats", path);
+	statsdb->compare = cmp_int_compare;
+	statsdb->cmp = leveldb_comparator_create(NULL, cmp_destroy, cmp_int_compare, cmp_name);
+	leveldb_options_set_comparator(statsdb->options, statsdb->cmp);
+	db = leveldb_open(statsdb->options, stats_path, &err);
+	statsdb->db = db;
+	*((struct mdhim_leveldb_t **) dbs) = statsdb;
+
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error opening leveldb database");
 		return MDHIM_DB_ERROR;
 	}
-
-	//Set the output comparator
-	mstore_opts->db_ptr1 = cmp;
-	//Set the generic pointers to hold the options for the mdhim db
-	mstore_opts->db_ptr2 = options;
-	mstore_opts->db_ptr3 = leveldb_readoptions_create();
-	mstore_opts->db_ptr4 = leveldb_writeoptions_create();
-	//Disable msync for writing
-	leveldb_writeoptions_set_sync(mstore_opts->db_ptr4, 0);
-
-	//Set the generic pointers to hold the options for the mdhim stats db
-	mstore_opts->db_ptr5 = stat_options;
-	mstore_opts->db_ptr6 = leveldb_readoptions_create();
-	mstore_opts->db_ptr7 = leveldb_writeoptions_create();
-	//Disable msync for writing
-	leveldb_writeoptions_set_sync(mstore_opts->db_ptr7, 0);
-
-	//Set the rest of the options that aren't used until close
-	mstore_opts->db_ptr8 = main_filter;
-	mstore_opts->db_ptr9 = stats_filter;
-	mstore_opts->db_ptr10 = main_cache;
-	mstore_opts->db_ptr11 = stats_cache;
-	mstore_opts->db_ptr12 = main_env;
-	mstore_opts->db_ptr13 = stats_env;
 
 	return MDHIM_SUCCESS;
 }
@@ -304,16 +287,15 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t data_len, 
-		      struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t data_len) {
     leveldb_writeoptions_t *options;
     char *err = NULL;
-    leveldb_t *db = (leveldb_t *) dbh;
+    struct mdhim_leveldb_t *mdhimdb = (struct mdhim_leveldb_t *) dbh;
     struct timeval start, end;
     
     gettimeofday(&start, NULL);
-    options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;    	    
-    leveldb_put(db, options, key, key_len, data, data_len, &err);
+    options = mdhimdb->write_options;    	    
+    leveldb_put(mdhimdb->db, options, key, key_len, data, data_len, &err);
     if (err != NULL) {
 	    mlog(MDHIM_SERVER_CRIT, "Error putting key/value in leveldb");
 	    return MDHIM_DB_ERROR;
@@ -341,24 +323,23 @@ int mdhim_leveldb_put(void *dbh, void *key, int key_len, void *data, int32_t dat
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens, 
-			    void **data, int32_t *data_lens, int num_records,
-			    struct mdhim_store_opts_t *mstore_opts) {
+			    void **data, int32_t *data_lens, int num_records) {
 	leveldb_writeoptions_t *options;
 	char *err = NULL;
-	leveldb_t *db = (leveldb_t *) dbh;
+	struct mdhim_leveldb_t *mdhimdb = (struct mdhim_leveldb_t *) dbh;
 	struct timeval start, end;
 	leveldb_writebatch_t* write_batch;
 	int i;
 
 	gettimeofday(&start, NULL);
 	write_batch = leveldb_writebatch_create();
-	options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;   
+	options = mdhimdb->write_options;   
 	for (i = 0; i < num_records; i++) {
 		leveldb_writebatch_put(write_batch, keys[i], key_lens[i], 
 				       data[i], data_lens[i]);
 	}
 
-	leveldb_write(db, options, write_batch, &err);
+	leveldb_write(mdhimdb->db, options, write_batch, &err);
 	leveldb_writebatch_destroy(write_batch);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error in batch put in leveldb");
@@ -385,32 +366,32 @@ int mdhim_leveldb_batch_put(void *dbh, void **keys, int32_t *key_lens,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *data_len, 
-		      struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *data_len) {
 	leveldb_readoptions_t *options;
 	char *err = NULL;
-	leveldb_t *db = (leveldb_t *) dbh;
+	struct mdhim_leveldb_t *mdhimdb = (struct mdhim_leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	void *ldb_data;
 	size_t ldb_data_len = 0;
 
-	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
+	options = mdhimdb->read_options;
 	*data = NULL;
-	ldb_data = leveldb_get(db, options, key, key_len, &ldb_data_len, &err);
+	ldb_data = leveldb_get(mdhimdb->db, options, key, key_len, &ldb_data_len, &err);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in leveldb");
 		return MDHIM_DB_ERROR;
 	}
 
 	if (!ldb_data_len) {
-	  ret = MDHIM_DB_ERROR;
-	  return ret;
+		ret = MDHIM_DB_ERROR;
+		return ret;
 	}
 
 	*data_len = ldb_data_len;
 	*data = malloc(*data_len);
 	memcpy(*data, ldb_data, *data_len);
 	free(ldb_data);
+
 	return ret;
 }
 
@@ -427,10 +408,9 @@ int mdhim_leveldb_get(void *dbh, void *key, int key_len, void **data, int32_t *d
  * 
  */
 int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len, 
-			   struct mdhim_store_opts_t *mstore_opts) {
+			   void **data, int32_t *data_len) {
 	leveldb_readoptions_t *options;
-	leveldb_t *db = (leveldb_t *) dbh;
+	struct mdhim_leveldb_t *mdhimdb = (struct mdhim_leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
 	const char *res;
@@ -445,25 +425,34 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 
 	gettimeofday(&start, NULL);
 	//Create the options and iterator
-	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
+	options = mdhimdb->read_options;
 	old_key = *key;
 	old_key_len = *key_len;
 	*key = NULL;
 	*key_len = 0;
 
-	iter = leveldb_create_iterator(db, options);
+	iter = leveldb_create_iterator(mdhimdb->db, options);
 
 	//If the user didn't supply a key, then seek to the first
 	if (!old_key || old_key_len == 0) {
 		leveldb_iter_seek_to_first(iter);
 	} else {
+		/* Seek to the passed in key.  If that doesn't exist, iterate until we find one greater
+		   or until we exhaust the keys.*/
 		leveldb_iter_seek(iter, old_key, old_key_len);
 		if (!leveldb_iter_valid(iter)) { 
-			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
-			goto error;
+			leveldb_iter_seek_to_first(iter);
+			while(leveldb_iter_valid(iter)) {
+				res = leveldb_iter_key(iter, (size_t *) &len);
+				if (mdhimdb->compare(NULL, res, len, old_key, old_key_len) > 0) {
+					break;
+				}
+				
+				leveldb_iter_next(iter);
+			}			
+		} else {
+			leveldb_iter_next(iter);
 		}
-
-		leveldb_iter_next(iter);
 	}
 
 	if (!leveldb_iter_valid(iter)) {
@@ -524,10 +513,9 @@ error:
  * 
  */
 int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len, 
-			   struct mdhim_store_opts_t *mstore_opts) {
+			   void **data, int32_t *data_len) {
 	leveldb_readoptions_t *options;
-	leveldb_t *db = (leveldb_t *) dbh;
+	struct mdhim_leveldb_t *mdhimdb = (struct mdhim_leveldb_t *) dbh;
 	int ret = MDHIM_SUCCESS;
 	leveldb_iterator_t *iter;
 	const char *res;
@@ -541,14 +529,15 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	*data_len = 0;
 
 	gettimeofday(&start, NULL);
+
 	//Create the options and iterator
-	options = (leveldb_readoptions_t *) mstore_opts->db_ptr3;
+	options = mdhimdb->read_options;
 	old_key = *key;
 	old_key_len = *key_len;
 	*key = NULL;
 	*key_len = 0;
 
-	iter = leveldb_create_iterator(db, options);
+	iter = leveldb_create_iterator(mdhimdb->db, options);
 
 	//If the user didn't supply a key, then seek to the first
 	if (!old_key || old_key_len == 0) {
@@ -556,11 +545,18 @@ int mdhim_leveldb_get_prev(void *dbh, void **key, int *key_len,
 	} else {
 		leveldb_iter_seek(iter, old_key, old_key_len);
 		if (!leveldb_iter_valid(iter)) { 
-			mlog(MDHIM_SERVER_DBG2, "Could not get a valid iterator in leveldb");
-			goto error;
+			leveldb_iter_seek_to_last(iter);
+			while(leveldb_iter_valid(iter)) {
+				res = leveldb_iter_key(iter, (size_t *) &len);
+				if (mdhimdb->compare(NULL, res, len, old_key, old_key_len) < 0) {
+					break;
+				}
+				
+				leveldb_iter_prev(iter);
+			}			
+		} else {
+			leveldb_iter_prev(iter);
 		}
-
-		leveldb_iter_prev(iter);
 	}
 
 	if (!leveldb_iter_valid(iter)) {
@@ -617,26 +613,25 @@ error:
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_opts) {
-	leveldb_t *db = (leveldb_t *) dbh;
-	leveldb_t *db_s = (leveldb_t *) dbs;
+int mdhim_leveldb_close(void *dbh, void *dbs) {
+	struct mdhim_leveldb_t *mdhimdb = (struct mdhim_leveldb_t *) dbh;
+	struct mdhim_leveldb_t *statsdb = (struct mdhim_leveldb_t *) dbs;
 
 	//Close the databases
-	leveldb_close(db);
-	leveldb_close(db_s);
+	leveldb_close(mdhimdb->db);
+	leveldb_close(statsdb->db);
 
 	//Destroy the options
-	leveldb_comparator_destroy((leveldb_comparator_t *) mstore_opts->db_ptr1);
-	leveldb_options_destroy((leveldb_options_t *) mstore_opts->db_ptr2);
-	leveldb_readoptions_destroy((leveldb_readoptions_t *) mstore_opts->db_ptr3);
-	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr4);
-	leveldb_options_destroy((leveldb_options_t *) mstore_opts->db_ptr5);
-	leveldb_readoptions_destroy((leveldb_readoptions_t *) mstore_opts->db_ptr6);
-	leveldb_writeoptions_destroy((leveldb_writeoptions_t *) mstore_opts->db_ptr7);
-	leveldb_filterpolicy_destroy((leveldb_filterpolicy_t *) mstore_opts->db_ptr8);
-	leveldb_filterpolicy_destroy((leveldb_filterpolicy_t *) mstore_opts->db_ptr9);
-	//	leveldb_cache_destroy((leveldb_cache_t *) mstore_opts->db_ptr10);
-	//leveldb_cache_destroy((leveldb_cache_t *) mstore_opts->db_ptr11);
+	leveldb_comparator_destroy(mdhimdb->cmp);
+	leveldb_options_destroy(mdhimdb->options);
+	leveldb_readoptions_destroy(mdhimdb->read_options);
+	leveldb_writeoptions_destroy(mdhimdb->write_options);
+	leveldb_filterpolicy_destroy(mdhimdb->filter);
+	leveldb_comparator_destroy(statsdb->cmp);
+	leveldb_options_destroy(statsdb->options);
+	leveldb_readoptions_destroy(statsdb->read_options);
+	leveldb_writeoptions_destroy(statsdb->write_options);
+	leveldb_filterpolicy_destroy(statsdb->filter);
 
 	return MDHIM_SUCCESS;
 }
@@ -652,14 +647,13 @@ int mdhim_leveldb_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_leveldb_del(void *dbh, void *key, int key_len, 
-		      struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_leveldb_del(void *dbh, void *key, int key_len) {
 	leveldb_writeoptions_t *options;
 	char *err = NULL;
-	leveldb_t *db = (leveldb_t *) dbh;
+	struct mdhim_leveldb_t *mdhimdb = (struct mdhim_leveldb_t *) dbh;
 	
-	options = (leveldb_writeoptions_t *) mstore_opts->db_ptr4;
-	leveldb_delete(db, options, key, key_len, &err);
+	options = mdhimdb->write_options;
+	leveldb_delete(mdhimdb->db, options, key, key_len, &err);
 	if (err != NULL) {
 		mlog(MDHIM_SERVER_CRIT, "Error deleting key in leveldb");
 		return MDHIM_DB_ERROR;

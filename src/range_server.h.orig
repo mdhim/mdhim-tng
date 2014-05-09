@@ -33,7 +33,15 @@ struct out_req {
 
 /* Range server specific data */
 typedef struct mdhim_rs_t {
+<<<<<<< HEAD
+	//This communicator is for range servers only to talk to each other
+	MPI_Comm rs_comm;   
+	//The abstracted data store layer that mdhim uses to store and retrieve records
+	struct mdhim_store_t *mdhim_store;
 	work_queue_t *work_queue;
+=======
+	work_queue *work_queue;
+>>>>>>> cad766b789f561e8b5d3041a9794dec1701aea6a
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;
 	pthread_t listener;

@@ -2,13 +2,17 @@ include ../../Makefile.cfg
 CLIBS += -L../../src
 CINC += -I../../src -I../../src/uthash
 all:	put-get bput-bget put-del bput-bdel put-getn \
+<<<<<<< HEAD
+	put-getp puts-gets bput-bgetn bput-bgetp plfs-put-get \
+	plfs-put-get-abstract init_close
+=======
 	put-getp puts-gets bput-bgetn bput-bgetp \
 	bput-bget_secondary put-get_secondary \
 	put-get_secondary_local bput-bget_secondary_local \
 	put-getn_secondary put-getn_secondary_local \
 	put-del_secondary put-getp_secondary put-get_2secondary_local \
-	put-del_secondary_local plfs-put-get \
-	plfs-put-get-abstract init_close
+	put-del_secondary_local plfs-put-get
+>>>>>>> cad766b789f561e8b5d3041a9794dec1701aea6a
 
 put-get: put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
@@ -16,11 +20,12 @@ put-get: put-get.c
 plfs-put-get: plfs-put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
+<<<<<<< HEAD
 plfs-put-get-abstract: plfs-put-get-abstract.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 init_close: init_close.c
-
+=======
 put-get_secondary: put-get_secondary.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
@@ -28,6 +33,7 @@ put-get_secondary_local: put-get_secondary_local.c
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 put-get_2secondary_local: put-get_2secondary_local.c 
+>>>>>>> cad766b789f561e8b5d3041a9794dec1701aea6a
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 puts-gets: puts-gets.c 
@@ -78,10 +84,17 @@ bput-bdel: bput-bdel.c
 
 clean:
 	rm -rf put-get bput-bget put-del bput-bdel\
+<<<<<<< HEAD
+               put-getn put-getp \
+               puts-gets bput-bgetn \
+               bput-bgetp plfs-put-get plfs-put-get-abstract init_close
+=======
 		put-getn put-getp \
 		puts-gets bput-bgetn \
-		bput-bgetp plfs-put-get plfs-put-get-abstract init_close bput-bget_secondary \
+		bput-bgetp bput-bget_secondary \
 		put-get_secondary put-get_secondary_local \
 		bput-bget_secondary_local put-getn_secondary_local \
 		put-getn_secondary put-del_secondary put-getp_secondary \
 		put-get_2secondary_local put-del_secondary_local plfs-put-get
+
+>>>>>>> cad766b789f561e8b5d3041a9794dec1701aea6a

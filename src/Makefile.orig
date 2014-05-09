@@ -1,5 +1,9 @@
 include ../Makefile.cfg
-OBJS    = mlog2.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
+<<<<<<< HEAD
+OBJS    = mlog2.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim-abridge.o
+=======
+OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
+>>>>>>> cad766b789f561e8b5d3041a9794dec1701aea6a
 
 
 ifeq ($(LEVELDB),1)
@@ -20,11 +24,16 @@ all:	mdhim.o lib dylib
 mdhim.o: mdhim.c $(OBJS)
 	$(CC) -c $< $(CINC) $(CLIBS) -lleveldb
 
+<<<<<<< HEAD
 mlog2.o: Mlog2/mlog2.c
 	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
-
+=======
 mdhim_private.o: mdhim_private.c
 	$(CC) -c $< $(CINC) $(CLIBS)
+
+mlog.o: Mlog/mlog.c
+	$(CC) -c $^ $(CINC) $(CLIBS)
+>>>>>>> cad766b789f561e8b5d3041a9794dec1701aea6a
 
 client.o: client.c
 	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
