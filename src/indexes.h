@@ -36,6 +36,7 @@ struct rangesrv_info {
  */
 struct index_t {
 	int id;
+	char *name;                // Another way to search the index
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
 	//Options for the mdhim data store
@@ -101,6 +102,7 @@ uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, struct index_t *index);
 struct index_t *get_index(struct mdhim_t *md, int index_id);
+struct index_t *get_index_by_name ( struct mdhim_t *md, char *index_name );
 void indexes_release(struct mdhim_t *md);
 int im_range_server(struct index_t *index);
 

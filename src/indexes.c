@@ -548,6 +548,7 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->indexes, id, li);
+	HASH_ADD_STR(md->indexes, name, li);
 
 	//Test if I'm a range server and get the range server number
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, li)) == MDHIM_ERROR) {	
@@ -664,6 +665,7 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->indexes, id, gi);
+	HASH_ADD_STR(md->indexes, name, gi);
 
 	//Test if I'm a range server and get the range server number
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, gi)) == MDHIM_ERROR) {	
@@ -919,6 +921,37 @@ struct index_t *get_index(struct mdhim_t *md, int index_id) {
 
 	return index;
 }
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  get_index_by_name
+ *  Description:  Retrieve the index by name
+ * =====================================================================================
+ */
+struct index_t *
+get_index_by_name ( struct mdhim_t *md, char *index_name )
+{
+    struct index_t *index;
+
+    //Acquire the lock to update indexes
+    while(pthread_rwlock_wrlock(md->indexes_lock) == EBUSY) {
+        usleep(10);
+    }
+
+    index = NULL;
+    if(strcmp(index_name, "") != 0) {
+        HASH_FIND_STR(md->indexes, index_name, index);
+    }
+
+    if(pthread_rwlock_unlock(md->indexes_lock) != 0) {
+        mlog(MDHIM_CLIENT_CRIT, "RankL %d - Error unlocking the indexes_lock",
+                md->mdhim_rank);
+        return NULL;
+    }
+
+    return index;
+}		/* -----  end of function get_index_by_name  ----- */
 
 void indexes_release(struct mdhim_t *md) {
 	struct index_t *cur_indx, *tmp_indx;
