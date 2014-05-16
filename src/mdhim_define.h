@@ -1,3 +1,0 @@
-#define MDHIM_SUCCESS 0
-#define MDHIM_ERROR -1
-#define MDHIM_DB_ERROR -2

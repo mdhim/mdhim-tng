@@ -7,19 +7,13 @@ all:	put-get bput-bget put-del bput-bdel put-getn \
 	put-get_secondary_local bput-bget_secondary_local \
 	put-getn_secondary put-getn_secondary_local \
 	put-del_secondary put-getp_secondary put-get_2secondary_local \
-	put-del_secondary_local plfs-put-get \
-	plfs-put-get-abstract init_close
+	put-del_secondary_local plfs-put-get
 
 put-get: put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 plfs-put-get: plfs-put-get.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
-
-plfs-put-get-abstract: plfs-put-get-abstract.c 
-	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
-
-init_close: init_close.c
 
 put-get_secondary: put-get_secondary.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
@@ -84,4 +78,4 @@ clean:
 		put-get_secondary put-get_secondary_local \
 		bput-bget_secondary_local put-getn_secondary_local \
 		put-getn_secondary put-del_secondary put-getp_secondary \
-		put-get_2secondary_local put-del_secondary_local plfs-put-get
+		put-get_2secondary_local put-del_secondary_local

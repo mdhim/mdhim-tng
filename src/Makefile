@@ -1,5 +1,5 @@
 include ../Makefile.cfg
-OBJS    = mlog2.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
+OBJS    = mlog.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
 
 
 ifeq ($(LEVELDB),1)
@@ -20,7 +20,7 @@ all:	mdhim.o lib dylib
 mdhim.o: mdhim.c $(OBJS)
 	$(CC) -c $< $(CINC) $(CLIBS) -lleveldb
 
-mlog2.o: Mlog2/mlog2.c
+mlog2.o: Mlog/mlog.c
 	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 mdhim_private.o: mdhim_private.c
@@ -59,14 +59,11 @@ range_server.o: range_server.c
 mdhim_options.o : mdhim_options.c
 	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
-mdhim-abridge.o : mdhim-abridge.c
-	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
-
 lib:	
 	ar rvs libmdhim.a mdhim.o $(OBJS)
 
 dylib:
-	$(CC) -shared -o libmdhim.so.1 mdhim.o $(OBJS) -L/users/acaldwell/projects/sources/leveldb/leveldb-1.15.0/ -lleveldb
+	$(CC) -shared -o libmdhim.so.1 mdhim.o $(OBJS) -L$(LEVEL_DB_ROOT)/ -lleveldb
 
 clean:
 	rm -rf *.o libmdhim.a libmdhim.so.1
