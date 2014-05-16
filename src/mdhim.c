@@ -178,7 +178,7 @@ int mdhimClose(struct mdhim_t *md) {
 	MPI_Barrier(md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_comm);
-	free(md);
+    free(md);
 
 	//Close MLog
 	mlog_close();
@@ -360,7 +360,7 @@ struct mdhim_brm_t *mdhimPutSecondary(struct mdhim_t *md,
 
 	head = _create_brm(rm);
 	mdhim_full_release_msg(rm);
-
+	
 	return head;
 }
 
@@ -717,7 +717,7 @@ struct mdhim_brm_t *mdhimDelete(struct mdhim_t *md, struct index_t *index,
 	key_lens[0] = key_len;
 
 	brm_head = _bdel_records(md, index, keys, key_lens, 1);
-
+	
 	free(keys);
 	free(key_lens);
 

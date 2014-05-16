@@ -36,7 +36,7 @@
 #ifndef _MLOGFACS_H_
 #define _MLOGFACS_H_
 
-#include "mlog.h"    /* for MLOG_ defines */
+#include "mlog2.h"    /* for MLOG_ defines */
 
 #if defined(MLOG_FACSARRAY) || defined(MLOG_AFACSARRAY)
 static const char *mlog_facsarray[] = {

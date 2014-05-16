@@ -1016,8 +1016,8 @@ void *listener_thread(void *data) {
 
 //		printf("Rank: %d - Received message from rank: %d of type: %d", 
 //		     md->mdhim_rank, source, mtype);
-		
-                //Create a new work item
+
+        //Create a new work item
 		item = malloc(sizeof(work_item));
 		memset(item, 0, sizeof(work_item));
 		             
@@ -1227,7 +1227,7 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->num_put = 0;
 	md->mdhim_rs->num_get = 0;
 	//Initialize work queue
-	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
+	md->mdhim_rs->work_queue = malloc(sizeof(work_queue_t));
 	md->mdhim_rs->work_queue->head = NULL;
 	md->mdhim_rs->work_queue->tail = NULL;
 

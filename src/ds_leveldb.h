@@ -8,6 +8,7 @@
 #endif
 
 #include "mdhim.h"
+#include "partitioner.h"
 #include "data_store.h"
 
 /* Function pointer for comparator in C */

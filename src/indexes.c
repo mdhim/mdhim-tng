@@ -499,8 +499,8 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex) {
  * @param  md  main MDHIM struct
  * @return     MDHIM_ERROR on error, otherwise the index identifier
  */
-struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type) {
-	struct index_t *li;
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, char index_name[]) {
+	struct index_t *li, *check;
 	uint32_t rangesrv_num;
 	int ret;
 
@@ -535,6 +535,14 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 	li->myinfo.rank = md->mdhim_rank;
 	li->primary_id = md->primary_index->id;
 	li->stats = NULL;
+	// Check to see if the name passed in has already been taken
+	check = NULL;
+	HASH_FIND_STR(md->indexes, index_name, check);
+	if(check) {
+        goto done;
+    }
+    li->name = tolower(index_name);
+	
 
 	//Figure out how many range servers we could have based on the range server factor
 	li->num_rangesrvs = get_num_range_servers(md, li);		
@@ -548,6 +556,7 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->indexes, id, li);
+	HASH_ADD_STR(md->indexes, name, li);
 
 	//Test if I'm a range server and get the range server number
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, li)) == MDHIM_ERROR) {	
@@ -597,6 +606,12 @@ done:
 		return NULL;
 	}
 
+	if(check) {
+	    mlog(MDHIM_CLIENT_CRIT, "Rank %d - Error creating local index: Name %s, already exists",
+	            md->mdhim_rank, index_name);
+        return NULL;
+    }
+
 	return li;
 }
 
@@ -615,8 +630,8 @@ done:
 
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    int max_recs_per_slice, 
-				    int db_type, int key_type) {
-	struct index_t *gi;
+				    int db_type, int key_type, char index_name[]) {
+	struct index_t *gi, *check;
 	uint32_t rangesrv_num;
 	int ret;
 
@@ -651,6 +666,13 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 	gi->myinfo.rank = md->mdhim_rank;
 	gi->primary_id = gi->type == SECONDARY_INDEX ? md->primary_index->id : -1;
 	gi->stats = NULL;
+	// Check to see if the name passed in has already been taken
+	check = NULL;
+	HASH_FIND_STR(md->indexes, index_name, check);
+	if(check) {
+        goto done;
+    }
+    gi->name = gi->id > 0 ? tolower(index_name) : "primary";
 
 	//Figure out how many range servers we could have based on the range server factor
 	gi->num_rangesrvs = get_num_range_servers(md, gi);		
@@ -664,6 +686,7 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->indexes, id, gi);
+	HASH_ADD_STR(md->indexes, name, gi);
 
 	//Test if I'm a range server and get the range server number
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, gi)) == MDHIM_ERROR) {	
@@ -719,6 +742,12 @@ done:
 	if (!gi) {
 		return NULL;
 	}
+
+	if(check) {
+	    mlog(MDHIM_CLIENT_CRIT, "Rank %d - Error creating global index: Name %s, already exists",
+	            md->mdhim_rank, index_name);
+        return NULL;
+    }
 
 	return gi;
 }
@@ -919,6 +948,37 @@ struct index_t *get_index(struct mdhim_t *md, int index_id) {
 
 	return index;
 }
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  get_index_by_name
+ *  Description:  Retrieve the index by name
+ * =====================================================================================
+ */
+struct index_t *
+get_index_by_name ( struct mdhim_t *md, char index_name[] )
+{
+    struct index_t *index;
+
+    //Acquire the lock to update indexes
+    while(pthread_rwlock_wrlock(md->indexes_lock) == EBUSY) {
+        usleep(10);
+    }
+
+    index = NULL;
+    if(strcmp(index_name, "") != 0) {
+        HASH_FIND_STR(md->indexes, index_name, index);
+    }
+
+    if(pthread_rwlock_unlock(md->indexes_lock) != 0) {
+        mlog(MDHIM_CLIENT_CRIT, "RankL %d - Error unlocking the indexes_lock",
+                md->mdhim_rank);
+        return NULL;
+    }
+
+    return index;
+}		/* -----  end of function get_index_by_name  ----- */
 
 void indexes_release(struct mdhim_t *md) {
 	struct index_t *cur_indx, *tmp_indx;

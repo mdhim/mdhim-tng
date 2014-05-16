@@ -15,52 +15,55 @@ ifeq ($(MYSQLDB),1)
 endif
 
 
-all:	mdhim.o lib
+all:	mdhim.o lib dylib 
 
 mdhim.o: mdhim.c $(OBJS)
-	$(CC) -c $< $(CINC) $(CLIBS)
+	$(CC) -c $< $(CINC) $(CLIBS) -lleveldb
+
+mlog.o: Mlog/mlog.c
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 mdhim_private.o: mdhim_private.c
 	$(CC) -c $< $(CINC) $(CLIBS)
 
-mlog.o: Mlog/mlog.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
-
 client.o: client.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 local_client.o: local_client.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 messages.o: messages.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 partitioner.o: partitioner.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 indexes.o: indexes.c
 	$(CC) -c $^ $(CINC) $(CLIBS)
 
 data_store.o: data_store.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 ds_mysql.o: ds_mysql.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 ds_leveldb.o: ds_leveldb.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 ds_sophia.o: ds_sophia.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 range_server.o: range_server.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 mdhim_options.o : mdhim_options.c
-	$(CC) -c $^ $(CINC) $(CLIBS)
+	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 lib:	
 	ar rvs libmdhim.a mdhim.o $(OBJS)
 
+dylib:
+	$(CC) -shared -o libmdhim.so.1 mdhim.o $(OBJS) -L$(LEVEL_DB_ROOT)/ -lleveldb
+
 clean:
-	rm -rf *.o libmdhim.a
+	rm -rf *.o libmdhim.a libmdhim.so.1

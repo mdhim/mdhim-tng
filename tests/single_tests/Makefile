@@ -74,9 +74,8 @@ clean:
 	rm -rf put-get bput-bget put-del bput-bdel\
 		put-getn put-getp \
 		puts-gets bput-bgetn \
-		bput-bgetp bput-bget_secondary \
+		bput-bgetp plfs-put-get plfs-put-get-abstract init_close bput-bget_secondary \
 		put-get_secondary put-get_secondary_local \
 		bput-bget_secondary_local put-getn_secondary_local \
 		put-getn_secondary put-del_secondary put-getp_secondary \
-		put-get_2secondary_local put-del_secondary_local plfs-put-get
-
+		put-get_2secondary_local put-del_secondary_local

@@ -20,6 +20,10 @@
 #include "indexes.h"
 #include "mdhim_private.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #define MDHIM_SUCCESS 0
 #define MDHIM_ERROR -1
 #define MDHIM_DB_ERROR -2
@@ -119,6 +123,9 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, struct index_t *index,
 				 void **keys, int *key_lens,
 				 int num_keys);
 void mdhim_release_recv_msg(void *msg);
+#ifdef __cplusplus
+}
+#endif
 struct secondary_info *mdhimCreateSecondaryInfo(struct index_t *secondary_index,
 						void **secondary_keys, int *secondary_key_lens,
 						int num_keys, int info_type);

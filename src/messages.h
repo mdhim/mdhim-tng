@@ -1,6 +1,10 @@
 #ifndef      __MESSAGES_H
 #define      __MESSAGES_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "range_server.h"
 
 /* Message Types */

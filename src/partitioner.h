@@ -14,6 +14,10 @@
    then the last rank will be the range server
 */
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 //#define RANGE_SERVER_FACTOR 4 // NOW a global variable in partitioner.h
 #define MDHIM_MAX_SLICES 2147483647
 //32 bit unsigned integer
@@ -64,4 +68,7 @@ int is_float_key(int type);
 rangesrv_list *get_range_servers_from_stats(struct mdhim_t *md, struct index_t *index, 
 					    void *key, int key_len, int op);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
