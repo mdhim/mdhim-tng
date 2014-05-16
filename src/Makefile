@@ -20,7 +20,7 @@ all:	mdhim.o lib dylib
 mdhim.o: mdhim.c $(OBJS)
 	$(CC) -c $< $(CINC) $(CLIBS) -lleveldb
 
-mlog2.o: Mlog/mlog.c
+mlog.o: Mlog/mlog.c
 	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 mdhim_private.o: mdhim_private.c
