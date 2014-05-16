@@ -102,7 +102,7 @@ struct mdhim_brm_t *_create_brm(struct mdhim_rm_t *rm) {
 }
 
 /* adds new to the list pointed to by head */
-void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *new) {
+void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *addition) {
 	struct mdhim_brm_t *brmp;
 
 	brmp = head;
@@ -110,7 +110,7 @@ void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *new) {
 		brmp = brmp->next;
 	}
 
-	brmp->next = new;
+	brmp->next = addition;
 
 	return;
 }
