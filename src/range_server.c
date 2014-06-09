@@ -1165,7 +1165,10 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
 			continue;
 		}
 
+		pthread_mutex_lock(md->mdhim_comm_lock);
 		ret = MPI_Test((MPI_Request *)item->req, &flag, &status); 
+		pthread_mutex_unlock(md->mdhim_comm_lock);
+
 		if (ret == MPI_ERR_REQUEST) {
 			//flag = 1;
 		}

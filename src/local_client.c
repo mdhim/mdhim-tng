@@ -54,6 +54,7 @@ struct mdhim_rm_t *local_client_put(struct mdhim_t *md, struct mdhim_putm_t *pm)
 		return NULL;
 	}
 
+	memset(item, 0, sizeof(work_item));
 	item->message = (void *)pm;
 	item->source = md->mdhim_rank;
 	if ((ret = range_server_add_work(md, item)) != MDHIM_SUCCESS) {

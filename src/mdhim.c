@@ -58,6 +58,21 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		return NULL;
 	}
 	
+	//Initialize mdhim_comm mutex
+	md->mdhim_comm_lock = malloc(sizeof(pthread_mutex_t));
+	if (!md->mdhim_comm_lock) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Error while allocating memory for client", 
+		     md->mdhim_rank);
+		return NULL;
+	}
+
+	if ((ret = pthread_mutex_init(md->mdhim_comm_lock, NULL)) != 0) {    
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing mdhim_comm_lock", md->mdhim_rank);
+		return NULL;
+	}
+
 	//Dup the communicator passed in for barriers between clients
 	if ((ret = MPI_Comm_dup(comm, &md->mdhim_client_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
@@ -176,6 +191,12 @@ int mdhimClose(struct mdhim_t *md) {
 	free(md->indexes_lock);
 
 	MPI_Barrier(md->mdhim_client_comm);
+	//Destroy the client_comm_lock
+	if ((ret = pthread_mutex_destroy(md->mdhim_comm_lock)) != 0) {
+		return MDHIM_ERROR;
+	}
+	free(md->mdhim_comm_lock);    
+
 	MPI_Comm_free(&md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_comm);
 	free(md);
