@@ -633,6 +633,9 @@ int mdhim_leveldb_close(void *dbh, void *dbs) {
 	leveldb_writeoptions_destroy(statsdb->write_options);
 	leveldb_filterpolicy_destroy(statsdb->filter);
 
+	free(mdhimdb);
+	free(statsdb);
+
 	return MDHIM_SUCCESS;
 }
 

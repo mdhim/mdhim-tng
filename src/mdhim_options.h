@@ -83,6 +83,7 @@ void mdhim_options_set_value_append(struct mdhim_options_t* opts, int append);
 void mdhim_options_set_server_factor(struct mdhim_options_t* opts, int server_factor);
 void mdhim_options_set_max_recs_per_slice(struct mdhim_options_t* opts, uint64_t max_recs_per_slice);
 void mdhim_options_set_num_worker_threads(struct mdhim_options_t* opts, int num_wthreads);
+void set_manifest_path(mdhim_options_t* opts, char *path);
 void mdhim_options_destroy(struct mdhim_options_t *opts);
 
 #endif

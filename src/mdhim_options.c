@@ -20,7 +20,7 @@ struct mdhim_options_t *mdhim_options_init()
     
 	opts->db_path = "./";
 	opts->db_name = "mdhimTstDB-";
-	opts->manifest_path ="./mdhim_manifest_";
+	opts->manifest_path = NULL;
 	opts->db_type = 2;
 	opts->db_key_type = 1;
 	opts->db_create_new = 1;
@@ -39,6 +39,8 @@ struct mdhim_options_t *mdhim_options_init()
 	opts->db_paths = NULL;
 	opts->num_paths = 0;
 	opts->num_wthreads = 1;
+
+	set_manifest_path(opts, "./");
 	return opts;
 }
 
@@ -60,6 +62,11 @@ int check_path_length(mdhim_options_t* opts, char *path) {
 void set_manifest_path(mdhim_options_t* opts, char *path) {
 	char *manifest_path;
 	int path_len = 0;
+
+	if (opts->manifest_path) {
+	  free(opts->manifest_path);
+	  opts->manifest_path = NULL;
+	}
 
 	path_len = strlen(path) + strlen(MANIFEST_FILE_NAME) + 1;
 	manifest_path = malloc(path_len);
@@ -176,5 +183,6 @@ void mdhim_options_destroy(mdhim_options_t *opts) {
 		free(opts->db_paths[i]);
 	}
 
+	free(opts->manifest_path);
 	free(opts);
 };

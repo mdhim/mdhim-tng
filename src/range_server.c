@@ -173,12 +173,14 @@ int range_server_stop(struct mdhim_t *md) {
 			     md->mdhim_rank);
 		}
 	}
-	
+
 	pthread_join(md->mdhim_rs->listener, NULL);
 	/* Wait for the threads to finish */
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
 		pthread_join(*md->mdhim_rs->workers[i], NULL);
+		free(md->mdhim_rs->workers[i]);
 	}
+	free(md->mdhim_rs->workers);
 
 	//Destroy the condition variables
 	if ((ret = pthread_cond_destroy(md->mdhim_rs->work_ready_cv)) != 0) {

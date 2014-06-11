@@ -335,6 +335,9 @@ int load_stats(struct mdhim_t *md, struct index_t *index) {
 		free(*val);
 	}
 
+	if (old_slice) {
+		free(old_slice);
+	}
 	free(val);
 	free(val_len);
 	free(key_len);
@@ -581,6 +584,7 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 	if (ret != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error opening data store for index: %d", 
 		     md->mdhim_rank, li->id);
+		MPI_Abort(md->mdhim_comm, 0);
 	}
 
 	//Initialize the range server threads if they haven't been already
@@ -898,6 +902,8 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 		MPI_Comm_free(&new_comm);
 	}
 
+	MPI_Group_free(&orig);
+	MPI_Group_free(&new_group);
 	free(ranks);
 	return MDHIM_SUCCESS;
 }
