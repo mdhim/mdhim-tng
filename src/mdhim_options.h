@@ -62,6 +62,7 @@ typedef struct mdhim_options_t {
 
 	//Login Credentials 
 	char *db_host;
+	char *dbs_host;
 	char *db_user;
 	char *db_upswd;
 	char *dbs_user;
@@ -77,7 +78,7 @@ void mdhim_options_set_db_name(struct mdhim_options_t* opts, char *name);
 void mdhim_options_set_db_type(struct mdhim_options_t* opts, int type);
 void mdhim_options_set_key_type(struct mdhim_options_t* opts, int key_type);
 void mdhim_options_set_create_new_db(struct mdhim_options_t* opts, int create_new);
-void mdhim_options_set_login_c(struct mdhim_options_t* opts, char* db_hl, char *db_ln, char *db_pw, char *dbs_ln, char *dbs_pw);
+void mdhim_options_set_login_c(struct mdhim_options_t* opts, char* db_hl, char *db_ln, char *db_pw, char *dbs_hl, char *dbs_ln, char *dbs_pw);
 void mdhim_options_set_debug_level(struct mdhim_options_t* opts, int dbug);
 void mdhim_options_set_value_append(struct mdhim_options_t* opts, int append);
 void mdhim_options_set_server_factor(struct mdhim_options_t* opts, int server_factor);

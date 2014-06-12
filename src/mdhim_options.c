@@ -27,6 +27,7 @@ struct mdhim_options_t *mdhim_options_init()
 	opts->db_value_append = MDHIM_DB_OVERWRITE;
 	
 	opts->db_host = "localhost";
+	opts->dbs_host = "localhost";
 	opts->db_user = "test";
 	opts->db_upswd = "pass";
 	opts->dbs_user = "test";
@@ -67,10 +68,11 @@ void set_manifest_path(mdhim_options_t* opts, char *path) {
 	opts->manifest_path = manifest_path;
 }
 
-void mdhim_options_set_login_c(mdhim_options_t* opts, char* db_hl, char *db_ln, char *db_pw, char *dbs_ln, char *dbs_pw){
+void mdhim_options_set_login_c(mdhim_options_t* opts, char* db_hl, char *db_ln, char *db_pw, char *dbs_hl, char *dbs_ln, char *dbs_pw){
 	opts->db_host = db_hl;
 	opts->db_user = db_ln;
 	opts->db_upswd = db_pw;
+	opts->dbs_host = dbs_hl;	
 	opts->dbs_user = dbs_ln;
 	opts->dbs_upswd = dbs_pw;
 	
