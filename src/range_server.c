@@ -189,12 +189,19 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 	free(md->mdhim_rs->work_ready_cv);
 
-	//Destroy the mutex
+	//Destroy the work queue mutex
 	if ((ret = pthread_mutex_destroy(md->mdhim_rs->work_queue_mutex)) != 0) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
 		     md->mdhim_rank);
 	}
 	free(md->mdhim_rs->work_queue_mutex);
+
+	//Destroy the out req mutex
+	if ((ret = pthread_mutex_destroy(md->mdhim_rs->out_req_mutex)) != 0) {
+		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
+		     md->mdhim_rank);
+	}
+	free(md->mdhim_rs->out_req_mutex);
 
 	//Free the work queue
 	head = md->mdhim_rs->work_queue->head;
@@ -1127,8 +1134,10 @@ void *worker_thread(void *data) {
 
 int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {
 	out_req *oreq;
-	out_req *item = md->mdhim_rs->out_req_list;
+	out_req *item;
 
+	pthread_mutex_lock(md->mdhim_rs->out_req_mutex);
+	item = md->mdhim_rs->out_req_list;
 	oreq = malloc(sizeof(out_req));
 	oreq->next = NULL;
 	oreq->prev = NULL;
@@ -1137,6 +1146,7 @@ int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {
 
 	if (!item) {
 		md->mdhim_rs->out_req_list = oreq;
+		pthread_mutex_unlock(md->mdhim_rs->out_req_mutex);
 		return MDHIM_SUCCESS;
 	}
 
@@ -1150,17 +1160,20 @@ int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {
 		item = item->next;
 	}
 
-	return MDHIM_SUCCESS;
-	
+	pthread_mutex_unlock(md->mdhim_rs->out_req_mutex);
+
+	return MDHIM_SUCCESS;	
 }
 
 int range_server_clean_oreqs(struct mdhim_t *md) {
-	out_req *item = md->mdhim_rs->out_req_list;
+	out_req *item;
 	out_req *t;
 	int ret;
 	int flag = 0;
 	MPI_Status status;
 
+	pthread_mutex_lock(md->mdhim_rs->out_req_mutex);
+	item = md->mdhim_rs->out_req_list;
 	while (item) {
 		if (!item->req) {
 			item = item->next;
@@ -1202,6 +1215,8 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
 		free(item);
 		item = t;
 	}
+
+	pthread_mutex_unlock(md->mdhim_rs->out_req_mutex);
 
 	return MDHIM_SUCCESS;
 }
@@ -1250,6 +1265,20 @@ int range_server_init(struct mdhim_t *md) {
 	if ((ret = pthread_mutex_init(md->mdhim_rs->work_queue_mutex, NULL)) != 0) {    
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while initializing work queue mutex", md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+
+	//Initialize out req mutex
+	md->mdhim_rs->out_req_mutex = malloc(sizeof(pthread_mutex_t));
+	if (!md->mdhim_rs->out_req_mutex) {
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while allocating memory for range server", 
+		     md->mdhim_rank);
+		return MDHIM_ERROR;
+	}
+	if ((ret = pthread_mutex_init(md->mdhim_rs->out_req_mutex, NULL)) != 0) {    
+		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
+		     "Error while initializing out req mutex", md->mdhim_rank);
 		return MDHIM_ERROR;
 	}
 

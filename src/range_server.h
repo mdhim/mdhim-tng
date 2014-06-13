@@ -47,6 +47,7 @@ typedef struct mdhim_rs_t {
 	long num_put;
 	long num_get;
 	out_req *out_req_list;
+	pthread_mutex_t *out_req_mutex;
 } mdhim_rs_t;
 
 int range_server_add_work(struct mdhim_t *md, work_item *item);
