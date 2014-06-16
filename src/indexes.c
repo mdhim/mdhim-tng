@@ -441,7 +441,7 @@ int open_db_store(struct mdhim_t *md, struct index_t *index) {
 	//Open the main database and the stats database
 	if ((ret = index->mdhim_store->open(&index->mdhim_store->db_handle,
 					    &index->mdhim_store->db_stats,
-					    filename, flags, index->key_type)) != MDHIM_SUCCESS){
+					    filename, flags, index->key_type, md->db_opts)) != MDHIM_SUCCESS){
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while opening database", 
 		     md->mdhim_rank);
@@ -1440,3 +1440,4 @@ int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 
 	return ret;
 }
+

@@ -8,6 +8,7 @@
 #define      __STORE_H
 
 #include "uthash.h"
+#include "mdhim_options.h"
 
 /* Storage Methods */
 #define LEVELDB 1 //LEVELDB storage method
@@ -24,10 +25,9 @@
 #define MDHIM_NUM_STAT 3
 
 struct mdhim_store_t;
-
 /* Function pointers for abstracting data stores */
 typedef int (*mdhim_store_open_fn_t)(void **db_handle, void **db_stats, char *path, int flags, 
-				     int key_type);
+				     int key_type, struct mdhim_options_t *opts);
 typedef int (*mdhim_store_put_fn_t)(void *db_handle, void *key, int32_t key_len, 
 				    void *data, int32_t data_len);
 typedef int (*mdhim_store_batch_put_fn_t)(void *db_handle, void **keys, int32_t *key_lens, 
@@ -103,7 +103,9 @@ struct mdhim_store_t {
 	char *db_user;
 	char *db_upswd;
 	char *dbs_user;
-	char *dbs_upswd;		
+	char *dbs_upswd;
+	char *db_host;	
+	char *dbs_host;	
 	
         //Hashtable for stats
 	struct mdhim_stat *mdhim_store_stats;

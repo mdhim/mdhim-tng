@@ -170,7 +170,7 @@ static const char* cmp_name(void* arg) {
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
 
-int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, int key_type) {
+int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, int key_type, struct mdhim_options_t *opts) {
 	struct mdhim_leveldb_t *mdhimdb;
 	struct mdhim_leveldb_t *statsdb;
 	leveldb_t *db;
