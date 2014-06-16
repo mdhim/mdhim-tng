@@ -57,6 +57,7 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 		if (*size_req) {
 			range_server_add_oreq(md, *size_req, NULL);
 		}
+
 		if (*msg_req) {
 			range_server_add_oreq(md, *msg_req, *sendbuf);
 		} else if (*sendbuf) {
@@ -101,11 +102,11 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
 	item->next = NULL;
 	item->prev = NULL;       
 	
-	//Add work to the head of the work queue
-	if (md->mdhim_rs->work_queue->head) {
-		md->mdhim_rs->work_queue->head->prev = item;
-		item->next = md->mdhim_rs->work_queue->head;
-		md->mdhim_rs->work_queue->head = item;
+	//Add work to the tail of the work queue
+	if (md->mdhim_rs->work_queue->tail) {
+		md->mdhim_rs->work_queue->tail->next = item;
+		item->prev = md->mdhim_rs->work_queue->tail;
+		md->mdhim_rs->work_queue->tail = item;
 	} else {
 		md->mdhim_rs->work_queue->head = item;
 		md->mdhim_rs->work_queue->tail = item;
@@ -129,22 +130,16 @@ int range_server_add_work(struct mdhim_t *md, work_item *item) {
 work_item *get_work(struct mdhim_t *md) {
 	work_item *item;
 
-	item = md->mdhim_rs->work_queue->tail;
+	item = md->mdhim_rs->work_queue->head;
 	if (!item) {
 		return NULL;
 	}
 
-	//Remove the item from the tail and set the pointers accordingly
-	if (item->prev) {
-		item->prev->next = NULL;
-		md->mdhim_rs->work_queue->tail = item->prev;
-	} else if (!item->prev) {
-		md->mdhim_rs->work_queue->tail = NULL;
-		md->mdhim_rs->work_queue->head = NULL;
-	}
+	//Set the list head and tail to NULL
+	md->mdhim_rs->work_queue->head = NULL;
+	md->mdhim_rs->work_queue->tail = NULL;
 
-	item->next = NULL;
-	item->prev = NULL;
+	//Return the list
 	return item;
 }
 
@@ -1012,7 +1007,7 @@ void *listener_thread(void *data) {
 	while (1) {
 		if (md->shutdown) {
 			break;
-		}
+		}	
 
 		//Clean outstanding sends
 		range_server_clean_oreqs(md);
@@ -1049,7 +1044,7 @@ void *worker_thread(void *data) {
 	//Mlog statements could cause a deadlock on range_server_stop due to canceling of threads
 
 	struct mdhim_t *md = (struct mdhim_t *) data;
-	work_item *item;
+	work_item *item, *item_tmp;
 	int mtype;
 	int op, num_records, num_keys;
 
@@ -1060,6 +1055,7 @@ void *worker_thread(void *data) {
 		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
 		pthread_cleanup_push((void (*)(void *)) pthread_mutex_unlock,
 				     (void *) md->mdhim_rs->work_queue_mutex);
+
 		//Wait until there is work to be performed
 		if ((item = get_work(md)) == NULL) {
 			pthread_cond_wait(md->mdhim_rs->work_ready_cv, md->mdhim_rs->work_queue_mutex);
@@ -1071,6 +1067,11 @@ void *worker_thread(void *data) {
 			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 			continue;
 		}
+
+		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+
+		//Clean outstanding sends
+		range_server_clean_oreqs(md);
 
 		while (item) {
 			//Call the appropriate function depending on the message type			
@@ -1124,11 +1125,13 @@ void *worker_thread(void *data) {
 				break;
 			}
 			
-			free(item);		    
-			item = get_work(md);
-		}		
-		
-		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+			item_tmp = item;
+			item = item->next;
+			free(item_tmp);
+		}
+
+		//Clean outstanding sends
+		range_server_clean_oreqs(md);				
 	}
 }
 
@@ -1150,16 +1153,9 @@ int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {
 		return MDHIM_SUCCESS;
 	}
 
-	while (item) {
-		if (!item->next) {
-			item->next = oreq;
-			oreq->prev = item;
-			break;
-		}
-
-		item = item->next;
-	}
-
+	item->prev = oreq;
+	oreq->next = item;
+	md->mdhim_rs->out_req_list = oreq;
 	pthread_mutex_unlock(md->mdhim_rs->out_req_mutex);
 
 	return MDHIM_SUCCESS;	
@@ -1184,9 +1180,6 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
 		ret = MPI_Test((MPI_Request *)item->req, &flag, &status); 
 		pthread_mutex_unlock(md->mdhim_comm_lock);
 
-		if (ret == MPI_ERR_REQUEST) {
-			//flag = 1;
-		}
 		if (!flag) {
 			item = item->next;
 			continue;
