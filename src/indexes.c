@@ -1432,11 +1432,15 @@ error:
 int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 	int ret;
 
+	pthread_mutex_lock(md->mdhim_comm_lock);
+
 	if (index->type != LOCAL_INDEX) {
 		ret = get_stat_flush_global(md, index);
 	} else {
 		ret = get_stat_flush_local(md, index);
 	}
+
+	pthread_mutex_unlock(md->mdhim_comm_lock);
 
 	return ret;
 }

@@ -295,42 +295,41 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	int mtype;
 	struct mdhim_basem_t *bm;
 	int mesg_idx = 0;
-	MPI_Request req;
+	MPI_Request *req;
 	int flag = 0;
 	int ret = MDHIM_SUCCESS;
 
 	// Receive a message from any client
 	flag = 0;
 
-	pthread_mutex_lock(md->mdhim_comm_lock);
+	req = malloc(sizeof(MPI_Request));
+	pthread_mutex_lock(md->mdhim_comm_lock);	
 	return_code = MPI_Irecv(&recvsize,1, MPI_INT, MPI_ANY_SOURCE, RANGESRV_WORK_SIZE_MSG, 
-			       md->mdhim_comm, &req);
+			       md->mdhim_comm, req);
 	pthread_mutex_unlock(md->mdhim_comm_lock);
 
 	// If the receive did not succeed then return the error code back
 	if ( return_code != MPI_SUCCESS ) {
              	mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: %d "
                      "receive size message failed.", md->mdhim_rank, return_code);
+		free(req);
 		return MDHIM_ERROR;
 	}
 
 	while (!flag) {
 		if (md->shutdown) {
+			free(req);
 			return MDHIM_ERROR;
 		}
-
+		
 		pthread_mutex_lock(md->mdhim_comm_lock);
-		return_code = MPI_Test(&req, &flag, &status);
+		return_code = MPI_Test(req, &flag, &status);
 		pthread_mutex_unlock(md->mdhim_comm_lock);
-
-		if (return_code == MPI_ERR_REQUEST) {
-			return MDHIM_ERROR;
-		}
 		usleep(100);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
-                     " while receiving work message size", md->mdhim_rank, status.MPI_ERROR);
+                     " while receiving work message size", md->mdhim_rank, status.MPI_ERROR);		
 	}
 
 	recvbuf = (void *) malloc(recvsize);	
@@ -339,9 +338,10 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 
 	pthread_mutex_lock(md->mdhim_comm_lock);
 	return_code = MPI_Irecv(recvbuf, recvsize, MPI_PACKED, status.MPI_SOURCE, 
-				RANGESRV_WORK_MSG, md->mdhim_comm, &req);
+				RANGESRV_WORK_MSG, md->mdhim_comm, req);
 	pthread_mutex_unlock(md->mdhim_comm_lock);
 
+	free(req);
 	// If the receive did not succeed then return the error code back
 	if ( return_code != MPI_SUCCESS ) {
              	mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: %d "
@@ -355,12 +355,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 		}
 
 		pthread_mutex_lock(md->mdhim_comm_lock);
-		return_code = MPI_Test(&req, &flag, &status);
+		return_code = MPI_Test(req, &flag, &status);
 		pthread_mutex_unlock(md->mdhim_comm_lock);
 
-		if (return_code == MPI_ERR_REQUEST) {
-			return MDHIM_ERROR;
-		}
 		usleep(100);
 	}
 	if (return_code == MPI_ERR_IN_STATUS) {
