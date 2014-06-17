@@ -437,10 +437,9 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
  * @param sendbuf double pointer to packed message
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int send_client_response(struct mdhim_t *md, int dest, void *message, void **sendbuf, 
-			 MPI_Request **size_req, MPI_Request **msg_req) {
+int send_client_response(struct mdhim_t *md, int dest, void *message, int *sizebuf, 
+			 void **sendbuf, MPI_Request **size_req, MPI_Request **msg_req) {
 	int return_code = 0;
-	int sendsize = 0;
 	int mtype;
 	int ret = MDHIM_SUCCESS;
 
@@ -452,11 +451,11 @@ int send_client_response(struct mdhim_t *md, int dest, void *message, void **sen
 	switch(mtype) {
 	case MDHIM_RECV:
 		return_code = pack_return_message(md, (struct mdhim_rm_t *)message, sendbuf, 
-						  &sendsize);
+						  sizebuf);
 		break;
 	case MDHIM_RECV_BULK_GET:
 		return_code = pack_bgetrm_message(md, (struct mdhim_bgetrm_t *)message, sendbuf, 
-						  &sendsize);
+						  sizebuf);
 		break;
 	default:
 		break;
@@ -472,7 +471,7 @@ int send_client_response(struct mdhim_t *md, int dest, void *message, void **sen
 	*size_req = malloc(sizeof(MPI_Request));
 
 	pthread_mutex_lock(md->mdhim_comm_lock);
-	return_code = MPI_Isend(&sendsize, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE_MSG, 
+	return_code = MPI_Isend(sizebuf, 1, MPI_INT, dest, CLIENT_RESPONSE_SIZE_MSG, 
 				md->mdhim_comm, *size_req);
 	pthread_mutex_unlock(md->mdhim_comm_lock);
 
@@ -489,7 +488,7 @@ int send_client_response(struct mdhim_t *md, int dest, void *message, void **sen
 	//Send the actual message
 
 	pthread_mutex_lock(md->mdhim_comm_lock);
-	return_code = MPI_Isend(*sendbuf, sendsize, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
+	return_code = MPI_Isend(*sendbuf, *sizebuf, MPI_PACKED, dest, CLIENT_RESPONSE_MSG, 
 				md->mdhim_comm, *msg_req);
 	pthread_mutex_unlock(md->mdhim_comm_lock);
 

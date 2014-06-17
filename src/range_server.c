@@ -46,6 +46,7 @@ void add_timing(struct timeval start, struct timeval end, int num,
 int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 	int ret = MDHIM_SUCCESS;
 	MPI_Request **size_req, **msg_req;
+	int *sizebuf;
 	void **sendbuf;
 
 	if (md->mdhim_rank != dest) {
@@ -53,9 +54,13 @@ int send_locally_or_remote(struct mdhim_t *md, int dest, void *message) {
 		size_req = malloc(sizeof(MPI_Request *));
 		msg_req = malloc(sizeof(MPI_Request *));
 		sendbuf = malloc(sizeof(void *));
-		ret = send_client_response(md, dest, message, sendbuf, size_req, msg_req);
+		sizebuf = malloc(sizeof(int));
+		ret = send_client_response(md, dest, message, sizebuf, 
+					   sendbuf, size_req, msg_req);
 		if (*size_req) {
-			range_server_add_oreq(md, *size_req, NULL);
+			range_server_add_oreq(md, *size_req, sizebuf);
+		} else {
+		  free(sizebuf);
 		}
 
 		if (*msg_req) {

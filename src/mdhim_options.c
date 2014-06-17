@@ -50,7 +50,8 @@ int check_path_length(mdhim_options_t* opts, char *path) {
 	int ret = 0;
 
 	path_len = strlen(path) + 1;
-	if ((path_len + strlen(opts->db_name)) < PATH_MAX &&
+	if (((!opts->db_name && path_len < PATH_MAX) || 
+	     ((path_len + strlen(opts->db_name)) < PATH_MAX)) &&
 	    (path_len + strlen(MANIFEST_FILE_NAME)) < PATH_MAX) {
 		ret = 1;
 	} else {

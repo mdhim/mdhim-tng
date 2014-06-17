@@ -32,16 +32,51 @@
  * @return mdhim_t* that contains info about this instance or NULL if there was an error
  */
 struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
-	int ret;
+	int ret = 0;
+	int flag, provided;
 	struct mdhim_t *md;
 	struct index_t *primary_index;
 	MPI_Comm comm;
 
-	comm = *((MPI_Comm *) appComm);
+	if (!opts) {
+		//Set default options if no options were passed
+		opts = mdhim_options_init();
+		mdhim_options_set_db_path(opts, "./");
+		mdhim_options_set_db_name(opts, "mdhimDb");
+		mdhim_options_set_db_type(opts, LEVELDB);
+		mdhim_options_set_key_type(opts, MDHIM_LONG_INT_KEY);
+		mdhim_options_set_debug_level(opts, MLOG_CRIT);
+	}
+	
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
 			opts->debug_level, opts->debug_level, NULL, 0, MLOG_LOGPID, 0);
 
+	//Check if MPI has been initialized
+	if ((ret = MPI_Initialized(&flag)) != MPI_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "MDHIM - Error while calling MPI_Initialized");
+		exit(1);
+	}      
+	if (!flag) {
+		//Initialize MPI with multiple thread support since MPI hasn't been initialized
+		ret = MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+		if (ret != MPI_SUCCESS) {
+			mlog(MDHIM_CLIENT_CRIT, "MDHIM - Error while calling MPI_Init_thread");
+			exit(1);
+		}
+		//Quit if MPI didn't initialize with multiple threads
+		if (provided != MPI_THREAD_MULTIPLE) {
+			mlog(MDHIM_CLIENT_CRIT, "MDHIM - Error while initializing MPI with threads");
+			exit(1);
+		}
+	}
+
+	if (appComm) {
+		comm = *((MPI_Comm *) appComm);
+	} else {
+		comm = MPI_COMM_WORLD;
+	}
+	
 	//Allocate memory for the main MDHIM structure
 	md = malloc(sizeof(struct mdhim_t));
 	memset(md, 0, sizeof(struct mdhim_t));
@@ -50,7 +85,7 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		return NULL;
 	}
 
-	//Set the key type for this database from the options passed
+	//Set the options passed or the defaults created
 	md->db_opts = opts;
 
 	if ((ret = MPI_Comm_dup(comm, &md->mdhim_comm)) != MPI_SUCCESS) {
@@ -536,6 +571,10 @@ struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 		     "Invalid op specified for mdhimGet", 
 		     md->mdhim_rank);
 		return NULL;
+	}
+
+	if (!index) {
+		index = md->primary_index;
 	}
 
 	//Create an a array with the single key and key len passed in
