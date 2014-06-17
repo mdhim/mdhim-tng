@@ -233,7 +233,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages, int num_srvs) {
 			//Unlock the mdhim_comm_lock
 			pthread_mutex_unlock(md->mdhim_comm_lock);
 
-			if (flag || ret == MPI_ERR_REQUEST) {
+			if (flag) {
 				free(req);
 				size_reqs[i] = NULL;
 				done++;
@@ -249,7 +249,7 @@ int send_all_rangesrv_work(struct mdhim_t *md, void **messages, int num_srvs) {
 			ret = MPI_Test(req, &flag, &status);
 			pthread_mutex_unlock(md->mdhim_comm_lock);
 
-			if (flag || ret == MPI_ERR_REQUEST) {
+			if (flag) {
 				free(req);
 				reqs[i] = NULL;
 				done++;
@@ -340,13 +340,12 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 	return_code = MPI_Irecv(recvbuf, recvsize, MPI_PACKED, status.MPI_SOURCE, 
 				RANGESRV_WORK_MSG, md->mdhim_comm, req);
 	pthread_mutex_unlock(md->mdhim_comm_lock);
-
-	free(req);
 	// If the receive did not succeed then return the error code back
 	if ( return_code != MPI_SUCCESS ) {
              	mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Error: %d "
                      "receive message failed.", md->mdhim_rank, return_code);
 		free(recvbuf);
+		free(req);
 		return MDHIM_ERROR;
 	}
 	while (!flag) {
@@ -360,6 +359,8 @@ int receive_rangesrv_work(struct mdhim_t *md, int *src, void **message) {
 
 		usleep(100);
 	}
+
+	free(req);
 	if (return_code == MPI_ERR_IN_STATUS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - Received an error status: %d "
                      " while receiving work message size", md->mdhim_rank, status.MPI_ERROR);

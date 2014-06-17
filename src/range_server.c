@@ -158,9 +158,6 @@ int range_server_stop(struct mdhim_t *md) {
 	//Signal to the listener thread that it needs to shutdown
 	md->shutdown = 1;
 
-	//Clean outstanding sends
-	range_server_clean_oreqs(md);
-
 	//Cancel the worker threads
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
 		if ((ret = pthread_cancel(*md->mdhim_rs->workers[i])) != 0) {
@@ -191,6 +188,8 @@ int range_server_stop(struct mdhim_t *md) {
 	}
 	free(md->mdhim_rs->work_queue_mutex);
 
+	//Clean outstanding sends
+	range_server_clean_oreqs(md);
 	//Destroy the out req mutex
 	if ((ret = pthread_mutex_destroy(md->mdhim_rs->out_req_mutex)) != 0) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
