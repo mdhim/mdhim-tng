@@ -20,15 +20,10 @@ char *sb_key_copy(MYSQL *d, char *key_t, int key_len_t) {
 
 	return k_copy;
 	}
-//Struct for MYSQL Handling
-//MDI = Mysql Database Info 
-typedef struct {
-	MYSQL *msqdb; //Database connection 
-	int msqht; //Handle's specfication, whether it's the original or stat
-	} MDI; 
+
 
 /*
- *Put general function
+ *Put general functionf
  *
  *@param pdb    in MYSQL pointer Database handle for connection and doing the escape stirnt
  *@param key_t  in void pointer Key for value
@@ -154,7 +149,8 @@ char kchunk[2*k_len+1];
 				snprintf(r_query, st_len + size, st, t_name, chunk, *((long*)key_t));
 			break;
 			
-		}	
+		}
+		
 	return r_query;
 
 }
@@ -171,13 +167,13 @@ char kchunk[2*k_len+1];
 
 void create_db(char *dbmn, MYSQL *db){
 	char q_create[MYSQL_BUFFER];
-	char *creater = "CREATE DATABASE %s";
-	char *use_state= "USE %s";
-	snprintf(q_create, sizeof(char)*MYSQL_BUFFER, use_state, dbmn);
+	memset(q_create, 0, MYSQL_BUFFER);
+	//int q =0;  while (q==0) sleep(5);
+	snprintf(q_create, sizeof(char)*MYSQL_BUFFER, "USE %s", dbmn);
 	 if (mysql_query(db, q_create)) 
-	  {
-		memset(q_create, 0, strlen(q_create));
-		snprintf(q_create, sizeof(char)*(strlen(creater)+strlen(dbmn)),creater, dbmn);
+		  {
+		memset(q_create, 0, MYSQL_BUFFER);
+		snprintf(q_create, sizeof(char)*MYSQL_BUFFER,"CREATE DATABASE %s", dbmn);
 		//printf("\nCREATE DATABASE %s\n",dbmn);
 		if(mysql_query(db,q_create)) {
 	     		fprintf(stderr, "%s\n", mysql_error(db));
@@ -185,7 +181,7 @@ void create_db(char *dbmn, MYSQL *db){
 	      		exit(1);
 	  	} 
 		memset(q_create, 0, strlen(q_create));
-		snprintf(q_create, sizeof(char)*(strlen(use_state)+strlen(dbmn)),use_state, dbmn);
+		snprintf(q_create, sizeof(char)*MYSQL_BUFFER,"USE %s", dbmn);
 		if(mysql_query(db,q_create)) {
 	     		fprintf(stderr, "%s\n", mysql_error(db));
       			mysql_close(db);
@@ -193,7 +189,6 @@ void create_db(char *dbmn, MYSQL *db){
 			} //else printf("DATABASE IN USE");
 	  }
 		 
-
 }
 
 /* create_table fot table name 
@@ -221,29 +216,26 @@ void create_table(char *dbmt, MYSQL *db, char* db_name, int k_type){
 		{ 
 		memset(name, 0, strlen(name));
 		switch(k_type){
-			case MDHIM_STRING_KEY:
-			snprintf(name, sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id VARCHAR(767) PRIMARY KEY, Value LONGBLOB)", dbmt);
-			break;
        			case MDHIM_FLOAT_KEY:
-				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id FLOAT PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id FLOAT PRIMARY KEY, Value LONGBLOB)", db_name);
 				break;
    			case MDHIM_DOUBLE_KEY:
-				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id DOUBLE PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id DOUBLE PRIMARY KEY, Value LONGBLOB)", db_name);
 			break;
       			case MDHIM_INT_KEY: 
-				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", db_name);
 			break;
 			case MDHIM_LONG_INT_KEY:
-				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id BIGINT PRIMARY KEY, Value LONGBLOB)", db_name);
 			break;
+			case MDHIM_STRING_KEY:
 			case MDHIM_BYTE_KEY:
-				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id VARCHAR(767) PRIMARY KEY, Value LONGBLOB)", dbmt);
+				snprintf(name,  sizeof(char)*MYSQL_BUFFER, "CREATE TABLE %s( Id VARCHAR(767) PRIMARY KEY, Value LONGBLOB)", db_name);
 			break; 
 		}
 
 	  	if(mysql_query(db, name)){
 			fprintf(stderr, "%s\n", mysql_error(db));
-			mysql_close(db);
 			}
 		} 
 
@@ -309,10 +301,11 @@ void * str_to_key(MYSQL_ROW key_row, int key_type, int * size){
 
 	
 
-int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
-		       struct mdhim_store_opts_t *mstore_opts) {
-	MDI *Input_DB;
-	MDI *Stat_DB;
+int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,int key_type, struct mdhim_options_t *db_opts) {
+	struct MDI *Input_DB;
+	struct MDI *Stats_DB;
+	Input_DB = malloc(sizeof(struct MDI));
+	Stats_DB = malloc(sizeof(struct MDI));	
 	MYSQL *db = mysql_init(NULL);
 	MYSQL *sdb = mysql_init(NULL);
 	if (db == NULL){
@@ -325,25 +318,28 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
 	  }
 	/*char *path_s = malloc(sizeof(path));
 	path_s = strcpy(path_s, path);	*/
-	char *db_mysql_host =  (char*)mstore_opts -> db_ptr10;
-	char *db_mysql_user = (char*)mstore_opts -> db_ptr11;
-	char *sdb_mysql_user = (char*)mstore_opts -> db_ptr13;
-	char *db_mysql_pswd = (char*)mstore_opts -> db_ptr12;
-	char *sdb_mysql_pswd = (char*)mstore_opts->db_ptr14;
+	Input_DB ->host =  db_opts->db_host;
+	Stats_DB->host =  db_opts->dbs_host;
+	Input_DB ->user = db_opts->db_user;
+	Stats_DB ->user = db_opts->dbs_user;
+	Input_DB ->pswd = db_opts->db_upswd;
+	Stats_DB->pswd = db_opts->dbs_upswd;
 	//Abstracting the host, usernames, and password
-	char *db_mysql_name = "maindb"; //mstore_opts -> db_ptr4; //Abstracting Database
-	char *db_mysql_table = "mdhim"; 
-	char *sdb_mysql_name = "statsdb";//mstore_opts -> db_ptr4; //Abstracting Statsics Database 
-	char *sdb_mysql_table = "mdhim"; 
+	Input_DB->database= "maindb"; //mstore_opts -> db_ptr4; //Abstracting Database
+	Input_DB->table = "mdhim"; 
+	Stats_DB ->database = "statsdb";//mstore_opts -> db_ptr4; //Abstracting Statsics Database 
+	Stats_DB->table = "mdhim"; 
+	Input_DB->msqkt = db_opts->db_key_type;
+	Stats_DB->msqkt = db_opts->db_key_type;
 
 	//connect to the Database
-	if (mysql_real_connect(db, db_mysql_host, db_mysql_user, db_mysql_pswd, 
+	if (mysql_real_connect(db, Input_DB->host, Input_DB->user, Input_DB->pswd, 
           NULL, 0, NULL, 0) == NULL){
      		fprintf(stderr, "%s\n", mysql_error(db));
       		mysql_close(db);
       		return MDHIM_DB_ERROR;
   		}  
-	if (mysql_real_connect(sdb, db_mysql_host, sdb_mysql_user, sdb_mysql_pswd, 
+	if (mysql_real_connect(sdb, Stats_DB->host, Stats_DB->user, Stats_DB->pswd, 
           NULL, 0, NULL, 0) == NULL){
      		fprintf(stderr, "%s\n", mysql_error(db));
       		mysql_close(sdb);
@@ -354,22 +350,19 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
     		return MDHIM_DB_ERROR;
  		 }
 
-	create_db(db_mysql_name, db);
-	create_table(db_mysql_table, db, db_mysql_name, mstore_opts->key_type);
-	create_db(sdb_mysql_name, sdb);
-	create_table(sdb_mysql_table, sdb, sdb_mysql_name, mstore_opts->key_type);
+	create_db(Input_DB->database, db);
+	create_table(Input_DB->database, db,Input_DB->table, Input_DB->msqkt);
+	create_db(Stats_DB->database, sdb);
+	create_table(Stats_DB->database, sdb,Stats_DB->table, Stats_DB->msqkt);
 	//Abstracting the host, usernames, and password
 	
-	Input_DB = malloc(sizeof(MDI));
-	Stat_DB = malloc(sizeof(MDI));	
+
 	Input_DB->msqdb = db;
 	Input_DB->msqht = MYSQLDB_HANDLE;
-	Stat_DB->msqdb = sdb;
-	Stat_DB->msqht = MYSQLDB_STAT_HANDLE;
+	Stats_DB->msqdb = sdb;
+	Stats_DB->msqht = MYSQLDB_STAT_HANDLE;
 	*dbh = Input_DB;
-	*dbs = Stat_DB;
-	mstore_opts -> db_ptr5 = db_mysql_table;
-	mstore_opts -> db_ptr6 = sdb_mysql_table;
+	*dbs = Stats_DB;
 
 	
 
@@ -391,13 +384,11 @@ int mdhim_mysql_open(void **dbh, void **dbs, char *path, int flags,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_len,  
-	struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_len) {
 	
 	struct timeval start, end;
-	MYSQL_RES *p_res;
 	//printf("In put function\n");
-	MDI *x = (MDI *)(dbh);
+	struct MDI *x = (struct MDI *)(dbh);
 	MYSQL *db = x->msqdb;
 	 if (db == NULL) 
 	  {
@@ -405,22 +396,12 @@ int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_
 	      return MDHIM_DB_ERROR;
 	  }
 	char *table_name;
+		table_name = x->table;
 
-	switch(x->msqht){
-	case MYSQLDB_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr5;
-		break;
-	case MYSQLDB_STAT_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr3;
-		break;
-	default:
-		return MDHIM_DB_ERROR;
-		break;
-	}
 	gettimeofday(&start, NULL);
 	char *query;    
 	//Insert key and value into table
-	query = put_value(db, key, key_len, data, data_len, table_name, mstore_opts->key_type);
+	query = put_value(db, key, key_len, data, data_len, table_name, x->msqkt);
 	//printf("\nThis is the query: \n%s\n", query);
 
     if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
@@ -428,7 +409,7 @@ int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_
 	    //printf("\nThis is the error number: %d\n", check_er);
 		if (check_er == 1062){
 			memset(query, 0, sizeof(char)*strlen(query));
-			query = update_value(db, key, key_len, data, data_len, table_name, mstore_opts->key_type);
+			query = update_value(db, key, key_len, data, data_len, table_name, x->msqkt);
 		//printf("\nThis is the query: \n%s\n", query);
 
 
@@ -446,8 +427,6 @@ int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_
 			return MDHIM_DB_ERROR;
 			}
     }
-	p_res=mysql_store_result(db);
-	mysql_free_result(p_res);
 	//Report timing
    	gettimeofday(&end, NULL);
     	mlog(MDHIM_SERVER_DBG, "Took: %d seconds to put the record", 
@@ -467,14 +446,12 @@ int mdhim_mysql_put(void *dbh, void *key, int key_len, void *data, int32_t data_
  * @param data         in   void ** to the values of the keys
  * @param data_lens    in   int * to the lengths of the value data 
  * @param num_records  in   int for the number of records to insert 
- * @param mstore_opts  in   additional options for the data store layer 
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure */
  
 int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens, 
-			    void **data, int32_t *data_lens, int num_records,
-			    struct mdhim_store_opts_t *mstore_opts) {
-	MDI *x = (MDI *)(dbh);
+			    void **data, int32_t *data_lens, int num_records) {
+	struct MDI *x = (struct MDI *)(dbh);
 	MYSQL *db = (MYSQL *) x->msqdb;
 	 if (db == NULL) 
 	  {
@@ -484,23 +461,12 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
 	int i;
 	struct timeval start, end;
 		gettimeofday(&start, NULL);	
-	char *table_name;
-	switch(x->msqht){
-	case MYSQLDB_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr5;
-		break;
-	case MYSQLDB_STAT_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr6;
-		break;
-	default:
-		return MDHIM_DB_ERROR;
-		break;
-	}
+	char *table_name = x->table;
 	char *query=NULL;
 	//Insert X amount of Keys and Values
 	printf("Number records: %d\n", num_records);
 	for (i = 0; i < num_records; i++) {
-		query = put_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, mstore_opts->key_type);
+		query = put_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, x->msqkt);
 	//printf("\nThis is the query: \n%s\n", query);
 
 	    if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
@@ -508,7 +474,7 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
 		    //printf("\nThis is the error number: %d\n", check_er);
 			if (check_er == 1062){
 				memset(query, 0, sizeof(char)*strlen(query));
-				query = update_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, mstore_opts->key_type);
+				query = update_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, x->msqkt);
 				//printf("\nThis is the query: \n%s\n", query);
 
 			if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
@@ -552,28 +518,17 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*data_len, struct mdhim_store_opts_t *mstore_opts){	
+int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*data_len){	
 	MYSQL_RES *data_res;
 	int ret = MDHIM_SUCCESS;
  	char get_value[MYSQL_BUFFER+key_len];
 	MYSQL_ROW row; 
 	void *msl_data;
 	char *table_name;
-	MDI *x = (MDI *)(dbh);
+	struct MDI *x = (struct MDI *)(dbh);
 	MYSQL *db = x->msqdb;
 	char *key_copy;
-
-	switch(x->msqht){
-	case MYSQLDB_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr5;
-		break;
-	case MYSQLDB_STAT_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr3;
-		break;
-	default:
-		goto error;
-		break;
-	}
+	table_name = x->table;
 
 	 if (db == NULL) 
 	  {
@@ -582,14 +537,14 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	  }
 
 	*data = NULL;
-	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
-		mstore_opts->key_type == MDHIM_BYTE_KEY) {
+	if (x->msqkt == MDHIM_STRING_KEY || 
+		x->msqkt == MDHIM_BYTE_KEY) {
 		key_copy = sb_key_copy(db, key, key_len);
 	}
 	
 //Create statement to go through and get the value based upon the key
 
-		switch(mstore_opts -> key_type){
+		switch(x->msqkt){
 			case MDHIM_STRING_KEY:
 				snprintf(get_value, sizeof(char)*(MYSQL_BUFFER+ key_len), "Select Value FROM %s WHERE Id = '%s'",table_name, key_copy);
 			free(key_copy);
@@ -614,9 +569,11 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 //Query and get results if no resuls get an error or else get the value
 	//printf("\nThis is the query: \n%s\n", get_value);
 	if (mysql_query(db,get_value)) {
+		if(x->msqht !=MYSQLDB_STAT_HANDLE) {
 		mlog(MDHIM_SERVER_CRIT, "Error getting value in mysql");
-		printf("This is the error, get_value failed\n");
+		printf("This is the error, get_value failed.\n");
 		goto error;
+		}
 	}
 	data_res = mysql_store_result(db);
 	if (data_res->row_count == 0){
@@ -628,7 +585,7 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	row = mysql_fetch_row(data_res);
 	unsigned long *rl = mysql_fetch_lengths(data_res); 
 	*data_len = *rl;
-	*data = malloc(*data_len);
+	*data = malloc(*data_len+1);
 	msl_data = row[0];
 	//printf("\nThis is the row : \n%s\n", (char*)row[0]);
 	if (!memcpy(*data, msl_data, *data_len)) {
@@ -659,10 +616,9 @@ error:
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_mysql_del(void *dbh, void *key, int key_len, 
-		      struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_mysql_del(void *dbh, void *key, int key_len) {
 
-	MDI *x = (MDI *)(dbh);
+	struct MDI *x = (struct MDI *)(dbh);
 	MYSQL *db = x->msqdb;
 	 if (db == NULL) 
 	  {
@@ -671,26 +627,16 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len,
 	  }
 	char key_delete[MYSQL_BUFFER+key_len];
 	//Delete the Key
-	char *table_name;
+	char *table_name = x->table;
 	char *key_copy;
-	switch(x->msqht){
-	case MYSQLDB_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr5;
-		break;
-	case MYSQLDB_STAT_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr3;
-		break;
-	default:
-		return MDHIM_DB_ERROR;
-		break;
-	}
 
-		if (mstore_opts->key_type == MDHIM_STRING_KEY || 
-		mstore_opts->key_type == MDHIM_BYTE_KEY) {
+
+		if (x->msqkt == MDHIM_STRING_KEY || 
+		x->msqkt == MDHIM_BYTE_KEY) {
 		key_copy = sb_key_copy(db, key, key_len);
 	}
 
-			switch(mstore_opts -> key_type){
+			switch(x->msqkt){
 			case MDHIM_STRING_KEY:
 				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = '%s'",table_name, (char*)key_copy);
 			break;
@@ -729,18 +675,18 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len,
  * 
  * @return MDHIM_SUCCESS on success or MDHIM_DB_ERROR on failure
  */
-int mdhim_mysql_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_opts) {
+int mdhim_mysql_close(void *dbh, void *dbs) {
 	
-	MDI *x = (MDI *)(dbh);
-	MDI *y = (MDI *)(dbs);
+	struct MDI *x = (struct MDI *)(dbh);
+	struct MDI *y = (struct MDI *)(dbs);
 	MYSQL *db = x->msqdb;
 	MYSQL *sdb = y->msqdb;
-	/*if(mysql_query(db, "Drop table maindb.mdhim")){
-		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
-	}
-	if (mysql_query(sdb, "Drop table statsdb.mdhim")){
-		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
-	}*/
+//	if(mysql_query(db, "Drop table maindb.mdhim")){
+//		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
+//	}
+//	if (mysql_query(sdb, "Drop table statsdb.mdhim")){
+//		mlog(MDHIM_SERVER_CRIT, "Error deleting key in mysql");
+//	}
 	mysql_close(db);
 	mysql_close(sdb);
 	free(x);
@@ -764,9 +710,8 @@ int mdhim_mysql_close(void *dbh, void *dbs, struct mdhim_store_opts_t *mstore_op
  * 
  */
 int mdhim_mysql_get_next(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len, 
-			   struct mdhim_store_opts_t *mstore_opts) {
-	MDI *x = (MDI *)(dbh);
+			   void **data, int32_t *data_len) {
+	struct MDI *x = (struct MDI *)(dbh);
 	MYSQL *db = x->msqdb;
 	 if (db == NULL) 
 	  {
@@ -776,32 +721,28 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	int ret = MDHIM_SUCCESS;
 	void *old_key, *msl_key, *msl_data;
 	struct timeval start, end;
-	char get_next[MYSQL_BUFFER+*key_len];
+	int key_lg;
+	if (!key_len){ key_lg = 0; *key=NULL;}
+	else key_lg = *key_len;
+	
+	char get_next[MYSQL_BUFFER+key_lg];
 	MYSQL_RES *key_result;
 	MYSQL_ROW key_row;
 	char *table_name;
-
-	switch(x->msqht){
-	case MYSQLDB_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr5;
-		break;
-	case MYSQLDB_STAT_HANDLE:
-		table_name = "mdhim";//(char*)mstore_opts -> db_ptr6;
-		break;
-	default:
-		goto error;
-		break;
-	}
+	table_name = x->table;
 	
 	gettimeofday(&start, NULL);	
 	old_key = *key;
 		char *key_copy;
-	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
-		mstore_opts->key_type == MDHIM_BYTE_KEY ) {
 		if (old_key) key_copy = sb_key_copy(db, (char*)old_key, *key_len);
-	} 
+	if (key_len) {
 	*key = NULL;
 	*key_len = 0;
+	}
+	else{
+	*key = NULL;
+	key_len = &key_lg;
+	}
 	*data = NULL;
 	*data_len = 0;
 	
@@ -814,7 +755,7 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 		}
 	
 	} else {
-			switch(mstore_opts -> key_type){
+			switch(x->msqkt){
 			case MDHIM_STRING_KEY:
 				snprintf(get_next, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select min(Id) from %s where Id >'%s')", table_name,table_name, key_copy);
 			free(key_copy);
@@ -854,7 +795,7 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	key_row = mysql_fetch_row(key_result);
 	unsigned long *dl = mysql_fetch_lengths(key_result);
 	int r_size;
-	msl_key = str_to_key(key_row, mstore_opts->key_type, &r_size);
+	msl_key = str_to_key(key_row, x->msqkt, &r_size);
 	*key_len = r_size; 
 	*data_len = dl[1];
 	msl_data = key_row[1];
@@ -864,9 +805,9 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 		*key = malloc(*key_len+1);
 		memset(*key, 0, *key_len+1);
 		memcpy(*key, msl_key, *key_len);
-		*data = malloc(*data_len);
-		memset(*data, 0, *data_len);
-		memcpy(*data, msl_data, *data_len);
+		*data = malloc(*data_len+1);
+		memset(*data, 0, *data_len+1);
+		memcpy(*data, msl_data, *data_len+1);
 		//printf("\nCopied here\n");
 		
 	} else {
@@ -908,9 +849,8 @@ error:
  */
 
 int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len, 
-			   void **data, int32_t *data_len,
-			   struct mdhim_store_opts_t *mstore_opts){
-	MDI *x = (MDI *)(dbh);
+			   void **data, int32_t *data_len){
+	struct MDI *x = (struct MDI *)(dbh);
 	MYSQL *db = x->msqdb;
 	 if (db == NULL) 
 	  {
@@ -920,7 +860,11 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 	int ret = MDHIM_SUCCESS;
 	void *old_key;
 	struct timeval start, end;
-	char get_prev[MYSQL_BUFFER+*key_len];
+	int key_lg;
+	if (!key_len){ key_lg = 0; *key = NULL;}
+	else key_lg = *key_len;
+	
+	char get_prev[MYSQL_BUFFER+key_lg];
 	MYSQL_RES *key_result;
 	MYSQL_ROW key_row;
 	void *msl_data;
@@ -930,28 +874,23 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 	gettimeofday(&start, NULL);
 	old_key = *key;
 	char *key_copy;
-	if (mstore_opts->key_type == MDHIM_STRING_KEY || 
-		mstore_opts->key_type == MDHIM_BYTE_KEY) {
+	if (x->msqkt == MDHIM_STRING_KEY || 
+		x->msqkt == MDHIM_BYTE_KEY) {
 		if (old_key) key_copy = sb_key_copy(db, (char*)old_key, *key_len);
 	}
 	//Start with Keys/data being null 
+	if (key_len) {
 	*key = NULL;
 	*key_len = 0;
+	}
+	else{
+	*key = NULL;
+	key_len = &key_lg;
+	}
 	*data = NULL;
 	*data_len = 0;
 
-	switch(x->msqht){
-	case MYSQLDB_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr5;
-		break;
-	case MYSQLDB_STAT_HANDLE:
-		table_name = (char*)mstore_opts -> db_ptr6;
-		break;
-	default:
-		goto error;
-		break;
-	}
-
+	table_name = x->table;
 	
 	//Get the Key/Value from the tables and if there was no old key, use the last one.
 
@@ -964,7 +903,7 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 	
 	} else {
 
-		switch(mstore_opts -> key_type){
+		switch(x->msqkt){
 			case MDHIM_STRING_KEY:
 				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len), "Select * From %s where Id = (Select max(Id) from %s where Id < '%s')", table_name,table_name, key_copy);
 			free(key_copy);
@@ -1005,7 +944,7 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 	key_row = mysql_fetch_row(key_result);
 	unsigned long *dl = mysql_fetch_lengths(key_result);
 	int r_size;
-	msl_key = str_to_key(key_row, mstore_opts->key_type, &r_size);
+	msl_key = str_to_key(key_row, x->msqkt, &r_size);
 	*key_len = r_size; 
 	*data_len = dl[1];
 	msl_data = key_row[1];

@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "mdhim_options.h"
 #include "data_store.h"
 #ifdef      LEVELDB_SUPPORT
 #include "ds_leveldb.h"

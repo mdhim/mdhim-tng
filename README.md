@@ -10,10 +10,12 @@ environment and to take advantage of high speed networks.
 
 Requirements
 ---------------
-Leveldb: http://code.google.com/p/leveldb/
-Mysqldb: http://www.mysql.com/
-Mysqldb C Connector: http://dev.mysql.com/downloads/connector/c/
-An MPI distribution that supports MPI_THREAD_MULTIPLE well (this excludes OpenMPI)
+LevelDB or MySQL as a database backend
+- Leveldb: http://code.google.com/p/leveldb/
+- Mysqldb: http://www.mysql.com/
+- Mysqldb C Connector: http://dev.mysql.com/downloads/connector/c/
+
+An MPI distribution that supports MPI_THREAD_MULTIPLE and per-object locking of critical sections (this excludes OpenMPI).  We have had best results with MPICH: http://www.mpich.org/.  For mpich, compile with --enable-thread-cs=per-object.  If you get an error compiling, see if this patch helps: http://lists.mpich.org/pipermail/discuss/2014-May/002779.html .
 
 
 Building the Library
