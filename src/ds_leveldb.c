@@ -194,7 +194,7 @@ int mdhim_leveldb_open(void **dbh, void **dbs, char *path, int flags, int key_ty
 	mdhimdb->read_options = leveldb_readoptions_create();
 	leveldb_options_set_cache(mdhimdb->options, mdhimdb->cache);
 	leveldb_options_set_filter_policy(mdhimdb->options, mdhimdb->filter);
-	leveldb_options_set_max_open_files(mdhimdb->options, 10000);
+	leveldb_options_set_max_open_files(mdhimdb->options, 100);
 	leveldb_options_set_write_buffer_size(mdhimdb->options, 50242880);
 	leveldb_options_set_env(mdhimdb->options, mdhimdb->env);
 
