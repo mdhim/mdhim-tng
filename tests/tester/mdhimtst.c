@@ -647,12 +647,12 @@ static void execGet(char *command, struct mdhim_t *md, int charIdx)
 		//sprintf(key_string, "%s", str_key);
 	
 		if (verbose) tst_say(0, "# mdhimGet( %s, %s ) [string|byte]\n", str_key, getValLabel(getOp));
-		if(strcmp(ophandle,"EQUAL")==0) bgrm = mdhimGet(md, md->primary_index, (void *)str_key, BYTE_BUFLEN+1, getOp);
-		else if(strcmp(ophandle,"PREV")==0) bgrm = mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN+1, 1, getOp);
-		else if(strcmp(ophandle,"NEXT")==0) bgrm = mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN+1, 1, getOp);
-		else if(strcmp(ophandle,"FIRST")==0) bgrm =mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN+1, 1, getOp);
+		if(strcmp(ophandle,"EQUAL")==0) bgrm = mdhimGet(md, md->primary_index, (void *)str_key, BYTE_BUFLEN, getOp);
+		else if(strcmp(ophandle,"PREV")==0) bgrm = mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN, 1, getOp);
+		else if(strcmp(ophandle,"NEXT")==0) bgrm = mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN, 1, getOp);
+		else if(strcmp(ophandle,"FIRST")==0) bgrm =mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN, 1, getOp);
 		else {
-		  if (strcmp(ophandle,"LAST")==0) bgrm = mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN+1, 1, getOp);
+		  if (strcmp(ophandle,"LAST")==0) bgrm = mdhimBGetOp(md, md->primary_index, (void *)str_key, BYTE_BUFLEN, 1, getOp);
 		}
 		  //bgrm = mdhimGet(md, md->primary_index, (void *)str_key, BYTE_BUFLEN, getOp);
 //		break;
@@ -1202,7 +1202,7 @@ static void execBgetOp(char *command, struct mdhim_t *md, int charIdx)
 		//sprintf(key_string, "%s", key_string);
 		//if (verbose) tst_say(0, "# mdhimBGetOp( %d, %s, %s ) [string|byte]\n", 
 				    // nrecs, key_string, getValLabel(getOp));
-		bgrm = mdhimBGetOp(md, md->primary_index, (void *)key_string, BYTE_BUFLEN+1, 
+		bgrm = mdhimBGetOp(md, md->primary_index, (void *)key_string, BYTE_BUFLEN, 
 				   nrecs, getOp);
 //		break;
 // 
@@ -1937,7 +1937,7 @@ int main( int argc, char * argv[] )
 	int      dowork = 1;
 	int      dbug = 1; //MLOG_CRIT=1, MLOG_DBG=2
 	int      factor = 1; //Range server factor
-	int      slice = 100000; //Range server slice size
+	int      slice = 400000; //Range server slice size
 
 	struct timeval begin, end;
 	long double   time_spent;

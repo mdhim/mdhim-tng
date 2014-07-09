@@ -8,14 +8,15 @@
 #include "ds_mysql.h"
 #include <unistd.h>
 #include <mcheck.h>
+#include <float.h>
 #define MYSQL_BUFFER 1024
 #define MYSQLDB_HANDLE 1
 #define MYSQLDB_STAT_HANDLE 2
 
 char *sb_key_copy(MYSQL *d, char *key_t, int key_len_t) {
 	if (key_len_t ==0) key_len_t = strlen(key_t);
-	char *k_copy =  malloc(2+key_len_t+1);
-		memset(k_copy, 0, key_len_t+1);
+	char *k_copy =  malloc(2*key_len_t+1);
+		memset(k_copy, 0, 2*key_len_t+1);
 	mysql_real_escape_string(d, k_copy, key_t, key_len_t);
 
 	return k_copy;
@@ -28,7 +29,7 @@ char *sb_key_copy(MYSQL *d, char *key_t, int key_len_t) {
  *@param pdb    in MYSQL pointer Database handle for connection and doing the escape stirnt
  *@param key_t  in void pointer Key for value
  *@param k_len  in int Key lenght 
- *@param data_t in void pointer Data to be inserted  
+ *@param data_t in void poineter Data to be inserted  
  *@param d_len  in int Data Length 
  *@param t_name in char pointer Table name to execute insert 
 
@@ -38,6 +39,7 @@ char *put_value(MYSQL *pdb, void *key_t, int k_len, void *data_t, int d_len, cha
 
 char chunk[2*d_len+1];
 char kchunk[2*k_len+1];
+int max_digits = 3 + DBL_MANT_DIG - DBL_MIN_EXP;
   mysql_real_escape_string(pdb, chunk, data_t, d_len);
   mysql_real_escape_string(pdb, kchunk, key_t, k_len);
  // mysql_real_escape_string(db, key_t_insert,key_t,k_len);
@@ -66,11 +68,11 @@ char kchunk[2*k_len+1];
 				snprintf(r_query, st_len + size, st, t_name, *((float*)key_t), chunk);
 				break;
    			case MDHIM_DOUBLE_KEY:
-				st = "Insert INTO %s (Id, Value) VALUES (%lf, '%s');";
+				st = "Insert INTO %s (Id, Value) VALUES (%.9g, '%s');";
 				st_len = strlen(st);
-  				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
-  				r_query=malloc(sizeof(char)*(size)); 
-				snprintf(r_query, st_len + size, st, t_name, *((double*)key_t), chunk);
+				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
+  				r_query=malloc(sizeof(char)*(size+max_digits)); 
+				snprintf(r_query, st_len + size+max_digits, st, t_name, *((double*)key_t), chunk);
 			break;
       			case MDHIM_INT_KEY: 
 				st = "Insert INTO %s (Id, Value) VALUES (%d, '%s');";
@@ -109,6 +111,9 @@ char chunk[2*d_len+1];
 char kchunk[2*k_len+1];
   mysql_real_escape_string(pdb, chunk, data_t, d_len);
   mysql_real_escape_string(pdb, kchunk, key_t, k_len);
+  int max_digits = 3 + DBL_MANT_DIG - DBL_MIN_EXP;
+
+  
 	size_t st_len, size=0;
 	char *r_query=NULL, *st;
 	switch(pk_type){
@@ -128,10 +133,10 @@ char kchunk[2*k_len+1];
 				snprintf(r_query, st_len + size, st, t_name, chunk, *((float*)key_t) );
 				break;
    			case MDHIM_DOUBLE_KEY:
-				st = "Update %s set Value = '%s' where Id = %lf;";
+				st = "Update %s set Value = '%s' where Id = %.9g;";
 				st_len = strlen(st);
   				size = 2*d_len+1 + 2*k_len+1 + strlen(t_name)+st_len;//strlen(chunk)+strlen(key_t_insert)+1;
-  				r_query=malloc(sizeof(char)*(size)); 
+  				r_query=malloc(sizeof(char)*(size+max_digits)); 
 				snprintf(r_query, st_len + size, st, t_name, chunk, *((double*)key_t) );
 			break;
       			case MDHIM_INT_KEY: 
@@ -467,7 +472,7 @@ int mdhim_mysql_batch_put(void *dbh, void **keys, int32_t *key_lens,
 	printf("Number records: %d\n", num_records);
 	for (i = 0; i < num_records; i++) {
 		query = put_value(db, keys[i], key_lens[i], data[i], data_lens[i], table_name, x->msqkt);
-	//printf("\nThis is the query: \n%s\n", query);
+	printf("\nThis is the query: \n%s\n", query);
 
 	    if  (mysql_real_query(db, query, sizeof(char)*strlen(query)))  {
 			int check_er = mysql_errno(db);
@@ -553,7 +558,7 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %f",table_name, *((float*)key));
 				break;
    			case MDHIM_DOUBLE_KEY:
-				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %lf",table_name, *((double*)key));
+				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %.9g",table_name, *((double*)key));
 			break;
       			case MDHIM_INT_KEY: 
 				snprintf(get_value, sizeof(char)*MYSQL_BUFFER, "Select Value FROM %s WHERE Id = %d",table_name, *((int*)key));
@@ -644,7 +649,7 @@ int mdhim_mysql_del(void *dbh, void *key, int key_len) {
 				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %f",table_name, *((float*)key));
 				break;
    			case MDHIM_DOUBLE_KEY:
-				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %lf",table_name, *((double*)key));
+				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %.9g",table_name, *((double*)key));
 			break;
       			case MDHIM_INT_KEY: 
 				snprintf(key_delete, sizeof(char)*(MYSQL_BUFFER+key_len),"Delete FROM %s WHERE Id = %d",table_name, *((int*)key));
@@ -734,7 +739,10 @@ int mdhim_mysql_get_next(void *dbh, void **key, int *key_len,
 	gettimeofday(&start, NULL);	
 	old_key = *key;
 		char *key_copy;
+			if (x->msqkt == MDHIM_STRING_KEY || 
+		x->msqkt == MDHIM_BYTE_KEY) {
 		if (old_key) key_copy = sb_key_copy(db, (char*)old_key, *key_len);
+			}
 	if (key_len) {
 	*key = NULL;
 	*key_len = 0;
@@ -912,7 +920,7 @@ int mdhim_mysql_get_prev(void *dbh, void **key, int *key_len,
 				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%f)", table_name,table_name, *((float*)old_key));
 				break;
    			case MDHIM_DOUBLE_KEY:
-				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%lf)", table_name,table_name, *((double*)old_key));
+				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%.9g)", table_name,table_name, *((double*)old_key));
 			break;
       			case MDHIM_INT_KEY: 
 				snprintf(get_prev, sizeof(char)*(MYSQL_BUFFER+*key_len),"Select * From %s where Id = (Select max(Id) from %s where Id <%d)", table_name,table_name, *((int*)old_key));
