@@ -1,0 +1,39 @@
+How to log into the Yellow Servers on the Mac
+
+As detailed by AJ Adejare
+
+1. Download Junos Pules test-ssl-portal.lanl.gov/pulse
+
+2. Setup Pulse
+
+a. Name (whatever you want)
+
+b. Server Url: test-ssl-portal.lanl.gov/pulse
+
+3. Login using Z number and Cryptocode
+
+4. Ssh into pal.lanl.gov with username (my case ajadejare) and password
+
+5. SSh into ccstargate with LANL Username (my case adejare) and Crytocard
+
+6. SSh into caddy/rss with LANL Username and Cryptocard
+
+How to load in MPICC compiler on caddy/rrz
+
+1
+
+module load pathscale/3.2
+
+module load mvapich-gnu-gen2/1.2
+
+module load mvapich2-gnu-ofa/1.7
+
+setenv MV2_ENABLE_AFFINITY 0
+
+Use salloc to allocate nodes
+
+ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2)
+
+Scp file pal.lanl.gov
+
+Ssh ccstargate Scp user@pal.lanl.gov . 

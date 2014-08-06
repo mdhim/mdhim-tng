@@ -1,0 +1,1000 @@
+ 1063  ls
+ 1064  vi put-get.c
+ 1065  vi put-gets.c
+ 1066  mpirun -np 4 ./puts-gets
+ 1067  rm -f mdhim.manifest 
+ 1068  mpirun -np 4 ./puts-gets
+ 1069  cd ..
+ 1070  cd tester/
+ 1071  ls
+ 1072  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1073  mpirun -np 1 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1074  rm -f mdhim.manifest 
+ 1075  mpirun -np 1 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1076  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1077  rm -f mdhim.manifest 
+ 1078  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1079  vi mdhimtst.c
+ 1080  make
+ 1081  man sleep
+ 1082  man 2 sleep
+ 1083  man 3 sleep
+ 1084  vi mdhimtst.c
+ 1085  make
+ 1086  vi mdhimtst.c
+ 1087  make
+ 1088  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1089  ps -ef
+ 1090  ps -ef | grep tst
+ 1091  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1092  ls
+ 1093  vi output
+ 1094  vi mdhimtst.c
+ 1095  make
+ 1096  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./ > output_hugh
+ 1097  vi output_hugh 
+ 1098  vi mdhimtst.c
+ 1099  make
+ 1100  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1101  make
+ 1102  cd ..
+ 1103  make
+ 1104  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1105  cd tester/
+ 1106  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1107  vi mdhimtst.c
+ 1108  make
+ 1109  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1110  cd ../../
+ 1111  make
+ 1112  cd tests/tester/
+ 1113  rm -f mdhimtst
+ 1114  make
+ 1115  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1116  ls
+ 1117  vi mdhimtst.c
+ 1118  make
+ 1119  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1120  vi mdhimtst.c
+ 1121  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1122  make
+ 1123  cd tests/tester/
+ 1124  rm -f mdhimtst
+ 1125  make
+ 1126  ls
+ 1127  vi mdhimtst.c
+ 1128  make
+ 1129  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1130  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1131  rm -f mdhim.manifest 
+ 1132  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1133  make -C ~/mdhim-tng
+ 1134  rm mdhimtst
+ 1135  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1136  rm mdhim.manifest 
+ 1137  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1138  ls
+ 1139  make
+ 1140  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1141  make
+ 1142  rm mdhimtst
+ 1143  make -C ~/mdhim-tng
+ 1144  make
+ 1145  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1146  gdb ./mdhimtst 
+ 1147  make
+ 1148  make -C ~/mdhim-tng
+ 1149  rm mdhimtst
+ 1150  make
+ 1151  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t6 -q -d3 -p./
+ 1152  make -C ~/mdhim-tng
+ 1153  rm mdhimtst
+ 1154  make
+ 1155  make -C ~/mdhim-tng
+ 1156  make
+ 1157  sh runAll.sh 
+ 1158  mysql -u root -p 
+ 1159  mysql -u root -p
+ 1160  cd mdhim-tng/tests/tester/
+ 1161  ls
+ 1162  sh runAll.sh 
+ 1163  sh runAll.sh 2> output 2&>1
+ 1164  ls
+ 1165  mpirun -np 4 ./mdhimtst -finTestOps5.txt
+ 1166  cd mdhim-tng/tests/tester/
+ 1167  mpirun -np 3 ./mdhimtst -finTestOps5.txt
+ 1168  mpirun -np 3 ./mdhimtst -finTestOps5.txt -d3
+ 1169  mpirun -np 4 ./mdhimtst -finTestBasic.txt
+ 1170  cd mdhim-tng/tests/tester/
+ 1171  mpirun -np 4 ./mdhimtst -finTestBasic.txt -d3
+ 1172  mysql -u root -p
+ 1173  cd mdhim-tng/tests/tester/
+ 1174  mysql -u root -p
+ 1175  sh runAll.sh 
+ 1176  make -C ~/mdhim-tng
+ 1177  sh runAll.sh 
+ 1178  sh runAll.sh >output.txt 2>&1
+ 1179  make -C ~/mdhim-tng
+ 1180  rm mdhimtst
+ 1181  make
+ 1182  sh runAll.sh >output.txt 2>&1
+ 1183  make -C ~/mdhim-tng
+ 1184  rm mdhimtst
+ 1185  make
+ 1186  sh runAll.sh >output.txt 2>&1
+ 1187  make -C ~/mdhim-tng
+ 1188  rm mdhimtst
+ 1189  make
+ 1190  sh runAll.sh >output.txt 2>&1
+ 1191  make -C ~/mdhim-tng
+ 1192  rm mdhimtst
+ 1193  make
+ 1194  sh runAll.sh >output.txt 2>&1
+ 1195  cd ../single_tests/
+ 1196  ls
+ 1197  make put-get.c
+ 1198  make
+ 1199  rm put-getn
+ 1200  make
+ 1201  mpirun -np 2 ./put-getn
+ 1202  rm mdhim.manifest 
+ 1203  mpirun -np 2 ./put-getn
+ 1204  cd ../tester/
+ 1205  mpirun -np 2 ./mdhimtst -finTextNext.txt -4 -q -p ./
+ 1206  mpirun -np 2 ./mdhimtst -finTestNext.txt -4 -q -p ./
+ 1207  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -p ./
+ 1208  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1209  make -C ~/mdhim-tng
+ 1210  rm rm mdhimtst
+ 1211  make
+ 1212  rm mdhimtst
+ 1213  make
+ 1214  sh runAll.sh >output.txt 2>&1
+ 1215  gdb ./mdhimtst 
+ 1216  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1217  make -C ~/mdhim-tng
+ 1218  make
+ 1219  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1220  gdb ./mdhimtst 
+ 1221  make -C ~/mdhim-tng
+ 1222  make clean
+ 1223  make
+ 1224  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1225  mpirun -np 1 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1226  make -C ~/mdhim-tng
+ 1227  make clean
+ 1228  make
+ 1229  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1230  make -C ~/mdhim-tng
+ 1231  make clean
+ 1232  make
+ 1233  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1234  make -C ~/mdhim-tng
+ 1235  make clean
+ 1236  make
+ 1237  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./
+ 1238  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -p ./ -r1~10
+ 1239  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -p ./
+ 1240  gdb ./mdhimtst 
+ 1241  make
+ 1242  gdb ./mdhimtst 
+ 1243  make
+ 1244  gdb ./mdhimtst 
+ 1245  make
+ 1246  gdb ./mdhimtst 
+ 1247  make
+ 1248  gdb ./mdhimtst 
+ 1249  make -C ~/mdhim-tng
+ 1250  make cleanm
+ 1251  make clean
+ 1252  make
+ 1253  gdb ./mdhimtst 
+ 1254  make clean
+ 1255  make -C ~/mdhim-tng
+ 1256  make
+ 1257  make -C ~/mdhim-tng
+ 1258  make
+ 1259  gdb ./mdhimtst 
+ 1260  make 
+ 1261  gdb ./mdhimtst 
+ 1262  make 
+ 1263  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1264  make 
+ 1265  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1266  sudo gdb attach 11089
+ 1267  make -C ~/mdhim-tng
+ 1268  clear
+ 1269  clea
+ 1270  rclear
+ 1271  clea
+ 1272  clear
+ 1273  make -C ~/mdhim-tng
+ 1274  make
+ 1275  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1276  make -C ~/mdhim-tng
+ 1277  make
+ 1278  make clean
+ 1279  make
+ 1280  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1281  gdb ./mdhimtst
+ 1282  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p -b ./
+ 1283  ./mdhimtst 
+ 1284  ./mdhimtst  -h
+ 1285  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p -b2 ./
+ 1286  vi inTestNext.txt 
+ 1287  ls
+ 1288  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d1 -r1~10 -w4 -p -b2 ./
+ 1289  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p -b2 ./
+ 1290  gdb ./mdhimtst 
+ 1291  make -C ~/mdhim-tng
+ 1292  rm mdhimtst
+ 1293  make
+ 1294  sudo gdb --pid=5640
+ 1295  mpirun -np 2 ./mdhimtst r -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1296  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1297  gbd attach 11615
+ 1298  sudo gdb attach 11615
+ 1299  gbd attach 11615
+ 1300  sudo gdb attach 11615
+ 1301  gbd attach 11645
+ 1302  sudo gdb attach 11645
+ 1303  sudo gdb attach 11712
+ 1304  make -C ~/mdhim-tng
+ 1305  make clean
+ 1306  make
+ 1307  mpirun -np 2 ./mdhimtst r -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1308  make -C ~/mdhim-tng
+ 1309  make clean
+ 1310  make
+ 1311  make 
+ 1312  make -C ~/mdhim-tng
+ 1313  make
+ 1314  mpirun -np 2 ./mdhimtst r -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1315  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1316  sudo gdb attach 19476
+ 1317  sudo gdb attach 19477
+ 1318  ps
+ 1319  ps -a
+ 1320  gdb attch 17681
+ 1321  gdb attch 17680
+ 1322  sudo gdb attch 17681
+ 1323  ps -a
+ 1324  sudo gdb attach 18120
+ 1325  make 
+ 1326  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1327  make
+ 1328  make 
+ 1329  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1330  make 
+ 1331  mpirun -np 2 ./mdhimtst -finTestNext.txt -t4 -q -d3 -r1~10 -w4 -p ./b
+ 1332  ps -a
+ 1333  sudo gdb attach 19021
+ 1334  ps -a
+ 1335  sudo attach 19478
+ 1336  sudo atatch 19478
+ 1337  sudo attach 19478
+ 1338  sudo gdb attach 19478
+ 1339  ps -a
+ 1340  sudo gdb attach 19647
+ 1341  ps -a
+ 1342  sudo gdb attach 22612
+ 1343  ps -a
+ 1344  sudo gdb attach 25215
+ 1345  mpirun -np 2 ./mdhimtst r -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./b
+ 1346  cd mdhim-tng/tests/tester/
+ 1347  mpirun -np 2 ./mdhimtst-finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./b
+ 1348  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./b
+ 1349  gdb ./mdhimtst
+ 1350  make -C ~/mdhim-tng
+ 1351  make clean
+ 1352  make
+ 1353  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./b
+ 1354  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./
+ 1355  gdb ./mdhimtst
+ 1356  make -C ~/mdhim-tng
+ 1357  make 
+ 1358  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./
+ 1359  gdb ./mdhimtst
+ 1360  make -C ~/mdhim-tng
+ 1361  make clean
+ 1362  make
+ 1363  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./
+ 1364  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./
+ 1365  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~10 -w4 -p ./
+ 1366  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1367  make clean
+ 1368  make
+ 1369  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1370  make
+ 1371  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1372  make
+ 1373  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1374  mpirun -np 1 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1375  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1376  make -C ~/mdhim-tng
+ 1377  make 
+ 1378  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1379  make 
+ 1380  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1381  make 
+ 1382  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1383  make 
+ 1384  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1385  make 
+ 1386  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1387  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~0 -w4 -p ./
+ 1388  make 
+ 1389  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~0 -w4 -p ./
+ 1390  make
+ 1391  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~0 -w4 -p ./
+ 1392  gdb ./mdhimtst 
+ 1393  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1394  make
+ 1395  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1396  make
+ 1397  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1398  make
+ 1399  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1400  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1401  make
+ 1402  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1403  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1404  make
+ 1405  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1406  make
+ 1407  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1408  make
+ 1409  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~4 -w4 -p ./
+ 1410  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1411  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r4~1 -w4 -p ./
+ 1412  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1413  make
+ 1414  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1415  rm mdhim.manifest 
+ 1416  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1417  gbd ./mdhimtst
+ 1418  gdb ./mdhimtst 
+ 1419  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1420  ulimit -c unlimitede
+ 1421  valgrind mdhimtst.c
+ 1422  man valgrind
+ 1423  valgrind mdhimtst
+ 1424  valgrind --tool=memcheck mdhimtst
+ 1425  make
+ 1426  ls
+ 1427  valgrind mdhimtst
+ 1428  valgrind
+ 1429  valgrind --help
+ 1430  history
+ 1431  history > 2&>1
+ 1432  history > hout.txt 2&>1
+ 1433  vi hout.txt
+ 1434  valgrind mdhimtst.c
+ 1435  valgrind mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1436  cd ../../
+ 1437  cd tests/single_tests/
+ 1438  valgrind put-get
+ 1439  valgrind ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1440  ls
+ 1441  valgrind ./put-get
+ 1442  cd ../tester/
+ 1443  valgrind ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1444  gdb ./mdhim --core=vgcore.21163 
+ 1445  gdb ./mdhimtst --core=vgcore.21163 
+ 1446  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1447  make
+ 1448  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1449  make
+ 1450  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1451  make
+ 1452  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1453  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~4 -w4 -p ./
+ 1454  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1455  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1456  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1457  make
+ 1458  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1459  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1460  make
+ 1461  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1462  make
+ 1463  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1464  make
+ 1465  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1466  make
+ 1467  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1468  make
+ 1469  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1470  make
+ 1471  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1472  make
+ 1473  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1474  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~3 -w4 -p ./
+ 1475  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~3 -w4 -p ./
+ 1476  mpirun -np 5 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~1 -w4 -p ./
+ 1477  make
+ 1478  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r2~3 -w4 -p ./
+ 1479  make clean
+ 1480  make
+ 1481  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r2~3 -w4 -p ./
+ 1482  make
+ 1483  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r2~3 -w4 -p ./
+ 1484  make
+ 1485  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r2~3 -w4 -p ./
+ 1486  ps -a
+ 1487  sudo gdb ./mdhimtst 
+ 1488  sudo gdb ./mdhimtst attach 4595
+ 1489  sudo gdb ./mdhimtst 
+ 1490  ps -a
+ 1491  sudo gdb attach 4677
+ 1492  ps -a 
+ 1493  sudo gdb attach 4678
+ 1494  sudo gdb attach 4676
+ 1495  cd mdhim-tng/tests/tester/
+ 1496  make
+ 1497  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1498  make
+ 1499  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r1~3 -w4 -p ./
+ 1500  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~3 -w4 -p ./
+ 1501  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r2~3 -w4 -p ./
+ 1502  mysql
+ 1503  mysql -u root -p
+ 1504  mpirun -np 4 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r2~3 -w4 -p ./
+ 1505  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r2~3 -w4 -p ./
+ 1506  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r2~3 -w4 -p ./ >outputlarge.txt 2>&!
+ 1507  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r2~3 -w4 -p ./ >outputlarge.txt 2>&1
+ 1508  make
+ 1509  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r2~3 -w4 -p ./ >outputlarge.txt 2>&1
+ 1510  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~3 -w4 -p ./ >outputlarge.txt 2>&1
+ 1511  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~5 -w4 -p ./ >outputlarge.txt 2>&1
+ 1512  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~5 -w2 -p ./ >outputlarge.txt 2>&1
+ 1513  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~5 -w2 -p ./ >outputlarge.txt 2>&1
+ 1514  make
+ 1515  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~5 -w2 -p ./ >outputlarge.txt 2>&1
+ 1516  mpirun -np 4 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~5 -w1 -p ./ >outputlarge.txt 2>&1
+ 1517  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~3 -w1 -p ./ >outputlarge.txt 2>&1
+ 1518  mpirun -np 2 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~3 -w1 -p ./
+ 1519  mpirun -np 2 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~3 -w1 -p ./
+ 1520  make
+ 1521  mpirun -np 2 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~3 -w1 -p ./
+ 1522  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1523  make
+ 1524  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1525  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1526  make
+ 1527  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~3 -w1 -p ./
+ 1528  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1529  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1530  ps -a 
+ 1531  sudo gdb attach 12068
+ 1532  sudo gdb attach 14068
+ 1533  cd mdhim-tng/tests/tester/
+ 1534  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1535  make
+ 1536  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1537  make
+ 1538  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1539  make
+ 1540  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1541  make
+ 1542  mpirun -np 3 ./mdhimtst -finTestBasic.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1543  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1544  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1545  mysql -u root -p
+ 1546  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1547  mysql -u root -p
+ 1548  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1549  mysql -u root -po
+ 1550  mysql -u root -p
+ 1551  mysql -u root -ppass
+ 1552  mpirun -np 3 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1553  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1554  mpirun -np 1 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1555  mpirun -np 3 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1556  mpirun -np 3 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1557  clear
+ 1558  mpirun -np 3 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~1 -w1 -p ./
+ 1559  mpirun -np 3 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1560  mpirun -np 3 ./mdhimtst -finTestLarge.txt -t5 -q -d3 -r0~3 -w1 -p ./
+ 1561  cd ../../
+ 1562  git help
+ 1563  git commit -a
+ 1564  git pull
+ 1565  git push aadejare 
+ 1566  git pull-request
+ 1567  git pull
+ 1568  git pull-request
+ 1569  git help
+ 1570  ps -a
+ 1571  sudo gdb attach 2240
+ 1572  sudo gdb attach 2241
+ 1573  sudo gdb attach 2242
+ 1574  ps -a
+ 1575  sudo gdb attach 4418
+ 1576  sudo gdb attach 4417
+ 1577  sudo gdb attach 4418
+ 1578  ps -a 
+ 1579  sudo gdb attach 2941
+ 1580  sudo gdb attach 2940
+ 1581  cd mdhim-tng/tests/tester/
+ 1582  make
+ 1583  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1584  make
+ 1585  mpirun -np 2 ./mdhimtst -finTestNext.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1586  mpirun -np 2 ./mdhimtst -finBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1587  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1588  make
+ 1589  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1590  make
+ 1591  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1592  make
+ 1593  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1594  make
+ 1595  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1596  make
+ 1597  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1598  make
+ 1599  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1600  make
+ 1601  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1602  quit
+ 1603  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1604  make
+ 1605  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1606  make
+ 1607  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1608  make
+ 1609  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1610  make
+ 1611  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1612  make
+ 1613  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1614  make
+ 1615  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1616  make
+ 1617  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1618  make
+ 1619  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1620  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1621  make
+ 1622  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1623  mysql -u root -p
+ 1624  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1625  ps -a
+ 1626  sudo gdb attach 5364
+ 1627  clear
+ 1628  ps -a
+ 1629  sudo gdb attach 6630
+ 1630  ps -a
+ 1631  sudo gdb attach 6652
+ 1632  ps -a
+ 1633  sudo gdb attach 6674
+ 1634  ps -a
+ 1635  sudo gdb attach 6694
+ 1636  ps -a 
+ 1637  sudo gdb attach 6903
+ 1638  ps -a
+ 1639  sudo gdb attach 7105
+ 1640  ps -a
+ 1641  sudo gdb attach 7301
+ 1642  ps -a
+ 1643  sudo gdb attach 7497
+ 1644  y
+ 1645  ps -a
+ 1646  sudo gdb attach 7518
+ 1647  ps -a
+ 1648  sudo gdb attach 7542
+ 1649  ps -a
+ 1650  sudo gdb attach 7561
+ 1651  ps -a
+ 1652  sudo gdb attach 7761
+ 1653  ps -a
+ 1654  sudo gdb attach 7964
+ 1655  make
+ 1656  ps -a
+ 1657  sudo gdb attach 8170
+ 1658  ps -a 
+ 1659  sudo gdb attach 8554
+ 1660  ps -a 
+ 1661  sudo gdb attach 8929
+ 1662  ps -a 
+ 1663  sudo gdb attach 8947
+ 1664  ps -a 
+ 1665  sudo gdb attach 9154
+ 1666  make
+ 1667  ps -a 
+ 1668  sudo gdb attach 9353
+ 1669  make
+ 1670  ps -a 
+ 1671  sudo gdb attach 9552
+ 1672  ps -a 
+ 1673  sudo gdb attach 9872
+ 1674  y
+ 1675  sudo gdb attach 9572
+ 1676  n
+ 1677  ps -a 
+ 1678  sudo gdb attach 9809
+ 1679  ps -a 
+ 1680  sudo gdb attach 10004
+ 1681  ps -a 
+ 1682  sudo gdb attach 10078
+ 1683  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1684  make
+ 1685  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1686  mpirun -np ` ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1687  mpirun -np 1 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1688  make
+ 1689  mpirun -np 1 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1690  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1691  make
+ 1692  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1693  MAKE
+ 1694  make
+ 1695  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1696  make
+ 1697  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1698  cd mdhim-tng/tests/tester/
+ 1699  ps -a
+ 1700  sudo gdb attach 2344
+ 1701  sudo gdb attach 2334
+ 1702  ps -a
+ 1703  sudo gdb attach 2577
+ 1704  mysql -u root -p
+ 1705  ps -a
+ 1706  sudo gdb attach 3342
+ 1707  ps -a
+ 1708  sudo gdb attach 3751
+ 1709  ps -a
+ 1710  sudo gdb attach 3769
+ 1711  ps -a
+ 1712  sudo gdb attach 3786
+ 1713  make
+ 1714  ps -a
+ 1715  sudo gdb attach 4237
+ 1716  ps -a 
+ 1717  sudo gdb attach 12148
+ 1718  ps -a 
+ 1719  sudo gdb attach 12228
+ 1720  ps -a 
+ 1721  sudo gdb attach 12427
+ 1722  y
+ 1723  ps -a
+ 1724  sudo gdb attach 14077
+ 1725  ps -a
+ 1726  sudo gdb attach 14100
+ 1727  y
+ 1728  ps -a
+ 1729  sudo gdb attach 14618
+ 1730  ps -a
+ 1731  sudo gdb attach 14828
+ 1732  ps -a
+ 1733  sudo gdb attach 15414
+ 1734  ps -a
+ 1735  sudo gdb attach 15625
+ 1736  ps -a
+ 1737  sudo gdb attach 15624
+ 1738  ps -a
+ 1739  sudo gdb attach 15624
+ 1740  ps -a
+ 1741  sudo gdb attach 15688
+ 1742  ps -a
+ 1743  sudo gdb attach 15891
+ 1744  ps -a 
+ 1745  sudo gdb attach 16093
+ 1746  y
+ 1747  ps -a
+ 1748  sudo gdb attach 17123
+ 1749  sudo gdb attach 17122
+ 1750  ps -a 
+ 1751  sudo gdb attach 17155
+ 1752  ps -a
+ 1753  sudo gdb attach 17195
+ 1754  ps -a
+ 1755  sudo gdb attach 17212
+ 1756  y
+ 1757  ps -a 
+ 1758  sudo gdb attach 17264
+ 1759  make
+ 1760  ps -a
+ 1761  sudo gdb attach 3368
+ 1762  ps -a
+ 1763  sudo gdb attach 3387
+ 1764  mysql -u root -p
+ 1765  ps -a
+ 1766  sudo gdb attach 4670
+ 1767  ps -a
+ 1768  sudo gdb attach 5085
+ 1769  ps -a
+ 1770  sudo gdb attach 5106
+ 1771  ps -a
+ 1772  sudo gdb attach 5126
+ 1773  ps -a
+ 1774  sudo gdb attach 5126
+ 1775  y
+ 1776  sudo gdb attach 5149
+ 1777  ps -a
+ 1778  sudo gdb attach 5184
+ 1779  ps -a
+ 1780  sudo gdb attach 5204
+ 1781  ps -a
+ 1782  sudo gdb attach 5226
+ 1783  ps -a
+ 1784  sudo gdb attach 5258
+ 1785  ps -a
+ 1786  sudo gdb attach 5277
+ 1787  ps -a
+ 1788  sudo gdb attach 5480
+ 1789  ps -a
+ 1790  sudo gdb attach 5687
+ 1791  mysql -u root -p
+ 1792  ps -a
+ 1793  sudo gdb attach 5710
+ 1794  ps -a
+ 1795  sudo gdb attach 5779
+ 1796  ps -a
+ 1797  sudo gdb attach 5806
+ 1798  ps -a
+ 1799  sudo gdb attach 5806
+ 1800  ps -a
+ 1801  sudo gdb attach 5875
+ 1802  ps -a
+ 1803  sudo gdb attach 5875
+ 1804  ps -a
+ 1805  sudo gdb attach 5895
+ 1806  ps -a
+ 1807  sudo gdb attach 6362
+ 1808  ps -a
+ 1809  sudo gdb attach 6646
+ 1810  ps -a
+ 1811  sudo gdb attach 6901
+ 1812  ps -a
+ 1813  sudo gdb attach 7180
+ 1814  ps -a
+ 1815  sudo gdb attach 7439
+ 1816  sudo gdb attach 7438
+ 1817  ps -a
+ 1818  sudo gdb attach 8059
+ 1819  ps -a
+ 1820  sudo gdb attach 8058
+ 1821  ps -a
+ 1822  sudo gdb attach 9275
+ 1823  make -C ~/mdhim-tng
+ 1824  make clean
+ 1825  make
+ 1826  make -C ~/mdhim-tng
+ 1827  make clean
+ 1828  make
+ 1829  make -C ~/mdhim-tng
+ 1830  mysql -u root -p
+ 1831  y
+ 1832  ps - a
+ 1833  ps -a
+ 1834  sudo gdb attach 11745
+ 1835  ps -a
+ 1836  sudo gdb attach 11949
+ 1837  ps -a
+ 1838  sudo gdb attach 12149
+ 1839  mysql -u root -p
+ 1840  ps -a
+ 1841  sudo gdb attach 13217
+ 1842  mysql -u root -p
+ 1843  ps -a
+ 1844  sudo gdb attach 16094
+ 1845  mysql -u root -p
+ 1846  cd mdhim-tng/tests/tester/
+ 1847  make
+ 1848  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1849  make
+ 1850  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1851  make
+ 1852  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1853  make
+ 1854  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1855  make
+ 1856  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1857  make
+ 1858  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1859  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1860  make
+ 1861  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1862  make
+ 1863  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1864  make
+ 1865  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1866  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d1 -r0~2 -w1 -p ./
+ 1867  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1868  make
+ 1869  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1870  make
+ 1871  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1872  f
+ 1873  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1874  make
+ 1875  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1876  quit
+ 1877  make -C ~/mdhim-tng
+ 1878  make
+ 1879  make clean
+ 1880  make
+ 1881  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1882  make -C ~/mdhim-tng
+ 1883  make clean
+ 1884  make
+ 1885  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1886  make -C ~/mdhim-tng
+ 1887  make clean\
+ 1888  make clean
+ 1889  make
+ 1890  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1891  make
+ 1892  make -C ~/mdhim-tng
+ 1893  make clean
+ 1894  make
+ 1895  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1896  make -C ~/mdhim-tng
+ 1897  make clean
+ 1898  make
+ 1899  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1900  make -C ~/mdhim-tng
+ 1901  make 
+ 1902  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1903  make -C ~/mdhim-tng
+ 1904  make
+ 1905  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1906  make
+ 1907  make -C ~/mdhim-tng
+ 1908  make clean
+ 1909  make
+ 1910  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1911  make -C ~/mdhim-tng
+ 1912  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1913  make -C ~/mdhim-tng
+ 1914  make clean
+ 1915  make
+ 1916  make -C ~/mdhim-tng
+ 1917  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1918  make -C ~/mdhim-tng
+ 1919  make clena
+ 1920  make clnea
+ 1921  make clean
+ 1922  make
+ 1923  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1924  make -C ~/mdhim-tng
+ 1925  make clean
+ 1926  make
+ 1927  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1928  make -C ~/mdhim-tng
+ 1929  make clean
+ 1930  make
+ 1931  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1932  quoit
+ 1933  quit
+ 1934  make -C ~/mdhim-tng
+ 1935  make clean 
+ 1936  make
+ 1937  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1938  make -C ~/mdhim-tng
+ 1939  make
+ 1940  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1941  make
+ 1942  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1943  make
+ 1944  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1945  make
+ 1946  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1947  make
+ 1948  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1949  make
+ 1950  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1951  make
+ 1952  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1953  make
+ 1954  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1955  mpirun -np 1 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1956  make
+ 1957  mpirun -np 1 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1958  make
+ 1959  mpirun -np 1 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1960  make
+ 1961  mpirun -np 1 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1962  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1963  make
+ 1964  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1965  make
+ 1966  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1967  make
+ 1968  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1969  make
+ 1970  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1971  make
+ 1972  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1973  make
+ 1974  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1975  make
+ 1976  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1977  make
+ 1978  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1979  make
+ 1980  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1981  make
+ 1982  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1983  make
+ 1984  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1985  make
+ 1986  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1987  make
+ 1988  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1989  make
+ 1990  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1991  make
+ 1992  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1993  cd mdhim-tng/tests/tester/
+ 1994  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1995  make clean
+ 1996  make
+ 1997  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 1998  ps -a 
+ 1999  sudo gdb attach 26311
+ 2000  ps -a 
+ 2001  sudo gdb attach 26620
+ 2002  mysql -u root -p
+ 2003  make
+ 2004  mysql -u root -p
+ 2005  ps -a
+ 2006  sudo gdb attach 29288
+ 2007  ps -a
+ 2008  sudo gdb attach 29706
+ 2009  ps -a
+ 2010  sudo gdb attach 29853
+ 2011  ps -a
+ 2012  sudo gdb attach 29996
+ 2013  mysql -u root -p
+ 2014  ps -a
+ 2015* mysql -u root -pA
+ 2016  ps -a
+ 2017  sudo gdb attach 30505
+ 2018  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 2019  make 
+ 2020  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 2021  make -C ~/mdhim-tng
+ 2022  make clean
+ 2023  make
+ 2024  make -C ~/mdhim-tng
+ 2025  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 2026  make clan
+ 2027  make clean
+ 2028  make -C ~/mdhim-tng
+ 2029  make 
+ 2030  make -C ~/mdhim-tng
+ 2031  make 
+ 2032  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./m
+ 2033  mpirun -np 3 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./m
+ 2034  make -C ~/mdhim-tng
+ 2035  make clean
+ 2036  make
+ 2037  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./m
+ 2038  make -C ~/mdhim-tng
+ 2039  make clena
+ 2040  make clean
+ 2041  make
+ 2042  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./m
+ 2043  make -C ~/mdhim-tng
+ 2044  make clean
+ 2045  make
+ 2046  make -C ~/mdhim-tng
+ 2047  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./m
+ 2048  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 2049  clear
+ 2050  cle
+ 2051  arclear
+ 2052  clear
+ 2053  mpirun -np 2 ./mdhimtst -finTestBasic2.txt -t5 -q -d3 -r0~2 -w1 -p ./
+ 2054  cd ../
+ 2055  cd single_tests/
+ 2056  ls
+ 2057  rm put-del
+ 2058  make 
+ 2059  mpirun -np 2 ./put-de;
+ 2060  mpirun -np 2 ./put-del
+ 2061  history
+ 2062  history > histext.txt 2>&1

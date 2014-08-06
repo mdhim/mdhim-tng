@@ -1,0 +1,12 @@
+Input file: inTestBasic2.txt || Quiet mode || Key type: 5 || Data Base type: 3 || Range: 0 to 2 || Range divider : 1 ||DB Path:  || 
+Input file: inTestBasic2.txt || Quiet mode || Key type: 5 || Data Base type: 3 || Range: 0 to 2 || Range divider : 1 ||DB Path:  || 
+ERROR: rank 1 - 1380551906 error(s) N putting key/value into MDHIM
+Seconds to nput 4000 500 2040 1 : 74.382099
+
+==ERROR: rank 1 - 1380551906 error(s) N putting key/value into MDHIM
+==TOTAL ERRORS for rank: 1 => 1 (first 1 shown)
+ERROR: rank 0 - 1380551906 error(s) N putting key/value into MDHIM
+Seconds to nput 4000 500 2040 1 : 80.250769
+
+==ERROR: rank 0 - 1380551906 error(s) N putting key/value into MDHIM
+==TOTAL ERRORS for rank: 0 => 1 (first 1 shown)

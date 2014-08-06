@@ -1,0 +1,81 @@
+Input file: inTestBasic2.txt || Key type: 4 || Data Base type: 3 || Range: 0 to 2 || Range divider : 1 ||DB Path:  || Key length: 8 || Value length: 8 || Range server slice size: 10000000./ || 
+
+##command 0: bput 10 doublep.txt
+
+##command 1: flush
+
+##command 2: bget 10 EQUAL doublepg.txt
+
+##command 3: q
+
+##exec command: bput
+# bput n key data
+# mdhimBPut(10, ,  )
+Rank: 0 - Creating string|byte key (to insert): gisQJFTv with value: Zc3f21XZ
+Rank: 0 - Creating string|byte key (to insert): XTtApAgk with value: 82TCuaHG
+Rank: 0 - Creating string|byte key (to insert): ddsZKycp with value: d3PHGoN2
+Rank: 0 - Creating string|byte key (to insert): 8yM4NwlU with value: ps6O2INp
+Rank: 0 - Creating string|byte key (to insert): THDLB3vG with value: 2Jlg3P4D
+Rank: 0 - Creating string|byte key (to insert): xIiijLQH with value: S12WDST5
+Rank: 0 - Creating string|byte key (to insert): fduepZbD with value: NWYQffac
+Rank: 0 - Creating string|byte key (to insert): bim4Oc5g with value: EwlIhz7a
+Rank: 0 - Creating string|byte key (to insert): nLjLyVEC with value: abirqeIq
+Rank: 0 - Creating string|byte key (to insert): KuOvdagN with value: 2jrMgPac
+Number records: 10
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (9.9753451e+261, 'Zc3f21XZ');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (2.38921323e+209, '82TCuaHG');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (2.4186749e+233, 'd3PHGoN2');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (3.18783284e+103, 'ps6O2INp');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (1.84432298e+36, '2Jlg3P4D');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (2.35454963e+40, 'S12WDST5');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (2.70846571e+21, 'NWYQffac');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (1.48897016e+189, 'EwlIhz7a');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (1.2012107e+16, 'abirqeIq');
+
+This is the query: 
+Insert INTO mdhim (Id, Value) VALUES (5.04268315e+69, '2jrMgPac');
+Rank: 0 - Successfully bulk inserted key/values into MDHIM
+Seconds to bput 10 doublep.txt : 50.206368
+
+
+##exec command: flush
+Flush executed successfully.
+Seconds to flush : 0.000851
+
+
+##exec command: bget
+# bget n key <verfication_value>
+# mdhimBGet(10, KuOvdagN)
+Rank: 0 - Creating string|byte key (to get): gisQJFTv
+Rank: 0 - Creating string|byte key (to get): XTtApAgk
+Rank: 0 - Creating string|byte key (to get): ddsZKycp
+Rank: 0 - Creating string|byte key (to get): 8yM4NwlU
+Rank: 0 - Creating string|byte key (to get): THDLB3vG
+Rank: 0 - Creating string|byte key (to get): xIiijLQH
+Rank: 0 - Creating string|byte key (to get): fduepZbD
+Rank: 0 - Creating string|byte key (to get): bim4Oc5g
+Rank: 0 - Creating string|byte key (to get): nLjLyVEC
+Rank: 0 - Creating string|byte key (to get): KuOvdagN
+ERROR: rank 0 retrieving values
+Seconds to bget 10 EQUAL doublepg.txt : 0.026028
+
+==ERROR: rank 0 retrieving values
+==TOTAL ERRORS for rank: 0 => 1 (first 1 shown)

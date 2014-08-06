@@ -1,0 +1,23 @@
+# Key is 6_digits * rank, value is 4*30=120 chars
+# for string/byte 6_digit && 0rank
+#put doublep.txt
+#flush
+#get 1 EQUAL doublepg.txt
+#get 1 NEXT intpg.txt
+#del bytepg.txt
+bput 10 doublep.txt
+flush
+bget 10 EQUAL doublepg.txt
+#bgetop 3 FIRST intpg.txt
+#flush
+#bdel 10 intpg.txt
+#nput 3 bytep.txt
+#flush
+#ngetn 3 bytepg.txt
+#del bytepg.txt
+#del tester2.txt
+#flush
+#bput 3 tester3.txt
+#bget 3 tester4.txt 
+#bdel 3 tester4.txt 
+#ngetn 3 tester4.txt
