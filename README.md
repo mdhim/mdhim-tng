@@ -20,7 +20,7 @@ An MPI distribution that supports MPI_THREAD_MULTIPLE and per-object locking of 
 
 Building the Library
 ---------------
-1. Modify Makefile.cfg to point to your leveldb and MPI installations
+1. Modify example.Makefile.cfg to point to your leveldb and MPI installations and save as Makefile.cfg
 2. Type: make
 3. If all went well, you have the library in src/libmdhim.a
 
