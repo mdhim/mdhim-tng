@@ -63,9 +63,9 @@ int main(int argc, char **argv) {
 
 	//Create a secondary index on only one range server
 	secondary_local_index = create_local_index(md, LEVELDB, 
-						   MDHIM_INT_KEY);
+						   MDHIM_INT_KEY, NULL);
 	secondary_local_index2 = create_local_index(md, LEVELDB, 
-						    MDHIM_INT_KEY);
+						    MDHIM_INT_KEY, NULL);
 	secondary_info = mdhimCreateSecondaryInfo(secondary_local_index, 
 						  (void **) secondary_keys, 
 						  secondary_key_lens, 1, 

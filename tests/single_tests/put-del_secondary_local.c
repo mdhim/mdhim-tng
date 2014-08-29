@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 	
 	//Create a secondary index
 	secondary_local_index = create_local_index(md, MDHIM_INT_KEY, 
-						   md->primary_index->id);
+						   md->primary_index->id, NULL);
 	secondary_keys = malloc(sizeof(uint32_t *));		
 	secondary_keys[0] = malloc(sizeof(uint32_t));
 	*secondary_keys[0] = md->mdhim_rank + 1;

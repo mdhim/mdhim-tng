@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 	//Create a secondary index
 	secondary_index = create_global_index(md, 2, 
 					      SECONDARY_SLICE_SIZE, LEVELDB, 
-					      MDHIM_INT_KEY);
+					      MDHIM_INT_KEY, NULL);
 	secondary_info = mdhimCreateSecondaryInfo(secondary_index, 
 						  (void **) secondary_keys, 
 						  secondary_key_lens, 1, 

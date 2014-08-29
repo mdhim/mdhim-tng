@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
 	//Create a secondary index on only one range server
 	secondary_local_index = create_local_index(md, LEVELDB, 
-						   MDHIM_INT_KEY);
+						   MDHIM_INT_KEY, NULL);
 	//Put the keys and values
 	for (i = 0; i < keys_per_rank; i++) {
 		key = keys_per_rank * md->mdhim_rank + i;

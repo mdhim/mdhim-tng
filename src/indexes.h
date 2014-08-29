@@ -35,7 +35,9 @@ struct rangesrv_info {
  * A remote index means that an index can be served by one or more range servers
  */
 struct index_t {
-	int id;
+	int id;         // Hash key
+	char *name;     // Secondary Hash key
+
 	//The abstracted data store layer that mdhim uses to store and retrieve records
 	struct mdhim_store_t *mdhim_store;
 	//Options for the mdhim data store
@@ -71,6 +73,7 @@ struct index_t {
 	struct mdhim_stat *stats;
 
 	UT_hash_handle hh;         /* makes this structure hashable */
+	UT_hash_handle hh_name;    /* makes this structure hashable by name */
 };
 
 typedef struct index_manifest_t {
@@ -92,15 +95,16 @@ int load_stats(struct mdhim_t *md, struct index_t *bi);
 int write_stats(struct mdhim_t *md, struct index_t *bi);
 int open_db_store(struct mdhim_t *md, struct index_t *index);
 uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *index);
-struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type);
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, char index_name[]);
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    int max_recs_per_slice, int db_type, 
-				    int key_type);
+				    int key_type, char index_name[]);
 int get_rangesrvs(struct mdhim_t *md, struct index_t *index);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, struct index_t *index);
 struct index_t *get_index(struct mdhim_t *md, int index_id);
+struct index_t *get_index_by_name(struct mdhim_t *md, char index_name[]);
 void indexes_release(struct mdhim_t *md);
 int im_range_server(struct index_t *index);
 

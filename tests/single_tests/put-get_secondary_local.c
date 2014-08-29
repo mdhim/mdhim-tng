@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 	
 	//Create a secondary index on only one range server
 	secondary_local_index = create_local_index(md, LEVELDB, 
-						   MDHIM_INT_KEY);
+						   MDHIM_INT_KEY, NULL);
 	secondary_keys = malloc(sizeof(uint32_t *));	
 	secondary_keys[0] = malloc(sizeof(uint32_t));
 	*secondary_keys[0] = md->mdhim_rank + 1;
