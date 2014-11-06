@@ -156,21 +156,14 @@ work_item *get_work(struct mdhim_t *md) {
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int range_server_stop(struct mdhim_t *md) {
+	int i, ret;
 	work_item *head, *temp_item;
-	int ret;	
-	int i;
 
 	//Signal to the listener thread that it needs to shutdown
 	md->shutdown = 1;
 
-	//Cancel the worker threads
-	for (i = 0; i < md->db_opts->num_wthreads; i++) {
-		if ((ret = pthread_cancel(*md->mdhim_rs->workers[i])) != 0) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling worker thread", 
-			     md->mdhim_rank);
-		}
-	}
-
+	/* Wait for the threads to finish */
+	pthread_cond_broadcast(md->mdhim_rs->work_ready_cv);
 	pthread_join(md->mdhim_rs->listener, NULL);
 	/* Wait for the threads to finish */
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
@@ -178,48 +171,48 @@ int range_server_stop(struct mdhim_t *md) {
 		free(md->mdhim_rs->workers[i]);
 	}
 	free(md->mdhim_rs->workers);
-
+		
 	//Destroy the condition variables
 	if ((ret = pthread_cond_destroy(md->mdhim_rs->work_ready_cv)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work cond variable", 
-		     md->mdhim_rank);
+	  mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work cond variable", 
+	       md->mdhim_rank);
 	}
 	free(md->mdhim_rs->work_ready_cv);
-
+		
 	//Destroy the work queue mutex
 	if ((ret = pthread_mutex_destroy(md->mdhim_rs->work_queue_mutex)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
-		     md->mdhim_rank);
+	  mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
+	       md->mdhim_rank);
 	}
 	free(md->mdhim_rs->work_queue_mutex);
-
+		
 	//Clean outstanding sends
 	range_server_clean_oreqs(md);
 	//Destroy the out req mutex
 	if ((ret = pthread_mutex_destroy(md->mdhim_rs->out_req_mutex)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
-		     md->mdhim_rank);
+	  mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
+	       md->mdhim_rank);
 	}
 	free(md->mdhim_rs->out_req_mutex);
-
+		
 	//Free the work queue
 	head = md->mdhim_rs->work_queue->head;
 	while (head) {
-		temp_item = head->next;
-		free(head);
-		head = temp_item;
+	  temp_item = head->next;
+	  free(head);
+	  head = temp_item;
 	}
 	free(md->mdhim_rs->work_queue);
-
+		
 	mlog(MDHIM_SERVER_INFO, "Rank: %d - Inserted: %ld records in %Lf seconds", 
 	     md->mdhim_rank, md->mdhim_rs->num_put, md->mdhim_rs->put_time);
 	mlog(MDHIM_SERVER_INFO, "Rank: %d - Retrieved: %ld records in %Lf seconds", 
 	     md->mdhim_rank, md->mdhim_rs->num_get, md->mdhim_rs->get_time);
-	
+	  
 	//Free the range server data
 	free(md->mdhim_rs);
 	md->mdhim_rs = NULL;
-	
+
 	return MDHIM_SUCCESS;
 }
 
@@ -263,9 +256,10 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 
 	gettimeofday(&start, NULL);
        //Check for the key's existence
-	index->mdhim_store->get(index->mdhim_store->db_handle, 
+/*	index->mdhim_store->get(index->mdhim_store->db_handle, 
 				       im->key, im->key_len, value, 
 				       value_len);
+*/
 	//The key already exists
 	if (*value && *value_len) {
 		exists = 1;
@@ -302,7 +296,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	}
 
 	if (!exists && error == MDHIM_SUCCESS) {
-		update_all_stats(md, index, im->key, im->key_len);
+		update_stat(md, index, im->key, im->key_len);
 	}
 
 	gettimeofday(&end, NULL);
@@ -433,7 +427,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	for (i = 0; i < bim->num_keys && i < MAX_BULK_OPS; i++) {
 		//Update the stats if this key didn't exist before
 		if (!exists[i] && error == MDHIM_SUCCESS) {
-			update_all_stats(md, index, bim->keys[i], bim->key_lens[i]);
+			update_stat(md, index, bim->keys[i], bim->key_lens[i]);
 		}
 	       
 		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
@@ -998,6 +992,7 @@ respond:
  */
 void *listener_thread(void *data) {	
 	//Mlog statements could cause a deadlock on range_server_stop due to canceling of threads
+	
 
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	void *message;
@@ -1022,10 +1017,10 @@ void *listener_thread(void *data) {
 			continue;
 		}
 
-//		printf("Rank: %d - Received message from rank: %d of type: %d", 
-//		     md->mdhim_rank, source, mtype);
-		
-                //Create a new work item
+		//printf("Rank: %d - Received message from rank: %d of type: %d", 
+		//     md->mdhim_rank, source, mtype);
+
+        //Create a new work item
 		item = malloc(sizeof(work_item));
 		memset(item, 0, sizeof(work_item));
 		             
@@ -1052,9 +1047,10 @@ void *worker_thread(void *data) {
 	int mtype;
 	int op, num_records, num_keys;
 
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	while (1) {
+		if (md->shutdown) {
+			break;
+		}
 		//Lock the work queue mutex
 		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
 		pthread_cleanup_push((void (*)(void *)) pthread_mutex_unlock,
@@ -1068,10 +1064,9 @@ void *worker_thread(void *data) {
 	       
 		pthread_cleanup_pop(0);
 		if (!item) {
-			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);			
 			continue;
 		}
-
 		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 
 		//Clean outstanding sends
@@ -1083,7 +1078,7 @@ void *worker_thread(void *data) {
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
 
 //			printf("Rank: %d - Got work item from queue with type: %d" 
-//			     " from: %d", md->mdhim_rank, mtype, item->source);
+//			     " from: %d\n", md->mdhim_rank, mtype, item->source);
 
 			switch(mtype) {
 			case MDHIM_PUT:
@@ -1125,7 +1120,7 @@ void *worker_thread(void *data) {
 				break;		
 			default:
 				printf("Rank: %d - Got unknown work type: %d" 
-				       " from: %d", md->mdhim_rank, mtype, item->source);
+				       " from: %d\n", md->mdhim_rank, mtype, item->source);
 				break;
 			}
 			
@@ -1137,6 +1132,8 @@ void *worker_thread(void *data) {
 		//Clean outstanding sends
 		range_server_clean_oreqs(md);				
 	}
+
+	return NULL;
 }
 
 int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {
@@ -1244,7 +1241,7 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->num_put = 0;
 	md->mdhim_rs->num_get = 0;
 	//Initialize work queue
-	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
+	md->mdhim_rs->work_queue = malloc(sizeof(work_queue_t));
 	md->mdhim_rs->work_queue->head = NULL;
 	md->mdhim_rs->work_queue->tail = NULL;
 

@@ -21,38 +21,38 @@ void delete_alphabet() {
 }
 
 long double get_str_num(void *key, uint32_t key_len) {
-	int id, i;
-	struct mdhim_char *mc;
-	long double str_num;
+  int id, i;
+  struct mdhim_char *mc;
+  long double str_num;
 
-	str_num = 0;
-	//Iterate through each character to perform the algorithm mentioned above
-	for (i = 0; i < key_len; i++) {
-		//Ignore null terminating char
-		if (i == key_len - 1 && ((char *)key)[i] == '\0') {
-			break;
-		}
-		
-		id = (int) ((char *)key)[i];
-		HASH_FIND_INT(mdhim_alphabet, &id, mc);
-		str_num += mc->pos * pow(2, MDHIM_ALPHABET_EXPONENT * -(i + 1));			
-	}
+  str_num = 0;
+  //Iterate through each character to perform the algorithm mentioned above
+  for (i = 0; i < key_len; i++) {
+    //Ignore null terminating char
+    if (i == key_len - 1 && ((char *)key)[i] == '\0') {
+      break;
+    }
+    
+    id = (int) ((char *)key)[i];
+    HASH_FIND_INT(mdhim_alphabet, &id, mc);
+    str_num += mc->pos * powl(2, MDHIM_ALPHABET_EXPONENT * -(i + 1));
+  }
 
-	return str_num;
+  return str_num;
 }
 
-long double get_byte_num(void *key, uint32_t key_len) {
+uint64_t get_byte_num(void *key, uint32_t key_len) {
 	int i;
 	unsigned char val;
-	long double byte_num;
-
+	uint64_t byte_num;
+	
 	byte_num = 0;
 	//Iterate through each character to perform the algorithm mentioned above
 	for (i = 0; i < key_len; i++) {
-		val = ((char *) key)[i];		       
-		byte_num += val * pow(2, 8 * -(i + 1));			
+	  val = (int)(((char *) key)[i]);       
+		byte_num += val * powl(2, i);
 	}
-
+	
 	return byte_num;
 }
 
@@ -295,9 +295,11 @@ int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_
 		*/		
  
                 //Used for calculating the range server to use for this string
-		map_num = 0;
-		map_num = get_byte_num(key, key_len);	
-		key_num = floorl(map_num * total_keys);
+	  //		map_num = 0;
+	  //		map_num = get_byte_num(key, key_len);	
+	  //		key_num = floorl(map_num * total_keys);
+		key_num = get_byte_num(key, key_len);	
+//		printf("key_num is: %llu\n", key_num);
 
 		break;
 	case MDHIM_FLOAT_KEY:
@@ -334,7 +336,7 @@ int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_
 		map_num = 0;
 		map_num = get_str_num(key, key_len);	
 		key_num = floorl(map_num * total_keys);
-
+//		printf("map_num is: %LF and key_num is: %llu\n", map_num, key_num);
 		break;
 	default:
 		return 0;
@@ -829,7 +831,7 @@ rangesrv_list *get_range_servers_from_stats(struct mdhim_t *md, struct index_t *
 	//If we don't have any stats info, then return null	
 	if (!index->stats) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - No statistics data available." 
-		     "Perform a mdhimStatFlush first.", 
+		     " Perform a mdhimStatFlush first.", 
 		     md->mdhim_rank);
 		return NULL;
 	}

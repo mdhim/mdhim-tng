@@ -17,10 +17,10 @@ struct work_item {
 	int source;
 };
 
-typedef struct work_queue {
+typedef struct work_queue_t {
 	work_item *head;
 	work_item *tail;
-} work_queue;
+} work_queue_t;
 
 /* Outstanding requests (i.e., MPI_Req) that need to be freed later */
 typedef struct out_req out_req;
@@ -33,7 +33,7 @@ struct out_req {
 
 /* Range server specific data */
 typedef struct mdhim_rs_t {
-	work_queue *work_queue;
+	work_queue_t *work_queue;
 	pthread_mutex_t *work_queue_mutex;
 	pthread_cond_t *work_ready_cv;
 	pthread_t listener;

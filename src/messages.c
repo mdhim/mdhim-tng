@@ -1,16 +1,18 @@
 #include <unistd.h>
 #include <math.h>
 #include "mdhim.h"
+#include "partitioner.h"
 #include "messages.h"
 
 void test_req_and_wait(struct mdhim_t *md, MPI_Request *req) {
 	int flag;
 	MPI_Status status;
 	int done = 0;
+	int ret;
 
 	while (!done) {
 		pthread_mutex_lock(md->mdhim_comm_lock);
-		MPI_Test(req, &flag, &status);
+		ret = MPI_Test(req, &flag, &status);
 		//Unlock the mdhim_comm_lock
 		pthread_mutex_unlock(md->mdhim_comm_lock);
 	

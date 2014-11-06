@@ -1,6 +1,10 @@
 #ifndef      __MESSAGES_H
 #define      __MESSAGES_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "range_server.h"
 
 /* Message Types */
@@ -49,7 +53,8 @@
 #define CLIENT_RESPONSE_MSG       4
 #define CLIENT_RESPONSE_SIZE_MSG  5
 
-#define MAX_BULK_OPS 1000000
+//#define MAX_BULK_OPS 1000000
+#define MAX_BULK_OPS 500000
 
 //Maximum size of messages allowed
 #define MDHIM_MAX_MSG_SIZE 2147483647
@@ -228,4 +233,7 @@ int pack_base_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendb
 void mdhim_full_release_msg(void *message);
 void mdhim_partial_release_msg(void *message);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

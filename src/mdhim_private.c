@@ -102,7 +102,7 @@ struct mdhim_brm_t *_create_brm(struct mdhim_rm_t *rm) {
 }
 
 /* adds new to the list pointed to by head */
-void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *new) {
+void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *addition) {
 	struct mdhim_brm_t *brmp;
 
 	brmp = head;
@@ -110,7 +110,7 @@ void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *new) {
 		brmp = brmp->next;
 	}
 
-	brmp->next = new;
+	brmp->next = addition;
 
 	return;
 }
@@ -259,15 +259,6 @@ struct mdhim_bgetrm_t *_bget_records(struct mdhim_t *md, struct index_t *index,
 	int i;
 	rangesrv_list *rl = NULL, *rlp;
 
-	//Make sure we aren't exceeding MAX_BULK_OPS
-	if (num_keys > MAX_BULK_OPS) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "We may be sending more keys than MAX_BULK_OPS allows" 
-		     " since number of keys passed in is: %d and MAX_BULK_OPS is: %d.", 
-		     md->mdhim_rank, num_keys, MAX_BULK_OPS);
-		num_keys = MAX_BULK_OPS;
-	}
-
 	//The message to be sent to ourselves if necessary
 	lbgm = NULL;
 	//Create an array of bulk get messages that holds one bulk message per range server
@@ -314,6 +305,8 @@ struct mdhim_bgetrm_t *_bget_records(struct mdhim_t *md, struct index_t *index,
 			//If the message doesn't exist, create one
 			if (!bgm) {
 				bgm = malloc(sizeof(struct mdhim_bgetm_t));			       
+				//bgm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
+				//bgm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 				bgm->keys = malloc(sizeof(void *) * num_keys);
 				bgm->key_lens = malloc(sizeof(int) * num_keys);
 				bgm->num_keys = 0;

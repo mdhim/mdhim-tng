@@ -577,8 +577,8 @@ int mdhim_mysql_get(void *dbh, void *key, int key_len, void **data, int32_t 	*da
 	}
 	data_res = mysql_store_result(db);
 	if (data_res->row_count == 0){
-		//mlog(MDHIM_SERVER_CRIT, "No row data selected");
-		//printf("This is the error, store row has nothing.\nHEre is query:%s\n", get_value);
+		mlog(MDHIM_SERVER_CRIT, "No row data selected");
+		printf("This is the error, store row has nothing.\nHEre is query:%s\n", get_value);
 		goto error;
 	}
 	
