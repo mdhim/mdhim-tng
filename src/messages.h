@@ -69,14 +69,11 @@ struct mdhim_basem_t {
 	int index;
 	int index_type;
 };
+typedef struct mdhim_basem_t mdhim_basem_t;
 
 /* Put message */
 struct mdhim_putm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void *key;
 	int key_len;
 	void *value;
@@ -85,11 +82,7 @@ struct mdhim_putm_t {
 
 /* Bulk put message */
 struct mdhim_bputm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void **keys;
 	int *key_lens;
 	void **values;
@@ -99,11 +92,7 @@ struct mdhim_bputm_t {
 
 /* Get record message */
 struct mdhim_getm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
 	/* The key to get if op is MDHIM_GET_EQ
@@ -117,11 +106,7 @@ struct mdhim_getm_t {
 
 /* Bulk get record message */
 struct mdhim_bgetm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	//Operation type i.e, MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;
 	void **keys;
@@ -134,22 +119,14 @@ struct mdhim_bgetm_t {
 
 /* Delete message */
 struct mdhim_delm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void *key;
 	int key_len; 
 };
 
 /* Bulk delete record message */
 struct mdhim_bdelm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void **keys;
 	int *key_lens;
 	int num_keys;
@@ -163,21 +140,13 @@ struct mdhim_rsi_t {
 
 /* Generic receive message */
 struct mdhim_rm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	int error;
 };
 
 /* Bulk get receive message */
 struct mdhim_bgetrm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	int error;
 	void **keys;
 	int *key_lens;
@@ -189,11 +158,7 @@ struct mdhim_bgetrm_t {
 
 /* Bulk generic receive message */
 struct mdhim_brm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	int error;
 	struct mdhim_brm_t *next;
 };

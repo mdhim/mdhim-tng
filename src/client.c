@@ -21,7 +21,7 @@ struct mdhim_rm_t *client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
 	int return_code;
 	struct mdhim_rm_t *rm;       
 
-	return_code = send_rangesrv_work(md, pm->server_rank, pm);
+	return_code = send_rangesrv_work(md, pm->basem.server_rank, pm);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
@@ -29,7 +29,7 @@ struct mdhim_rm_t *client_put(struct mdhim_t *md, struct mdhim_putm_t *pm) {
 		return NULL;
 	}
 
-	return_code = receive_client_response(md, pm->server_rank, (void **) &rm);
+	return_code = receive_client_response(md, pm->basem.server_rank, (void **) &rm);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
@@ -64,7 +64,7 @@ struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct index_t *index,
 			continue;
 		}
 
-		srvs[num_srvs] = bpm_list[i]->server_rank;
+		srvs[num_srvs] = bpm_list[i]->basem.server_rank;
 		num_srvs++;
 	}
 
@@ -104,8 +104,8 @@ struct mdhim_brm_t *client_bput(struct mdhim_t *md, struct index_t *index,
 
 		brm = malloc(sizeof(struct mdhim_brm_t));
 		brm->error = rm->error;
-		brm->mtype = rm->mtype;
-		brm->server_rank = rm->server_rank;
+		brm->basem.mtype = rm->basem.mtype;
+		brm->basem.server_rank = rm->basem.server_rank;
 		free(rm);
 
 		//Build the linked list to return
@@ -148,7 +148,7 @@ struct mdhim_bgetrm_t *client_bget(struct mdhim_t *md, struct index_t *index,
 			continue;
 		}
 
-		srvs[num_srvs] = bgm_list[i]->server_rank;
+		srvs[num_srvs] = bgm_list[i]->basem.server_rank;
 		num_srvs++;
 	}
 
@@ -214,7 +214,7 @@ struct mdhim_bgetrm_t *client_bget_op(struct mdhim_t *md, struct mdhim_getm_t *g
 	int return_code;
 	struct mdhim_bgetrm_t *brm;
 	
-	return_code = send_rangesrv_work(md, gm->server_rank, gm);
+	return_code = send_rangesrv_work(md, gm->basem.server_rank, gm);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
@@ -222,7 +222,7 @@ struct mdhim_bgetrm_t *client_bget_op(struct mdhim_t *md, struct mdhim_getm_t *g
 		return NULL;
 	}
 
-	return_code = receive_client_response(md, gm->server_rank, (void **) &brm);
+	return_code = receive_client_response(md, gm->basem.server_rank, (void **) &brm);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
@@ -246,7 +246,7 @@ struct mdhim_rm_t *client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
 	int return_code;
 	struct mdhim_rm_t *rm;       
 
-	return_code = send_rangesrv_work(md, dm->server_rank, dm);
+	return_code = send_rangesrv_work(md, dm->basem.server_rank, dm);
 	// If the send did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while sending "
@@ -254,7 +254,7 @@ struct mdhim_rm_t *client_delete(struct mdhim_t *md, struct mdhim_delm_t *dm) {
 		return NULL;
 	}
 
-	return_code = receive_client_response(md, dm->server_rank, (void **) &rm);
+	return_code = receive_client_response(md, dm->basem.server_rank, (void **) &rm);
 	// If the receive did not succeed then log the error code and return MDHIM_ERROR
 	if (return_code != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: %d from server while receiving "
@@ -289,7 +289,7 @@ struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct index_t *index,
 			continue;
 		}
 
-		srvs[num_srvs] = bdm_list[i]->server_rank;
+		srvs[num_srvs] = bdm_list[i]->basem.server_rank;
 		num_srvs++;
 	}
 
@@ -324,8 +324,8 @@ struct mdhim_brm_t *client_bdelete(struct mdhim_t *md, struct index_t *index,
 
 		brm = malloc(sizeof(struct mdhim_brm_t));
 		brm->error = rm->error;
-		brm->mtype = rm->mtype;
-		brm->server_rank = rm->server_rank;
+		brm->basem.mtype = rm->basem.mtype;
+		brm->basem.server_rank = rm->basem.server_rank;
 		free(rm);
 
 		//Build the linked list to return
