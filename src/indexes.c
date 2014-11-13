@@ -369,7 +369,6 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 			continue;
 		}
 
-		goto free_stat;
 		if (!stat->dirty) {
 			goto free_stat;
 		}
