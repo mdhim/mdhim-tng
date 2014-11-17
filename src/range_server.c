@@ -249,7 +249,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	index = find_index(md, (struct mdhim_basem_t *) im);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, im->index);
+		     md->mdhim_rank, im->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
@@ -306,11 +306,11 @@ done:
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	rm->mtype = MDHIM_RECV;
+	rm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	rm->error = error;
 	//Set the server's rank
-	rm->server_rank = md->mdhim_rank;
+	rm->basem.server_rank = md->mdhim_rank;
 	
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
@@ -367,7 +367,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	index = find_index(md, (struct mdhim_basem_t *) bim);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bim->index);
+		     md->mdhim_rank, bim->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
@@ -454,11 +454,11 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	brm->mtype = MDHIM_RECV;
+	brm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	brm->error = error;
 	//Set the server's rank
-	brm->server_rank = md->mdhim_rank;
+	brm->basem.server_rank = md->mdhim_rank;
 
 	//Release the internals of the bput message
 	free(bim->keys);
@@ -491,7 +491,7 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	index = find_index(md, (struct mdhim_basem_t *) dm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, dm->index);
+		     md->mdhim_rank, dm->basem.index);
 		ret = MDHIM_ERROR;
 		goto done;
 	}
@@ -508,11 +508,11 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	rm->mtype = MDHIM_RECV;
+	rm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	rm->error = ret;
 	//Set the server's rank
-	rm->server_rank = md->mdhim_rank;
+	rm->basem.server_rank = md->mdhim_rank;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
@@ -541,7 +541,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	index = find_index(md, (struct mdhim_basem_t *) bdm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bdm->index);
+		     md->mdhim_rank, bdm->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
@@ -563,11 +563,11 @@ done:
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	brm->mtype = MDHIM_RECV;
+	brm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	brm->error = error;
 	//Set the server's rank
-	brm->server_rank = md->mdhim_rank;
+	brm->basem.server_rank = md->mdhim_rank;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
@@ -613,11 +613,11 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	rm->mtype = MDHIM_RECV;
+	rm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	rm->error = ret;
 	//Set the server's rank
-	rm->server_rank = md->mdhim_rank;
+	rm->basem.server_rank = md->mdhim_rank;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
@@ -655,7 +655,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	index = find_index(md, (struct mdhim_basem_t *) bgm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bgm->index);
+		     md->mdhim_rank, bgm->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
@@ -750,11 +750,11 @@ done:
 	//Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
-	bgrm->mtype = MDHIM_RECV_BULK_GET;
+	bgrm->basem.mtype = MDHIM_RECV_BULK_GET;
 	//Set the operation return code as the error
 	bgrm->error = error;
 	//Set the server's rank
-	bgrm->server_rank = md->mdhim_rank;
+	bgrm->basem.server_rank = md->mdhim_rank;
 	//Set the key and value
 	if (source == md->mdhim_rank) {
 		//If this message is coming from myself, copy the keys
@@ -776,8 +776,8 @@ done:
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_keys = bgm->num_keys;
-	bgrm->index = index->id;
-	bgrm->index_type = index->type;
+	bgrm->basem.index = index->id;
+	bgrm->basem.index_type = index->type;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
@@ -835,7 +835,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int sour
 	index = find_index(md, (struct mdhim_basem_t *) bgm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bgm->index);
+		     md->mdhim_rank, bgm->basem.index);
 		error = MDHIM_ERROR;
 		goto respond;
 	}
@@ -954,19 +954,19 @@ respond:
 	//Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
-	bgrm->mtype = MDHIM_RECV_BULK_GET;
+	bgrm->basem.mtype = MDHIM_RECV_BULK_GET;
 	//Set the operation return code as the error
 	bgrm->error = error;
 	//Set the server's rank
-	bgrm->server_rank = md->mdhim_rank;
+	bgrm->basem.server_rank = md->mdhim_rank;
 	//Set the keys and values
 	bgrm->keys = keys;
 	bgrm->key_lens = key_lens;
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_keys = num_records;
-	bgrm->index = index->id;
-	bgrm->index_type = index->type;
+	bgrm->basem.index = index->id;
+	bgrm->basem.index_type = index->type;
        
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
