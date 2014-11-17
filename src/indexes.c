@@ -103,7 +103,7 @@ int read_manifest(struct mdhim_t *md, struct index_t *index) {
 	if ((fd = open_manifest(md, index, O_RDWR)) < 0) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't open manifest file", 
 		     md->mdhim_rank);
-		return MDHIM_SUCCESS;
+		return MDHIM_ERROR;
 	}
 
 	if ((ret = read(fd, &manifest, sizeof(manifest))) < 0) {
@@ -415,7 +415,7 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
  */
 
 int open_db_store(struct mdhim_t *md, struct index_t *index) {
-	char filename[PATH_MAX];
+	char filename[PATH_MAX] = {'\0'};
 	int flags = MDHIM_CREATE;
 	int path_num;
 	int ret;
