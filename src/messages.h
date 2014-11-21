@@ -233,6 +233,8 @@ int pack_base_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendb
 void mdhim_full_release_msg(void *message);
 void mdhim_partial_release_msg(void *message);
 
+void ibarrier(struct mdhim_t *md, MPI_Comm comm);
+
 #ifdef __cplusplus
 }
 #endif

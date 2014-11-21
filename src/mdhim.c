@@ -4,7 +4,6 @@
  * MDHIM API implementation
  */
 
-#define _GNU_SOURCE
 #include <stdlib.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -40,8 +39,6 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	struct mdhim_t *md;
 	struct index_t *primary_index;
 	MPI_Comm comm;
-	pthread_t thread;
-	cpu_set_t cpuset;
 
 	if (!opts) {
 		//Set default options if no options were passed
@@ -56,11 +53,6 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		mdhim_options_set_num_worker_threads(opts, 30);
 	}
 	
-	thread = pthread_self();
-	CPU_ZERO(&cpuset);
-	CPU_SET(0, &cpuset);
-	ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
-
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
 	        opts->debug_level, opts->debug_level, NULL, 0, MLOG_LOGPID, 0);
@@ -72,13 +64,13 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	}      
 	if (!flag) {
 		//Initialize MPI with multiple thread support since MPI hasn't been initialized
-		ret = MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+		ret = MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
 		if (ret != MPI_SUCCESS) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM - Error while calling MPI_Init_thread");
 			exit(1);
 		}
 		//Quit if MPI didn't initialize with multiple threads
-		if (provided != MPI_THREAD_MULTIPLE) {
+		if (provided != MPI_THREAD_SERIALIZED) {
 			mlog(MDHIM_CLIENT_CRIT, "MDHIM - Error while initializing MPI with threads");
 			exit(1);
 		}
@@ -107,17 +99,17 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	}
 	
 	//Initialize mdhim_comm mutex
-	md->mdhim_comm_lock = malloc(sizeof(pthread_mutex_t));
-	if (!md->mdhim_comm_lock) {
+	md->mpi_lock = malloc(sizeof(pthread_mutex_t));
+	if (!md->mpi_lock) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while allocating memory for client", 
 		     md->mdhim_rank);
 		return NULL;
 	}
 
-	if ((ret = pthread_mutex_init(md->mdhim_comm_lock, NULL)) != 0) {    
+	if ((ret = pthread_mutex_init(md->mpi_lock, NULL)) != 0) {    
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "Error while initializing mdhim_comm_lock", md->mdhim_rank);
+		     "Error while initializing mpi_lock", md->mdhim_rank);
 		return NULL;
 	}
 
@@ -195,7 +187,7 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	
 	//Set the local receive queue to NULL - used for sending and receiving to/from ourselves
 	md->receive_msg = NULL;
-	MPI_Barrier(md->mdhim_client_comm);
+	//	MPI_Barrier(md->mdhim_client_comm);
 
 	return md;
 }
@@ -212,7 +204,7 @@ int mdhimClose(struct mdhim_t *md) {
 
 	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank %d: Called close", md->mdhim_rank);
 	gettimeofday(&start, NULL);
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 	gettimeofday(&end, NULL);
 	printf("Took: %lu seconds to complete first close barrier\n", end.tv_sec - start.tv_sec);
 
@@ -249,13 +241,13 @@ int mdhimClose(struct mdhim_t *md) {
 	free(md->indexes_lock);
 
 	gettimeofday(&start, NULL);
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 	//Destroy the client_comm_lock
-	if ((ret = pthread_mutex_destroy(md->mdhim_comm_lock)) != 0) {
+	if ((ret = pthread_mutex_destroy(md->mpi_lock)) != 0) {
 		return MDHIM_ERROR;
 	}
 	gettimeofday(&end, NULL);
-	free(md->mdhim_comm_lock);    
+	free(md->mpi_lock);    
 	printf("Took: %lu seconds to complete the second close barrier\n", end.tv_sec - start.tv_sec);
 	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank %d: Finished close", md->mdhim_rank);
 
@@ -280,7 +272,7 @@ int mdhimCommit(struct mdhim_t *md, struct index_t *index) {
 	struct mdhim_basem_t *cm;
 	struct mdhim_rm_t *rm = NULL;
 
-	MPI_Barrier(md->mdhim_client_comm);      
+	ibarrier(md, md->mdhim_client_comm);
 	//If I'm a range server, send a commit message to myself
 	if (im_range_server(index)) {       
 		cm = malloc(sizeof(struct mdhim_basem_t));
@@ -300,7 +292,7 @@ int mdhimCommit(struct mdhim_t *md, struct index_t *index) {
 		}
 	}
 
-	MPI_Barrier(md->mdhim_client_comm);      
+	ibarrier(md, md->mdhim_client_comm);
 
 	return ret;
 }
@@ -848,13 +840,13 @@ struct mdhim_brm_t *mdhimBDelete(struct mdhim_t *md, struct index_t *index,
 int mdhimStatFlush(struct mdhim_t *md, struct index_t *index) {
 	int ret;
 
-	MPI_Barrier(md->mdhim_client_comm);	
+	ibarrier(md, md->mdhim_client_comm);	
 	if ((ret = get_stat_flush(md, index)) != MDHIM_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Error while getting MDHIM stat data in mdhimStatFlush", 
 		     md->mdhim_rank);
 	}
-	MPI_Barrier(md->mdhim_client_comm);	
+	ibarrier(md, md->mdhim_client_comm);	
 
 	return ret;
 }

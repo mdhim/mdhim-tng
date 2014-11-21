@@ -41,7 +41,7 @@ struct mdhim_t {
 	//This communicator will include every process in the application, but is separate from main the app
         //It is used for sending and receiving to and from the range servers
 	MPI_Comm mdhim_comm;   
-	pthread_mutex_t *mdhim_comm_lock;
+	pthread_mutex_t *mpi_lock;
 
 	//This communicator will include every process in the application, but is separate from the app
         //It is used for barriers for clients

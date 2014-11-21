@@ -96,15 +96,15 @@ int main(int argc, char **argv) {
 	mdhim_options_set_debug_level(db_opts, dbug);
 
 	//Initialize MPI with multiple thread support
-	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
+	ret = MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
 	if (ret != MPI_SUCCESS) {
 		printf("Error initializing MPI with threads\n");
 		exit(1);
 	}
 
 	//Quit if MPI didn't initialize with multiple threads
-	if (provided != MPI_THREAD_MULTIPLE) {
-                printf("Not able to enable MPI_THREAD_MULTIPLE mode\n");
+	if (provided != MPI_THREAD_SERIALIZED) {
+                printf("Not able to enable MPI_THREAD_SERIALIZED mode\n");
                 exit(1);
         }
 

@@ -481,11 +481,14 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex) {
 	int i = 0;
 	int ret;
 
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
 		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in get_num_range_servers", 
 		     md->mdhim_rank);
+		pthread_mutex_unlock(md->mpi_lock);
 		return MDHIM_ERROR;
 	}
+	pthread_mutex_unlock(md->mpi_lock);
 
 	/* Get the number of range servers */
 	if (size - 1 < rindex->range_server_factor) {
@@ -517,7 +520,7 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 	uint32_t rangesrv_num;
 	int ret;
 
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 
 	//Check that the key type makes sense
 	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
@@ -635,7 +638,7 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 	uint32_t rangesrv_num;
 	int ret;
 
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 
 	//Check that the key type makes sense
 	if (key_type < MDHIM_INT_KEY || key_type > MDHIM_BYTE_KEY) {
@@ -800,11 +803,14 @@ uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index) {
 		return rangesrv_num;
 	}
 
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &size)) != MPI_SUCCESS) {
 		mlog(MPI_EMERG, "Rank: %d - Couldn't get the size of the comm in is_range_server", 
 		     md->mdhim_rank);
+		pthread_mutex_unlock(md->mpi_lock);
 		return MDHIM_ERROR;
 	}
+	pthread_mutex_unlock(md->mpi_lock);
 
 	/* Get the range server number, which is just a number from 1 onward
 	   It represents the ranges the server serves and is calculated with the RANGE_SERVER_FACTOR
@@ -869,7 +875,9 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 			size++;
 		}
 	} else {
+		pthread_mutex_lock(md->mpi_lock);
 		MPI_Comm_size(md->mdhim_comm, &comm_size);
+		pthread_mutex_unlock(md->mpi_lock);
 		ranks = malloc(sizeof(int) * comm_size);
 		for (i = 0; i < comm_size; i++) {
 			HASH_FIND_INT(bi->rangesrvs_by_rank, &i, rangesrv);
@@ -882,28 +890,37 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 		}
 	}
 
+	pthread_mutex_lock(md->mpi_lock);
 	//Create a new group with the range servers only
 	if ((ret = MPI_Comm_group(md->mdhim_comm, &orig)) != MPI_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while creating a new group in range_server_init_comm", 
 		     md->mdhim_rank);
+		pthread_mutex_unlock(md->mpi_lock);
 		return MDHIM_ERROR;
 	}
+	pthread_mutex_unlock(md->mpi_lock);
 
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Group_incl(orig, size, ranks, &new_group)) != MPI_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while creating adding ranks to the new group in range_server_init_comm", 
 		     md->mdhim_rank);
+		pthread_mutex_unlock(md->mpi_lock);
 		return MDHIM_ERROR;
 	}
+	pthread_mutex_unlock(md->mpi_lock);
 
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Comm_create(md->mdhim_comm, new_group, &new_comm)) 
 	    != MPI_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "MDHIM Rank: %d - " 
 		     "Error while creating the new communicator in range_server_init_comm", 
 		     md->mdhim_rank);
+		pthread_mutex_unlock(md->mpi_lock);
 		return MDHIM_ERROR;
 	}
+
 	if ((ret = im_range_server(bi)) == 1) {
 		memcpy(&bi->rs_comm, &new_comm, sizeof(MPI_Comm));
 	} else {
@@ -912,6 +929,8 @@ int index_init_comm(struct mdhim_t *md, struct index_t *bi) {
 
 	MPI_Group_free(&orig);
 	MPI_Group_free(&new_group);
+	pthread_mutex_unlock(md->mpi_lock);
+
 	free(ranks);
 	return MDHIM_SUCCESS;
 }
@@ -1003,7 +1022,7 @@ void indexes_release(struct mdhim_t *md) {
 	}
 }
 
-int pack_stats(struct index_t *index, void *buf, int size, 
+int pack_stats(struct mdhim_t *md, struct index_t *index, void *buf, int size, 
 	       int float_type, int stat_size, MPI_Comm comm) {
 	
 	struct mdhim_stat *stat, *tmp;
@@ -1033,15 +1052,18 @@ int pack_stats(struct index_t *index, void *buf, int size,
 		}
 		  
 		//Pack the struct
+		pthread_mutex_lock(md->mpi_lock);
 		if ((ret = MPI_Pack(tstat, stat_size, MPI_CHAR, buf, size, &sendidx, 
 				    comm)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Error packing buffer when sending stat info" 
 			     " to master range server");
 			free(buf);
 			free(tstat);
+			pthread_mutex_unlock(md->mpi_lock);
 			return ret;
 		}
 
+		pthread_mutex_unlock(md->mpi_lock);
 		free(tstat);
 	}
 
@@ -1091,11 +1113,14 @@ int get_stat_flush_global(struct mdhim_t *md, struct index_t *index) {
 
 	if (index->myinfo.rangesrv_num > 0) {	
 		//Get the master range server rank according the range server comm
+		pthread_mutex_lock(md->mpi_lock);
 		if ((ret = MPI_Comm_size(index->rs_comm, &master)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
 			     "Error getting size of comm", 
 			     md->mdhim_rank);			
 		}		
+		pthread_mutex_unlock(md->mpi_lock);
+
 		//The master rank is the last rank in range server comm
 		master--;
 
@@ -1104,17 +1129,20 @@ int get_stat_flush_global(struct mdhim_t *md, struct index_t *index) {
 		recvsize = index->num_rangesrvs * sizeof(int);
 		recvbuf = malloc(recvsize);
 		memset(recvbuf, 0, recvsize);
-		MPI_Barrier(index->rs_comm);
+		ibarrier(md, index->rs_comm);
 		//The master server will receive the number of stats each server has
+		pthread_mutex_lock(md->mpi_lock);
 		if ((ret = MPI_Gather(&num_items, 1, MPI_UNSIGNED, recvbuf, 1,
 				      MPI_INT, master, index->rs_comm)) != MPI_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - " 
 			     "Error while receiving the number of statistics from each range server", 
 			     md->mdhim_rank);
 			free(recvbuf);
+			pthread_mutex_unlock(md->mpi_lock);
 			goto error;
 		}
-		
+		pthread_mutex_unlock(md->mpi_lock);		
+
 		num_items = 0;
 		displs = malloc(sizeof(int) * index->num_rangesrvs);
 		recvcounts = malloc(sizeof(int) * index->num_rangesrvs);
@@ -1131,8 +1159,8 @@ int get_stat_flush_global(struct mdhim_t *md, struct index_t *index) {
 		sendbuf = malloc(sendsize);		  
 
 		//Pack the stat data I have by iterating through the stats hash table
-		ret =  pack_stats(index, sendbuf, sendsize,
-				  float_type, stat_size, index->rs_comm);
+		ret = pack_stats(md, index, sendbuf, sendsize,
+				 float_type, stat_size, index->rs_comm);
 		if (ret != MPI_SUCCESS) {
 			free(recvbuf);
 			goto error;
@@ -1148,32 +1176,38 @@ int get_stat_flush_global(struct mdhim_t *md, struct index_t *index) {
 			recvsize = 0;
 		}
 
-		MPI_Barrier(index->rs_comm);
+		ibarrier(md, index->rs_comm);
+		pthread_mutex_lock(md->mpi_lock);
 		//The master server will receive the stat info from each rank in the range server comm
 		if ((ret = MPI_Gatherv(sendbuf, sendsize, MPI_PACKED, recvbuf, recvcounts, displs,
 				       MPI_PACKED, master, index->rs_comm)) != MPI_SUCCESS) {
 			mlog(MDHIM_SERVER_CRIT, "Rank: %d - " 
 			     "Error while receiving range server info", 
-			     md->mdhim_rank);			
+			     md->mdhim_rank);	
+			pthread_mutex_unlock(md->mpi_lock);
 			goto error;
 		}
+		pthread_mutex_unlock(md->mpi_lock);
 
 		free(recvcounts);
 		free(displs);
 		free(sendbuf);	
 	} 
 
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 	//The master range server broadcasts the number of stats it is going to send
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Bcast(&num_items, 1, MPI_UNSIGNED, index->rangesrv_master,
 			     md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "Rank: %d - " 
 		     "Error while receiving the number of stats to receive", 
 		     md->mdhim_rank);
+		pthread_mutex_unlock(md->mpi_lock);
 		goto error;
 	}
-
-	MPI_Barrier(md->mdhim_client_comm);
+	
+	pthread_mutex_unlock(md->mpi_lock);
+	ibarrier(md, md->mdhim_client_comm);
 
 	recvsize = num_items * stat_size;
 	//Allocate the receive buffer size for clients
@@ -1183,28 +1217,35 @@ int get_stat_flush_global(struct mdhim_t *md, struct index_t *index) {
 	}
 	
 	//The master range server broadcasts the receive buffer to the mdhim_comm
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Bcast(recvbuf, recvsize, MPI_PACKED, index->rangesrv_master,
 			     md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MPI_CRIT, "Rank: %d - " 
 		     "Error while receiving range server info", 
 		     md->mdhim_rank);
+		pthread_mutex_unlock(md->mpi_lock);
 		goto error;
 	}
+	pthread_mutex_unlock(md->mpi_lock);
+
 
 	//Unpack the receive buffer and populate our index->stats hash table
 	recvidx = 0;
 	for (i = 0; i < recvsize; i+=stat_size) {
 		tstat = malloc(stat_size);
 		memset(tstat, 0, stat_size);
+		pthread_mutex_lock(md->mpi_lock);
 		if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, tstat, stat_size, 
 				      MPI_CHAR, md->mdhim_comm)) != MPI_SUCCESS) {
 			mlog(MPI_CRIT, "Rank: %d - " 
 			     "Error while unpacking stat data", 
 			     md->mdhim_rank);
 			free(tstat);
+			pthread_mutex_unlock(md->mpi_lock);
 			goto error;
 		}	
 
+		pthread_mutex_unlock(md->mpi_lock);
 		stat = malloc(sizeof(struct mdhim_stat));
 		stat->dirty = 0;
 		if (float_type) {
@@ -1291,17 +1332,20 @@ int get_stat_flush_local(struct mdhim_t *md, struct index_t *index) {
 	recvsize = md->mdhim_comm_size * sizeof(int);
 	recvbuf = malloc(recvsize);
 	memset(recvbuf, 0, recvsize);
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 	//All gather the number of items to send
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Allgather(&num_items, 1, MPI_UNSIGNED, recvbuf, 1,
 				 MPI_INT, md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - " 
 		     "Error while receiving the number of statistics from each range server", 
 		     md->mdhim_rank);
 		free(recvbuf);
+		pthread_mutex_unlock(md->mpi_lock);
 		goto error;
 	}
-		
+	pthread_mutex_unlock(md->mpi_lock);
+
 	num_items = 0;
 	displs = malloc(sizeof(int) * md->mdhim_comm_size);
 	recvcounts = malloc(sizeof(int) * md->mdhim_comm_size);
@@ -1319,8 +1363,8 @@ int get_stat_flush_local(struct mdhim_t *md, struct index_t *index) {
 		sendbuf = malloc(sendsize);		  
 	
 		//Pack the stat data I have by iterating through the stats hash table
-		ret =  pack_stats(index, sendbuf, sendsize,
-				  float_type, stat_size, md->mdhim_comm);
+		ret = pack_stats(md, index, sendbuf, sendsize,
+				 float_type, stat_size, md->mdhim_comm);
 		if (ret != MPI_SUCCESS) {
 			free(recvbuf);
 			goto error;
@@ -1333,22 +1377,25 @@ int get_stat_flush_local(struct mdhim_t *md, struct index_t *index) {
 	recvbuf = malloc(recvsize);
 	memset(recvbuf, 0, recvsize);		
 
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 	//The master server will receive the stat info from each rank in the range server comm
+	pthread_mutex_lock(md->mpi_lock);
 	if ((ret = MPI_Allgatherv(sendbuf, sendsize, MPI_PACKED, recvbuf, recvcounts, displs,
 				   MPI_PACKED, md->mdhim_comm)) != MPI_SUCCESS) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - " 
 		     "Error while receiving range server info", 
 		     md->mdhim_rank);			
+		pthread_mutex_unlock(md->mpi_lock);
 		goto error;
 	}
+	pthread_mutex_unlock(md->mpi_lock);
 
 	free(recvcounts);
 	free(displs);
 	free(sendbuf);	
 
 
-	MPI_Barrier(md->mdhim_client_comm);
+	ibarrier(md, md->mdhim_client_comm);
 
 	//Unpack the receive buffer and populate our index->stats hash table
 	recvidx = 0;
@@ -1374,14 +1421,17 @@ int get_stat_flush_local(struct mdhim_t *md, struct index_t *index) {
 		for (j = 0; j < num_items_to_recv[i]; j++) {
 			tstat = malloc(stat_size);
 			memset(tstat, 0, stat_size);
+			pthread_mutex_lock(md->mpi_lock);
 			if ((ret = MPI_Unpack(recvbuf, recvsize, &recvidx, tstat, stat_size, 
 					      MPI_CHAR, md->mdhim_comm)) != MPI_SUCCESS) {
 				mlog(MPI_CRIT, "Rank: %d - " 
 				     "Error while unpacking stat data", 
 				     md->mdhim_rank);
 				free(tstat);
+				pthread_mutex_unlock(md->mpi_lock);
 				goto error;
 			}	
+			pthread_mutex_unlock(md->mpi_lock);
 
 			stat = malloc(sizeof(struct mdhim_stat));
 			stat->dirty = 0;
@@ -1442,15 +1492,11 @@ error:
 int get_stat_flush(struct mdhim_t *md, struct index_t *index) {
 	int ret;
 
-	pthread_mutex_lock(md->mdhim_comm_lock);
-
 	if (index->type != LOCAL_INDEX) {
 		ret = get_stat_flush_global(md, index);
 	} else {
 		ret = get_stat_flush_local(md, index);
 	}
-
-	pthread_mutex_unlock(md->mdhim_comm_lock);
 
 	return ret;
 }
