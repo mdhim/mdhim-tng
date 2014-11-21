@@ -4,6 +4,7 @@
  * MDHIM API implementation
  */
 
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -39,6 +40,8 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	struct mdhim_t *md;
 	struct index_t *primary_index;
 	MPI_Comm comm;
+	pthread_t thread;
+	cpu_set_t cpuset;
 
 	if (!opts) {
 		//Set default options if no options were passed
@@ -53,6 +56,11 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		mdhim_options_set_num_worker_threads(opts, 30);
 	}
 	
+	thread = pthread_self();
+	CPU_ZERO(&cpuset);
+	CPU_SET(0, &cpuset);
+	ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
 	        opts->debug_level, opts->debug_level, NULL, 0, MLOG_LOGPID, 0);

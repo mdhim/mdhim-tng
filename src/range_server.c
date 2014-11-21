@@ -4,6 +4,7 @@
  * Client specific implementation
  */
 
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -14,6 +15,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sched.h>
+#include <pthread.h>
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
@@ -991,14 +994,27 @@ respond:
  * Function for the thread that listens for new messages
  */
 void *listener_thread(void *data) {	
-	//Mlog statements could cause a deadlock on range_server_stop due to canceling of threads
-	
-
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	void *message;
 	int source; //The source of the message
-	int ret;
+	int ret, i;
 	work_item *item;
+	cpu_set_t cpuset;
+
+	ret = pthread_getaffinity_np(md->mdhim_rs->listener, sizeof(cpu_set_t), &cpuset);
+	if (ret != 0)
+		printf("Error getting thread affinity\n");
+	
+	CPU_ZERO(&cpuset);
+	for (i = 5; i < 8; i++) {
+		CPU_SET(i, &cpuset);
+	}
+	ret = pthread_setaffinity_np(md->mdhim_rs->listener, sizeof(cpu_set_t), &cpuset);
+
+	printf("Set returned by pthread_getaffinity_np() contained:\n");
+	for (i = 0; i < 8; i++)
+		if (CPU_ISSET(i, &cpuset))
+			printf("    CPU %d\n", i);
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -1224,7 +1240,8 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
  */
 int range_server_init(struct mdhim_t *md) {
 	int ret;
-	int i;
+	int i, j;
+	cpu_set_t cpuset;
 
 	//Allocate memory for the mdhim_rs_t struct
 	md->mdhim_rs = malloc(sizeof(struct mdhim_rs_t));
@@ -1302,6 +1319,25 @@ int range_server_init(struct mdhim_t *md) {
 			     md->mdhim_rank);
 			return MDHIM_ERROR;
 		}
+		
+		CPU_ZERO(&cpuset);
+		for (j = 1; j < 5; j++) {
+			CPU_SET(j, &cpuset);
+		}
+		ret = pthread_setaffinity_np(*md->mdhim_rs->workers[i], sizeof(cpu_set_t), &cpuset);
+		if (ret != 0)
+			printf("Error setting thread affinity\n");
+
+		ret = pthread_getaffinity_np(*md->mdhim_rs->workers[i], sizeof(cpu_set_t), &cpuset);
+		if (ret != 0)
+			printf("Error getting thread affinity\n");
+
+		printf("Set returned by pthread_getaffinity_np() contained:\n");
+		for (j = 0; j < 8; j++)
+			if (CPU_ISSET(j, &cpuset))
+				printf("    CPU %d\n", j);
+
+		
 	}
 
 	//Initialize listener threads
