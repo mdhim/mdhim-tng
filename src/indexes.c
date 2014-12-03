@@ -1039,8 +1039,13 @@ get_index_by_name ( struct mdhim_t *md, char index_name[] )
         lower_name[i] = tolower(index_name[i]);
     }
 
+    for(index=md->indexes_by_name; index!=NULL; index=index->hh_name.next) {
+        printf("Index id %d: name %s", index->id, index->name);
+    }
+
+
     if ( strcmp(lower_name, "") != 0 ) {
-        HASH_FIND_STR(md->indexes, lower_name, index);
+        HASH_FIND_STR(md->indexes_by_name, lower_name, index);
     }
 
     if ( pthread_rwlock_unlock(md->indexes_lock) !=0 ) {

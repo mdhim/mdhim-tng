@@ -63,6 +63,7 @@ struct mdhim_basem_t {
 	int size;
 	int index;
 	int index_type;
+	char *index_name;
 };
 
 /* Put message */

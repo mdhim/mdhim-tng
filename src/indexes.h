@@ -82,6 +82,7 @@ typedef struct index_manifest_t {
 			   (PRIMARY_INDEX, SECONDARY_INDEX) */
 	int index_id; /* The id of the index in the hash table */
 	int primary_id;
+	char *index_name; /* The name of the index in the hash table */
 	int db_type;
 	uint32_t num_rangesrvs;
 	int rangesrv_factor;

@@ -200,6 +200,7 @@ struct mdhim_brm_t *_bput_records(struct mdhim_t *md, struct index_t *index,
 				bpm->mtype = MDHIM_BULK_PUT;
 				bpm->index = put_index->id;
 				bpm->index_type = put_index->type;
+				mlog(MDHIM_CLIENT_CRIT, "Index %d has name %s", put_index->id, put_index->name);
 				if (rl->ri->rank != md->mdhim_rank) {
 					bpm_list[rl->ri->rangesrv_num - 1] = bpm;
 				} else {
