@@ -103,7 +103,7 @@ int read_manifest(struct mdhim_t *md, struct index_t *index) {
 	if ((fd = open_manifest(md, index, O_RDWR)) < 0) {
 		mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't open manifest file", 
 		     md->mdhim_rank);
-		return MDHIM_ERROR;
+		return MDHIM_SUCCESS;
 	}
 
 	if ((ret = read(fd, &manifest, sizeof(manifest))) < 0) {
