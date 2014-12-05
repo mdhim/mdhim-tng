@@ -415,7 +415,7 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
  */
 
 int open_db_store(struct mdhim_t *md, struct index_t *index) {
-	char filename[PATH_MAX];
+	char filename[PATH_MAX] = {'\0'};
 	int flags = MDHIM_CREATE;
 	int path_num;
 	int ret;

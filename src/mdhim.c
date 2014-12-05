@@ -97,7 +97,13 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}
-	
+
+	//Get our rank in the main MDHIM communicator
+	if ((ret = MPI_Comm_rank(md->mdhim_comm, &md->mdhim_rank)) != MPI_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Error getting our rank while initializing MDHIM");
+		return NULL;
+	}
+
 	//Initialize mdhim_comm mutex
 	md->mdhim_comm_lock = malloc(sizeof(pthread_mutex_t));
 	if (!md->mdhim_comm_lock) {
@@ -119,12 +125,6 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		return NULL;
 	}
 
-	//Get our rank in the main MDHIM communicator
-	if ((ret = MPI_Comm_rank(md->mdhim_comm, &md->mdhim_rank)) != MPI_SUCCESS) {
-		mlog(MDHIM_CLIENT_CRIT, "Error getting our rank while initializing MDHIM");
-		return NULL;
-	}
- 
 	//Get the size of the main MDHIM communicator
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &md->mdhim_comm_size)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error getting the size of the " 
