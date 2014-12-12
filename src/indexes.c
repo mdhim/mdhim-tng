@@ -505,7 +505,7 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex) {
  * @param  md  main MDHIM struct
  * @return     MDHIM_ERROR on error, otherwise the index identifier
  */
-struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, char index_name[]) {
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, char *index_name) {
 	struct index_t *li;
 	struct index_t *check = NULL;
 	uint32_t rangesrv_num;
@@ -544,8 +544,10 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 	li->stats = NULL;
 
     if (index_name != NULL) {
-        size_t name_len = strlen(index_name);
-        char lower_name[name_len];
+        size_t name_len = strlen(index_name)+1;
+        char *lower_name;
+        lower_name = malloc(name_len);
+        memset(lower_name, 0, name_len);
 
         // Make sure that the name passed is lowercase
         int i=0;
@@ -559,8 +561,8 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
             goto done;
         }
 
-        li->name = malloc(sizeof(char)*name_len);
-        strcpy(li->name, lower_name);
+        li->name = malloc(name_len);
+        memcpy(li->name, lower_name, name_len);
 
     } else {
         char buf[50];
@@ -658,7 +660,7 @@ done:
 
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    int max_recs_per_slice, 
-				    int db_type, int key_type, char index_name[]) {
+				    int db_type, int key_type, char *index_name) {
 	struct index_t *gi;
 	struct index_t *check = NULL;
 	uint32_t rangesrv_num;
@@ -708,8 +710,10 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 
         if (index_name != NULL) {
 
-            size_t name_len = strlen(index_name);
-            char lower_name[name_len];
+            size_t name_len = strlen(index_name)+1;
+            char *lower_name;
+            lower_name = malloc(name_len);
+            memset(lower_name, 0, name_len);
             // Make sure that the name passed is lowercase
             int i=0;
             for(i=0; i < name_len; i++) {
@@ -722,8 +726,8 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
                 goto done;
             }
 
-            gi->name = malloc(sizeof(char)*name_len);
-            strcpy(gi->name, lower_name);
+            gi->name = malloc(name_len);
+            memcpy(gi->name, lower_name, name_len);
 
         } else {
             char buf[50];
@@ -1003,7 +1007,7 @@ struct index_t *get_index(struct mdhim_t *md, int index_id) {
 	
 	index = NULL;
 	if (index_id >= 0) {
-		HASH_FIND_INT(md->indexes, &index_id, index);
+		HASH_FIND(hh, md->indexes, &index_id, sizeof(int), index);
 	}
 
 	if (pthread_rwlock_unlock(md->indexes_lock) != 0) {
@@ -1023,11 +1027,13 @@ struct index_t *get_index(struct mdhim_t *md, int index_id) {
  * =====================================================================================
  */
 struct index_t*
-get_index_by_name ( struct mdhim_t *md, char index_name[] )
+get_index_by_name ( struct mdhim_t *md, char *index_name )
 {
     struct index_t *index = NULL;
-    size_t name_len = strlen(index_name);
-    char lower_name[name_len];
+    size_t name_len = strlen(index_name)+1;
+    char *lower_name;
+    lower_name = malloc(name_len);
+    memset(lower_name, 0, name_len);
     int i=0;
 
     // Acquire the lock to update indexes
@@ -1039,13 +1045,8 @@ get_index_by_name ( struct mdhim_t *md, char index_name[] )
         lower_name[i] = tolower(index_name[i]);
     }
 
-    for(index=md->indexes_by_name; index!=NULL; index=index->hh_name.next) {
-        printf("Index id %d: name %s", index->id, index->name);
-    }
-
-
     if ( strcmp(lower_name, "") != 0 ) {
-        HASH_FIND_STR(md->indexes_by_name, lower_name, index);
+        HASH_FIND(hh_name, md->indexes_by_name, lower_name, strlen(lower_name), index);
     }
 
     if ( pthread_rwlock_unlock(md->indexes_lock) !=0 ) {
@@ -1054,7 +1055,7 @@ get_index_by_name ( struct mdhim_t *md, char index_name[] )
         return NULL;
     }
 
-    return index;
+return index;
 }		/* -----  end of function get_index_by_name  ----- */
 
 void indexes_release(struct mdhim_t *md) {

@@ -108,6 +108,7 @@ int main(int argc, char **argv) {
                                               secondary_key_lens3, 1,
                                               SECONDARY_LOCAL_INFO);
 
+
     brm = mdhimPut(md, &key, sizeof(key), &value, sizeof(value), NULL, secondary_info);
 
     if (!brm || brm->error) {
@@ -177,49 +178,80 @@ int main(int argc, char **argv) {
         printf("Got stats\n");
     }
 
-    //int i;
-    //for(i=0;i<3;i++) {
-    //    switch(i) {
-    //        case(0):
-    //            HASH_FIND_STR(md->indexes_by_name, "test1", secondary_local_index_by_name);
-    //            break;
-    //        case(1):
-    //            HASH_FIND_STR(md->indexes_by_name, &secondary_local_index2->name, secondary_local_index_by_name);
-    //            break;
-    //        case(2):
-    //            HASH_FIND_STR(md->indexes_by_name, &secondary_local_index3->name, secondary_local_index_by_name);
-    //            break;
-    //        default:
-    //            break;
-    //    }
-    //    if(secondary_local_index_by_name) {
-    //        printf("Index id %d: name %s\n", secondary_local_index_by_name->id, secondary_local_index_by_name->name);
-    //    }
-    //}
+    secondary_local_index_by_name = NULL;
+ 
+    MPI_Barrier(MPI_COMM_WORLD);
 
-    //printf("Attempting to get secondary_local_index 'Test1'\n");
+    printf("[RANK %d] - Attempting to get secondary_local_index '%s'\n", md->mdhim_rank, secondary_local_index->name);
     secondary_local_index_by_name = get_index_by_name(md,secondary_local_index->name);
-    //if(secondary_local_index_by_name && strcmp(secondary_local_index_by_name->name,secondary_local_index->name)==0) {
-    //    printf("Found secondary_local_index %s\n",secondary_local_index_by_name->name);
-    //} else {
-    //    printf("Error finding secondary_local_index by name 'Test1'\n");
-    //}
+    if(secondary_local_index_by_name && strcmp(secondary_local_index_by_name->name,secondary_local_index->name)==0) {
+        printf("[RANK %d] - Found secondary_local_index %s\n",md->mdhim_rank, secondary_local_index_by_name->name);
+    } else {
+        printf("[RANK %d] - Error finding secondary_local_index by name '%s'\n", md->mdhim_rank, secondary_local_index->name);
+    }
 
-    //printf("Attempting to get secondary_local_index 'Test2'\n");
+    // Get the primary key values from the secondary local key
+    value = 0;
+    bgrm = mdhimGet(md, secondary_local_index,
+            &secondary_keys[0][0],
+            secondary_key_lens[0],
+            MDHIM_GET_PRIMARY_EQ);
+
+    if(!bgrm || bgrm->error) {
+        printf("Error getting value for key: %d from MDHIM\n", key);
+    }else if (bgrm->value_lens[0]) {
+        printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
+    }
+
+    mdhim_full_release_msg(bgrm);
+
+    printf("[RANK %d] - Attempting to get secondary_local_index '%s'\n", md->mdhim_rank, secondary_local_index2->name);
     secondary_local_index_by_name = get_index_by_name(md,secondary_local_index2->name);
-    //if(secondary_local_index_by_name && strcmp(secondary_local_index_by_name->name,secondary_local_index2->name)==0) {
-    //    printf("Found secondary_local_index %s\n",secondary_local_index_by_name->name);
-    //} else {
-    //    printf("Error finding secondary_local_index by name 'Test2'\n");
-    //}
+    if(secondary_local_index_by_name && strcmp(secondary_local_index_by_name->name,secondary_local_index2->name)==0) {
+        printf("[RANK %d] - Found secondary_local_index %s\n",md->mdhim_rank, secondary_local_index_by_name->name);
+    } else {
+        printf("[RANK %d] - Error finding secondary_local_index by name '%s'\n", md->mdhim_rank, secondary_local_index2->name);
+    }
 
-    //printf("Attempting to get secondary_local_index 'Test3'\n");
+    // Get the primary key values from the secondary local key
+    value = 0;
+    bgrm = mdhimGet(md, secondary_local_index,
+            &secondary_keys[0][0],
+            secondary_key_lens[0],
+            MDHIM_GET_PRIMARY_EQ);
+
+    if(!bgrm || bgrm->error) {
+        printf("Error getting value for key: %d from MDHIM\n", key);
+    }else if (bgrm->value_lens[0]) {
+        printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
+    }
+
+    mdhim_full_release_msg(bgrm);
+
+    printf("[RANK %d] - Attempting to get secondary_local_index '%s'\n", md->mdhim_rank, secondary_local_index3->name);
     secondary_local_index_by_name = get_index_by_name(md,secondary_local_index3->name);
-    //if(secondary_local_index_by_name && strcmp(secondary_local_index_by_name->name,secondary_local_index3->name)==0) {
-    //    printf("Found secondary_local_index %s\n",secondary_local_index_by_name->name);
-    //} else {
-    //    printf("Error finding secondary_local_index by name 'Test3'\n");
-    //}
+
+    if(secondary_local_index_by_name && strcmp(secondary_local_index_by_name->name,secondary_local_index3->name)==0) {
+        printf("[RANK %d] - Found secondary_local_index %s\n",md->mdhim_rank, secondary_local_index_by_name->name);
+    } else {
+        printf("[RANK %d] - Error finding secondary_local_index by name '%s'\n", md->mdhim_rank, secondary_local_index3->name);
+    }
+
+    // Get the primary key values from the secondary local key
+    value = 0;
+    bgrm = mdhimGet(md, secondary_local_index,
+            &secondary_keys[0][0],
+            secondary_key_lens[0],
+            MDHIM_GET_PRIMARY_EQ);
+
+    if(!bgrm || bgrm->error) {
+        printf("Error getting value for key: %d from MDHIM\n", key);
+    }else if (bgrm->value_lens[0]) {
+        printf("Successfully got value: %d from MDHIM\n", *((int *) bgrm->values[0]));
+    }
+
+    mdhim_full_release_msg(bgrm);
+
 
     ret = mdhimClose(md);
     free(secondary_keys[0]);
