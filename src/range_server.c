@@ -4,7 +4,6 @@
  * Client specific implementation
  */
 
-#define _GNU_SOURCE
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -15,8 +14,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sched.h>
-#include <pthread.h>
 #include "mdhim.h"
 #include "range_server.h"
 #include "partitioner.h"
@@ -711,6 +708,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 			break;
 			/* Gets the first key/value */
 		case MDHIM_GET_FIRST:
+			printf("Trying to get the first\n");
 			if ((ret = 
 			     index->mdhim_store->get_next(index->mdhim_store->db_handle, 
 							  &bgm->keys[i], 0, &values[i], 
@@ -850,8 +848,8 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int sour
 		goto respond;
 	}
 
-	mlog(MDHIM_SERVER_CRIT, "Rank: %d - Num keys is: %d and num recs is: %d", 
-	     md->mdhim_rank, bgm->num_keys, bgm->num_recs);
+	//	mlog(MDHIM_SERVER_CRIT, "Rank: %d - Num keys is: %d and num recs is: %d", 
+	//    md->mdhim_rank, bgm->num_keys, bgm->num_recs);
 	gettimeofday(&start, NULL);
 	//Iterate through the arrays and get each record
 	for (i = 0; i < bgm->num_keys; i++) {
@@ -880,7 +878,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int sour
 					key_lens[num_records] = sizeof(int32_t);
 				}
 			case MDHIM_GET_NEXT:	
-				if (j && (ret = 
+				if ((ret = 
 					  index->mdhim_store->get_next(index->mdhim_store->db_handle, 
 								       get_key, get_key_len, 
 								       get_value, 
@@ -888,16 +886,6 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int sour
 				    != MDHIM_SUCCESS) {
 					mlog(MDHIM_SERVER_DBG, "Rank: %d - Couldn't get next record", 
 					     md->mdhim_rank);
-					error = ret;
-					key_lens[num_records] = 0;
-					value_lens[num_records] = 0;
-					goto respond;
-				} else if (!j && (ret = 
-						  index->mdhim_store->get(index->mdhim_store->db_handle, 
-									  *get_key, *get_key_len, 
-									  get_value, 
-									  get_value_len))
-					   != MDHIM_SUCCESS) {
 					error = ret;
 					key_lens[num_records] = 0;
 					value_lens[num_records] = 0;
@@ -994,27 +982,14 @@ respond:
  * Function for the thread that listens for new messages
  */
 void *listener_thread(void *data) {	
+	//Mlog statements could cause a deadlock on range_server_stop due to canceling of threads
+	
+
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	void *message;
 	int source; //The source of the message
-	int ret, i;
+	int ret;
 	work_item *item;
-	cpu_set_t cpuset;
-
-	ret = pthread_getaffinity_np(md->mdhim_rs->listener, sizeof(cpu_set_t), &cpuset);
-	if (ret != 0)
-		printf("Error getting thread affinity\n");
-	
-	CPU_ZERO(&cpuset);
-	for (i = 5; i < 8; i++) {
-		CPU_SET(i, &cpuset);
-	}
-	ret = pthread_setaffinity_np(md->mdhim_rs->listener, sizeof(cpu_set_t), &cpuset);
-
-	printf("Set returned by pthread_getaffinity_np() contained:\n");
-	for (i = 0; i < 8; i++)
-		if (CPU_ISSET(i, &cpuset))
-			printf("    CPU %d\n", i);
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -1193,9 +1168,9 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
 			continue;
 		}
 
-		pthread_mutex_lock(md->mdhim_comm_lock);
+		pthread_mutex_lock(md->mpi_lock);
 		ret = MPI_Test((MPI_Request *)item->req, &flag, &status); 
-		pthread_mutex_unlock(md->mdhim_comm_lock);
+		pthread_mutex_unlock(md->mpi_lock);
 
 		if (!flag) {
 			item = item->next;
@@ -1240,8 +1215,7 @@ int range_server_clean_oreqs(struct mdhim_t *md) {
  */
 int range_server_init(struct mdhim_t *md) {
 	int ret;
-	int i, j;
-	cpu_set_t cpuset;
+	int i;
 
 	//Allocate memory for the mdhim_rs_t struct
 	md->mdhim_rs = malloc(sizeof(struct mdhim_rs_t));
@@ -1319,25 +1293,6 @@ int range_server_init(struct mdhim_t *md) {
 			     md->mdhim_rank);
 			return MDHIM_ERROR;
 		}
-		
-		CPU_ZERO(&cpuset);
-		for (j = 1; j < 5; j++) {
-			CPU_SET(j, &cpuset);
-		}
-		ret = pthread_setaffinity_np(*md->mdhim_rs->workers[i], sizeof(cpu_set_t), &cpuset);
-		if (ret != 0)
-			printf("Error setting thread affinity\n");
-
-		ret = pthread_getaffinity_np(*md->mdhim_rs->workers[i], sizeof(cpu_set_t), &cpuset);
-		if (ret != 0)
-			printf("Error getting thread affinity\n");
-
-		printf("Set returned by pthread_getaffinity_np() contained:\n");
-		for (j = 0; j < 8; j++)
-			if (CPU_ISSET(j, &cpuset))
-				printf("    CPU %d\n", j);
-
-		
 	}
 
 	//Initialize listener threads

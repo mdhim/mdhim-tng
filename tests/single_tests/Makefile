@@ -7,9 +7,11 @@ all:	put-get bput-bget put-del bput-bdel put-getn \
 	put-get_secondary_local bput-bget_secondary_local \
 	put-getn_secondary put-getn_secondary_local \
 	put-del_secondary put-getp_secondary put-get_2secondary_local \
-	put-del_secondary_local plfs-put-get
+	put-del_secondary_local plfs-put-get grey_sort
 
 put-get: put-get.c 
+	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
+grey_sort: grey_sort.c 
 	$(CC) $< $(CINC) $(CLIBS) $(CFLAGS) -o $@
 
 plfs-put-get: plfs-put-get.c 
@@ -78,5 +80,5 @@ clean:
 		put-get_secondary put-get_secondary_local \
 		bput-bget_secondary_local put-getn_secondary_local \
 		put-getn_secondary put-del_secondary put-getp_secondary \
-		put-get_2secondary_local put-del_secondary_local plfs-put-get
+		put-get_2secondary_local put-del_secondary_local plfs-put-get grey_sort
 

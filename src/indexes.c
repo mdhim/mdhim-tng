@@ -155,6 +155,88 @@ int read_manifest(struct mdhim_t *md, struct index_t *index) {
 	return ret;
 }
 
+int dump_slices(struct mdhim_t *md, struct index_t *index) {
+	struct mdhim_stat *stat, *tmp;
+	int fd;
+	char filename[255];
+	void **val, *last_key, **new_key;
+        int *val_len, *key_len;
+        int num_read = 0;
+
+
+	val = malloc(sizeof(void *));	
+	val_len = malloc(sizeof(int));
+	key_len = malloc(sizeof(int));
+	new_key = malloc(sizeof(void *));
+
+	//Iterate through the stat hash entries
+	HASH_ITER(hh, index->mdhim_store->mdhim_store_stats, stat, tmp) {	
+		if (!stat) {
+			continue;
+		}
+
+		sprintf(filename, "%s%d", "/panfs/pas12a/vol2/hng/minutesort/output_slice_", stat->key);
+		if ((fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0600)) < 0) {
+		  printf("Error opening output file");
+		}
+
+		*val = NULL;
+		*val_len = 0;
+		num_read= 0;
+		last_key = malloc(stat->min_key_len);
+		*key_len = stat->min_key_len;
+		memcpy(last_key, stat->min_key, stat->min_key_len);
+//		printf("Getting key/value for: %.100s\n", (char *) last_key);
+		index->mdhim_store->get(index->mdhim_store->db_handle,
+					last_key, *key_len, (void **) val,
+					val_len);		
+		
+		num_read++;
+		if (!*key_len)
+   		  printf("Key lenth is zero for key: %.100s\n", (char *) last_key);
+
+		write(fd, last_key, *key_len);
+		if (!*val || !val_len) {
+			printf("Empty value for key when dumping slices\n");
+			continue;
+		} else {
+			free(*val);
+                }
+
+		*new_key = last_key;
+		while (num_read < stat->num) {
+			index->mdhim_store->get_next(index->mdhim_store->db_handle,
+						     new_key, key_len, (void **) val,
+						     val_len);
+			write(fd, *new_key, *key_len);			
+			num_read++;
+			if (last_key) {
+				free(last_key);
+				last_key = NULL;
+			}
+			if (*val) {
+				free(*val);
+			}
+			last_key = *new_key;
+		}
+
+		close (fd);
+
+		if (last_key) {
+			free(last_key);
+		}		
+
+	}
+
+	free(new_key);
+	free(val);
+	free(val_len);
+	free(key_len);
+
+	return MDHIM_SUCCESS;
+  
+}
+
 /**
  * update_stat
  * Adds or updates the given stat to the hash table
@@ -166,10 +248,11 @@ int read_manifest(struct mdhim_t *md, struct index_t *index) {
  */
 int update_stat(struct mdhim_t *md, struct index_t *index, void *key, uint32_t key_len) {
 	int slice_num;
+	int fd;
 	void *val1, *val2;
 	int float_type = 0;
 	struct mdhim_stat *os, *stat;
-
+	char filename[255];
 	//Acquire the lock to update the stats
 	while (pthread_rwlock_wrlock(index->mdhim_store->mdhim_store_stats_lock) == EBUSY) {
 		usleep(10);
@@ -199,8 +282,8 @@ int update_stat(struct mdhim_t *md, struct index_t *index, void *key, uint32_t k
 		*(uint64_t *)val1 = *(uint64_t *) key;
 		*(uint64_t *)val2 = *(uint64_t *) key;
 	} else if (index->key_type == MDHIM_BYTE_KEY) {
-		*(long double *)val1 = get_byte_num(key, key_len);
-		*(long double *)val2 = *(long double *)val1;
+		*(uint64_t *)val1 = get_byte_num(key, key_len);
+		*(uint64_t *)val2 = *(uint64_t *)val1;
 	} 
 
 	slice_num = get_slice_num(md, index, key, key_len);
@@ -213,14 +296,20 @@ int update_stat(struct mdhim_t *md, struct index_t *index, void *key, uint32_t k
 	stat->num = 1;
 	stat->key = slice_num;
 	stat->dirty = 1;
-
+	memset(stat->min_key, 0, MAX_KEY_LEN);
+	memcpy(stat->min_key, key, key_len);
+	stat->min_key_len = key_len;
 	if (float_type && os) {
 		if (*(long double *)os->min > *(long double *)val1) {
 			free(os->min);
 			stat->min = val1;
+			memcpy(stat->min_key, key, key_len);
+			stat->min_key_len = key_len;
 		} else {
 			free(val1);
 			stat->min = os->min;
+			memcpy(stat->min_key, os->min_key, os->min_key_len);
+			stat->min_key_len = os->min_key_len;
 		}
 
 		if (*(long double *)os->max < *(long double *)val2) {
@@ -235,9 +324,13 @@ int update_stat(struct mdhim_t *md, struct index_t *index, void *key, uint32_t k
 		if (*(uint64_t *)os->min > *(uint64_t *)val1) {
 			free(os->min);
 			stat->min = val1;
+			memcpy(stat->min_key, key, key_len);
+			stat->min_key_len = key_len;
 		} else {
 			free(val1);
 			stat->min = os->min;
+			memcpy(stat->min_key, os->min_key, os->min_key_len);
+			stat->min_key_len = os->min_key_len;
 		}
 
 		if (*(uint64_t *)os->max < *(uint64_t *)val2) {
@@ -332,6 +425,9 @@ int load_stats(struct mdhim_t *md, struct index_t *index) {
 		stat->num = (*(struct mdhim_db_stat **)val)->num;
 		stat->key = **slice;
 		stat->dirty = 0;
+		memcpy(stat->min_key, (*(struct mdhim_db_stat **)val)->min_key, 
+		       (*(struct mdhim_db_stat **)val)->min_key_len);
+		stat->min_key_len = (*(struct mdhim_db_stat **)val)->min_key_len;
 		old_slice = *slice;
 		HASH_ADD_INT(index->mdhim_store->mdhim_store_stats, key, stat); 
 		free(*val);
@@ -361,6 +457,7 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 	struct mdhim_db_stat *dbstat;
 	int float_type = 0;
 
+	return MDHIM_SUCCESS;
 	float_type = is_float_key(bi->key_type);
 
 	//Iterate through the stat hash entries
@@ -388,6 +485,8 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 
 		dbstat->slice = stat->key;
 		dbstat->num = stat->num;
+		memcpy(dbstat->min_key, stat->min_key, stat->min_key_len);		
+		dbstat->min_key_len = stat->min_key_len;
 		//Write the key to the database		
 		bi->mdhim_store->put(bi->mdhim_store->db_stats, 
 				     &dbstat->slice, sizeof(int), dbstat, 

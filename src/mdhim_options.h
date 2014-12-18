@@ -50,6 +50,9 @@ typedef struct mdhim_options_t {
 	//MDHIM_DB_APPEND to append or MDHIM_DB_OVERWRITE (default)
 	int db_value_append;
         
+	//Convert single put/gets to bulk operations automatically
+	int convert_single_bulk;
+
 	//DEBUG level
 	int debug_level;
         
@@ -85,6 +88,7 @@ void mdhim_options_set_create_new_db(struct mdhim_options_t* opts, int create_ne
 void mdhim_options_set_login_c(struct mdhim_options_t* opts, char* db_hl, char *db_ln, char *db_pw, char *dbs_hl, char *dbs_ln, char *dbs_pw);
 void mdhim_options_set_debug_level(struct mdhim_options_t* opts, int dbug);
 void mdhim_options_set_value_append(struct mdhim_options_t* opts, int append);
+void mdhim_options_set_convert_single_bulk(mdhim_options_t *opts, int convert);
 void mdhim_options_set_server_factor(struct mdhim_options_t* opts, int server_factor);
 void mdhim_options_set_max_recs_per_slice(struct mdhim_options_t* opts, uint64_t max_recs_per_slice);
 void mdhim_options_set_num_worker_threads(struct mdhim_options_t* opts, int num_wthreads);

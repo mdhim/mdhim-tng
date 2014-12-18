@@ -24,6 +24,8 @@
 #define MDHIM_MIN_STAT 2
 #define MDHIM_NUM_STAT 3
 
+#define MIN_KEY_LEN 128
+
 struct mdhim_store_t;
 /* Function pointers for abstracting data stores */
 typedef int (*mdhim_store_open_fn_t)(void **db_handle, void **db_stats, char *path, int flags, 
@@ -46,13 +48,15 @@ typedef int (*mdhim_store_close_fn_t)(void *db_handle, void *db_stats);
 //Used for storing stats in a hash table
 struct mdhim_stat;
 struct mdhim_stat {
-	int key;                   //Key (slice number)
-	void *max;                 //Max key
-	void *min;                 //Min key
-	int dirty;                 //Wether this stat was updated or a new stat
-	uint64_t num;              //Number of keys in this slice
-	struct mdhim_stat *stats;  //Used for local index stats to create a multi-level hash table
-	UT_hash_handle hh;         /* makes this structure hashable */
+	int key;                    //Key (slice number)
+	void *max;                  //Max key stat (mary or may not be the actual key)
+	void *min;                  //Min key stat (may or may not be the actual key)
+        char min_key[MIN_KEY_LEN];  //The actual minumum key in this slice
+	int min_key_len;            //The length of the minimum key
+	int dirty;                  //Wether this stat was updated or a new stat
+	uint64_t num;               //Number of keys in this slice
+	struct mdhim_stat *stats;   //Used for local index stats to create a multi-level hash table
+	UT_hash_handle hh;          /* makes this structure hashable */
 };
 
 
@@ -63,6 +67,8 @@ struct mdhim_db_stat {
 	uint64_t imin;
 	long double dmax;
 	long double dmin;
+	char min_key[MIN_KEY_LEN];
+	int min_key_len;            //The length of the minimum key
 	uint64_t num;
 };
 

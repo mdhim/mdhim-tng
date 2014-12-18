@@ -25,7 +25,8 @@ struct mdhim_options_t *mdhim_options_init()
 	opts->db_key_type = 1;
 	opts->db_create_new = 1;
 	opts->db_value_append = MDHIM_DB_OVERWRITE;
-	
+	opts->convert_single_bulk = 0;
+
 	opts->db_host = "localhost";
 	opts->dbs_host = "localhost";
 	opts->db_user = "test";
@@ -160,6 +161,10 @@ void mdhim_options_set_debug_level(mdhim_options_t* opts, int dbug)
 void mdhim_options_set_value_append(mdhim_options_t* opts, int append)
 {
 	opts->db_value_append = append;
+};
+
+void mdhim_options_set_convert_single_bulk(mdhim_options_t *opts, int convert) {
+	opts->convert_single_bulk = convert;
 };
 
 void mdhim_options_set_server_factor(mdhim_options_t* opts, int server_factor)

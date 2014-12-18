@@ -43,14 +43,16 @@ long double get_str_num(void *key, uint32_t key_len) {
 
 uint64_t get_byte_num(void *key, uint32_t key_len) {
 	int i;
-	unsigned char val;
+	unsigned int val;
 	uint64_t byte_num;
 	
 	byte_num = 0;
 	//Iterate through each character to perform the algorithm mentioned above
-	for (i = 0; i < key_len; i++) {
-	  val = (int)(((char *) key)[i]);       
-		byte_num += val * powl(2, i);
+	for (i = 0; i < key_len && i < 6; i++) {
+//	for (i = 0; i < key_len; i++) {
+          val = (unsigned int)(((char *) key)[i]);
+          byte_num += val * powl(2, i);
+//	  byte_num += val;
 	}
 	
 	return byte_num;
@@ -230,7 +232,7 @@ int is_float_key(int type) {
 	} else if (type == MDHIM_LONG_INT_KEY) {
 		ret = 0;
 	} else if (type == MDHIM_BYTE_KEY) {
-		ret = 1;
+		ret = 0;
 	} 
 
 	return ret;

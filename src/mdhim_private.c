@@ -467,3 +467,5 @@ struct mdhim_brm_t *_bdel_records(struct mdhim_t *md, struct index_t *index,
 	//Return the head of the list
 	return brm_head;
 }
+
+

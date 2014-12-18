@@ -29,8 +29,8 @@ extern "C"
 //An arbitrary sized key
 #define MDHIM_BYTE_KEY 6
 
-//Maximum length of a key
-#define MAX_KEY_LEN 1048576
+//Maximum length of a key in bytes
+#define MAX_KEY_LEN 128
 
 /* The exponent used for the algorithm that determines the range server
 

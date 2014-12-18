@@ -24,6 +24,18 @@
  *
  */
 
+#define BUF_SIZE 100
+void **put_key_buf;
+int *put_key_lens;
+int put_key_idx;
+void **put_value_buf;
+int *put_value_lens;
+
+void **get_key_buf;
+int *get_key_lens;
+int get_key_idx;
+void **get_value_buf;
+int *get_value_lens;
 
 /**
  * mdhimInit
@@ -50,7 +62,7 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
                 mdhim_options_set_max_recs_per_slice(opts, 1000);
                 mdhim_options_set_key_type(opts, MDHIM_BYTE_KEY);
                 mdhim_options_set_debug_level(opts, MLOG_CRIT);
-		mdhim_options_set_num_worker_threads(opts, 30);
+//		mdhim_options_set_num_worker_threads(opts, 30);
 	}
 	
 	//Open mlog - stolen from plfs
@@ -192,6 +204,73 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	return md;
 }
 
+void flush_put_buf(struct mdhim_t *md) {
+	struct mdhim_brm_t *head;
+	int i, num_keys;
+
+	if (!put_key_idx) {
+		return;
+	}
+
+	num_keys = put_key_idx;
+	head = _bput_records(md, md->primary_index, put_key_buf, put_key_lens, 
+			     put_value_buf, put_value_lens, num_keys);
+	put_key_idx = 0;
+	if (head) {
+		mdhim_full_release_msg(head);
+	}
+
+	for (i = 0; i < num_keys; i++) {
+		free(put_key_buf[i]);
+		free(put_value_buf[i]);
+	}	
+}
+
+void flush_get_buf(struct mdhim_t *md) {
+	struct mdhim_bgetrm_t *head;
+	int num_keys, i;
+	
+	if (!get_key_idx) {
+		return;
+	}
+
+	num_keys = get_key_idx;
+	head = _bget_records(md, md->primary_index, get_key_buf, get_key_lens, 
+			     num_keys, num_keys, MDHIM_GET_EQ);
+	get_key_idx = 0;
+	if (head) {
+		mdhim_full_release_msg(head);
+	}
+	
+	for (i = 0; i < num_keys; i++) {
+		free(get_key_buf[i]);
+	}
+}
+
+void add_key_to_put_buf(struct mdhim_t *md, void *key, int key_len, 
+			void *value, int val_len) {
+	put_key_buf[put_key_idx] = malloc(key_len);
+	memcpy(put_key_buf[put_key_idx], key, key_len);
+	put_key_lens[put_key_idx] = key_len;
+	put_value_buf[put_key_idx] = malloc(val_len);
+	memcpy(put_value_buf[put_key_idx], value, val_len);
+	put_value_lens[put_key_idx] = val_len;
+	put_key_idx++;
+	if (put_key_idx >= BUF_SIZE - 1) {
+		flush_put_buf(md);
+	}
+}
+
+void add_key_to_get_buf(struct mdhim_t *md, void *key, int key_len) {
+	get_key_buf[get_key_idx] = malloc(key_len);
+	memcpy(get_key_buf[get_key_idx], key, key_len);
+	get_key_lens[get_key_idx] = key_len;
+	get_key_idx++;
+	if (get_key_idx >= BUF_SIZE - 1) {
+		flush_get_buf(md);
+	}
+}
+
 /**
  * Quits the MDHIM instance - collective call
  *
@@ -202,11 +281,13 @@ int mdhimClose(struct mdhim_t *md) {
 	int ret;
 	struct timeval start, end;
 
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank %d: Called close", md->mdhim_rank);
 	gettimeofday(&start, NULL);
 	ibarrier(md, md->mdhim_client_comm);
 	gettimeofday(&end, NULL);
-	printf("Took: %lu seconds to complete first close barrier\n", end.tv_sec - start.tv_sec);
+
+	if (md->mdhim_rs) {
+	  dump_slices(md, md->primary_index);
+	}
 
 	gettimeofday(&start, NULL);
 	//Stop range server if I'm a range server	
@@ -215,7 +296,6 @@ int mdhimClose(struct mdhim_t *md) {
 	}
 	
 	gettimeofday(&end, NULL);
-	printf("Took: %lu seconds to stop the range server\n", end.tv_sec - start.tv_sec);
 
 	//Free up memory used by the partitioner
 	partitioner_release();
@@ -248,8 +328,6 @@ int mdhimClose(struct mdhim_t *md) {
 	}
 	gettimeofday(&end, NULL);
 	free(md->mpi_lock);    
-	printf("Took: %lu seconds to complete the second close barrier\n", end.tv_sec - start.tv_sec);
-	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank %d: Finished close", md->mdhim_rank);
 
 	MPI_Comm_free(&md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_comm);
@@ -330,6 +408,12 @@ struct mdhim_brm_t *mdhimPut(struct mdhim_t *md,
 	head = NULL;
 	if (!primary_key || !primary_key_len ||
 	    !value || !value_len) {
+		return NULL;
+	}
+
+	if (md->db_opts->convert_single_bulk) {
+		add_key_to_put_buf(md, primary_key, primary_key_len, 
+				   value, value_len);
 		return NULL;
 	}
 
@@ -594,6 +678,11 @@ struct mdhim_bgetrm_t *mdhimGet(struct mdhim_t *md, struct index_t *index,
 
 	if (!index) {
 		index = md->primary_index;
+	}
+
+	if (md->db_opts->convert_single_bulk) {
+		add_key_to_get_buf(md, key, key_len);
+		return NULL;
 	}
 
 	//Create an a array with the single key and key len passed in

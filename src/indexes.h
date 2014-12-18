@@ -103,5 +103,6 @@ int get_stat_flush(struct mdhim_t *md, struct index_t *index);
 struct index_t *get_index(struct mdhim_t *md, int index_id);
 void indexes_release(struct mdhim_t *md);
 int im_range_server(struct index_t *index);
+int dump_slices(struct mdhim_t *md, struct index_t *index);
 
 #endif
