@@ -1,6 +1,10 @@
 #ifndef      __MESSAGES_H
 #define      __MESSAGES_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "range_server.h"
 
 /* Message Types */
@@ -49,7 +53,8 @@
 #define CLIENT_RESPONSE_MSG       4
 #define CLIENT_RESPONSE_SIZE_MSG  5
 
-#define MAX_BULK_OPS 1000000
+//#define MAX_BULK_OPS 1000000
+#define MAX_BULK_OPS 500000
 
 //Maximum size of messages allowed
 #define MDHIM_MAX_MSG_SIZE 2147483647
@@ -65,14 +70,11 @@ struct mdhim_basem_t {
 	int index_type;
 	char *index_name;
 };
+typedef struct mdhim_basem_t mdhim_basem_t;
 
 /* Put message */
 struct mdhim_putm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void *key;
 	int key_len;
 	void *value;
@@ -81,11 +83,7 @@ struct mdhim_putm_t {
 
 /* Bulk put message */
 struct mdhim_bputm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void **keys;
 	int *key_lens;
 	void **values;
@@ -95,11 +93,7 @@ struct mdhim_bputm_t {
 
 /* Get record message */
 struct mdhim_getm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	//Operation type e.g., MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;  
 	/* The key to get if op is MDHIM_GET_EQ
@@ -113,11 +107,7 @@ struct mdhim_getm_t {
 
 /* Bulk get record message */
 struct mdhim_bgetm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	//Operation type i.e, MDHIM_GET_EQ, MDHIM_GET_NEXT, MDHIM_GET_PREV
 	int op;
 	void **keys;
@@ -130,22 +120,14 @@ struct mdhim_bgetm_t {
 
 /* Delete message */
 struct mdhim_delm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void *key;
 	int key_len; 
 };
 
 /* Bulk delete record message */
 struct mdhim_bdelm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	void **keys;
 	int *key_lens;
 	int num_keys;
@@ -159,21 +141,13 @@ struct mdhim_rsi_t {
 
 /* Generic receive message */
 struct mdhim_rm_t {
-	int mtype;  
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	int error;
 };
 
 /* Bulk get receive message */
 struct mdhim_bgetrm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	int error;
 	void **keys;
 	int *key_lens;
@@ -185,11 +159,7 @@ struct mdhim_bgetrm_t {
 
 /* Bulk generic receive message */
 struct mdhim_brm_t {
-	int mtype;
-	int server_rank;
-	int size;
-	int index;
-	int index_type;
+	mdhim_basem_t basem;
 	int error;
 	struct mdhim_brm_t *next;
 };
@@ -229,4 +199,7 @@ int pack_base_message(struct mdhim_t *md, struct mdhim_basem_t *cm, void **sendb
 void mdhim_full_release_msg(void *message);
 void mdhim_partial_release_msg(void *message);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

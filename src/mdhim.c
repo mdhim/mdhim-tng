@@ -5,6 +5,8 @@
  */
 
 #include <stdlib.h>
+#include <sys/time.h>
+#include <stdio.h>
 #include "mdhim.h"
 #include "range_server.h"
 #include "client.h"
@@ -40,17 +42,20 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 
 	if (!opts) {
 		//Set default options if no options were passed
-		opts = mdhim_options_init();
-		mdhim_options_set_db_path(opts, "./");
-		mdhim_options_set_db_name(opts, "mdhimDb");
-		mdhim_options_set_db_type(opts, LEVELDB);
-		mdhim_options_set_key_type(opts, MDHIM_LONG_INT_KEY);
-		mdhim_options_set_debug_level(opts, MLOG_CRIT);
+	        opts = mdhim_options_init();
+                mdhim_options_set_db_path(opts, "/tmp/hng/");
+                mdhim_options_set_db_name(opts, "mdhimDb");
+                mdhim_options_set_db_type(opts, LEVELDB);
+                mdhim_options_set_server_factor(opts, 1);
+                mdhim_options_set_max_recs_per_slice(opts, 1000);
+                mdhim_options_set_key_type(opts, MDHIM_BYTE_KEY);
+                mdhim_options_set_debug_level(opts, MLOG_CRIT);
+		mdhim_options_set_num_worker_threads(opts, 30);
 	}
 	
 	//Open mlog - stolen from plfs
 	ret = mlog_open((char *)"mdhim", 0,
-			opts->debug_level, opts->debug_level, NULL, 0, MLOG_LOGPID, 0);
+	        opts->debug_level, opts->debug_level, NULL, 0, MLOG_LOGPID, 0);
 
 	//Check if MPI has been initialized
 	if ((ret = MPI_Initialized(&flag)) != MPI_SUCCESS) {
@@ -92,7 +97,13 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		mlog(MDHIM_CLIENT_CRIT, "Error while initializing the MDHIM communicator");
 		return NULL;
 	}
-	
+
+	//Get our rank in the main MDHIM communicator
+	if ((ret = MPI_Comm_rank(md->mdhim_comm, &md->mdhim_rank)) != MPI_SUCCESS) {
+		mlog(MDHIM_CLIENT_CRIT, "Error getting our rank while initializing MDHIM");
+		return NULL;
+	}
+
 	//Initialize mdhim_comm mutex
 	md->mdhim_comm_lock = malloc(sizeof(pthread_mutex_t));
 	if (!md->mdhim_comm_lock) {
@@ -114,12 +125,6 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 		return NULL;
 	}
 
-	//Get our rank in the main MDHIM communicator
-	if ((ret = MPI_Comm_rank(md->mdhim_comm, &md->mdhim_rank)) != MPI_SUCCESS) {
-		mlog(MDHIM_CLIENT_CRIT, "Error getting our rank while initializing MDHIM");
-		return NULL;
-	}
- 
 	//Get the size of the main MDHIM communicator
 	if ((ret = MPI_Comm_size(md->mdhim_comm, &md->mdhim_comm_size)) != MPI_SUCCESS) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error getting the size of the " 
@@ -196,12 +201,22 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
  */
 int mdhimClose(struct mdhim_t *md) {
 	int ret;
+	struct timeval start, end;
 
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank %d: Called close", md->mdhim_rank);
+	gettimeofday(&start, NULL);
 	MPI_Barrier(md->mdhim_client_comm);
+	gettimeofday(&end, NULL);
+	printf("Took: %lu seconds to complete first close barrier\n", end.tv_sec - start.tv_sec);
+
+	gettimeofday(&start, NULL);
 	//Stop range server if I'm a range server	
 	if (md->mdhim_rs && (ret = range_server_stop(md)) != MDHIM_SUCCESS) {
 		return MDHIM_ERROR;
 	}
+	
+	gettimeofday(&end, NULL);
+	printf("Took: %lu seconds to stop the range server\n", end.tv_sec - start.tv_sec);
 
 	//Free up memory used by the partitioner
 	partitioner_release();
@@ -226,16 +241,20 @@ int mdhimClose(struct mdhim_t *md) {
 	}
 	free(md->indexes_lock);
 
+	gettimeofday(&start, NULL);
 	MPI_Barrier(md->mdhim_client_comm);
 	//Destroy the client_comm_lock
 	if ((ret = pthread_mutex_destroy(md->mdhim_comm_lock)) != 0) {
 		return MDHIM_ERROR;
 	}
+	gettimeofday(&end, NULL);
 	free(md->mdhim_comm_lock);    
+	printf("Took: %lu seconds to complete the second close barrier\n", end.tv_sec - start.tv_sec);
+	mlog(MDHIM_CLIENT_DBG, "MDHIM Rank %d: Finished close", md->mdhim_rank);
 
 	MPI_Comm_free(&md->mdhim_client_comm);
 	MPI_Comm_free(&md->mdhim_comm);
-	free(md);
+        free(md);
 
 	//Close MLog
 	mlog_close();
@@ -417,7 +436,7 @@ struct mdhim_brm_t *mdhimPutSecondary(struct mdhim_t *md,
 
 	head = _create_brm(rm);
 	mdhim_full_release_msg(rm);
-
+	
 	return head;
 }
 
@@ -778,7 +797,7 @@ struct mdhim_brm_t *mdhimDelete(struct mdhim_t *md, struct index_t *index,
 	key_lens[0] = key_len;
 
 	brm_head = _bdel_records(md, index, keys, key_lens, 1);
-
+	
 	free(keys);
 	free(key_lens);
 

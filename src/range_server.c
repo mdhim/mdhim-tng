@@ -174,21 +174,14 @@ work_item *get_work(struct mdhim_t *md) {
  * @return    MDHIM_SUCCESS or MDHIM_ERROR on error
  */
 int range_server_stop(struct mdhim_t *md) {
+	int i, ret;
 	work_item *head, *temp_item;
-	int ret;	
-	int i;
 
 	//Signal to the listener thread that it needs to shutdown
 	md->shutdown = 1;
 
-	//Cancel the worker threads
-	for (i = 0; i < md->db_opts->num_wthreads; i++) {
-		if ((ret = pthread_cancel(*md->mdhim_rs->workers[i])) != 0) {
-			mlog(MDHIM_SERVER_DBG, "Rank: %d - Error canceling worker thread", 
-			     md->mdhim_rank);
-		}
-	}
-
+	/* Wait for the threads to finish */
+	pthread_cond_broadcast(md->mdhim_rs->work_ready_cv);
 	pthread_join(md->mdhim_rs->listener, NULL);
 	/* Wait for the threads to finish */
 	for (i = 0; i < md->db_opts->num_wthreads; i++) {
@@ -196,48 +189,48 @@ int range_server_stop(struct mdhim_t *md) {
 		free(md->mdhim_rs->workers[i]);
 	}
 	free(md->mdhim_rs->workers);
-
+		
 	//Destroy the condition variables
 	if ((ret = pthread_cond_destroy(md->mdhim_rs->work_ready_cv)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work cond variable", 
-		     md->mdhim_rank);
+	  mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work cond variable", 
+	       md->mdhim_rank);
 	}
 	free(md->mdhim_rs->work_ready_cv);
-
+		
 	//Destroy the work queue mutex
 	if ((ret = pthread_mutex_destroy(md->mdhim_rs->work_queue_mutex)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
-		     md->mdhim_rank);
+	  mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
+	       md->mdhim_rank);
 	}
 	free(md->mdhim_rs->work_queue_mutex);
-
+		
 	//Clean outstanding sends
 	range_server_clean_oreqs(md);
 	//Destroy the out req mutex
 	if ((ret = pthread_mutex_destroy(md->mdhim_rs->out_req_mutex)) != 0) {
-		mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
-		     md->mdhim_rank);
+	  mlog(MDHIM_SERVER_DBG, "Rank: %d - Error destroying work queue mutex", 
+	       md->mdhim_rank);
 	}
 	free(md->mdhim_rs->out_req_mutex);
-
+		
 	//Free the work queue
 	head = md->mdhim_rs->work_queue->head;
 	while (head) {
-		temp_item = head->next;
-		free(head);
-		head = temp_item;
+	  temp_item = head->next;
+	  free(head);
+	  head = temp_item;
 	}
 	free(md->mdhim_rs->work_queue);
-
+		
 	mlog(MDHIM_SERVER_INFO, "Rank: %d - Inserted: %ld records in %Lf seconds", 
 	     md->mdhim_rank, md->mdhim_rs->num_put, md->mdhim_rs->put_time);
 	mlog(MDHIM_SERVER_INFO, "Rank: %d - Retrieved: %ld records in %Lf seconds", 
 	     md->mdhim_rank, md->mdhim_rs->num_get, md->mdhim_rs->get_time);
-	
+	  
 	//Free the range server data
 	free(md->mdhim_rs);
 	md->mdhim_rs = NULL;
-	
+
 	return MDHIM_SUCCESS;
 }
 
@@ -274,16 +267,17 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	index = find_index(md, (struct mdhim_basem_t *) im);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, im->index);
+		     md->mdhim_rank, im->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
 
 	gettimeofday(&start, NULL);
        //Check for the key's existence
-	index->mdhim_store->get(index->mdhim_store->db_handle, 
+/*	index->mdhim_store->get(index->mdhim_store->db_handle, 
 				       im->key, im->key_len, value, 
 				       value_len);
+*/
 	//The key already exists
 	if (*value && *value_len) {
 		exists = 1;
@@ -320,7 +314,7 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 	}
 
 	if (!exists && error == MDHIM_SUCCESS) {
-		update_all_stats(md, index, im->key, im->key_len);
+		update_stat(md, index, im->key, im->key_len);
 	}
 
 	gettimeofday(&end, NULL);
@@ -330,11 +324,11 @@ done:
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	rm->mtype = MDHIM_RECV;
+	rm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	rm->error = error;
 	//Set the server's rank
-	rm->server_rank = md->mdhim_rank;
+	rm->basem.server_rank = md->mdhim_rank;
 	
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
@@ -391,7 +385,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	index = find_index(md, (struct mdhim_basem_t *) bim);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bim->index);
+		     md->mdhim_rank, bim->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
@@ -451,7 +445,7 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	for (i = 0; i < bim->num_keys && i < MAX_BULK_OPS; i++) {
 		//Update the stats if this key didn't exist before
 		if (!exists[i] && error == MDHIM_SUCCESS) {
-			update_all_stats(md, index, bim->keys[i], bim->key_lens[i]);
+			update_stat(md, index, bim->keys[i], bim->key_lens[i]);
 		}
 	       
 		if (exists[i] && md->db_opts->db_value_append == MDHIM_DB_APPEND) {
@@ -478,11 +472,11 @@ int range_server_bput(struct mdhim_t *md, struct mdhim_bputm_t *bim, int source)
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	brm->mtype = MDHIM_RECV;
+	brm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	brm->error = error;
 	//Set the server's rank
-	brm->server_rank = md->mdhim_rank;
+	brm->basem.server_rank = md->mdhim_rank;
 
 	//Release the internals of the bput message
 	free(bim->keys);
@@ -515,7 +509,7 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	index = find_index(md, (struct mdhim_basem_t *) dm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, dm->index);
+		     md->mdhim_rank, dm->basem.index);
 		ret = MDHIM_ERROR;
 		goto done;
 	}
@@ -532,11 +526,11 @@ int range_server_del(struct mdhim_t *md, struct mdhim_delm_t *dm, int source) {
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	rm->mtype = MDHIM_RECV;
+	rm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	rm->error = ret;
 	//Set the server's rank
-	rm->server_rank = md->mdhim_rank;
+	rm->basem.server_rank = md->mdhim_rank;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
@@ -565,7 +559,7 @@ int range_server_bdel(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, int source)
 	index = find_index(md, (struct mdhim_basem_t *) bdm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bdm->index);
+		     md->mdhim_rank, bdm->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
@@ -587,11 +581,11 @@ done:
 	//Create the response message
 	brm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	brm->mtype = MDHIM_RECV;
+	brm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	brm->error = error;
 	//Set the server's rank
-	brm->server_rank = md->mdhim_rank;
+	brm->basem.server_rank = md->mdhim_rank;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, brm);
@@ -637,11 +631,11 @@ int range_server_commit(struct mdhim_t *md, struct mdhim_basem_t *im, int source
 	//Create the response message
 	rm = malloc(sizeof(struct mdhim_rm_t));
 	//Set the type
-	rm->mtype = MDHIM_RECV;
+	rm->basem.mtype = MDHIM_RECV;
 	//Set the operation return code as the error
 	rm->error = ret;
 	//Set the server's rank
-	rm->server_rank = md->mdhim_rank;
+	rm->basem.server_rank = md->mdhim_rank;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, rm);
@@ -679,7 +673,7 @@ int range_server_bget(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int source)
 	index = find_index(md, (struct mdhim_basem_t *) bgm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bgm->index);
+		     md->mdhim_rank, bgm->basem.index);
 		error = MDHIM_ERROR;
 		goto done;
 	}
@@ -774,11 +768,11 @@ done:
 	//Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
-	bgrm->mtype = MDHIM_RECV_BULK_GET;
+	bgrm->basem.mtype = MDHIM_RECV_BULK_GET;
 	//Set the operation return code as the error
 	bgrm->error = error;
 	//Set the server's rank
-	bgrm->server_rank = md->mdhim_rank;
+	bgrm->basem.server_rank = md->mdhim_rank;
 	//Set the key and value
 	if (source == md->mdhim_rank) {
 		//If this message is coming from myself, copy the keys
@@ -800,8 +794,8 @@ done:
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_keys = bgm->num_keys;
-	bgrm->index = index->id;
-	bgrm->index_type = index->type;
+	bgrm->basem.index = index->id;
+	bgrm->basem.index_type = index->type;
 
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
@@ -859,7 +853,7 @@ int range_server_bget_op(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, int sour
 	index = find_index(md, (struct mdhim_basem_t *) bgm);
 	if (!index) {
 		mlog(MDHIM_SERVER_CRIT, "Rank: %d - Error retrieving index for id: %d", 
-		     md->mdhim_rank, bgm->index);
+		     md->mdhim_rank, bgm->basem.index);
 		error = MDHIM_ERROR;
 		goto respond;
 	}
@@ -978,19 +972,19 @@ respond:
 	//Create the response message
 	bgrm = malloc(sizeof(struct mdhim_bgetrm_t));
 	//Set the type
-	bgrm->mtype = MDHIM_RECV_BULK_GET;
+	bgrm->basem.mtype = MDHIM_RECV_BULK_GET;
 	//Set the operation return code as the error
 	bgrm->error = error;
 	//Set the server's rank
-	bgrm->server_rank = md->mdhim_rank;
+	bgrm->basem.server_rank = md->mdhim_rank;
 	//Set the keys and values
 	bgrm->keys = keys;
 	bgrm->key_lens = key_lens;
 	bgrm->values = values;
 	bgrm->value_lens = value_lens;
 	bgrm->num_keys = num_records;
-	bgrm->index = index->id;
-	bgrm->index_type = index->type;
+	bgrm->basem.index = index->id;
+	bgrm->basem.index_type = index->type;
        
 	//Send response
 	ret = send_locally_or_remote(md, source, bgrm);
@@ -1016,6 +1010,7 @@ respond:
  */
 void *listener_thread(void *data) {	
 	//Mlog statements could cause a deadlock on range_server_stop due to canceling of threads
+	
 
 	struct mdhim_t *md = (struct mdhim_t *) data;
 	void *message;
@@ -1040,10 +1035,10 @@ void *listener_thread(void *data) {
 			continue;
 		}
 
-//		printf("Rank: %d - Received message from rank: %d of type: %d", 
-//		     md->mdhim_rank, source, mtype);
-		
-                //Create a new work item
+		//printf("Rank: %d - Received message from rank: %d of type: %d", 
+		//     md->mdhim_rank, source, mtype);
+
+        //Create a new work item
 		item = malloc(sizeof(work_item));
 		memset(item, 0, sizeof(work_item));
 		             
@@ -1070,9 +1065,10 @@ void *worker_thread(void *data) {
 	int mtype;
 	int op, num_records, num_keys;
 
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	while (1) {
+		if (md->shutdown) {
+			break;
+		}
 		//Lock the work queue mutex
 		pthread_mutex_lock(md->mdhim_rs->work_queue_mutex);
 		pthread_cleanup_push((void (*)(void *)) pthread_mutex_unlock,
@@ -1086,10 +1082,9 @@ void *worker_thread(void *data) {
 	       
 		pthread_cleanup_pop(0);
 		if (!item) {
-			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
+			pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);			
 			continue;
 		}
-
 		pthread_mutex_unlock(md->mdhim_rs->work_queue_mutex);
 
 		//Clean outstanding sends
@@ -1101,7 +1096,7 @@ void *worker_thread(void *data) {
 			mtype = ((struct mdhim_basem_t *) item->message)->mtype;
 
 //			printf("Rank: %d - Got work item from queue with type: %d" 
-//			     " from: %d", md->mdhim_rank, mtype, item->source);
+//			     " from: %d\n", md->mdhim_rank, mtype, item->source);
 
 			switch(mtype) {
 			case MDHIM_PUT:
@@ -1143,7 +1138,7 @@ void *worker_thread(void *data) {
 				break;		
 			default:
 				printf("Rank: %d - Got unknown work type: %d" 
-				       " from: %d", md->mdhim_rank, mtype, item->source);
+				       " from: %d\n", md->mdhim_rank, mtype, item->source);
 				break;
 			}
 			
@@ -1155,6 +1150,8 @@ void *worker_thread(void *data) {
 		//Clean outstanding sends
 		range_server_clean_oreqs(md);				
 	}
+
+	return NULL;
 }
 
 int range_server_add_oreq(struct mdhim_t *md, MPI_Request *req, void *msg) {
@@ -1262,7 +1259,7 @@ int range_server_init(struct mdhim_t *md) {
 	md->mdhim_rs->num_put = 0;
 	md->mdhim_rs->num_get = 0;
 	//Initialize work queue
-	md->mdhim_rs->work_queue = malloc(sizeof(work_queue));
+	md->mdhim_rs->work_queue = malloc(sizeof(work_queue_t));
 	md->mdhim_rs->work_queue->head = NULL;
 	md->mdhim_rs->work_queue->tail = NULL;
 

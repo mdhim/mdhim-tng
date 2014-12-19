@@ -53,20 +53,20 @@ struct mdhim_rm_t *_put_record(struct mdhim_t *md, struct index_t *index,
 		}
 
 		//Initialize the put message
-		pm->mtype = MDHIM_PUT;
+		pm->basem.mtype = MDHIM_PUT;
 		pm->key = key;
 		pm->key_len = key_len;
 		pm->value = value;
 		pm->value_len = value_len;
-		pm->server_rank = rl->ri->rank;
-		pm->index = put_index->id;
-		pm->index_type = put_index->type;
+		pm->basem.server_rank = rl->ri->rank;
+		pm->basem.index = put_index->id;
+		pm->basem.index_type = put_index->type;
 
 		//Test if I'm a range server
 		ret = im_range_server(put_index);
 
 		//If I'm a range server and I'm the one this key goes to, send the message locally
-		if (ret && md->mdhim_rank == pm->server_rank) {
+		if (ret && md->mdhim_rank == pm->basem.server_rank) {
 			rm = local_client_put(md, pm);
 		} else {
 			//Send the message through the network as this message is for another rank
@@ -93,16 +93,16 @@ struct mdhim_brm_t *_create_brm(struct mdhim_rm_t *rm) {
 	brm = malloc(sizeof(struct mdhim_brm_t));
 	memset(brm, 0, sizeof(struct mdhim_brm_t));
 	brm->error = rm->error;
-	brm->mtype = rm->mtype;
-	brm->index = rm->index;
-	brm->index_type = rm->index_type;
-	brm->server_rank = rm->server_rank;
+	brm->basem.mtype = rm->basem.mtype;
+	brm->basem.index = rm->basem.index;
+	brm->basem.index_type = rm->basem.index_type;
+	brm->basem.server_rank = rm->basem.server_rank;
 
 	return brm;
 }
 
 /* adds new to the list pointed to by head */
-void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *new) {
+void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *addition) {
 	struct mdhim_brm_t *brmp;
 
 	brmp = head;
@@ -110,7 +110,7 @@ void _concat_brm(struct mdhim_brm_t *head, struct mdhim_brm_t *new) {
 		brmp = brmp->next;
 	}
 
-	brmp->next = new;
+	brmp->next = addition;
 
 	return;
 }
@@ -196,11 +196,10 @@ struct mdhim_brm_t *_bput_records(struct mdhim_t *md, struct index_t *index,
 				bpm->values = malloc(sizeof(void *) * MAX_BULK_OPS);
 				bpm->value_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 				bpm->num_keys = 0;
-				bpm->server_rank = rl->ri->rank;
-				bpm->mtype = MDHIM_BULK_PUT;
-				bpm->index = put_index->id;
-				bpm->index_type = put_index->type;
-				mlog(MDHIM_CLIENT_CRIT, "Index %d has name %s", put_index->id, put_index->name);
+				bpm->basem.server_rank = rl->ri->rank;
+				bpm->basem.mtype = MDHIM_BULK_PUT;
+				bpm->basem.index = put_index->id;
+				bpm->basem.index_type = put_index->type;
 				if (rl->ri->rank != md->mdhim_rank) {
 					bpm_list[rl->ri->rangesrv_num - 1] = bpm;
 				} else {
@@ -260,15 +259,6 @@ struct mdhim_bgetrm_t *_bget_records(struct mdhim_t *md, struct index_t *index,
 	int i;
 	rangesrv_list *rl = NULL, *rlp;
 
-	//Make sure we aren't exceeding MAX_BULK_OPS
-	if (num_keys > MAX_BULK_OPS) {
-		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
-		     "We may be sending more keys than MAX_BULK_OPS allows" 
-		     " since number of keys passed in is: %d and MAX_BULK_OPS is: %d.", 
-		     md->mdhim_rank, num_keys, MAX_BULK_OPS);
-		num_keys = MAX_BULK_OPS;
-	}
-
 	//The message to be sent to ourselves if necessary
 	lbgm = NULL;
 	//Create an array of bulk get messages that holds one bulk message per range server
@@ -315,15 +305,17 @@ struct mdhim_bgetrm_t *_bget_records(struct mdhim_t *md, struct index_t *index,
 			//If the message doesn't exist, create one
 			if (!bgm) {
 				bgm = malloc(sizeof(struct mdhim_bgetm_t));			       
+				//bgm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
+				//bgm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 				bgm->keys = malloc(sizeof(void *) * num_keys);
 				bgm->key_lens = malloc(sizeof(int) * num_keys);
 				bgm->num_keys = 0;
 				bgm->num_recs = num_records;
-				bgm->server_rank = rl->ri->rank;
-				bgm->mtype = MDHIM_BULK_GET;
+				bgm->basem.server_rank = rl->ri->rank;
+				bgm->basem.mtype = MDHIM_BULK_GET;
 				bgm->op = (op == MDHIM_GET_PRIMARY_EQ) ? MDHIM_GET_EQ : op;
-				bgm->index = index->id;
-				bgm->index_type = index->type;
+				bgm->basem.index = index->id;
+				bgm->basem.index_type = index->type;
 				if (rl->ri->rank != md->mdhim_rank) {
 					bgm_list[rl->ri->rangesrv_num - 1] = bgm;
 				} else {
@@ -428,10 +420,10 @@ struct mdhim_brm_t *_bdel_records(struct mdhim_t *md, struct index_t *index,
 			bdm->keys = malloc(sizeof(void *) * MAX_BULK_OPS);
 			bdm->key_lens = malloc(sizeof(int) * MAX_BULK_OPS);
 			bdm->num_keys = 0;
-			bdm->server_rank = rl->ri->rank;
-			bdm->mtype = MDHIM_BULK_DEL;
-			bdm->index = index->id;
-			bdm->index_type = index->type;
+			bdm->basem.server_rank = rl->ri->rank;
+			bdm->basem.mtype = MDHIM_BULK_DEL;
+			bdm->basem.index = index->id;
+			bdm->basem.index_type = index->type;
 			if (rl->ri->rank != md->mdhim_rank) {
 				bdm_list[rl->ri->rangesrv_num - 1] = bdm;
 			} else {
@@ -451,10 +443,10 @@ struct mdhim_brm_t *_bdel_records(struct mdhim_t *md, struct index_t *index,
 		rm = local_client_bdelete(md, lbdm);
 		brm = malloc(sizeof(struct mdhim_brm_t));
 		brm->error = rm->error;
-		brm->mtype = rm->mtype;
-		brm->index = rm->index;
-		brm->index_type = rm->index_type;
-		brm->server_rank = rm->server_rank;
+		brm->basem.mtype = rm->basem.mtype;
+		brm->basem.index = rm->basem.index;
+		brm->basem.index_type = rm->basem.index_type;
+		brm->basem.server_rank = rm->basem.server_rank;
 		brm->next = brm_head;
 		brm_head = brm;
 		free(rm);	

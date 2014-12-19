@@ -157,7 +157,7 @@ int read_manifest(struct mdhim_t *md, struct index_t *index) {
 }
 
 /**
- * update_all_stats
+ * update_stat
  * Adds or updates the given stat to the hash table
  *
  * @param md       pointer to the main MDHIM structure
@@ -165,7 +165,7 @@ int read_manifest(struct mdhim_t *md, struct index_t *index) {
  * @param key_len  the key's length
  * @return MDHIM_SUCCESS or MDHIM_ERROR on error
  */
-int update_all_stats(struct mdhim_t *md, struct index_t *index, void *key, uint32_t key_len) {
+int update_stat(struct mdhim_t *md, struct index_t *index, void *key, uint32_t key_len) {
 	int slice_num;
 	void *val1, *val2;
 	int float_type = 0;
@@ -213,6 +213,7 @@ int update_all_stats(struct mdhim_t *md, struct index_t *index, void *key, uint3
 	stat->max = val2;
 	stat->num = 1;
 	stat->key = slice_num;
+	stat->dirty = 1;
 
 	if (float_type && os) {
 		if (*(long double *)os->min > *(long double *)val1) {
@@ -331,6 +332,7 @@ int load_stats(struct mdhim_t *md, struct index_t *index) {
 		stat->max = max;
 		stat->num = (*(struct mdhim_db_stat **)val)->num;
 		stat->key = **slice;
+		stat->dirty = 0;
 		old_slice = *slice;
 		HASH_ADD_INT(index->mdhim_store->mdhim_store_stats, key, stat); 
 		free(*val);
@@ -368,6 +370,10 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 			continue;
 		}
 
+		if (!stat->dirty) {
+			goto free_stat;
+		}
+
 		dbstat = malloc(sizeof(struct mdhim_db_stat));
 		if (float_type) {
 			dbstat->dmax = *(long double *)stat->max;
@@ -388,11 +394,13 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 				     &dbstat->slice, sizeof(int), dbstat, 
 				     sizeof(struct mdhim_db_stat));	
 		//Delete and free hash entry
+		free(dbstat);
+
+	free_stat:
 		HASH_DEL(bi->mdhim_store->mdhim_store_stats, stat); 
 		free(stat->max);
 		free(stat->min);
 		free(stat);
-		free(dbstat);
 	}
 
 	return MDHIM_SUCCESS;
@@ -408,7 +416,7 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
  */
 
 int open_db_store(struct mdhim_t *md, struct index_t *index) {
-	char filename[PATH_MAX];
+	char filename[PATH_MAX] = {'\0'};
 	int flags = MDHIM_CREATE;
 	int path_num;
 	int ret;
@@ -659,16 +667,12 @@ done:
  */
 
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
-				    int max_recs_per_slice, 
-				    int db_type, int key_type, char *index_name) {
+				    uint64_t max_recs_per_slice, 
+				    int db_type, int key_type) {
 	struct index_t *gi;
 	struct index_t *check = NULL;
 	uint32_t rangesrv_num;
 	int ret;
-
-	// debugging
-	int hack = 0;
-
 
 	MPI_Barrier(md->mdhim_client_comm);
 
@@ -701,10 +705,6 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 	gi->myinfo.rank = md->mdhim_rank;
 	gi->primary_id = gi->type == SECONDARY_INDEX ? md->primary_index->id : -1;
 	gi->stats = NULL;
-	
-    while(hack) {
-        sleep(1);
-    }
 
     if (gi->id > 0) {
 
@@ -1065,7 +1065,7 @@ void indexes_release(struct mdhim_t *md) {
 	struct mdhim_stat *stat, *tmp;
 
 	HASH_ITER(hh, md->indexes, cur_indx, tmp_indx) {
-		HASH_DEL(md->indexes, cur_indx); 
+		HASH_DELETE(hh, md->indexes, cur_indx); 
 		HASH_DELETE(hh_name, md->indexes_by_name, cur_indx);
 		HASH_ITER(hh, cur_indx->rangesrvs_by_num, cur_rs, tmp_rs) {
 			HASH_DEL(cur_indx->rangesrvs_by_num, cur_rs); 
@@ -1327,6 +1327,7 @@ int get_stat_flush_global(struct mdhim_t *md, struct index_t *index) {
 		}	
 
 		stat = malloc(sizeof(struct mdhim_stat));
+		stat->dirty = 0;
 		if (float_type) {
 			stat->min = (void *) malloc(sizeof(long double));
 			stat->max = (void *) malloc(sizeof(long double));
@@ -1504,6 +1505,7 @@ int get_stat_flush_local(struct mdhim_t *md, struct index_t *index) {
 			}	
 
 			stat = malloc(sizeof(struct mdhim_stat));
+			stat->dirty = 0;
 			if (float_type) {
 				stat->min = (void *) malloc(sizeof(long double));
 				stat->max = (void *) malloc(sizeof(long double));

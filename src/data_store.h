@@ -49,6 +49,7 @@ struct mdhim_stat {
 	int key;                   //Key (slice number)
 	void *max;                 //Max key
 	void *min;                 //Min key
+	int dirty;                 //Wether this stat was updated or a new stat
 	uint64_t num;              //Number of keys in this slice
 	struct mdhim_stat *stats;  //Used for local index stats to create a multi-level hash table
 	UT_hash_handle hh;         /* makes this structure hashable */

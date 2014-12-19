@@ -1,16 +1,18 @@
 #include <unistd.h>
 #include <math.h>
 #include "mdhim.h"
+#include "partitioner.h"
 #include "messages.h"
 
 void test_req_and_wait(struct mdhim_t *md, MPI_Request *req) {
 	int flag;
 	MPI_Status status;
 	int done = 0;
+	int ret;
 
 	while (!done) {
 		pthread_mutex_lock(md->mdhim_comm_lock);
-		MPI_Test(req, &flag, &status);
+		ret = MPI_Test(req, &flag, &status);
 		//Unlock the mdhim_comm_lock
 		pthread_mutex_unlock(md->mdhim_comm_lock);
 	
@@ -804,7 +806,7 @@ int pack_put_message(struct mdhim_t *md, struct mdhim_putm_t *pm, void **sendbuf
 	//Set output variable for the size to send
 	mesg_size = (int) m_size;
         *sendsize = mesg_size;	
-	pm->size = mesg_size;
+	pm->basem.size = mesg_size;
 
         // Is the computed message size of a safe value? (less than a max message size?)
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
@@ -874,7 +876,7 @@ int pack_bput_message(struct mdhim_t *md, struct mdhim_bputm_t *bpm, void **send
         }
         mesg_size = m_size;  // Safe size to use in MPI_pack     
 	*sendsize = mesg_size;
-	bpm->size = mesg_size;
+	bpm->basem.size = mesg_size;
 
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
@@ -1133,7 +1135,7 @@ int pack_get_message(struct mdhim_t *md, struct mdhim_getm_t *gm, void **sendbuf
         }
         mesg_size = m_size;
         *sendsize = mesg_size;
-	gm->size = mesg_size;
+	gm->basem.size = mesg_size;
 
         // Is the computed message size of a safe value? (less than a max message size?)
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
@@ -1200,7 +1202,7 @@ int pack_bget_message(struct mdhim_t *md, struct mdhim_bgetm_t *bgm, void **send
         }
         mesg_size = m_size;  // Safe size to use in MPI_pack     
 	*sendsize = mesg_size;
-	bgm->size = mesg_size;
+	bgm->basem.size = mesg_size;
 
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
@@ -1418,7 +1420,7 @@ int pack_bgetrm_message(struct mdhim_t *md, struct mdhim_bgetrm_t *bgrm, void **
         }
         mesg_size = m_size;  // Safe size to use in MPI_pack     
 	*sendsize = mesg_size;
-	bgrm->size = mesg_size;
+	bgrm->basem.size = mesg_size;
 
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
@@ -1672,7 +1674,7 @@ int pack_del_message(struct mdhim_t *md, struct mdhim_delm_t *dm, void **sendbuf
         }
         mesg_size = m_size;
         *sendsize = mesg_size;
-	dm->size = mesg_size;
+	dm->basem.size = mesg_size;
 
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
@@ -1738,7 +1740,7 @@ int pack_bdel_message(struct mdhim_t *md, struct mdhim_bdelm_t *bdm, void **send
         }
         mesg_size = m_size;  // Safe size to use in MPI_pack     
 	*sendsize = mesg_size;
-	bdm->size = mesg_size;
+	bdm->basem.size = mesg_size;
 
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "
@@ -1931,7 +1933,7 @@ int pack_return_message(struct mdhim_t *md, struct mdhim_rm_t *rm, void **sendbu
         void *outbuf;
 	
 	*sendsize = mesg_size;
-	rm->size = mesg_size;
+	rm->basem.size = mesg_size;
 
         if ((*sendbuf = malloc(mesg_size * sizeof(char))) == NULL) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - Error: unable to allocate "

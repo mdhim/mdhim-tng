@@ -9,7 +9,7 @@
 #include "mdhim_options.h"
 
 // Default path to a local path and name, levelDB=2, int_key_type=1, yes_create_new=1
-// and debug=1 (MLOG_CRIT)
+// and debug=1 (mlog_CRIT)
 
 #define MANIFEST_FILE_NAME "/mdhim_manifest_"
 

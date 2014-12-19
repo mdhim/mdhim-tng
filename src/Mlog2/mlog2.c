@@ -60,7 +60,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#include "mlog.h"
+#include "mlog2.h"
 
 
 /*
@@ -122,7 +122,7 @@ struct mlog_xstate mlog_xst = { 0 };
  * static data.
  */
 static struct mlog_state mst = { 0 };
-static int mlog2syslog[] = {
+static int mlogsyslog[] = {
     LOG_DEBUG,     /* MLOG_DBUG */
     LOG_INFO,      /* MLOG_INFO */
     LOG_NOTICE,    /* MLOG_NOTE */
@@ -720,7 +720,7 @@ static void vmlog(int flags, const char *fmt, va_list ap)
      */
     if (mst.oflags & MLOG_SYSLOG) {
         b[tlen - 1] = 0;     /* syslog doesn't want the \n */
-        syslog(mlog2syslog[lvl >> MLOG_PRISHIFT], "%s", b_nopt1hdr);
+        syslog(mlogsyslog[lvl >> MLOG_PRISHIFT], "%s", b_nopt1hdr);
         b[tlen - 1] = '\n';  /* put \n back, just to be safe */
     }
     /*

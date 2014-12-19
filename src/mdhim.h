@@ -14,12 +14,16 @@
 #include "range_server.h"
 #include "messages.h"
 #include "partitioner.h"
-#include "Mlog/mlog.h"
-#include "Mlog/mlogfacs.h"
+#include "Mlog2/mlog2.h"
+#include "Mlog2/mlogfacs2.h"
 #include "mdhim_options.h"
 #include "indexes.h"
 #include "mdhim_private.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #define MDHIM_SUCCESS 0
 #define MDHIM_ERROR -1
 #define MDHIM_DB_ERROR -2
@@ -48,7 +52,7 @@ struct mdhim_t {
 	//The size of mdhim_comm
 	int mdhim_comm_size;
 	//Flag to indicate mdhimClose was called
-	int shutdown;
+	volatile int shutdown;
 	//A pointer to the primary index
 	struct index_t *primary_index;
 	//A linked list of range servers
@@ -135,5 +139,8 @@ struct secondary_bulk_info *mdhimCreateSecondaryBulkInfo(struct index_t *seconda
 							 int *num_keys, int info_type);
 void mdhimReleaseSecondaryBulkInfo(struct secondary_bulk_info *si);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 
