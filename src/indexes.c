@@ -668,7 +668,7 @@ done:
 
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    uint64_t max_recs_per_slice, 
-				    int db_type, int key_type) {
+				    int db_type, int key_type, char *index_name) {
 	struct index_t *gi;
 	struct index_t *check = NULL;
 	uint32_t rangesrv_num;

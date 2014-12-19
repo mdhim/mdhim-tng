@@ -96,16 +96,16 @@ int load_stats(struct mdhim_t *md, struct index_t *bi);
 int write_stats(struct mdhim_t *md, struct index_t *bi);
 int open_db_store(struct mdhim_t *md, struct index_t *index);
 uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *index);
-struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, char index_name[]);
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, char *index_name);
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    uint64_t max_recs_per_slice, int db_type, 
-				    int key_type);
+				    int key_type, char *index_name);
 int get_rangesrvs(struct mdhim_t *md, struct index_t *index);
 uint32_t is_range_server(struct mdhim_t *md, int rank, struct index_t *index);
 int index_init_comm(struct mdhim_t *md, struct index_t *bi);
 int get_stat_flush(struct mdhim_t *md, struct index_t *index);
 struct index_t *get_index(struct mdhim_t *md, int index_id);
-struct index_t *get_index_by_name(struct mdhim_t *md, char index_name[]);
+struct index_t *get_index_by_name(struct mdhim_t *md, char *index_name);
 void indexes_release(struct mdhim_t *md);
 int im_range_server(struct index_t *index);
 
