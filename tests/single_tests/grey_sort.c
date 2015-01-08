@@ -8,10 +8,10 @@
 #include "mpi.h"
 #include "mdhim.h"
 
-#define KEYS 2000
+#define KEYS 100
 #define KEY_SIZE 100
-#define NUM_KEYS 100000
-#define SLICE 100000
+#define NUM_KEYS 10
+#define SLICE 10
 int main(int argc, char **argv) {
 	int ret;
 	int provided;
@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 	}	
 	
 
+	printf("Opening input file: %s\n", filename);
 	//Read in the keys from the files and insert them
 	for (j = 0; j < NUM_KEYS; j+=KEYS) {
 		//Populate the keys and values to insert

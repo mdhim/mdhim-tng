@@ -440,6 +440,10 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 		/* Seek to the passed in key.  If that doesn't exist, iterate until we find one greater
 		   or until we exhaust the keys.*/
 		leveldb_iter_seek(iter, old_key, old_key_len);
+		if (leveldb_iter_valid(iter)) {
+			leveldb_iter_next(iter);
+		}
+	
 		if (!leveldb_iter_valid(iter)) { 
 			leveldb_iter_seek_to_first(iter);
 			while(leveldb_iter_valid(iter)) {
@@ -450,8 +454,6 @@ int mdhim_leveldb_get_next(void *dbh, void **key, int *key_len,
 				
 				leveldb_iter_next(iter);
 			}			
-		} else {
-			leveldb_iter_next(iter);
 		}
 	}
 

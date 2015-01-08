@@ -186,7 +186,6 @@ int dump_slices(struct mdhim_t *md, struct index_t *index) {
 		last_key = malloc(stat->min_key_len);
 		*key_len = stat->min_key_len;
 		memcpy(last_key, stat->min_key, stat->min_key_len);
-//		printf("Getting key/value for: %.100s\n", (char *) last_key);
 		index->mdhim_store->get(index->mdhim_store->db_handle,
 					last_key, *key_len, (void **) val,
 					val_len);		
@@ -208,8 +207,11 @@ int dump_slices(struct mdhim_t *md, struct index_t *index) {
 			index->mdhim_store->get_next(index->mdhim_store->db_handle,
 						     new_key, key_len, (void **) val,
 						     val_len);
-			write(fd, *new_key, *key_len);			
 			num_read++;
+			if (!*new_key || !*key_len) {
+				continue;
+			}	
+			write(fd, *new_key, *key_len);			
 			if (last_key) {
 				free(last_key);
 				last_key = NULL;
@@ -248,11 +250,10 @@ int dump_slices(struct mdhim_t *md, struct index_t *index) {
  */
 int update_stat(struct mdhim_t *md, struct index_t *index, void *key, uint32_t key_len) {
 	int slice_num;
-	int fd;
 	void *val1, *val2;
 	int float_type = 0;
 	struct mdhim_stat *os, *stat;
-	char filename[255];
+
 	//Acquire the lock to update the stats
 	while (pthread_rwlock_wrlock(index->mdhim_store->mdhim_store_stats_lock) == EBUSY) {
 		usleep(10);
@@ -320,7 +321,28 @@ int update_stat(struct mdhim_t *md, struct index_t *index, void *key, uint32_t k
 			stat->max = os->max;
 		}
 	}
-	if (!float_type && os) {
+	if (!float_type && os && index->key_type == MDHIM_BYTE_KEY) {
+		if (memcmp(os->min_key, key, key_len) > 0) {
+			free(os->min);
+			stat->min = val1;
+			memcpy(stat->min_key, key, key_len);
+			stat->min_key_len = key_len;
+		} else {
+			free(val1);
+			stat->min = os->min;
+			memcpy(stat->min_key, os->min_key, os->min_key_len);
+			stat->min_key_len = os->min_key_len;
+		}
+
+		if (memcmp(os->min_key, key, key_len) < 0) {
+			free(os->max);
+			stat->max = val2;
+		} else {
+			free(val2);
+			stat->max = os->max;
+		}		
+	}
+	if (!float_type && os && index->key_type != MDHIM_BYTE_KEY) {
 		if (*(uint64_t *)os->min > *(uint64_t *)val1) {
 			free(os->min);
 			stat->min = val1;
@@ -457,7 +479,6 @@ int write_stats(struct mdhim_t *md, struct index_t *bi) {
 	struct mdhim_db_stat *dbstat;
 	int float_type = 0;
 
-	return MDHIM_SUCCESS;
 	float_type = is_float_key(bi->key_type);
 
 	//Iterate through the stat hash entries

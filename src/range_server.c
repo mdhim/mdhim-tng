@@ -256,10 +256,10 @@ int range_server_put(struct mdhim_t *md, struct mdhim_putm_t *im, int source) {
 
 	gettimeofday(&start, NULL);
        //Check for the key's existence
-/*	index->mdhim_store->get(index->mdhim_store->db_handle, 
+	index->mdhim_store->get(index->mdhim_store->db_handle, 
 				       im->key, im->key_len, value, 
 				       value_len);
-*/
+
 	//The key already exists
 	if (*value && *value_len) {
 		exists = 1;

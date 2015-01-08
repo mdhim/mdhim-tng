@@ -42,19 +42,28 @@ long double get_str_num(void *key, uint32_t key_len) {
 }
 
 uint64_t get_byte_num(void *key, uint32_t key_len) {
-	int i;
-	unsigned int val;
-	uint64_t byte_num;
-	
-	byte_num = 0;
-	//Iterate through each character to perform the algorithm mentioned above
-	for (i = 0; i < key_len && i < 6; i++) {
-//	for (i = 0; i < key_len; i++) {
-          val = (unsigned int)(((char *) key)[i]);
-          byte_num += val * powl(2, i);
-//	  byte_num += val;
+	uint64_t byte_num = 0;
+	unsigned char byte_cmp[MAX_KEY_LEN];
+	int i, j, ret;
+
+	memset(byte_cmp, 0, MAX_KEY_LEN);
+	for (i = 1; i < 255; i++) {
+		for (j = 0; j < key_len; j++) {
+			byte_num++;
+			memset(byte_cmp, i, j);
+			ret = memcmp(byte_cmp, key, key_len);
+			if (ret < 0) {
+				continue;
+			} else if (ret == 0) {
+				goto got_byte_num;
+			} else if (ret > 0) {
+				byte_num--;
+				goto got_byte_num;
+			}	
+		}
 	}
-	
+
+got_byte_num:
 	return byte_num;
 }
 
@@ -282,26 +291,7 @@ int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_
 
 		break;
 	case MDHIM_BYTE_KEY:
-		/* Algorithm used		   
-		   1. Iterate through each byte
-		   2. Transform each byte into a floating point number
-		   3. Add this floating point number to map_num
-		   4. Multiply this number times the total number of keys to get the number 
-		      that represents the position in a range
-
-		   For #2, the transformation is as follows:
-		   
-		   Take the position of the character in the mdhim alphabet 
-                   times 2 raised to 8 * -(i + 1) 
-		   where i is the current iteration in the loop
-		*/		
- 
-                //Used for calculating the range server to use for this string
-	  //		map_num = 0;
-	  //		map_num = get_byte_num(key, key_len);	
-	  //		key_num = floorl(map_num * total_keys);
-		key_num = get_byte_num(key, key_len);	
-//		printf("key_num is: %llu\n", key_num);
+		key_num = get_byte_num(key, key_len);
 
 		break;
 	case MDHIM_FLOAT_KEY:
@@ -347,8 +337,18 @@ int get_slice_num(struct mdhim_t *md, struct index_t *index, void *key, int key_
 
 
 	/* Convert the key to a slice number  */
+//	if (key_type == MDHIM_BYTE_KEY) {
+//	  slice_num = key_num;
+//	} else {
 	slice_num = key_num/index->mdhim_max_recs_per_slice;
-
+//	}
+/*	printf("slice_num is: %d and key_num is: %llu and key is: ", slice_num, key_num);
+	for (i=0; i < key_len; i++) { 
+		printf("%u ", (unsigned char) ((char *)key)[i]);
+	}
+	
+	printf("\n");
+*/
 	//Return the slice number
 	return slice_num;
 }
