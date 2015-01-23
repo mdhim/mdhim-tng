@@ -13,6 +13,21 @@
 #include "indexes.h"
 
 /**
+ * to_lower
+ * convert strings to all lower case
+ *
+ */
+void to_lower(size_t in_length, char *in, char *out) {
+    memset(out, 0, in_length);
+
+    // Make sure that the name passed is lowercase
+    int i=0;
+    for(i=0; i < in_length; i++) {
+        out[i] = tolower(in[i]);
+    }
+}
+
+/**
  * im_range_server
  * checks if I'm a range server
  *
@@ -553,15 +568,9 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 
     if (index_name != NULL) {
         size_t name_len = strlen(index_name)+1;
-        char *lower_name;
-        lower_name = malloc(name_len);
-        memset(lower_name, 0, name_len);
+        char *lower_name = malloc(name_len);
 
-        // Make sure that the name passed is lowercase
-        int i=0;
-        for(i=0; i < name_len; i++) {
-            lower_name[i] = tolower(index_name[i]);
-        }
+        to_lower(name_len, index_name, lower_name);
 
         // check if the name has been used
         HASH_FIND_STR(md->indexes, lower_name, check);
@@ -711,14 +720,9 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
         if (index_name != NULL) {
 
             size_t name_len = strlen(index_name)+1;
-            char *lower_name;
-            lower_name = malloc(name_len);
-            memset(lower_name, 0, name_len);
-            // Make sure that the name passed is lowercase
-            int i=0;
-            for(i=0; i < name_len; i++) {
-                lower_name[i] = tolower(index_name[i]);
-            }
+            char *lower_name = malloc(name_len);
+
+            to_lower(name_len, index_name, lower_name);
 
             // check if the name has been used
             HASH_FIND_STR(md->indexes, lower_name, check);
@@ -1031,19 +1035,14 @@ get_index_by_name ( struct mdhim_t *md, char *index_name )
 {
     struct index_t *index = NULL;
     size_t name_len = strlen(index_name)+1;
-    char *lower_name;
-    lower_name = malloc(name_len);
-    memset(lower_name, 0, name_len);
-    int i=0;
+    char *lower_name = malloc(name_len);
 
     // Acquire the lock to update indexes
     while ( pthread_rwlock_wrlock(md->indexes_lock) == EBUSY ) {
         usleep(10);
     }
-
-    for (i=0; i<name_len; i++) {
-        lower_name[i] = tolower(index_name[i]);
-    }
+    
+    to_lower(name_len, index_name, lower_name);
 
     if ( strcmp(lower_name, "") != 0 ) {
         HASH_FIND(hh_name, md->indexes_by_name, lower_name, strlen(lower_name), index);
