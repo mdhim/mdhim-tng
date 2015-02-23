@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 	/* Secondary key entries */
 	//Create the secondary global index
 	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
-					      MDHIM_LONG_INT_KEY);
+					      MDHIM_LONG_INT_KEY, NULL);
 	/* Primary key and secondary key entries */
 	MPI_Barrier(MPI_COMM_WORLD);	
 	total = 0;

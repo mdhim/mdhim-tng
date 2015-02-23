@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
 	//Create the secondary remote index
 	secondary_index = create_global_index(md, 2, SECONDARY_SLICE_SIZE, LEVELDB, 
-					      MDHIM_INT_KEY);
+					      MDHIM_INT_KEY, NULL);
 	//Create the secondary info struct
 	secondary_info = mdhimCreateSecondaryInfo(secondary_index,
 						  (void **) secondary_keys, 

@@ -93,6 +93,24 @@ struct index_t *find_index(struct mdhim_t *md, struct mdhim_basem_t *msg) {
 
 }
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  find_index_by_name
+ *  Description:  Search for index by name
+ *    Variables:  <struct mdhim_t *md> the pointer to the mdhim structure
+ *                <struct mdhim_basem_t *msg> A pointer to a base message that contains
+ *                                            the name of the index
+ * =====================================================================================
+ */
+struct index_t * find_index_by_name(struct mdhim_t *md, struct mdhim_basem_t *msg) {
+    struct index_t *ret;
+
+    ret = get_index_by_name(md, msg->index_name);
+
+    return ret;
+}
+
 /**
  * range_server_add_work
  * Adds work to the work queue and signals the condition variable for the worker thread

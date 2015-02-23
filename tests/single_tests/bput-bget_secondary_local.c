@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 	MPI_Barrier(MPI_COMM_WORLD);	
 	total = 0;
 	secondary_local_index = create_local_index(md, LEVELDB, 
-						   MDHIM_LONG_INT_KEY);
+						   MDHIM_LONG_INT_KEY, NULL);
 	for (i = 0; i < KEYS; i++) {
 		num_keys[i] = 1;
 	}

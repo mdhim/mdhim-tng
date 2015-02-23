@@ -57,6 +57,8 @@ struct mdhim_t {
 	struct index_t *primary_index;
 	//A linked list of range servers
 	struct index_t *indexes;
+	// The hash to hold the indexes by name
+	struct index_t *indexes_by_name;
 
 	//Lock to allow concurrent readers and a single writer to the remote_indexes hash table
 	pthread_rwlock_t *indexes_lock;

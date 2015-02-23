@@ -166,6 +166,7 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 
 	//Initialize the indexes and create the primary index
 	md->indexes = NULL;
+	md->indexes_by_name = NULL;
 	md->indexes_lock = malloc(sizeof(pthread_rwlock_t));
 	if (pthread_rwlock_init(md->indexes_lock, NULL) != 0) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
@@ -176,7 +177,7 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 
 	//Create the default remote primary index
 	primary_index = create_global_index(md, opts->rserver_factor, opts->max_recs_per_slice, 
-					    opts->db_type, opts->db_key_type);
+					    opts->db_type, opts->db_key_type, NULL);
 	if (!primary_index) {
 		mlog(MDHIM_CLIENT_CRIT, "MDHIM Rank: %d - " 
 		     "Couldn't create the default index", 

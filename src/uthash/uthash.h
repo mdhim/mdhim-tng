@@ -251,7 +251,7 @@ do {                                                                            
 
 /* convenience forms of HASH_FIND/HASH_ADD/HASH_DEL */
 #define HASH_FIND_STR(head,findstr,out)                                          \
-    HASH_FIND(hh,head,findstr,strlen(findstr),out)
+    HASH_FIND(hh,head,findstr,strlen(findstr),out)                               
 #define HASH_ADD_STR(head,strfield,add)                                          \
     HASH_ADD(hh,head,strfield,strlen(add->strfield),add)
 #define HASH_REPLACE_STR(head,strfield,add,replaced)                             \
@@ -606,8 +606,8 @@ do {                                                                            
  if (head.hh_head) DECLTYPE_ASSIGN(out,ELMT_FROM_HH(tbl,head.hh_head));          \
  else out=NULL;                                                                  \
  while (out) {                                                                   \
-    if ((out)->hh.keylen == keylen_in) {                                           \
-        if ((HASH_KEYCMP((out)->hh.key,keyptr,keylen_in)) == 0) break;             \
+    if ((out)->hh.keylen == keylen_in) {                                         \
+        if ((HASH_KEYCMP((out)->hh.key,keyptr,keylen_in)) == 0) break;           \
     }                                                                            \
     if ((out)->hh.hh_next) DECLTYPE_ASSIGN(out,ELMT_FROM_HH(tbl,(out)->hh.hh_next)); \
     else out = NULL;                                                             \

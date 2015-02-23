@@ -8,8 +8,24 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
+#include <ctype.h>
 #include "mdhim.h"
 #include "indexes.h"
+
+/**
+ * to_lower
+ * convert strings to all lower case
+ *
+ */
+void to_lower(size_t in_length, char *in, char *out) {
+    memset(out, 0, in_length);
+
+    // Make sure that the name passed is lowercase
+    int i=0;
+    for(i=0; i < in_length; i++) {
+        out[i] = tolower(in[i]);
+    }
+}
 
 /**
  * im_range_server
@@ -512,8 +528,9 @@ uint32_t get_num_range_servers(struct mdhim_t *md, struct index_t *rindex) {
  * @param  md  main MDHIM struct
  * @return     MDHIM_ERROR on error, otherwise the index identifier
  */
-struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type) {
+struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type, char *index_name) {
 	struct index_t *li;
+	struct index_t *check = NULL;
 	uint32_t rangesrv_num;
 	int ret;
 
@@ -549,6 +566,29 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 	li->primary_id = md->primary_index->id;
 	li->stats = NULL;
 
+    if (index_name != NULL) {
+        size_t name_len = strlen(index_name)+1;
+        char *lower_name = malloc(name_len);
+
+        to_lower(name_len, index_name, lower_name);
+
+        // check if the name has been used
+        HASH_FIND_STR(md->indexes, lower_name, check);
+        if(check) {
+            goto done;
+        }
+
+        li->name = malloc(name_len);
+        memcpy(li->name, lower_name, name_len);
+
+    } else {
+        char buf[50];
+        sprintf(buf, "local_%d", li->id);
+        li->name = malloc(sizeof(char)*strlen(buf));
+        strcpy(li->name, buf);
+    }
+
+
 	//Figure out how many range servers we could have based on the range server factor
 	li->num_rangesrvs = get_num_range_servers(md, li);		
 
@@ -561,6 +601,7 @@ struct index_t *create_local_index(struct mdhim_t *md, int db_type, int key_type
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->indexes, id, li);
+	HASH_ADD_KEYPTR( hh_name, md->indexes_by_name, li->name, strlen(li->name), li );
 
 	//Test if I'm a range server and get the range server number
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, li)) == MDHIM_ERROR) {	
@@ -612,6 +653,12 @@ done:
 		return NULL;
 	}
 
+	// The index name has already been taken
+	if(check) {
+        mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error creating index: Name %s, already exists", md->mdhim_rank, index_name);
+        return NULL;
+    }
+
 	return li;
 }
 
@@ -630,8 +677,9 @@ done:
 
 struct index_t *create_global_index(struct mdhim_t *md, int server_factor, 
 				    uint64_t max_recs_per_slice, 
-				    int db_type, int key_type) {
+				    int db_type, int key_type, char *index_name) {
 	struct index_t *gi;
+	struct index_t *check = NULL;
 	uint32_t rangesrv_num;
 	int ret;
 
@@ -667,6 +715,36 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 	gi->primary_id = gi->type == SECONDARY_INDEX ? md->primary_index->id : -1;
 	gi->stats = NULL;
 
+    if (gi->id > 0) {
+
+        if (index_name != NULL) {
+
+            size_t name_len = strlen(index_name)+1;
+            char *lower_name = malloc(name_len);
+
+            to_lower(name_len, index_name, lower_name);
+
+            // check if the name has been used
+            HASH_FIND_STR(md->indexes, lower_name, check);
+            if(check) {
+                goto done;
+            }
+
+            gi->name = malloc(name_len);
+            memcpy(gi->name, lower_name, name_len);
+
+        } else {
+            char buf[50];
+            sprintf(buf, "global_%d", gi->id);
+            gi->name = malloc(sizeof(char)*strlen(buf));
+            strcpy(gi->name, buf);
+        }
+
+    } else {
+        gi->name = malloc(sizeof(char)*10);
+        strcpy(gi->name, "primary");
+    }
+
 	//Figure out how many range servers we could have based on the range server factor
 	gi->num_rangesrvs = get_num_range_servers(md, gi);		
 
@@ -679,6 +757,7 @@ struct index_t *create_global_index(struct mdhim_t *md, int server_factor,
 
 	//Add it to the hash table
 	HASH_ADD_INT(md->indexes, id, gi);
+	HASH_ADD_KEYPTR( hh_name, md->indexes_by_name, gi->name, strlen(gi->name), gi );
 
 	//Test if I'm a range server and get the range server number
 	if ((rangesrv_num = is_range_server(md, md->mdhim_rank, gi)) == MDHIM_ERROR) {	
@@ -735,6 +814,12 @@ done:
 	if (!gi) {
 		return NULL;
 	}
+
+	// The index name has already been taken
+	if(check) {
+        mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error creating index: Name %s, already exists", md->mdhim_rank, index_name);
+        return NULL;
+    }
 
 	return gi;
 }
@@ -926,7 +1011,7 @@ struct index_t *get_index(struct mdhim_t *md, int index_id) {
 	
 	index = NULL;
 	if (index_id >= 0) {
-		HASH_FIND_INT(md->indexes, &index_id, index);
+		HASH_FIND(hh, md->indexes, &index_id, sizeof(int), index);
 	}
 
 	if (pthread_rwlock_unlock(md->indexes_lock) != 0) {
@@ -938,6 +1023,40 @@ struct index_t *get_index(struct mdhim_t *md, int index_id) {
 	return index;
 }
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  get_index_by_name
+ *  Description:  Retrieve the index by name
+ * =====================================================================================
+ */
+struct index_t*
+get_index_by_name ( struct mdhim_t *md, char *index_name )
+{
+    struct index_t *index = NULL;
+    size_t name_len = strlen(index_name)+1;
+    char *lower_name = malloc(name_len);
+
+    // Acquire the lock to update indexes
+    while ( pthread_rwlock_wrlock(md->indexes_lock) == EBUSY ) {
+        usleep(10);
+    }
+    
+    to_lower(name_len, index_name, lower_name);
+
+    if ( strcmp(lower_name, "") != 0 ) {
+        HASH_FIND(hh_name, md->indexes_by_name, lower_name, strlen(lower_name), index);
+    }
+
+    if ( pthread_rwlock_unlock(md->indexes_lock) !=0 ) {
+        mlog(MDHIM_CLIENT_CRIT, "Rank: %d - Error unlocking the indexes_lock",
+                md->mdhim_rank);
+        return NULL;
+    }
+
+return index;
+}		/* -----  end of function get_index_by_name  ----- */
+
 void indexes_release(struct mdhim_t *md) {
 	struct index_t *cur_indx, *tmp_indx;
 	struct rangesrv_info *cur_rs, *tmp_rs;
@@ -945,7 +1064,8 @@ void indexes_release(struct mdhim_t *md) {
 	struct mdhim_stat *stat, *tmp;
 
 	HASH_ITER(hh, md->indexes, cur_indx, tmp_indx) {
-		HASH_DEL(md->indexes, cur_indx); 
+		HASH_DELETE(hh, md->indexes, cur_indx); 
+		HASH_DELETE(hh_name, md->indexes_by_name, cur_indx);
 		HASH_ITER(hh, cur_indx->rangesrvs_by_num, cur_rs, tmp_rs) {
 			HASH_DEL(cur_indx->rangesrvs_by_num, cur_rs); 
 			free(cur_rs);
