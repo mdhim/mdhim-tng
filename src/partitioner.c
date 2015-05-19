@@ -41,7 +41,25 @@ long double get_str_num(void *key, uint32_t key_len) {
   return str_num;
 }
 
+//Better for YCSB
 uint64_t get_byte_num(void *key, uint32_t key_len) {
+        int i;
+        unsigned char val;
+        uint64_t byte_num;
+
+        byte_num = 0;
+        //Iterate through each character to perform the algorithm mentioned above
+	for (i = 0; i < key_len; i++) {
+	  val = (unsigned char)(((char *) key)[i]);
+	  byte_num += val * powl(2, i);
+	}
+
+	printf("Byte num is: %llu\n", byte_num);        
+	return byte_num;
+}
+        
+/* Great for grey sort */
+/*uint64_t get_byte_num(void *key, uint32_t key_len) {
 	uint64_t byte_num = 0;
 	unsigned char byte_cmp[MAX_KEY_LEN];
 	int i, j, ret;
@@ -64,8 +82,10 @@ uint64_t get_byte_num(void *key, uint32_t key_len) {
 	}
 
 got_byte_num:
+	printf("Byte num is: %llu\n", byte_num);
 	return byte_num;
 }
+*/
 
 void partitioner_init() {
 	// Create the alphabet for string keys
@@ -826,7 +846,7 @@ rangesrv_list *get_range_servers_from_stats(struct mdhim_t *md, struct index_t *
 		} else if (index->key_type == MDHIM_LONG_INT_KEY) {
 			istat = *(uint64_t *) key;
 		} else if (index->key_type == MDHIM_BYTE_KEY) {
-			fstat = get_byte_num(key, key_len);
+			istat = get_byte_num(key, key_len);
 		} 
 	}
 

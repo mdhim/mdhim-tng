@@ -55,7 +55,7 @@ struct mdhim_t *mdhimInit(void *appComm, struct mdhim_options_t *opts) {
 	if (!opts) {
 		//Set default options if no options were passed
 	        opts = mdhim_options_init();
-                mdhim_options_set_db_path(opts, "/tmp/hng/");
+                mdhim_options_set_db_path(opts, "/users/hng/");
                 mdhim_options_set_db_name(opts, "mdhimDb");
                 mdhim_options_set_db_type(opts, LEVELDB);
                 mdhim_options_set_server_factor(opts, 1);
