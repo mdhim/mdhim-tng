@@ -13,13 +13,13 @@ int main(int argc, char **argv) {
 	struct mdhim_t *md;
 	int **keys;
 	int key_lens[KEYS];
-	int **values;
+	char **values;
 	int value_lens[KEYS];
 	int total = 0;
 	struct mdhim_brm_t *brm, *brmp;
 	struct mdhim_bgetrm_t *bgrm, *bgrmp;
 	struct timeval start_tv, end_tv;
-	char     *db_path = "./";
+	char     *db_path = "/home/hugh/";
 	char     *db_name = "mdhimTstDB";
 	int      dbug = MLOG_CRIT; //MLOG_CRIT=1, MLOG_DBG=2
 	mdhim_options_t *db_opts; // Local variable for db create options to be passed
@@ -57,18 +57,18 @@ int main(int argc, char **argv) {
 		exit(1);
 	}	
 	
+	keys = malloc(sizeof(int *) * KEYS);
+	values = malloc(sizeof(char *) * KEYS);
 	while (total != TOTAL) {
 		//Populate the keys and values to insert
-		keys = malloc(sizeof(int *) * KEYS);
-		values = malloc(sizeof(int *) * KEYS);
 		for (i = 0; i < KEYS; i++) {
 			keys[i] = malloc(sizeof(int));
-			*keys[i] = (i + 1) * (md->mdhim_rank + 1);
+			*keys[i] = total + (i + 1) * (md->mdhim_rank + 1);
 			printf("Rank: %d - Inserting key: %d\n", md->mdhim_rank, *keys[i]);
 			key_lens[i] = sizeof(int);
-			values[i] = malloc(sizeof(int));
-			*values[i] = (i + 1) * (md->mdhim_rank + 1);
-			value_lens[i] = sizeof(int);		
+			values[i] = malloc(1000024);
+			memset(values[i], (char) i, 1000024);
+			value_lens[i] = 1000024;		
 		}
 
 		//Insert the keys into MDHIM
@@ -89,7 +89,11 @@ int main(int argc, char **argv) {
 			mdhim_full_release_msg(brm);
 			brm = brmp;
 		}
-	
+	        for (i = 0; i < KEYS; i++) {
+	   	     free(keys[i]);
+	   	     free(values[i]);
+	        }
+
 		total += KEYS;
 	}
 
@@ -104,6 +108,12 @@ int main(int argc, char **argv) {
 	total = 0;
 	while (total != TOTAL) {
 		//Get the values back for each key inserted
+		for (i = 0; i < KEYS; i++) {
+			keys[i] = malloc(sizeof(int));
+			*keys[i] = total + (i + 1) * (md->mdhim_rank + 1);
+			key_lens[i] = sizeof(int);
+		}
+
 		bgrm = mdhimBGet(md, md->primary_index, (void **) keys, key_lens, 
 				 KEYS, MDHIM_GET_EQ);
 		bgrmp = bgrm;
@@ -114,8 +124,8 @@ int main(int argc, char **argv) {
 
 			for (i = 0; i < bgrmp->num_keys && bgrmp->error >= 0; i++) {
 		
-				printf("Rank: %d - Got key: %d value: %d\n", md->mdhim_rank, 
-				       *(int *)bgrmp->keys[i], *(int *)bgrmp->values[i]);
+				printf("Rank: %d - Got key: %d\n", md->mdhim_rank, 
+				       *(int *)bgrmp->keys[i]);
 			}
 
 			bgrmp = bgrmp->next;
@@ -124,6 +134,9 @@ int main(int argc, char **argv) {
 			bgrm = bgrmp;
 		}
 
+	        for (i = 0; i < KEYS; i++) {
+	   	     free(keys[i]);
+	        }
 		total += KEYS;
 	}
 
@@ -136,10 +149,6 @@ int main(int argc, char **argv) {
 	
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
-	for (i = 0; i < KEYS; i++) {
-		free(keys[i]);
-		free(values[i]);
-	}
 
 	free(keys);
 	free(values);
