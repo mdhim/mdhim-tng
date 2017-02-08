@@ -1,8 +1,9 @@
 include ../Makefile.cfg
 ifeq ($(FORTRAN),1)
-        OBJS    = mlog2.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o mdhim_fortran.o  mdhim_f90_binding.o
+	OBJS    = mlog2.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o mdhim_fortran.o  mdhim_f90_binding.o
 else
-        OBJS    = mlog2.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
+	OBJS    = mlog2.o client.o local_client.o data_store.o partitioner.o messages.o range_server.o mdhim_options.o mdhim_private.o indexes.o
+endif
 
 ifeq ($(LEVELDB),1)
 	OBJS += ds_leveldb.o
@@ -23,7 +24,7 @@ mdhim.o: mdhim.c $(OBJS)
 	$(CC) -c $< $(CINC) $(CLIBS) -lleveldb
 
 mdhim_fortran.o: mdhim_fortran.c
-        $(CC) -c $< $(CINC) $(CLIBS)
+	$(CC) -c $< $(CINC) $(CLIBS)
 
 mlog2.o: Mlog2/mlog2.c
 	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
@@ -65,9 +66,9 @@ mdhim_options.o : mdhim_options.c
 	$(CC) -c $^ $(CINC) $(CLIBS) -lleveldb
 
 mdhim_f90_binding.o: mdhim_f90_binding.f90
-        $(FF) -c $< $(FINC) $(FLIBS)
+	$(FF) -c $< $(FINC) $(FLIBS)
 
-lib:	
+lib:
 	ar rvs libmdhim.a mdhim.o $(OBJS)
 
 dylib:
