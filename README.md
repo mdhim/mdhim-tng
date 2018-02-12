@@ -7,6 +7,7 @@ MDHIM is a parallel key/value store framework written in MPI.
 Unlike other big data solutions, MDHIM has been designed for an HPC 
 environment and to take advantage of high speed networks.
 
+**Note: This is not the Hexadimensional Hashing Indexing Middleware (HXHIM) repository.**
 
 Requirements
 ---------------
